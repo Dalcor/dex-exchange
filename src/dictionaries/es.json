@@ -1,0 +1,12 @@
+{
+  "server-component": {
+    "welcome": "Welcomes"
+  },
+  "counter": {
+    "increment": "Increments",
+    "decrement": "Decrements"
+  },
+  "navigation": {
+    "trade": "Tradio"
+  }
+}

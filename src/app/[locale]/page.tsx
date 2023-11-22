@@ -1,19 +1,13 @@
 import Container from "@/components/atoms/Container";
-import { Locale } from "@/i18n-config";
-import { getDictionary } from "@/get-dictionary";
-
-export default async function Home({
-                                     params: {locale},
-                                   }: {
-  params: { locale: Locale }
-}) {
+import { useTranslations } from "next-intl";
 
 
-  const dictionary = await getDictionary(locale);
+export default function Home() {
+  const t = useTranslations('Trade');
 
   return (<>
       <Container>
-        {dictionary['server-component'].welcome}
+        {t('trade')}
       </Container>
     </>
   )

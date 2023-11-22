@@ -1,34 +1,38 @@
-import { useTranslation } from "@/providers/LocaleProvider";
+import { useTranslations } from "next-intl";
+import { Link } from "@/navigation";
 
-const menuItems = [
+const menuItems: Array<{
+  label: any,
+  href: string
+}> = [
   {
     label: "trade",
+    href: "/lib"
+  },
+  {
+    label: "statistics",
     href: "#"
   },
   {
-    label: "Statistics",
+    label: "lending-and-borrowing",
     href: "#"
   },
   {
-    label: "Lending & Borrowing",
+    label: "liquidity",
     href: "#"
   },
   {
-    label: "Liquidity",
-    href: "#"
-  },
-  {
-    label: "List your token",
+    label: "list-your-token",
     href: "#"
   }
 ]
 export default function Navigation() {
-  const { t } = useTranslation();
+  const t = useTranslations('Trade');
 
   return <ul className="flex gap-5">
     {menuItems.map((menuItem) => {
       return <li key={menuItem.label}>
-        <a className="uppercase hover:text-green duration-200" href={menuItem.href}>{t("navigation", menuItem.label) || menuItem.label}</a>
+        <Link className="uppercase hover:text-green duration-200" href={menuItem.href}>{t(menuItem.label)}</Link>
       </li>
     })}
   </ul>

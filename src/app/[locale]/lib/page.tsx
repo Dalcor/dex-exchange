@@ -3,18 +3,16 @@ import { useState } from "react";
 import Button from "@/components/atoms/Button";
 import Dialog from "@/components/atoms/Dialog";
 import Checkbox from "@/components/atoms/Checkbox";
-import { useTranslation } from "@/providers/LocaleProvider";
+import { useTranslations } from "next-intl";
 export default function Lib({ params: { locale } }: { params: { locale: string } }) {
 
   const [isDialogOpened, setDialogOpened] = useState(false);
   const [isCheckboxChecked, setCheckboxChecked] = useState(false);
 
-
-  const { t } = useTranslation();
+  const t = useTranslations('Trade');
 
   return (<div className="grid gap-2 mt-4">
-      {t("navigation", "trade")}
-      {/*<p>{t('hello')}</p>*/}
+      {t( "trade")}
       <div className="p-3 border border-primary-border">
         <h2 className="mb-3">Buttons</h2>
         <div className="inline-flex gap-1">

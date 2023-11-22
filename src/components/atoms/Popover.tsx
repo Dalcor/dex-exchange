@@ -1,4 +1,4 @@
-import { JSX, PropsWithChildren, useState } from "react";
+import React, { PropsWithChildren, ReactElement } from "react";
 import {
   autoUpdate,
   FloatingFocusManager,
@@ -9,18 +9,14 @@ import {
   useRole, useTransitionStyles
 } from "@floating-ui/react";
 import { flip, shift } from "@floating-ui/core";
-import SelectButton from "@/components/atoms/SelectButton";
 
 interface Props {
-  buttonContent: string | JSX.Element,
   placement: Placement,
   isOpened?: boolean,
   setIsOpened?: (isOpened: boolean) => void,
-  withArrow?: boolean
+  trigger: ReactElement
 }
-export default function Popover({buttonContent, placement, isOpened, setIsOpened, children, withArrow = true}: PropsWithChildren<Props>) {
-  // const [isOpen, setIsOpen] = useState(false);
-
+export default function Popover({placement, isOpened, setIsOpened, children, trigger}: PropsWithChildren<Props>) {
   const { refs, floatingStyles, context } = useFloating({
     open: isOpened,
     onOpenChange: setIsOpened,
@@ -53,9 +49,10 @@ export default function Popover({buttonContent, placement, isOpened, setIsOpened
 
   return (
     <>
-      <SelectButton withArrow={withArrow} isOpen={isOpened} ref={refs.setReference} {...getReferenceProps()}>
-        {buttonContent}
-      </SelectButton>
+      {React.cloneElement(
+        trigger,
+        {...getReferenceProps, ref: refs.setReference}
+      )}
       {isMounted && (
         <FloatingFocusManager context={context} modal={false}>
           <div

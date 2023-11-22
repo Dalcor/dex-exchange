@@ -10,10 +10,10 @@ import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { LedgerConnector } from "@wagmi/connectors/ledger";
 import { KeystoreConnector } from "@/config/connectors/keystore/connector";
 import { createWalletClient, http, publicActions } from "viem";
-import Wallet, { thirdparty } from "ethereumjs-wallet";
 import { privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
 import Button from "@/components/atoms/Button";
+import { getWalletFromPrivKeyFile } from "@/functions/keystore";
 
 interface Props {
   isOpen: boolean,
@@ -28,25 +28,6 @@ function StepLabel({step, label}: { step: string, label: string }) {
     <span className="text-18 font-bold">{label}</span>
   </div>
 }
-
-const fromMyEtherWalletV2 = (json: any) => {
-  if (json.privKey.length !== 64) {
-    throw new Error('Invalid private key length');
-  }
-  const privKey = new Buffer(json.privKey, 'hex');
-  return new Wallet(privKey);
-};
-
-const getWalletFromPrivKeyFile = (jsonfile: any, password: string) => {
-  if (jsonfile.encseed != null) return Wallet.fromEthSale(jsonfile, password);
-  else if (jsonfile.Crypto != null || jsonfile.crypto != null)
-    return Wallet.fromV3(jsonfile, password, true);
-  else if (jsonfile.hash != null)
-    return thirdparty.fromEtherWallet(jsonfile, password);
-  else if (jsonfile.publisher == 'MyEtherWallet')
-    return fromMyEtherWalletV2(jsonfile);
-  throw new Error('Invalid Wallet file');
-};
 
 const unlockKeystore = async (file: {[key: string]: string} | null, password: string) => {
   const newFile: {[key: string]: string} = {};
@@ -63,7 +44,6 @@ const unlockKeystore = async (file: {[key: string]: string} | null, password: st
 };
 
 export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
-  const {address} = useAccount();
   const [activeNetwork, setActiveNetwork] = useState(1);
 
   const { connect: connectMetamask } = useConnect({
@@ -153,7 +133,7 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
       <DialogHeader onClose={() => setIsOpen(false)} title="Connect wallet" />
       <div className="p-10">
         <StepLabel step="1" label="Choose network" />
-        <div className="grid grid-cols-4 gap-5 mt-3 mb-5">
+        <div className="grid grid-cols-4 gap-3 mt-3 mb-5">
           {networks.map(({name, chainId, logo}) => {
             return <PickButton key={chainId} isActive={chainId === activeNetwork} onClick={() => {
               setActiveNetwork(chainId);
@@ -161,7 +141,7 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
           })}
         </div>
         <StepLabel step="2" label="Choose wallet" />
-        <div className="grid grid-cols-4 gap-5 mt-3">
+        <div className="grid grid-cols-4 gap-3 mt-3">
           {wallets.map(({id, name, image}) => {
             return <PickButton key={id} isActive={false} onClick={async () => {
               if(id === "metamask") {
@@ -202,7 +182,7 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
 
           </div>
 
-          <Button onClick={importKeystoreFileHandler}>
+          <Button onClick={() => ""}>
             {!isUnlockingKeystore ? "Unlock" : "Loading..."}
           </Button>
         </Dialog>

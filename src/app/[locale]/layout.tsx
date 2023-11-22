@@ -1,10 +1,17 @@
 import { ReactNode } from "react";
 import { i18n, Locale } from '@/i18n-config';
+import { Golos_Text } from 'next/font/google'
 import Header from "@/components/Header";
-import './globals.css';
 import { getDictionary } from "@/get-dictionary";
-import Providers from "@/app/[locale]/Providers";
 import LocaleProvider from "@/providers/LocaleProvider";
+import WagmiProvider from "@/app/[locale]/Providers";
+import './globals.css';
+
+const golos_text = Golos_Text({
+  subsets: ['latin'],
+  display: 'swap',
+  adjustFontFallback: false
+});
 
 export async function generateStaticParams() {
   return i18n.locales.map((locale) => ({ lang: locale }))
@@ -21,13 +28,13 @@ export default async function RootLayout({
 
   return (
     <html lang={params.locale}>
-      <body>
-        <Providers>
+      <body className={golos_text.className}>
+        <WagmiProvider>
           <LocaleProvider dictionary={dictionary}>
             <Header />
             {children}
           </LocaleProvider>
-        </Providers>
+        </WagmiProvider>
       </body>
     </html>
   )

@@ -124,13 +124,15 @@ export default function Header() {
           </Popover>
           {isConnected && address
             ? <SelectButton withArrow={false} onClick={() => disconnect()}>
-              <span className="flex gap-2 items-center px-3"><Svg iconName="wallet" />{`${address.slice(0, 5)}...${address.slice(-3)}`}</span>
+              <span className="flex gap-2 items-center px-3">
+                <Svg iconName="wallet" />
+                {`${address.slice(0, 5)}...${address.slice(-3)}`}
+              </span>
             </SelectButton>
             : <Button size="small" onClick={() => setOpenedWallet(true)}>Connect wallet</Button>
           }
           <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet} />
         </div>
-
       </div>
     </Container>
   </div>

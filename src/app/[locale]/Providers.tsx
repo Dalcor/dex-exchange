@@ -1,9 +1,10 @@
 "use client";
-import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
 
-import { WagmiConfig } from 'wagmi'
-import { arbitrum, mainnet } from 'viem/chains'
 import { PropsWithChildren } from "react";
+import { defaultWagmiConfig, createWeb3Modal } from "@web3modal/wagmi/react";
+import { WagmiConfig } from 'wagmi';
+import { avalanche, bsc, mainnet } from 'wagmi/chains';
+
 
 // 1. Get projectId
 const projectId = '05737c557c154bdb3aea937d7214eae2';
@@ -16,7 +17,7 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
-const chains = [mainnet, arbitrum]
+const chains = [avalanche, bsc, mainnet];
 const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
 
 // 3. Create modal
@@ -31,7 +32,9 @@ createWeb3Modal({
     "c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96"
   ]
 });
-export default function Providers({children}: PropsWithChildren) {
+
+
+export default function WagmiProvider({children}: PropsWithChildren) {
   return <WagmiConfig config={wagmiConfig}>
     {children}
   </WagmiConfig>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   autoUpdate,
   FloatingPortal,
@@ -9,7 +9,8 @@ import {
   useInteractions,
   useRole,
   flip,
-  shift, useTransitionStyles
+  shift, useTransitionStyles,
+  arrow, FloatingArrow
 } from "@floating-ui/react";
 import Svg from "@/components/atoms/Svg";
 
@@ -18,6 +19,7 @@ interface Props {
 }
 export default function Tooltip({text}: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const arrowRef = useRef(null);
 
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
@@ -26,11 +28,14 @@ export default function Tooltip({text}: Props) {
     // Make sure the tooltip stays on the screen
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset(5),
+      offset(12),
       flip({
         fallbackAxisSideDirection: "start"
       }),
-      shift()
+      shift(),
+      arrow({
+        element: arrowRef
+      })
     ]
   });
 
@@ -64,12 +69,13 @@ export default function Tooltip({text}: Props) {
       <FloatingPortal>
         {isMounted && (
           <div
-            className="py-3 px-5 bg-block-fill border border-primary-border rounded-2 max-w-[400px] shadow-tooltip"
+            className="py-3 px-5 bg-block-fill border border-primary-border rounded-2 max-w-[400px] shadow-tooltip relative"
             ref={refs.setFloating}
             style={{ ...floatingStyles, ...transitionStyles }}
             {...getFloatingProps()}
           >
             {text}
+            <FloatingArrow ref={arrowRef} context={context} strokeWidth={1} stroke={'#5A5A5A'} fill={'#141316'} />
           </div>
         )}
       </FloatingPortal>

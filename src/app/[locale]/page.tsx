@@ -11,8 +11,6 @@ export default async function Home({
 
   const dictionary = await getDictionary(locale);
 
-  console.log(dictionary);
-
   return (<>
       <Container>
         {dictionary['server-component'].welcome}

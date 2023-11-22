@@ -40,7 +40,7 @@ export default function TokenListsSettings() {
           <Tooltip text="Helper text" />
           <span className="text-red px-2 border border-red rounded-5 bg-red-bg">Risky</span>
         </div>
-        <Input isError={true} type="text"
+        <Input type="text"
                placeholder="Custom auto-listing contract" />
         <div className="text-font-secondary text-12">Enter the contract address to retrieve tokens</div>
 

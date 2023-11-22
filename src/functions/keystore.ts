@@ -8,7 +8,7 @@ const fromMyEtherWalletV2 = (json: any) => {
   return new Wallet(privKey);
 };
 
-export const getWalletFromPrivKeyFile = (jsonfile: any, password: string) => {
+const getWalletFromPrivKeyFile = (jsonfile: any, password: string) => {
   if (jsonfile.encseed != null) return Wallet.fromEthSale(jsonfile, password);
   else if (jsonfile.Crypto != null || jsonfile.crypto != null)
     return Wallet.fromV3(jsonfile, password, true);
@@ -17,4 +17,18 @@ export const getWalletFromPrivKeyFile = (jsonfile: any, password: string) => {
   else if (jsonfile.publisher == 'MyEtherWallet')
     return fromMyEtherWalletV2(jsonfile);
   throw new Error('Invalid Wallet file');
+};
+
+export const unlockKeystore = async (file: {[key: string]: string} | null, password: string) => {
+  const newFile: {[key: string]: string} = {};
+
+  if(!file) {
+    return;
+  }
+  // Small hack because non-strict wasn't working..
+  Object.keys(file).forEach(key => {
+    newFile[key.toLowerCase()] = file[key];
+  });
+
+  return getWalletFromPrivKeyFile(newFile, password);
 };

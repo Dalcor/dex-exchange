@@ -1,22 +1,18 @@
-export const wallets = [
-  {
-    id: "metamask",
+export const wallets = {
+  metamask: {
     name: "Metamask",
     image: "/wallets/metamask.svg"
   },
-  {
-    id: "wc",
+  wc: {
     name: "WalletConnect",
     image: "/wallets/wc.svg"
   },
-  {
-    id: "keystore",
+  keystore: {
     name: "Keystore",
     image: "/wallets/keystore.svg"
   },
-  {
-    id: "ledger",
+  ledger: {
     name: "Ledger",
     image: "/wallets/ledger.svg"
   }
-]
+}

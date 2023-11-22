@@ -3,6 +3,7 @@ import Switch from "@/components/atoms/Switch";
 import Tooltip from "@/components/atoms/Tooltip";
 import Popover from "@/components/atoms/Popover";
 import { useState } from "react";
+import Input from "@/components/atoms/Input";
 
 export default function TokenListsSettings() {
   const [isOpened, setIsOpened] = useState(false);
@@ -39,11 +40,8 @@ export default function TokenListsSettings() {
           <Tooltip text="Helper text" />
           <span className="text-red px-2 border border-red rounded-5 bg-red-bg">Risky</span>
         </div>
-        <input
-          className="duration-200 hover:border-green focus:border-green focus:outline-0 py-3 pl-5 mb-[2px] placeholder:text-placeholder text-16 w-full bg-input-fill rounded-1 border border-primary-border"
-          type="text"
-          placeholder="Custom auto-listing contract"
-        />
+        <Input isError={true} type="text"
+               placeholder="Custom auto-listing contract" />
         <div className="text-font-secondary text-12">Enter the contract address to retrieve tokens</div>
 
       </div>
@@ -53,11 +51,8 @@ export default function TokenListsSettings() {
           <Tooltip text="Helper info text"/>
           <span className="text-red px-2 border border-red rounded-5 bg-red-bg">Risky</span>
         </div>
-        <input
-          className="duration-200 hover:border-green focus:border-green focus:outline-0 py-3 pl-5 mb-[2px] placeholder:text-placeholder text-16 w-full bg-input-fill rounded-1 border border-primary-border"
-          type="text"
-          placeholder="Custom auto-listing contract"
-        />
+        <Input type="text"
+               placeholder="Custom auto-listing contract" />
         <div className="text-font-secondary text-12">Enter the token list URL</div>
 
       </div>

@@ -10,6 +10,9 @@ const config: Config = {
     extend: {
       boxShadow: {
         'tooltip': '0 0 32px 24px rgba(20, 19, 22, 0.50)',
+      },
+      backgroundImage: {
+        'account-card-pattern': "url('/account-bg.svg')",
       }
     },
     colors: {

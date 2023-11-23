@@ -13,13 +13,14 @@ import { useAccount, useDisconnect } from "wagmi";
 import { Link } from "@/navigation";
 import TokenListsSettings from "@/components/TokenListsSettings";
 import NetworkPicker from "@/components/NetworkPicker";
+import WalletDialog from "@/components/WalletDialog";
 
 export default function Header() {
   const { address, isConnected, connector } = useAccount();
   const { disconnect } = useDisconnect();
 
   const [isOpenedWallet, setOpenedWallet] = useState(false);
-
+  const [isOpenedAccount, setIsOpenedAccount] = useState(false);
   return <div className="border-b-primary-border border-b mb-3">
     <Container>
       <div className="py-3 flex justify-between items-center">
@@ -34,7 +35,7 @@ export default function Header() {
           <TokenListsSettings />
           <NetworkPicker />
           {isConnected && address
-            ? <SelectButton withArrow={false} onClick={() => disconnect()}>
+            ? <SelectButton withArrow={false} onClick={() => setIsOpenedAccount(true)}>
               <span className="flex gap-2 items-center px-3">
                 <Svg iconName="wallet"/>
                 {`${address.slice(0, 5)}...${address.slice(-3)}`}
@@ -42,6 +43,7 @@ export default function Header() {
             </SelectButton>
             : <Button size="small" onClick={() => setOpenedWallet(true)}>Connect wallet</Button>
           }
+          <WalletDialog isOpen={isOpenedAccount} setIsOpen={setIsOpenedAccount} />
           <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet}/>
         </div>
       </div>

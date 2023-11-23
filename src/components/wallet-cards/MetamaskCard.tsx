@@ -5,9 +5,9 @@ import { MetaMaskConnector } from "@wagmi/connectors/metaMask";
 
 const { image, name } = wallets.metamask;
 export default function MetamaskCard() {
-  const { connect } = useConnect({
+  const { connect, isLoading, isSuccess } = useConnect({
     connector: new MetaMaskConnector()
   });
 
-  return <PickButton onClick={connect} image={image} label={name}/>
+  return <PickButton onClick={connect} image={image} label={name} loading={isLoading} isActive={isSuccess} />
 }

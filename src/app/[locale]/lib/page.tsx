@@ -6,6 +6,7 @@ import Checkbox from "@/components/atoms/Checkbox";
 import { useTranslations } from "next-intl";
 import TextField from "@/components/atoms/TextField";
 import Switch from "@/components/atoms/Switch";
+import AwaitingLoader from "@/components/atoms/AwaitingLoader";
 export default function Lib({ params: { locale } }: { params: { locale: string } }) {
 
   const [isDialogOpened, setDialogOpened] = useState(false);
@@ -50,6 +51,15 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
         <div className="inline-flex gap-3">
           <TextField label="Text field" placeholder="Check it out" helperText="This is helper text" />
           <TextField label="Error text field" placeholder="Check it out" error="Something is wrong" />
+        </div>
+      </div>
+
+      <div className="p-3 border border-primary-border">
+        <h2 className="mb-3 border-b border-primary-border pb-3">Awaiting loaders</h2>
+        <div className="inline-flex gap-3 py-3">
+          <AwaitingLoader size={30} />
+          <AwaitingLoader />
+          <AwaitingLoader size={70} />
         </div>
       </div>
     </div>

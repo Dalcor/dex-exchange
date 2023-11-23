@@ -9,10 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       boxShadow: {
-        'tooltip': '0 0 32px 24px rgba(20, 19, 22, 0.50)',
+        'tooltip': '0 0 32px 24px rgba(20, 19, 22, 0.50)'
       },
       backgroundImage: {
         'account-card-pattern': "url('/account-bg.svg')",
+      },
+      keyframes: {
+        orbit: {
+          '0%': {transform: "rotate(0deg)"},
+          '80%, 100%': {transform: "rotate(360deg)"}
+        }
+      },
+      animation: {
+        orbit: "orbit ease-in-out 1.5s infinite"
       }
     },
     colors: {

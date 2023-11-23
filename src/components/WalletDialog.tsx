@@ -8,6 +8,7 @@ import { wallets } from "@/config/wallets";
 import ButtonWithIcon from "@/components/atoms/ButtonWithIcon";
 import Tabs from "@/components/tabs/Tabs";
 import Tab from "@/components/tabs/Tab";
+import { useMemo } from "react";
 
 interface Props {
   isOpen: boolean,
@@ -16,18 +17,32 @@ interface Props {
 
 export default function WalletDialog({ isOpen, setIsOpen }: Props) {
   const { disconnect } = useDisconnect();
-  const { address } = useAccount();
+  const { address, connector } = useAccount();
+
+  console.log(connector);
+
+  const connectorKey = useMemo(() => {
+    if(!connector?.id) {
+      return "unknown";
+    }
+
+    if(connector.id === "eip6963" || connector.id === "walletConnect") {
+      return 'wc';
+    }
+
+    return connector.id.toLowerCase();
+  }, [connector?.id]);
 
   return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
     <DialogHeader onClose={() => setIsOpen(false)} title="Account"/>
     <div className="pt-10 pl-10 pr-10 min-w-[600px]">
-      <div className="relative bg-gradient-to-tr from-[#183321] from-45% to-100% to-[#224C31]">
+      <div className="relative bg-gradient-to-tr from-[#183321] from-45% to-100% to-[#224C31] rounded-2">
         <div className="absolute right-0 top-0 bottom-0 bg-account-card-pattern bg-no-repeat bg-right w-full h-full" />
-        <div className="relative mb-5 p-5 rounded-2 grid gap-3 z-10">
+        <div className="relative mb-5 p-5 grid gap-3 z-10">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 p-2 rounded-1 bg-block-fill">
-                <Image src={wallets.metamask.image} alt="" width={24} height={24} />
+              <div className="flex items-center gap-2 py-2 px-3 rounded-1 bg-block-fill">
+                <Image src={wallets[connectorKey].image} alt="" width={24} height={24} />
                 {`${address?.slice(0, 5)}...${address?.slice(-3)}`}
               </div>
               <IconButton>

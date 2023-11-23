@@ -2,9 +2,14 @@
 
 import { PropsWithChildren } from "react";
 import { defaultWagmiConfig, createWeb3Modal } from "@web3modal/wagmi/react";
-import { WagmiConfig } from 'wagmi';
+import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { avalanche, bsc, mainnet } from 'wagmi/chains';
-
+import { MetaMaskConnector } from "@wagmi/connectors/metaMask";
+import { WalletConnectConnector } from "@wagmi/connectors/walletConnect";
+import { KeystoreConnector } from "@/config/connectors/keystore/connector";
+import { LedgerConnector } from "@wagmi/connectors/ledger";
+import { createWalletClient, http, publicActions } from "viem";
+import { publicProvider } from "wagmi/providers/public";
 
 // 1. Get projectId
 const projectId = '05737c557c154bdb3aea937d7214eae2';
@@ -17,12 +22,46 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
-const chains = [avalanche, bsc, mainnet];
-const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
+const web3chains = [avalanche, bsc, mainnet];
+const web3config = defaultWagmiConfig({ chains: web3chains, projectId, metadata })
+
+const { chains, publicClient, webSocketPublicClient } = configureChains(
+  [mainnet, bsc], [publicProvider()]
+)
+
+const walletClient = createWalletClient({
+  account: "0xF1602175601606E8ffEe38CE433A4DB4C6cf5d60",
+  chain: mainnet,
+  transport: http(),
+}).extend(publicActions);
+
+const wagmiConfig1 = createConfig({
+  autoConnect: true,
+  connectors: [
+    new MetaMaskConnector({ chains }),
+    new WalletConnectConnector({
+      chains, options: {
+        projectId
+      }
+    }),
+    new KeystoreConnector({
+      options: {
+        walletClient
+      }
+    }),
+    new LedgerConnector({
+      options: {
+        projectId
+      }
+    })
+  ],
+  publicClient,
+  webSocketPublicClient
+})
 
 // 3. Create modal
 createWeb3Modal({
-  wagmiConfig,
+  wagmiConfig: web3config,
   projectId,
   chains,
   featuredWalletIds: [
@@ -34,8 +73,8 @@ createWeb3Modal({
 });
 
 
-export default function WagmiProvider({children}: PropsWithChildren) {
-  return <WagmiConfig config={wagmiConfig}>
+export default function WagmiProvider({ children }: PropsWithChildren) {
+  return <WagmiConfig config={wagmiConfig1}>
     {children}
   </WagmiConfig>
 }

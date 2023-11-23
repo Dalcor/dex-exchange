@@ -14,10 +14,9 @@ import { Link } from "@/navigation";
 import TokenListsSettings from "@/components/TokenListsSettings";
 import NetworkPicker from "@/components/NetworkPicker";
 import WalletDialog from "@/components/WalletDialog";
+import WalletOrConnectButton from "@/components/WalletOrConnectButton";
 
 export default function Header() {
-  const { address, isConnected, connector } = useAccount();
-  const { disconnect } = useDisconnect();
 
   const [isOpenedWallet, setOpenedWallet] = useState(false);
   const [isOpenedAccount, setIsOpenedAccount] = useState(false);
@@ -34,15 +33,7 @@ export default function Header() {
           <LocaleSwitcher />
           <TokenListsSettings />
           <NetworkPicker />
-          {isConnected && address
-            ? <SelectButton withArrow={false} onClick={() => setIsOpenedAccount(true)}>
-              <span className="flex gap-2 items-center px-3">
-                <Svg iconName="wallet"/>
-                {`${address.slice(0, 5)}...${address.slice(-3)}`}
-              </span>
-            </SelectButton>
-            : <Button size="small" onClick={() => setOpenedWallet(true)}>Connect wallet</Button>
-          }
+          <WalletOrConnectButton openWallet={setOpenedWallet} openAccount={setIsOpenedAccount} />
           <WalletDialog isOpen={isOpenedAccount} setIsOpen={setIsOpenedAccount} />
           <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet}/>
         </div>

@@ -30,9 +30,18 @@ export default function Dialog({isOpen, setIsOpen, children}: PropsWithChildren<
 
   const click = useClick(context);
   const role = useRole(context);
-  const dismiss = useDismiss(context, { outsidePressEvent: "mousedown" });
+  const dismiss = useDismiss(context, {
+    outsidePressEvent: "mousedown",
+    outsidePress: (event: MouseEvent) => {
+      if(!event.target) {
+        return true;
+      }
 
-  const { getReferenceProps, getFloatingProps } = useInteractions([
+      return (event.target as HTMLDivElement).classList.contains("Dialog-overlay");
+    }
+  });
+
+  const { getFloatingProps } = useInteractions([
     click,
     role,
     dismiss

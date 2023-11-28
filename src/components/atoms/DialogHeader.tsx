@@ -10,7 +10,7 @@ interface Props {
 }
 export default function DialogHeader({onBack, onClose, title, paragraph}: Props) {
   return <div className={clsx(
-    "border-b border-b-primary-border",
+    "border-b border-b-disabled-border",
     onBack ? "py-2.5 px-6" : "pt-2.5 pr-6 pb-2.5 pl-10"
   )}>
     <div className="flex items-center justify-between">

@@ -1,4 +1,4 @@
-import React, {Children, ReactElement, useCallback, useState} from "react";
+import React, { ReactElement, useState } from "react";
 import TabTitle from "./TabTitle";
 
 interface Props {
@@ -13,7 +13,7 @@ function Tabs({ children, defaultTab = 0, activeTab = 0, setActiveTab = null }: 
 
   return (
     <div>
-      <ul className="flex rounded-1">
+      <ul className="flex rounded-1 w-full">
         {children.map((item, index) => (
           <TabTitle
             key={index}

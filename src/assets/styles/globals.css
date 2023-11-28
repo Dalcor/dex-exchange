@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+  --wcm-overlay-backdrop-filter: blur(4px)!important;
+  --wcm-overlay-background-color:  rgba(0, 0, 0, 0.7)!important;
+  --wcm-color-overlay: #5A5A5A!important;
+  --wcm-container-border-radius: 8px!important;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+.Dialog-overlay {
+  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.7);
+  display: grid;
+  place-items: center;
+  /*z-index: 88;*/
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes appearBlur {
+  from {
+    backdrop-filter: blur(0px);
+    background-color: transparent;
+  }
+
+  to {
+    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.ledger-ck-modal > div:first-child {
+  backdrop-filter: blur(0px);
+  background-color: transparent;
+  animation: appearBlur 0.5s 0.5s forwards;
+}
+
+.ledger-ck-modal #ModalWrapper {
+  opacity: 0;
+  animation: appear 0.5s 0.5s forwards;
+}
+
+.ledger-ck-modal #ModalWrapper > div:first-child {
+  border: 1px solid #5A5A5A!important;
+  border-radius: 8px!important;
+}
+

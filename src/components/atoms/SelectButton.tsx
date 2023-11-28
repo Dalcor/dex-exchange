@@ -4,15 +4,18 @@ import clsx from "clsx";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   withArrow?: boolean,
-  isOpen?: boolean
+  isOpen?: boolean,
+  size?: "regular" | "large"
 }
 
-export const SelectButton = forwardRef(({ withArrow = true, isOpen = false, children, ...props }: PropsWithChildren<Props>, ref: ForwardedRef<HTMLButtonElement>) => {
+export const SelectButton = forwardRef(({ withArrow = true, isOpen = false, children, size = "regular", ...props }: PropsWithChildren<Props>, ref: ForwardedRef<HTMLButtonElement>) => {
   return <button ref={ref} {...props}
                  className={
-                   clsx("border flex items-center gap-2 border-primary-border rounded-1 duration-200 py-2 text-base text-font-primary bg-input-fill hover:bg-table-fill hover:border-hover-border",
+                   clsx("border flex items-center gap-2 border-primary-border rounded-1 duration-200 text-base text-font-primary bg-input-fill hover:bg-table-fill hover:border-hover-border",
                      withArrow ? "pl-5 pr-2" : "px-2",
-                     isOpen && "bg-table-fill border-hover-border"
+                     isOpen && "bg-table-fill border-hover-border",
+                     size === "large" && "py-2.5",
+                     size === "regular" && "py-2"
                    )}>
     {children}
 

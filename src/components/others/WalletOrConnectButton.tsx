@@ -2,7 +2,7 @@ import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
 import Button from "@/components/atoms/Button";
 import { useAccount, useDisconnect } from "wagmi";
-import ClientOnly from "@/components/ClientOnly";
+import ClientOnly from "@/components/others/ClientOnly";
 
 interface Props {
   openWallet: (isOpen: boolean) => void,
@@ -11,8 +11,6 @@ interface Props {
 export default function WalletOrConnectButton({openWallet, openAccount}: Props) {
   const { address, isConnected, isConnecting } = useAccount();
 
-  console.log(isConnected);
-  console.log(address);
 
   return <ClientOnly>
     {isConnected && address

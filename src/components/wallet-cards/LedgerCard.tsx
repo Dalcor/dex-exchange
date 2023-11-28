@@ -2,16 +2,15 @@ import PickButton from "@/components/atoms/PickButton";
 import { wallets } from "@/config/wallets";
 import { useConnect } from "wagmi";
 import { LedgerConnector } from "@wagmi/connectors/ledger";
+import usePreloaderTimeout from "@/hooks/usePreloader";
 
 const { image, name } = wallets.ledger;
 export default function LedgerCard() {
-  const { connect } = useConnect({
-    connector: new LedgerConnector({
-      options: {
-        projectId: "05737c557c154bdb3aea937d7214eae2"
-      }
-    })
-  })
+  const { connect, connectors, isLoading, isSuccess } = useConnect();
 
-  return <PickButton onClick={connect} image={image} label={name}/>
+  const loading = usePreloaderTimeout({isLoading});
+
+  return <PickButton onClick={() => connect({
+    connector: connectors[2]
+  })} image={image} label={name} isActive={isSuccess} loading={loading}/>
 }

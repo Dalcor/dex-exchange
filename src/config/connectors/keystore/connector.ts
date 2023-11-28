@@ -5,6 +5,7 @@ import type { KeystoreProviderOptions, WalletClient } from './provider'
 import { KeystoreProvider } from './provider'
 import { Connector, ConnectorData } from "wagmi";
 import { normalizeChainId } from "@wagmi/connectors";
+import { KEYSTORE_AUTOCONNECT_KEY } from "@/config/connectors/keystore/constants";
 
 type KeystoreConnectorOptions = Omit<KeystoreProviderOptions, 'chainId'> & {
   chainId?: number
@@ -138,7 +139,7 @@ export class KeystoreConnector extends Connector<
   }
 
   protected onDisconnect = () => {
-    this.emit('disconnect')
+    this.emit('disconnect');
   }
 
   toJSON() {

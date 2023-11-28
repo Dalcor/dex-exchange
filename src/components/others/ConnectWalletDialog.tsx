@@ -2,15 +2,11 @@ import Dialog from "@/components/atoms/Dialog";
 import { ChangeEvent, useState } from "react";
 import PickButton from "@/components/atoms/PickButton";
 import { networks } from "@/config/networks";
-import { wallets } from "@/config/wallets";
 import DialogHeader from "@/components/atoms/DialogHeader";
-import { MetaMaskConnector } from "@wagmi/connectors/metaMask";
-import { useConnect } from "wagmi";
 import MetamaskCard from "@/components/wallet-cards/MetamaskCard";
 import WalletConnectCard from "@/components/wallet-cards/WalletConnectCard";
 import LedgerCard from "@/components/wallet-cards/LedgerCard";
 import KeystoreCard from "@/components/wallet-cards/KeystoreCard";
-
 
 interface Props {
   isOpen: boolean,

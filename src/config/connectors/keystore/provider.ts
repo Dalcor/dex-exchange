@@ -1,7 +1,6 @@
 import { default as EventEmitter } from 'eventemitter3';
 import { Account, getAddress, Transport, WalletClient as WalletClient_, Chain } from 'viem';
 
-
 export type WalletClient<
   TTransport extends Transport = Transport,
   TChain extends Chain = Chain,
@@ -92,6 +91,6 @@ export class KeystoreProvider {
   }
 
   toJSON() {
-    return '<MockProvider>'
+    return '<KeystoreProvider>'
   }
 }

@@ -10,6 +10,11 @@ export const networks= [
     logo: "/chains/bsc.svg"
   },
   {
+    chainId: 820,
+    name: "Callisto",
+    logo: "/chains/callisto.svg"
+  },
+  {
     chainId: 137,
     name: "Polygon",
     logo: "/chains/polygon.svg"

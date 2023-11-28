@@ -22,6 +22,9 @@ const config: Config = {
       },
       animation: {
         orbit: "orbit ease-in-out 1.5s infinite"
+      },
+      gridTemplateRows: {
+        layout: "auto 1fr auto"
       }
     },
     colors: {
@@ -41,6 +44,7 @@ const config: Config = {
       'blue-bg': "#0F1929",
 
       'green-hover': "#2DBF61",
+      'white-hover': "rgba(255, 255, 255, 0.1)",
 
       'font-primary': "#F5FFF9", // text-font-primary
       'font-secondary': '#B2B2B2',
@@ -64,6 +68,7 @@ const config: Config = {
       '3': '12px',
       '4': '16px',
       '5': '20px',
+      '5.5': '22px',
       '6': '24px',
       '7': '28px',
       '8': '32px',

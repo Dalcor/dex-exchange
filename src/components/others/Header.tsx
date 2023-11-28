@@ -1,20 +1,20 @@
 "use client";
 
 import Container from "@/components/atoms/Container";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/others/Navigation";
 import Button from "@/components/atoms/Button";
 import { useState } from "react";
 import Image from "next/image";
 import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
 import LocaleSwitcher from "@/components/atoms/LocaleSwitcher";
-import ConnectWalletDialog from "@/components/ConnectWalletDialog";
+import ConnectWalletDialog from "@/components/others/ConnectWalletDialog";
 import { useAccount, useDisconnect } from "wagmi";
 import { Link } from "@/navigation";
-import TokenListsSettings from "@/components/TokenListsSettings";
-import NetworkPicker from "@/components/NetworkPicker";
-import WalletDialog from "@/components/WalletDialog";
-import WalletOrConnectButton from "@/components/WalletOrConnectButton";
+import TokenListsSettings from "@/components/others/TokenListsSettings";
+import NetworkPicker from "@/components/others/NetworkPicker";
+import WalletDialog from "@/components/others/WalletDialog";
+import WalletOrConnectButton from "@/components/others/WalletOrConnectButton";
 
 export default function Header() {
 

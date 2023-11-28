@@ -1,10 +1,12 @@
 import { PropsWithChildren } from "react";
 import { Golos_Text } from 'next/font/google'
-import Header from "@/components/Header";
+import Header from "@/components/others/Header";
 import WagmiProvider from "@/app/[locale]/Providers";
-import './globals.css';
+import '../../assets/styles/globals.css';
 import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
+import Footer from "@/components/others/Footer";
+import clsx from "clsx";
 
 const golos_text = Golos_Text({
   subsets: ['latin'],
@@ -30,14 +32,18 @@ export default async function RootLayout({
     notFound();
   }
 
-  console.log(messages);
   return (
     <html lang={locale}>
-    <body className={golos_text.className}>
+    <body className={clsx(golos_text.className)}>
     <WagmiProvider>
       <NextIntlClientProvider messages={messages}>
-        <Header/>
-        {children}
+        <div className="grid h-[100vh] grid-rows-layout">
+          <Header/>
+          <div>
+            {children}
+          </div>
+          <Footer />
+        </div>
       </NextIntlClientProvider>
     </WagmiProvider>
     </body>

@@ -1,7 +1,7 @@
 import PickButton from "@/components/atoms/PickButton";
 import { wallets } from "@/config/wallets";
 import { useState } from "react";
-import KeystoreConnectDialog from "@/components/others/KeystoreConnectDialog";
+import KeystoreConnectDialog from "@/components/dialogs/KeystoreConnectDialog";
 
 const { image, name } = wallets.keystore;
 export default function KeystoreCard() {

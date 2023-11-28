@@ -1,7 +1,7 @@
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Svg from "@/components/atoms/Svg";
-import { useAccount, useBalance, useChainId, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
 import Image from "next/image";
 import { wallets } from "@/config/wallets";
 import ButtonWithIcon from "@/components/atoms/ButtonWithIcon";
@@ -29,7 +29,7 @@ function IconButton({ children, ...props }: PropsWithChildren<ButtonHTMLAttribut
   </button>
 }
 
-export default function WalletDialog({ isOpen, setIsOpen }: Props) {
+export default function AccountDialog({ isOpen, setIsOpen }: Props) {
   const { disconnect } = useDisconnect();
   const { address, connector } = useAccount();
 

@@ -9,9 +9,9 @@ import Tooltip from "@/components/atoms/Tooltip";
 import Image from "next/image";
 import Button from "@/components/atoms/Button";
 import { useState } from "react";
-import SwapSettingsDialog from "@/components/others/SwapSettingsDialog";
-import NetworkFeeConfigDialog from "@/components/others/NetworkFeeConfigDialog";
-import PickTokenDialog from "@/components/others/PickTokenDialog";
+import SwapSettingsDialog from "@/components/dialogs/SwapSettingsDialog";
+import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
+import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 
 
 function TokenInput({setIsOpenedTokenPick}: {setIsOpenedTokenPick: (isOpened: boolean) => void}) {

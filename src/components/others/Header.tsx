@@ -8,12 +8,12 @@ import Image from "next/image";
 import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
 import LocaleSwitcher from "@/components/atoms/LocaleSwitcher";
-import ConnectWalletDialog from "@/components/others/ConnectWalletDialog";
+import ConnectWalletDialog from "@/components/dialogs/ConnectWalletDialog";
 import { useAccount, useDisconnect } from "wagmi";
 import { Link } from "@/navigation";
 import TokenListsSettings from "@/components/others/TokenListsSettings";
 import NetworkPicker from "@/components/others/NetworkPicker";
-import WalletDialog from "@/components/others/WalletDialog";
+import AccountDialog from "@/components/dialogs/AccountDialog";
 import WalletOrConnectButton from "@/components/others/WalletOrConnectButton";
 
 export default function Header() {
@@ -34,7 +34,7 @@ export default function Header() {
           <TokenListsSettings />
           <NetworkPicker />
           <WalletOrConnectButton openWallet={setOpenedWallet} openAccount={setIsOpenedAccount} />
-          <WalletDialog isOpen={isOpenedAccount} setIsOpen={setIsOpenedAccount} />
+          <AccountDialog isOpen={isOpenedAccount} setIsOpen={setIsOpenedAccount} />
           <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet}/>
         </div>
       </div>

@@ -2,7 +2,7 @@ import Svg from "@/components/atoms/Svg";
 import Container from "@/components/atoms/Container";
 
 function LinkGroupTitle({ text }: { text: string }) {
-  return <div className="text-font-secondary uppercase leading-8">{text}</div>
+  return <div className="text-secondary-text uppercase leading-8">{text}</div>
 }
 
 function FooterLink({ href, text }: { href: string, text: string }) {
@@ -59,7 +59,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="text-right">
-          <div className="rounded-1 bg-block-fill py-1.5 px-3 flex gap-1 text-left border-r-4 border-green">
+          <div className="rounded-1 bg-primary-bg py-1.5 px-3 flex gap-1 text-left border-r-4 border-green">
             <span className="h-6 pt-0.5 block text-green">
               <Svg iconName="info" />
             </span>
@@ -71,10 +71,10 @@ export default function Footer() {
     <div className="border-t border-primary-border">
       <Container>
         <div className="py-6 px-0 flex justify-between">
-          <div style={{ maxWidth: 872 }}><span className="text-font-secondary">Disclaimer: Cryptocurrency may be
+          <div style={{ maxWidth: 872 }}><span className="text-secondary-text">Disclaimer: Cryptocurrency may be
             unregulated in your jurisdiction. The value of cryptocurrencies may go down as well as up. Profits may be
             subject to capital gains or other taxes applicable in your jurisdiction.</span></div>
-          <span className="text-font-secondary text-right">Copyright © 2023 DEX223 <br/> All Rights Reserved</span>
+          <span className="text-secondary-text text-right">Copyright © 2023 DEX223 <br/> All Rights Reserved</span>
         </div>
       </Container>
     </div>

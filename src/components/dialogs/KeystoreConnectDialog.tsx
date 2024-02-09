@@ -7,7 +7,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http, publicActions } from "viem";
 import { mainnet } from "viem/chains";
 import { KeystoreConnector } from "@/config/connectors/keystore/connector";
-import { chains } from "@/app/[locale]/Providers";
+import { chains } from "@/app/[locale]/providers";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import AwaitingLoader from "@/components/atoms/AwaitingLoader";
 import TextField from "@/components/atoms/TextField";
@@ -106,7 +106,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
           </div>
           <p
             className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">{selectedFile?.name ? `${selectedFile?.name}` :
-            <span className="text-font-secondary">Select keystore file</span>}</p>
+            <span className="text-secondary-text">Select keystore file</span>}</p>
         </div>
         <div className="text-red text-12 pb-4 pt-1 h-10">
           {fileError && fileError}

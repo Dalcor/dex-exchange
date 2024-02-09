@@ -13,7 +13,7 @@ export default function NetworkFeeConfigDialog({isOpen, setIsOpen}: Props) {
   return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
     <div className="w-[640px]">
       <DialogHeader onClose={() => setIsOpen(false)} title="Network fee" paragraph="Network fee is paid when you submit a transaction. We recommend changing Priority Fee only in order to make transaction cheaper or speed it up at a cost of paying higher fee. There are two types of transactions in Ethereum: EIP-1559 and Legacy. Network Fee = gasLimit * (Base Fee + Priority Fee) for EIP-1559 transactions. Network Fee = gasLimit * gasPrice for Legacy transactions. We recommend using EIP-1559 transactions on any chain except BSC. BSC does not support EIP-1559 transactions so use Legacy there." />
-      <div className="px-10 pt-10 pb-9 border-b border-disabled-border">
+      <div className="px-10 pt-10 pb-9 border-b border-secondary-border">
         <Tabs>
           <Tab title="EIP-1559">
             <div className="grid gap-3 grid-cols-2 mt-4">

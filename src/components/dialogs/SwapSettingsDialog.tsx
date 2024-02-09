@@ -12,8 +12,8 @@ function SettingsButtons({children}: PropsWithChildren) {
 }
 function SettingsButton({text, isActive = false}: {text: string, isActive?: boolean}) {
   return <button className={clsx(
-    "duration-200 hover:bg-table-fill py-2.5 px-6 w-full flex justify-center border border-primary-border border-r-0 last:border-r last:rounded-r-1 first:rounded-l-1",
-    isActive ? "bg-table-fill text-font-primary" : "bg-block-fill text-font-secondary"
+    "duration-200 hover:bg-tertiary-bg py-2.5 px-6 w-full flex justify-center border border-primary-border border-r-0 last:border-r last:rounded-r-1 first:rounded-l-1",
+    isActive ? "bg-tertiary-bg text-primary-text" : "bg-primary-bg text-secondary-text"
     )}>{text}</button>
 }
 interface Props {
@@ -29,7 +29,7 @@ export default function SwapSettingsDialog({isOpen, setIsOpen}: Props) {
           <h3 className="font-bold text-16">Max slippage</h3>
           <Tooltip text="Tooltip" />
         </div>
-        <span className="text-font-secondary">0,5% Auto</span>
+        <span className="text-secondary-text">0,5% Auto</span>
       </div>
       <div className="flex gap-5">
         <span><SettingsButton isActive text="Auto" /></span>

@@ -1,12 +1,20 @@
 import Dialog from "@/components/atoms/Dialog";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 import PickButton from "@/components/atoms/PickButton";
 import { networks } from "@/config/networks";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import MetamaskCard from "@/components/wallet-cards/MetamaskCard";
 import WalletConnectCard from "@/components/wallet-cards/WalletConnectCard";
-import LedgerCard from "@/components/wallet-cards/LedgerCard";
-import KeystoreCard from "@/components/wallet-cards/KeystoreCard";
+// import KeystoreCard from "@/components/wallet-cards/KeystoreCard";
+import TrustWalletCard from "@/components/wallet-cards/TrustWalletCard";
+import addToast from "@/other/toast";
+import {
+  useConnectWalletDialogStateStore,
+  useConnectWalletStore
+} from "@/components/dialogs/stores/useConnectWalletStore";
+import { useConnect } from "wagmi";
+import { config } from "@/config/wagmi/config";
+import PrimaryButton from "@/components/buttons/PrimaryButton";
 
 interface Props {
   isOpen: boolean,
@@ -15,7 +23,7 @@ interface Props {
 
 function StepLabel({step, label}: { step: string, label: string }) {
   return <div className="flex gap-5 items-center">
-    <span className="w-10 h-10 text-18 rounded-full bg-table-fill flex items-center justify-center">
+    <span className="w-10 h-10 text-18 rounded-full bg-tertiary-bg flex items-center justify-center">
       {step}
     </span>
     <span className="text-18 font-bold">{label}</span>
@@ -23,7 +31,65 @@ function StepLabel({step, label}: { step: string, label: string }) {
 }
 
 export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
-  const [activeNetwork, setActiveNetwork] = useState(1);
+  const { walletName, chainToConnect, setChainToConnect} = useConnectWalletStore();
+
+  const { connectors, connectAsync, isPending } = useConnect({
+    config
+  });
+
+  const {isOpened, setIsOpened} = useConnectWalletDialogStateStore()
+
+  const handleConnect = useCallback(() => {
+
+    if(walletName === "metamask") {
+      connectAsync({
+        connector: connectors[0],
+        chainId: chainToConnect
+      }).then(() => {
+        setIsOpened(false);
+        addToast("Successfully connected!")
+      }).catch((e) => {
+        if(e.code && e.code === 4001) {
+          addToast("User rejected the request", "error");
+        } else {
+          addToast("Error: something went wrong", "error");
+        }
+      });
+    }
+
+    if(walletName === "wc") {
+      connectAsync({
+        connector: connectors[1],
+        chainId: chainToConnect
+      }).then(() => {
+        setIsOpened(false);
+        addToast("Successfully connected!")
+      }).catch((e) => {
+        if(e.code && e.code === 4001) {
+          addToast("User rejected the request", "error");
+        } else {
+          addToast("Error: something went wrong", "error");
+        }
+      });
+    }
+
+    if(walletName === "trustWallet") {
+      connectAsync({
+        connector: connectors[2],
+        chainId: chainToConnect
+      }).then(() => {
+        setIsOpened(false);
+        addToast("Successfully connected!")
+      }).catch((e) => {
+        console.log(e);
+        if(e.code && e.code === 4001) {
+          addToast("User rejected the request", "error");
+        } else {
+          addToast("Error: something went wrong", "error");
+        }
+      });
+    }
+  }, [chainToConnect, connectAsync, connectors, setIsOpened, walletName]);
 
   return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
     <div className="min-w-[600px]">
@@ -32,19 +98,22 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
         <StepLabel step="1" label="Choose network" />
         <div className="grid grid-cols-4 gap-3 mt-3 mb-5">
           {networks.map(({name, chainId, logo}) => {
-            return <PickButton key={chainId} isActive={chainId === activeNetwork} onClick={() => {
-              setActiveNetwork(chainId);
+            return <PickButton key={chainId} isActive={chainId === chainToConnect} onClick={() => {
+              setChainToConnect(chainId);
             }} image={logo} label={name} />
           })}
         </div>
         <StepLabel step="2" label="Choose wallet" />
         <div className="grid grid-cols-4 gap-3 mt-3">
-          <MetamaskCard />
+          <MetamaskCard isLoading={walletName === "metamask" && isPending} />
           <WalletConnectCard />
-          <LedgerCard />
-          <KeystoreCard />
+          <TrustWalletCard isLoading={walletName === "trustWallet" && isPending} />
+          {/*<KeystoreCard />*/}
         </div>
       </div>
+      <PrimaryButton fullWidth onClick={() => {
+        handleConnect();
+      }}>Connect wallet</PrimaryButton>
     </div>
   </Dialog>
 }

@@ -19,7 +19,7 @@ export default function TextField({label, helperText, error, tooltipText, ...pro
       isError={Boolean(error)}
       {...props}
     />
-    {typeof helperText !== "undefined" && !error && <p className="text-12 text-font-secondary mt-0.5 h-4">{helperText}</p>}
+    {typeof helperText !== "undefined" && !error && <p className="text-12 text-secondary-text mt-0.5 h-4">{helperText}</p>}
     {error && <p className="text-12 text-red mt-0.5">{error}</p>}
   </div>
 }

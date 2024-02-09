@@ -1,4 +1,10 @@
-export const networks= [
+import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
+
+export const networks: Array<{
+  chainId: AvailableChains,
+  name: string,
+  logo: string
+}> = [
   {
     chainId: 1,
     name: "Ethereum",

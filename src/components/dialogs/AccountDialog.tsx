@@ -10,10 +10,10 @@ import Tab from "@/components/tabs/Tab";
 import React, { ButtonHTMLAttributes, PropsWithChildren, useMemo } from "react";
 import { copyToClipboard } from "@/functions/copyToClipboard";
 import clsx from "clsx";
-import { MetaMaskConnector } from "@wagmi/connectors/metaMask";
-import { KeystoreConnector } from "@/config/connectors/keystore/connector";
-import { WalletConnectConnector } from "@wagmi/connectors/walletConnect";
-import { LedgerConnector } from "@wagmi/connectors/ledger";
+import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
+// import { MetaMaskConnector } from "@wagmi/connectors/metaMask";
+// import { KeystoreConnector } from "@/config/connectors/keystore/connector";
+// import { WalletConnectConnector } from "@wagmi/connectors/walletConnect";
 
 interface Props {
   isOpen: boolean,
@@ -23,7 +23,7 @@ interface Props {
 function IconButton({ children, ...props }: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>) {
   return <button className={
     clsx(
-      "w-10 h-10 flex justify-center items-center p-0 duration-200 text-font-primary rounded-full bg-transparent hover:bg-white-hover border-0 outline-0 cursor-pointer"
+      "w-10 h-10 flex justify-center items-center p-0 duration-200 text-primary-text rounded-full bg-transparent hover:bg-white-hover border-0 outline-0 cursor-pointer"
     )} {...props}>
     {children}
   </button>
@@ -35,26 +35,22 @@ export default function AccountDialog({ isOpen, setIsOpen }: Props) {
 
   const { data } = useBalance({address});
 
-  const connectorKey = useMemo(() => {
-    if(connector instanceof MetaMaskConnector) {
-      return "metamask";
-    }
-
-    if(connector instanceof KeystoreConnector) {
-      return "keystore";
-    }
-
-    if(connector instanceof WalletConnectConnector) {
-      return "wc";
-    }
-
-    if (connector instanceof LedgerConnector) {
-      return "ledger"
-    }
-
-    return "unknown";
-
-  }, [connector]);
+  // const connectorKey = useMemo(() => {
+  //   if(connector instanceof MetaMaskConnector) {
+  //     return "metamask";
+  //   }
+  //
+  //   if(connector instanceof KeystoreConnector) {
+  //     return "keystore";
+  //   }
+  //
+  //   if(connector instanceof WalletConnectConnector) {
+  //     return "wc";
+  //   }
+  //
+  //   return "unknown";
+  //
+  // }, [connector]);
 
   return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
     <DialogHeader onClose={() => setIsOpen(false)} title="Account"/>
@@ -64,9 +60,9 @@ export default function AccountDialog({ isOpen, setIsOpen }: Props) {
         <div className="relative mb-5 p-5 grid gap-3 z-10">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 py-2 px-3 rounded-1 bg-block-fill">
+              <div className="flex items-center gap-2 py-2 px-3 rounded-1 bg-primary-bg">
                 {address
-                  ? <Image src={wallets[connectorKey].image} alt="" width={24} height={24}/>
+                  ? <Image src={wallets.metamask.image} alt="" width={24} height={24}/>
                   : <Svg iconName="wallet" />
                 }
                 {address ? `${address.slice(0, 5)}...${address.slice(-3)}` : "Not connected"}
@@ -85,8 +81,8 @@ export default function AccountDialog({ isOpen, setIsOpen }: Props) {
             </div>
           </div>
           <div>
-            <div className="text-16 text-font-secondary">Balance</div>
-            <div className="text-20 text-font-primary font-bold">
+            <div className="text-16 text-secondary-text">Balance</div>
+            <div className="text-20 text-primary-text font-bold">
               {data ? <span>{(+data.formatted).toLocaleString('en-US', {maximumFractionDigits: 6})} {data?.symbol}</span> : "0.00"}
 
             </div>
@@ -101,14 +97,14 @@ export default function AccountDialog({ isOpen, setIsOpen }: Props) {
       <Tabs>
         <Tab title="Assets">
           <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
-            <Image src="/empty/empty-assets.svg" width={80} height={80} alt=""/>
-            <span className="text-font-secondary">All assets will be displayed here.</span>
+            <EmptyStateIcon iconName="assets" />
+            <span className="text-secondary-text">All assets will be displayed here.</span>
           </div>
         </Tab>
         <Tab title="History">
           <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
             <Image src="/empty/empty-history.svg" width={80} height={80} alt=""/>
-            <span className="text-font-secondary">All transaction will be displayed here.</span>
+            <span className="text-secondary-text">All transaction will be displayed here.</span>
           </div>
         </Tab>
       </Tabs>

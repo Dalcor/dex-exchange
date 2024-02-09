@@ -15,13 +15,13 @@ function TokenRow() {
       <Image width={40} height={40} src="/tokens/ETH.svg" alt="" />
       <div className="grid">
         <span>ETH</span>
-        <span className="text-font-secondary text-12">1.23 ETH</span>
+        <span className="text-secondary-text text-12">1.23 ETH</span>
       </div>
 
     </div>
     <div className="flex items-center gap-3">
       <span>$1,827.42</span>
-      <span className="text-font-secondary"><Svg iconName="question" /></span>
+      <span className="text-secondary-text"><Svg iconName="question" /></span>
       <Svg iconName="pin" />
     </div>
   </div>
@@ -60,7 +60,7 @@ export default function PickTokenDialog({isOpen, setIsOpen}: Props) {
         <TokenRow />
         <TokenRow />
       </div>
-      <button className="bg-table-fill py-4 w-full rounded-b-2">Manage tokens</button>
+      <button className="bg-tertiary-bg py-4 w-full rounded-b-2">Manage tokens</button>
     </div>
   </Dialog>
 }

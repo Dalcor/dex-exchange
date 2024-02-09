@@ -5,7 +5,7 @@ import { PropsWithChildren } from "react";
 
 export default function SelectOption({onClick, isActive, children}: PropsWithChildren<{onClick: any, isActive: boolean}>) {
   return <div role="button" onClick={onClick} className={clsx(
-    "flex gap-2 items-center py-3 px-5 bg-block-fill hover:bg-table-fill duration-200",
+    "flex gap-2 items-center py-3 px-5 bg-primary-bg hover:bg-tertiary-bg duration-200",
     isActive ? "text-green pointer-events-none" : ""
   )}>
     {children}

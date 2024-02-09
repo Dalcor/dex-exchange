@@ -3,7 +3,8 @@
     "trade": "Trade",
     "statistics": "Statistics",
     "lending-and-borrowing": "Lending & Borrowing",
-    "liquidity": "Liquidity",
-    "list-your-token": "List your token"
+    "pools": "Pools",
+    "list-your-token": "List your token",
+    "lib": "Lib"
   }
 }

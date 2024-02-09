@@ -30,6 +30,11 @@ const config: Config = {
     colors: {
       transparent: 'transparent',
       current: 'currentColor',
+
+      'primary-bg': "#141316",
+      'secondary-bg': "#1D1C1E",
+      'tertiary-bg': "#272727",
+
       'green': '#3BD171',
       'red': "#D13B3B",
       'orange': "#D38932",
@@ -37,26 +42,23 @@ const config: Config = {
       'black': '#000000',
       'white': "#FFFFFF",
 
-      'primary-bg': "#121312",
       'green-bg': "#0F1E15",
       'red-bg': "#1A0D0A",
       'orange-bg': "#1F170A",
       'blue-bg': "#0F1929",
 
+      'global-bg': "#121312",
+
       'green-hover': "#2DBF61",
       'white-hover': "rgba(255, 255, 255, 0.1)",
 
-      'font-primary': "#F5FFF9", // text-font-primary
-      'font-secondary': '#B2B2B2',
-      'placeholder': '#7F7F7F',
+      'primary-text': "#F5FFF9",
+      'secondary-text': '#B2B2B2',
+      'placeholder-text': '#7F7F7F',
 
-      'primary-border': '#5A5A5A', // border-primary-border
-      'disabled-border': '#393939',
+      'primary-border': '#5A5A5A',
+      'secondary-border': '#393939',
       'hover-border': '#848484',
-
-      'block-fill': "#141316",
-      'table-fill': "#272727",
-      'input-fill': "#1D1C1E"
     },
     spacing: {
       '0': '0px',
@@ -66,6 +68,7 @@ const config: Config = {
       '2': '8px',
       '2.5': "10px",
       '3': '12px',
+      '3.5': '14px',
       '4': '16px',
       '5': '20px',
       '5.5': '22px',

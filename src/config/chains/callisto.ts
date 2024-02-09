@@ -1,7 +1,6 @@
-import { Chain } from 'wagmi';
-import { mainnet } from "wagmi";
+import { defineChain } from "viem";
 
-export const callisto: Chain = {
+export const callisto = defineChain({
   id: 820,
   name: 'Callisto Network',
   network: 'callisto',
@@ -22,6 +21,4 @@ export const callisto: Chain = {
       address: '0xA8873640557a928016bFaf8d5D8B98f042A479C9'
     },
   },
-} as const;
-
-export const ethereum: Chain = mainnet;
+});

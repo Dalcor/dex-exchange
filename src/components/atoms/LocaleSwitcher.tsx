@@ -45,11 +45,11 @@ export default function LocaleSwitcher() {
           <Image src={localesMap[lang]?.img || localesMap["en"]?.img} alt={localesMap[lang]?.label} width={24} height={24} />
         </SelectButton>
       }>
-        <div className="py-1 bg-block-fill rounded-2 border border-primary-border">
+        <div className="py-1 bg-primary-bg rounded-2 border border-primary-border">
           <ul>
             {locales.map((locale) => {
               return (
-                <li className="min-w-[200px] hover:bg-table-fill cursor-pointer" key={locale}>
+                <li className="min-w-[200px] hover:bg-tertiary-bg cursor-pointer" key={locale}>
                   <SelectOption onClick={() => redirectedPathName(locale)} isActive={lang === locale}>
                     <Image src={localesMap[locale]?.img} alt={localesMap[locale]?.label} width={24} height={24} />
                     {localesMap[locale]?.label}

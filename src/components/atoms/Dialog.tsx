@@ -57,7 +57,7 @@ export default function Dialog({isOpen, setIsOpen, children}: PropsWithChildren<
           <FloatingOverlay className="Dialog-overlay" style={{...transitionStyles}} lockScroll>
             <FloatingFocusManager context={context}>
               <div
-                className="bg-block-fill border-disabled-border border rounded-2"
+                className="bg-primary-bg border-secondary-border border rounded-2"
                 ref={refs.setFloating}
                 aria-labelledby={headingId}
                 aria-describedby={descriptionId}

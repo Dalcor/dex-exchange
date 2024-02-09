@@ -7,7 +7,7 @@ const menuItems: Array<{
 }> = [
   {
     label: "trade",
-    href: "/lib"
+    href: "/swap"
   },
   {
     label: "statistics",
@@ -18,11 +18,15 @@ const menuItems: Array<{
     href: "#"
   },
   {
-    label: "liquidity",
-    href: "#"
+    label: "pools",
+    href: "/pools"
   },
   {
     label: "list-your-token",
+    href: "#"
+  },
+  {
+    label: "lib",
     href: "#"
   }
 ]

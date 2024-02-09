@@ -1,17 +1,19 @@
 import PickButton from "@/components/atoms/PickButton";
-import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { wallets } from "@/config/wallets";
 import { useConnect } from "wagmi";
 import usePreloaderTimeout from "@/hooks/usePreloader";
+import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
+import addToast from "@/other/toast";
 
 const { image, name } = wallets.wc;
 export default function WalletConnectCard() {
-  // const { open } = useWeb3Modal();
-  const {connect, connectors, isLoading, isSuccess} = useConnect();
+  const { isSuccess} = useConnect();
 
-  const loading = usePreloaderTimeout({isLoading});
+  const loading = usePreloaderTimeout({isLoading: false});
+  const { setName, walletName } = useConnectWalletStore();
 
-  return <PickButton onClick={() => connect({
-    connector: connectors[1]
-  })} image={image} label={name} loading={loading} isActive={isSuccess} />
+  return <PickButton onClick={() => {
+    setName("wc");
+    // addToast("Access via WalletConnect will be added soon", "info");
+  }} image={image} label={name} loading={loading} isActive={walletName === "wc"} />
 }

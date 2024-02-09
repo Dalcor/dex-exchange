@@ -20,6 +20,10 @@ export const wallets: {
     name: "Ledger",
     image: "/wallets/ledger.svg"
   },
+  trustWallet: {
+    name: "Trust Wallet",
+    image: "/wallets/trust.svg"
+  },
   unknown: {
     name: "Unknown",
     image: "/wallets/default.svg"

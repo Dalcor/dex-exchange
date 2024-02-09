@@ -21,7 +21,7 @@ export default function PickButton({
                                    }: PropsWithChildren<Props>) {
   return <button className={clsx(
     "flex flex-col gap-2 justify-center items-center py-4 border hover:border-green rounded-1 w-full duration-200",
-    isActive ? "text-font-primary bg-green-bg border-green pointer-events-none" : "text-font-secondary border-primary-border"
+    isActive ? "text-primary-text bg-green-bg border-green pointer-events-none" : "text-secondary-text border-primary-border"
   )} {...props}>
     <div className="relative">
       {loading

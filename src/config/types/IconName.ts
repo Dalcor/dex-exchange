@@ -91,7 +91,22 @@ export const svgIconsNames = [
   "borrow",
   "gas",
   "question",
-  "pin"
+  "pin",
+  "double-arrow"
+] as const;
+
+export const socialIconNames = [
+  "twitter"
+] as const;
+
+export const emptyIconNames = [
+  "wallet",
+  "search",
+  "pool",
+  "list",
+  "assets"
 ] as const;
 
 export type IconName = typeof svgIconsNames[number];
+export type SocialIconName = typeof socialIconNames[number];
+export type EmptyIconName = typeof emptyIconNames[number];

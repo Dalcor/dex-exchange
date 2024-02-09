@@ -11,21 +11,21 @@ export default function TokenListsSettings() {
   return <Popover isOpened={isOpened} setIsOpened={setIsOpened} placement="bottom-start"
            trigger={<SelectButton isOpen={isOpened} onClick={() => setIsOpened(!isOpened)}>Default token list</SelectButton>}
   >
-    <div className="bg-block-fill border border-primary-border rounded-1">
+    <div className="bg-primary-bg border border-primary-border rounded-1">
       <div className="border-b-primary-border border-b px-5">
-        <div className="flex justify-between py-4 gap-2 items-center border-b border-b-disabled-border">
+        <div className="flex justify-between py-4 gap-2 items-center border-b border-b-secondary-border">
           <span className="text-green">Default token list</span>
           <Switch checked={true} setChecked={null} />
         </div>
-        <div className="flex justify-between py-4 gap-4 items-center border-b border-b-disabled-border">
+        <div className="flex justify-between py-4 gap-4 items-center border-b border-b-secondary-border">
           Auto-listing contract 0x01214023dhj23dj23... (Tier 1)
           <Switch checked={true} setChecked={null} />
         </div>
-        <div className="flex justify-between py-4 gap-4 items-center border-b border-b-disabled-border">
+        <div className="flex justify-between py-4 gap-4 items-center border-b border-b-secondary-border">
           Auto-listing contract 0xff124fabqwdadasas... (Tier 2)
           <Switch checked={true} setChecked={null} />
         </div>
-        <div className="flex justify-between py-4 gap-4 items-center border-b border-b-disabled-border">
+        <div className="flex justify-between py-4 gap-4 items-center border-b border-b-secondary-border">
           Auto-listing contract 0x0021fdb23d... (Shitcoin tier)
           <Switch checked={true} setChecked={null} />
         </div>
@@ -42,7 +42,7 @@ export default function TokenListsSettings() {
         </div>
         <Input type="text"
                placeholder="Custom auto-listing contract" />
-        <div className="text-font-secondary text-12">Enter the contract address to retrieve tokens</div>
+        <div className="text-secondary-text text-12">Enter the contract address to retrieve tokens</div>
 
       </div>
       <div className="py-4 px-5">
@@ -53,7 +53,7 @@ export default function TokenListsSettings() {
         </div>
         <Input type="text"
                placeholder="Custom auto-listing contract" />
-        <div className="text-font-secondary text-12">Enter the token list URL</div>
+        <div className="text-secondary-text text-12">Enter the token list URL</div>
 
       </div>
     </div>

@@ -10,6 +10,7 @@ import clsx from "clsx";
 import { cookieToInitialState } from "wagmi";
 import { config } from "@/config/wagmi/config";
 import { headers } from "next/headers";
+import DialogsProvider from "@/providers/DialogsProvider";
 
 const golos_text = Golos_Text({
   subsets: ['latin'],
@@ -45,13 +46,15 @@ export default async function RootLayout({
     <body className={clsx(golos_text.className)}>
     <Providers initialState={initialState} messages={messages} locale={locale}>
       <NextIntlClientProvider messages={messages}>
-        <div className="grid h-[100vh] grid-rows-layout">
-          <Header/>
-          <div>
-            {children}
+        <DialogsProvider>
+          <div className="grid h-[100vh] grid-rows-layout">
+            <Header/>
+            <div>
+              {children}
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
+        </DialogsProvider>
       </NextIntlClientProvider>
     </Providers>
     </body>

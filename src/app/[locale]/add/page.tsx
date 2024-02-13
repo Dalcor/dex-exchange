@@ -11,6 +11,12 @@ import { useRouter } from "@/navigation";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import clsx from "clsx";
 import Container from "@/components/atoms/Container";
+import TextLabel from "@/components/labels/TextLabel";
+import ZoomButton from "@/components/buttons/ZoomButton";
+import IncrementDecrementIconButton from "@/components/buttons/IncrementDecrementIconButton";
+import SystemIconButton from "@/components/buttons/SystemIconButton";
+import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import InputButton from "@/components/buttons/InputButton";
 
 function RadioButton({ active = false }: { active?: boolean }) {
   return <div className={clsx(
@@ -19,19 +25,10 @@ function RadioButton({ active = false }: { active?: boolean }) {
   )}>
     <div className="flex items-center gap-2">
       <span>0.3% fee tier</span>
-      <div className="px-3 bg-tertiary-bg rounded-5">
-        67% select
-      </div>
+      <TextLabel text="67% select" color="grey"/>
     </div>
     <span className={active ? "text-green" : ""}>Best for most pair</span>
   </div>
-}
-
-function PlusButton({ icon }: { icon: "add" | "minus" }) {
-  return <button
-    className="bg-primary-bg border-primary-border border rounded-1 w-8 h-8 flex items-center justify-center p-0 text-primary-text">
-    <Svg iconName={icon}/>
-  </button>;
 }
 
 function PriceRangeCard() {
@@ -43,8 +40,8 @@ function PriceRangeCard() {
       <span className="text-12 text-secondary-text">DAI per ETH</span>
     </div>
     <div className="flex flex-col gap-2">
-      <PlusButton icon="add"/>
-      <PlusButton icon="minus"/>
+      <IncrementDecrementIconButton icon="add" />
+      <IncrementDecrementIconButton icon="minus" />
     </div>
   </div>
 }
@@ -70,17 +67,14 @@ export default function AddPoolPage() {
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const router = useRouter();
 
+  const { setIsOpen } = useTransactionSettingsDialogStore();
+
   return <Container>
     <div className="w-[600px] bg-primary-bg mx-auto my-[80px]">
       <div className="flex justify-between items-center rounded-t-2 border py-2.5 px-6 border-secondary-border">
-        <IconButton onClick={() => router.push("/pools")}>
-          <Svg iconName="back"/>
-        </IconButton>
+        <SystemIconButton iconSize={32} iconName="back" size="large" onClick={() => router.push("/pools")} />
         <h2 className="text-20 font-bold">Add Liquidity</h2>
-        <IconButton onClick={() => {
-        }}>
-          <Svg iconName="settings"/>
-        </IconButton>
+        <SystemIconButton iconSize={32} size="large" iconName="settings" onClick={() => setIsOpen(true)} />
       </div>
       <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">
         <h3 className="text-16 font-bold mb-4">Select pair</h3>
@@ -102,11 +96,12 @@ export default function AddPoolPage() {
           <div className="flex justify-between items-center py-[18px]">
             <div className="flex items-center gap-2">
               <span className="font-bold">0.3% fee tier</span>
-              <div className="px-3 bg-tertiary-bg rounded-5">
-                67% select
-              </div>
+              <TextLabel text="67% select" color="grey" />
             </div>
-            <button onClick={() => setIsFeeOpened(!isFeeOpened)}>Edit</button>
+            <button onClick={() => setIsFeeOpened(!isFeeOpened)} className="flex items-center gap-1 group">
+              <span className="text-secondary-text group-hover:text-primary-text duration-200">{isFeeOpened ? "Hide" : "Edit"}</span>
+              <Svg iconName="expand-arrow" className={isFeeOpened ? "duration-200 -rotate-180" : "duration-200 "} />
+            </button>
           </div>
           <Collapse open={isFeeOpened}>
             <div className="grid gap-2 pb-5">
@@ -121,7 +116,7 @@ export default function AddPoolPage() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-16 font-bold">Set price range</h3>
             <div className="flex gap-3 items-center">
-              <button>Full range</button>
+              <InputButton text="Full range" isActive={false} />
               <div className="flex">
                 <button>DAI</button>
                 <button>ETH</button>
@@ -141,14 +136,8 @@ export default function AddPoolPage() {
             <span className="text-12 text-secondary-text">DAI per ETH</span>
           </div>
           <div className="flex gap-3">
-            <button
-              className="rounded-full border border-secondary-border bg-primary-bg w-8 h-8 flex items-center justify-center">
-              <Svg iconName="search"/>
-            </button>
-            <button
-              className="rounded-full border border-secondary-border bg-primary-bg w-8 h-8 flex items-center justify-center">
-              <Svg iconName="search"/>
-            </button>
+           <ZoomButton icon="zoom-in" />
+           <ZoomButton icon="zoom-out" />
           </div>
         </div>
 

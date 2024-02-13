@@ -1,11 +1,10 @@
 import Dialog from "@/components/atoms/Dialog";
-import { ChangeEvent, useCallback, useState } from "react";
+import { useCallback } from "react";
 import PickButton from "@/components/atoms/PickButton";
 import { networks } from "@/config/networks";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import MetamaskCard from "@/components/wallet-cards/MetamaskCard";
 import WalletConnectCard from "@/components/wallet-cards/WalletConnectCard";
-// import KeystoreCard from "@/components/wallet-cards/KeystoreCard";
 import TrustWalletCard from "@/components/wallet-cards/TrustWalletCard";
 import addToast from "@/other/toast";
 import {
@@ -14,7 +13,7 @@ import {
 } from "@/components/dialogs/stores/useConnectWalletStore";
 import { useConnect } from "wagmi";
 import { config } from "@/config/wagmi/config";
-import PrimaryButton from "@/components/buttons/PrimaryButton";
+import Button from "@/components/atoms/Button";
 
 interface Props {
   isOpen: boolean,
@@ -111,9 +110,9 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
           {/*<KeystoreCard />*/}
         </div>
       </div>
-      <PrimaryButton fullWidth onClick={() => {
+      <Button fullWidth onClick={() => {
         handleConnect();
-      }}>Connect wallet</PrimaryButton>
+      }}>Connect wallet</Button>
     </div>
   </Dialog>
 }

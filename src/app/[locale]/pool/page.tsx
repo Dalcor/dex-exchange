@@ -5,6 +5,9 @@ import Image from "next/image";
 import Button from "@/components/atoms/Button";
 import { useRouter } from "@/navigation";
 import Container from "@/components/atoms/Container";
+import PoolStatusLabel from "@/components/labels/PoolStatusLabel";
+import TextLabel from "@/components/labels/TextLabel";
+import TokensPair from "@/components/others/TokensPair";
 
 function PoolLiquidityCard() {
   return <div className="flex justify-between items-center">
@@ -45,21 +48,9 @@ export default function PoolPage() {
 
       <div className="w-full flex justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center">
-            <Image src="/tokens/ETH.svg" alt="Ethereum" width={32} height={32}/>
-            <Image className="-ml-3.5" src="/tokens/ETH.svg" alt="Ethereum" width={32} height={32}/>
-          </div>
-
-          <span className="font-bold block">UNI / ETH</span>
-          <div className="px-3 bg-tertiary-bg rounded-5 text-secondary-text">
-            1%
-          </div>
-          <div className="bg-green-bg rounded-5 pl-2 pr-3 py-1 text-green flex items-center">
-            <div className="w-6 h-6 flex items-center justify-center">
-              <div className="w-2 h-2 rounded-full bg-green"/>
-            </div>
-            In range
-          </div>
+          <TokensPair />
+          <TextLabel text="1%" color="grey" />
+          <PoolStatusLabel status="in-range" />
         </div>
         <div className="flex items-center gap-3">
           <Button size="small" onClick={() => router.push("/increase")}>Increase liquidity</Button>
@@ -89,12 +80,7 @@ export default function PoolPage() {
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2">
               <span>Selected Range</span>
-              <div className="bg-green-bg rounded-5 pl-2 pr-3 py-1 text-green flex items-center">
-                <div className="w-6 h-6 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-green"/>
-                </div>
-                In range
-              </div>
+              <PoolStatusLabel status="in-range" />
             </div>
             <div className="flex gap-1">
               <button>ETH</button>

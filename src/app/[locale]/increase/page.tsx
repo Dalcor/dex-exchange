@@ -6,6 +6,10 @@ import Svg from "@/components/atoms/Svg";
 import { useRouter } from "@/navigation";
 import Image from "next/image";
 import Button from "@/components/atoms/Button";
+import SystemIconButton from "@/components/buttons/SystemIconButton";
+import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import PoolStatusLabel from "@/components/labels/PoolStatusLabel";
+import TokensPair from "@/components/others/TokensPair";
 
 function RangePriceCard() {
   return <div className="border border-secondary-border">
@@ -51,33 +55,19 @@ function DepositCard() {
 export default function IncreaseLiquidityPage() {
   const router = useRouter();
 
+  const { setIsOpen } = useTransactionSettingsDialogStore();
+
   return <Container>
     <div className="w-[600px] bg-primary-bg mx-auto my-[80px]">
       <div className="flex justify-between items-center rounded-t-2 border py-2.5 px-6 border-secondary-border">
-        <IconButton onClick={() => router.push("/pool")}>
-          <Svg iconName="back"/>
-        </IconButton>
-        <h2 className="text-20 font-bold">Add Liquidity</h2>
-        <IconButton onClick={() => {
-        }}>
-          <Svg iconName="settings"/>
-        </IconButton>
+        <SystemIconButton onClick={() => router.push("/pool")} size="large" iconName="back" iconSize={32} />
+        <h2 className="text-20 font-bold">Remove Liquidity</h2>
+        <SystemIconButton onClick={() => setIsOpen(true)} size="large" iconName="settings" iconSize={32} />
       </div>
       <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">
         <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center">
-              <Image src="/tokens/ETH.svg" alt="Ethereum" width={32} height={32}/>
-              <Image className="-ml-3.5" src="/tokens/ETH.svg" alt="Ethereum" width={32} height={32}/>
-            </div>
-            <span className="font-bold block">UNI / ETH</span>
-          </div>
-          <div className="bg-green-bg rounded-5 pl-2 pr-3 py-1 text-green flex items-center">
-            <div className="w-6 h-6 flex items-center justify-center">
-              <div className="w-2 h-2 rounded-full bg-green"/>
-            </div>
-            In range
-          </div>
+          <TokensPair />
+          <PoolStatusLabel status="in-range" />
         </div>
 
         <div className="border border-secondary-border rounded-1 bg-secondary-bg mb-5">

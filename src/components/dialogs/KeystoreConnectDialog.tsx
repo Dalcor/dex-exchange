@@ -7,7 +7,6 @@ import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http, publicActions } from "viem";
 import { mainnet } from "viem/chains";
 import { KeystoreConnector } from "@/config/connectors/keystore/connector";
-import { chains } from "@/app/[locale]/providers";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import AwaitingLoader from "@/components/atoms/AwaitingLoader";
 import TextField from "@/components/atoms/TextField";
@@ -69,13 +68,13 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
           transport: http(),
         }).extend(publicActions);
 
-        const connector = new KeystoreConnector({
-          chains,
-          options: {
-            walletClient: walletClient,
-          },
-        });
-        connect({ chainId: 820, connector });
+        // const connector = new KeystoreConnector({
+        //   chains,
+        //   options: {
+        //     walletClient: walletClient,
+        //   },
+        // });
+        // connect({ chainId: 820, connector });
         setIsOpen(false);
       }
     } catch (error) {

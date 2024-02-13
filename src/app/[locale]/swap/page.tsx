@@ -12,13 +12,17 @@ import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import SelectButton from "@/components/atoms/SelectButton";
 import Image from "next/image";
 import TokenInput from "@/components/others/TokenInput";
+import SystemIconButton from "@/components/buttons/SystemIconButton";
+import TransactionSettingsDialog from "@/components/dialogs/SwapSettingsDialog";
+import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 
 export default function SwapPage() {
   const t = useTranslations('Trade');
 
-  const [isOpenedSettings, setIsOpenedSettings] = useState(false);
   const [isOpenedFee, setIsOpenedFee] = useState(false);
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
+
+  const { setIsOpen } = useTransactionSettingsDialogStore();
 
   return (<>
       <Container>
@@ -50,37 +54,37 @@ export default function SwapPage() {
             <div className="px-5 pt-2.5 pb-5 bg-primary-bg rounded-2 border border-secondary-border">
               <div className="flex justify-between items-center mb-2.5">
                 <h3 className="font-bold text-20">Swap</h3>
-                <IconButton onClick={() => setIsOpenedSettings(true)}>
-                  <Svg size={32} iconName="settings"/>
-                </IconButton>
-                <SwapSettingsDialog isOpen={isOpenedSettings} setIsOpen={setIsOpenedSettings} />
+                <SystemIconButton iconSize={32} iconName="settings" onClick={() => setIsOpen(true)}/>
               </div>
-              <TokenInput setIsOpenedTokenPick={setIsOpenedTokenPick} />
+              <TokenInput setIsOpenedTokenPick={setIsOpenedTokenPick}/>
               <div className="relative h-3">
-                <button className="text-secondary-text w-[48px] h-[48px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary-bg rounded-1 flex items-center justify-center border border-primary-border hover:bg-green duration-200 hover:text-global-bg hover:border-green">
-                  <Svg iconName="swap" />
+                <button
+                  className="text-secondary-text w-[48px] h-[48px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary-bg rounded-1 flex items-center justify-center border border-primary-border hover:bg-green duration-200 hover:text-global-bg hover:border-green">
+                  <Svg iconName="swap"/>
                 </button>
               </div>
-              <TokenInput setIsOpenedTokenPick={setIsOpenedTokenPick} />
+              <TokenInput setIsOpenedTokenPick={setIsOpenedTokenPick}/>
               <div className="my-3 py-3 px-5 border border-primary-border flex justify-between">
                 <div className="flex items-center gap-1">
-                  <Tooltip text="Network fee" />
+                  <Tooltip text="Network fee"/>
                   Network fee
                 </div>
                 <div className="flex gap-1">
                   <span className="text-secondary-text">
-                    <Svg iconName="gas" />
+                    <Svg iconName="gas"/>
                   </span>
                   <span className="mr-1">$1.95</span>
-                  <button className="duration-200 text-green hover:text-green-hover" onClick={() => setIsOpenedFee(true)}>EDIT</button>
-                  <NetworkFeeConfigDialog isOpen={isOpenedFee} setIsOpen={setIsOpenedFee} />
+                  <button className="duration-200 text-green hover:text-green-hover"
+                          onClick={() => setIsOpenedFee(true)}>EDIT
+                  </button>
+                  <NetworkFeeConfigDialog isOpen={isOpenedFee} setIsOpen={setIsOpenedFee}/>
                 </div>
               </div>
               <Button fullWidth>Swap</Button>
             </div>
           </div>
         </div>
-        <PickTokenDialog isOpen={isOpenedTokenPick} setIsOpen={setIsOpenedTokenPick} />
+        <PickTokenDialog isOpen={isOpenedTokenPick} setIsOpen={setIsOpenedTokenPick}/>
       </Container>
     </>
   )

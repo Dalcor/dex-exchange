@@ -1,9 +1,14 @@
 import { create } from "zustand";
-import { TokenInfo } from "@/config/types/TokenInfo";
 import { Address } from "viem";
 import { persist } from "zustand/middleware";
 
 const localStorageKey = "user-tokens";
+
+interface TokenInfo {
+  name: string,
+  decimals: string,
+  address: Address
+}
 
 interface UserTokensStore {
   userTokens: TokenInfo[],

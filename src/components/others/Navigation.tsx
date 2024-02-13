@@ -27,7 +27,7 @@ const menuItems: Array<{
   },
   {
     label: "lib",
-    href: "#"
+    href: "/lib"
   }
 ]
 export default function Navigation() {

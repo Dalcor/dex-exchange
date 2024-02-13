@@ -20,7 +20,7 @@ interface Props {
   isOpen: boolean,
   setIsOpen: (isOpen: boolean) => void
 }
-export default function SwapSettingsDialog({isOpen, setIsOpen}: Props) {
+export default function TransactionSettingsDialog({isOpen, setIsOpen}: Props) {
   return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
     <DialogHeader onClose={() => setIsOpen(false)} title="Settings" />
     <div className="px-10 pt-10 pb-5.5 w-[550px]">

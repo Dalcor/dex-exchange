@@ -17,7 +17,6 @@ export const config = createConfig({
       appName: "DEX223"
     })
   ],
-
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,

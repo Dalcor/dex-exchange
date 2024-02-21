@@ -15,6 +15,7 @@ import TokenInput from "@/components/others/TokenInput";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import TransactionSettingsDialog from "@/components/dialogs/SwapSettingsDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import { useAccount, useBalance, useChainId } from "wagmi";
 
 export default function SwapPage() {
   const t = useTranslations('Trade');
@@ -24,15 +25,25 @@ export default function SwapPage() {
 
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
+  const chainId = useChainId();
+
+  const {address} = useAccount();
+
+  const balance = useBalance({
+    chainId,
+    address
+  });
+
   return (<>
       <Container>
         <div className="py-[80px] flex justify-center">
           <div className="grid gap-5 w-[600px]">
+
             <div>
               <div className="flex justify-between rounded-t-1 bg-tertiary-bg border-secondary-border border py-2 px-5">
                 <div className="flex items-center gap-2.5">
                   <Svg iconName="wallet" size={32}/>
-                  Wallet balance: 0 ETH
+                  Wallet balance:  {balance?.data?.formatted} ETH
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-green">

@@ -1,7 +1,7 @@
 import { cookieStorage, createConfig, createStorage } from "wagmi";
 import { callisto } from "@/config/chains/callisto";
 import { arbitrum, avalanche, base, bsc, celo, classic, optimism, polygon } from "wagmi/chains";
-import { injected, walletConnect } from "wagmi/connectors";
+import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 import { http } from "viem";
 import { mainnet } from "viem/chains";
 
@@ -12,7 +12,12 @@ export const config = createConfig({
     walletConnect({
       projectId: "0af4613ea1c747c660416c4a7a114616"
     }),
-    injected({target: "trust"})],
+    injected({target: "trust"}),
+    coinbaseWallet({
+      appName: "DEX223"
+    })
+  ],
+
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,

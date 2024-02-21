@@ -1,144 +1,163 @@
-import { getAddress } from 'viem'
-import type { Chain } from 'viem/chains'
+import { ConnectorNotConnectedError, createConnector } from '@wagmi/core'
+import {
+  Address,
+  createWalletClient,
+  fromHex,
+  getAddress,
+  http,
+  numberToHex,
+  SwitchChainError,
+  WalletClient
+} from "viem";
+import { ChainNotConfiguredError, normalizeChainId } from "wagmi";
+import { privateKeyToAccount } from "viem/accounts";
+import { mainnet } from "viem/chains";
+import { callisto } from "@/config/chains/callisto";
+import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 
-import type { KeystoreProviderOptions, WalletClient } from './provider'
-import { KeystoreProvider } from './provider'
-import { Connector } from "wagmi";
-import { KEYSTORE_AUTOCONNECT_KEY } from "@/config/connectors/keystore/constants";
+export type KeystoreConnectorParameters = {
+  chainId?: number,
+  pk: Address
+};
 
-type KeystoreConnectorOptions = Omit<KeystoreProviderOptions, 'chainId'> & {
-  chainId?: number
+export function keystore({ pk, chainId = 1 }: KeystoreConnectorParameters) {
+  let connected = false;
+  let connectedChainId: number;
+  let client: WalletClient | undefined;
+
+  return createConnector<WalletClient>((config) => ({
+    id: "keystore",
+    name: "Keystore",
+    type: "keystore",
+    async setup() {
+      connectedChainId = config.chains[0].id
+    },
+    async connect({ chainId }: {chainId: AvailableChains} ) {
+      const provider: WalletClient = await this.getProvider({chainId})
+      console.log("PROVIDER");
+      console.log(provider);
+
+      try {
+        const accounts = await provider.getAddresses();
+        console.log("ADF");
+        let currentChainId = await provider.getChainId();
+
+        connected = true;
+        console.log("ACCOUNTS");
+        console.log(accounts);
+        return { accounts, chainId: currentChainId }
+      } catch (e) {
+        console.log(e);
+        return {accounts: [], chainId: 1}
+      }
+    },
+    async disconnect() {
+      connected = false
+    },
+    async getAccounts() {
+      if (!connected) throw new ConnectorNotConnectedError()
+      const provider = await this.getProvider()
+      const accounts = await provider.request({ method: 'eth_accounts' })
+      return accounts.map((x: any) => getAddress(x))
+    },
+    async getChainId() {
+      const provider = await this.getProvider()
+      const hexChainId = await provider.request({ method: 'eth_chainId' })
+      return fromHex(hexChainId, 'number')
+    },
+    async isAuthorized() {
+      if (!connected) return false
+      const accounts = await this.getAccounts()
+      return !!accounts.length
+    },
+    async switchChain({ chainId }) {
+      console.log("switchChain", chainId);
+      try {
+        const provider = await this.getProvider();
+      } catch (e) {
+        console.log(e);
+      }
+      const provider = await this.getProvider();
+      console.log("Provider", provider);
+      const chain = config.chains.find((x) => x.id === chainId)
+      if (!chain) throw new SwitchChainError(new ChainNotConfiguredError())
+
+      console.log("No");
+      try {
+        await provider.switchChain({id: chainId});
+      } catch (e) {
+        console.log(e);
+      }
+
+      console.log("SWIT?HDEC");
+
+      return chain;
+    },
+    onAccountsChanged(accounts) {
+      if (accounts.length === 0) this.onDisconnect()
+      else
+        config.emitter.emit('change', {
+          accounts: accounts.map((x) => getAddress(x)),
+        })
+    },
+    onChainChanged(chain) {
+      const chainId = normalizeChainId(chain)
+      config.emitter.emit('change', { chainId })
+    },
+    async onDisconnect(_error) {
+      config.emitter.emit('disconnect')
+      connected = false
+    },
+    async getProvider({chainId}: {chainId?: number}) {
+      console.log("GETTING");
+      if(!client) {
+        console.log("NO CLIENT< CREATING ONE");
+        const account = privateKeyToAccount(pk);
+        const chain = config.chains.find((x) => x.id === chainId)
+
+        client = createWalletClient({
+          account,
+          chain: chain,
+          transport: http(),
+        });
+      }
+
+      return client;
+    },
+  }))
 }
 
-export class KeystoreConnector {
-  readonly id = 'keystore'
-  readonly name = 'Keystore'
-  readonly ready = true
 
-  // #provider?: KeystoreProvider
-  //
-  // constructor({
-  //               chains,
-  //               options,
-  //             }: {
-  //   chains?: Chain[]
-  //   options: KeystoreConnectorOptions
-  // }) {
-  //   super({
-  //     chains,
-  //     options: {
-  //       ...options,
-  //       chainId: options.chainId ?? chains?.[0]?.id,
-  //     },
-  //   })
-  // }
-  //
-  // async connect({ chainId }: { chainId?: number } = {}) {
-  //   const provider = await this.getProvider({ chainId })
-  //   provider.on('accountsChanged', this.onAccountsChanged)
-  //   provider.on('chainChanged', this.onChainChanged)
-  //   provider.on('disconnect', this.onDisconnect)
-  //
-  //   this.emit('message', { type: 'connecting' })
-  //
-  //   const accounts = await provider.enable()
-  //   const account = getAddress(accounts[0] as string)
-  //   const id = normalizeChainId(provider.chainId)
-  //   const unsupported = this.isChainUnsupported(id)
-  //   const data = { account, chain: { id, unsupported }, provider }
-  //
-  //   return new Promise<Required<ConnectorData>>((res) =>
-  //     setTimeout(() => res(data), 100),
-  //   )
-  // }
-  //
-  // async disconnect() {
-  //   const provider = await this.getProvider()
-  //   await provider.disconnect()
-  //
-  //   provider.removeListener('accountsChanged', this.onAccountsChanged)
-  //   provider.removeListener('chainChanged', this.onChainChanged)
-  //   provider.removeListener('disconnect', this.onDisconnect)
-  // }
-  //
-  // async getAccount() {
-  //   const provider = await this.getProvider()
-  //   const accounts = await provider.getAccounts()
-  //   const account = accounts[0]
-  //   if (!account) throw new Error('Failed to get account')
-  //   // return checksum address
-  //   return getAddress(account)
-  // }
-  //
-  // async getChainId() {
-  //   const provider = await this.getProvider()
-  //   return normalizeChainId(provider.chainId)
-  // }
-  //
-  // async getProvider({ chainId }: { chainId?: number } = {}) {
-  //   if (!this.#provider || chainId)
-  //     this.#provider = new KeystoreProvider({
-  //       ...this.options,
-  //       chainId: chainId ?? this.options.chainId ?? this.chains[0]!.id,
-  //     })
-  //   return this.#provider
-  // }
-  //
-  // async getWalletClient(): Promise<WalletClient> {
-  //   const provider = await this.getProvider()
-  //   return provider.getWalletClient()
-  // }
-  //
-  // async isAuthorized() {
-  //   try {
-  //     const provider = await this.getProvider()
-  //     const account = await provider.getAccounts()
-  //     return !!account;
-  //   } catch {
-  //     return false
-  //   }
-  // }
-  //
-  // async #switchChain(chainId: number) {
-  //   const provider = await this.getProvider()
-  //   await provider.switchChain(chainId)
-  //   return (
-  //     this.chains.find((x) => x.id === chainId) ?? {
-  //       id: chainId,
-  //       name: `Chain ${chainId}`,
-  //       network: `${chainId}`,
-  //       nativeCurrency: { name: 'Ether', decimals: 18, symbol: 'ETH' },
-  //       rpcUrls: { default: { http: [''] }, public: { http: [''] } },
-  //     }
-  //   )
-  // }
-  //
-  // async watchAsset(asset: {
-  //   address: string
-  //   decimals?: number
-  //   image?: string
-  //   symbol: string
-  // }) {
-  //   const provider = await this.getProvider()
-  //   return provider.watchAsset(asset)
-  // }
-  //
-  // protected onAccountsChanged = (accounts: string[]) => {
-  //   if (accounts.length === 0) this.emit('disconnect')
-  //   else this.emit('change', { account: getAddress(accounts[0] as string) })
-  // }
-  //
-  // protected onChainChanged = (chainId: number | string) => {
-  //   const id = normalizeChainId(chainId)
-  //   const unsupported = this.isChainUnsupported(id)
-  //   this.emit('change', { chain: { id, unsupported } })
-  // }
-  //
-  // protected onDisconnect = () => {
-  //   this.emit('disconnect');
-  // }
-  //
-  // toJSON() {
-  //   return '<MockConnector>'
-  // }
+export type FooBarBazParameters = {}
+
+keystore1.type = 'keystore' as const;
+export function keystore1(parameters: FooBarBazParameters = {}) {
+  return createConnector((config) => ({
+    id: "keystore",
+    name: "Keystore Connector",
+    type: keystore1.type,
+
+    async connect({ chainId } = {}) {
+      return {accounts: [], chainId: chainId || 820}
+    },
+    async disconnect() {},
+    async getAccounts() {},
+    async getChainId() {},
+    async getProvider() {},
+    async isAuthorized() {},
+    async setup() {},
+    async switchChain() {},
+
+
+    async onAccountsChanged() {},
+    async onChainChanged() {},
+    async onConnect() {},
+    async onMessage() {},
+
+    async onDisconnect(_error) {
+      config.emitter.emit('disconnect');
+    }
+
+
+  }))
 }

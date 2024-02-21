@@ -14,6 +14,8 @@ import {
 import { useConnect } from "wagmi";
 import { config } from "@/config/wagmi/config";
 import Button from "@/components/atoms/Button";
+import CoinbaseCard from "@/components/wallet-cards/CoinbaseCard";
+import KeystoreCard from "@/components/wallet-cards/KeystoreCard";
 
 interface Props {
   isOpen: boolean,
@@ -36,7 +38,7 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
     config
   });
 
-  const {isOpened, setIsOpened} = useConnectWalletDialogStateStore()
+  const {setIsOpened} = useConnectWalletDialogStateStore()
 
   const handleConnect = useCallback(() => {
 
@@ -88,6 +90,23 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
         }
       });
     }
+
+    if(walletName === "coinbase") {
+      connectAsync({
+        connector: connectors[3],
+        chainId: chainToConnect
+      }).then(() => {
+        setIsOpened(false);
+        addToast("Successfully connected!")
+      }).catch((e) => {
+        console.log(e);
+        if(e.code && e.code === 4001) {
+          addToast("User rejected the request", "error");
+        } else {
+          addToast("Error: something went wrong", "error");
+        }
+      });
+    }
   }, [chainToConnect, connectAsync, connectors, setIsOpened, walletName]);
 
   return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -105,9 +124,10 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
         <StepLabel step="2" label="Choose wallet" />
         <div className="grid grid-cols-4 gap-3 mt-3">
           <MetamaskCard isLoading={walletName === "metamask" && isPending} />
+          <CoinbaseCard isLoading={walletName === "coinbase" && isPending} />
           <WalletConnectCard />
           <TrustWalletCard isLoading={walletName === "trustWallet" && isPending} />
-          {/*<KeystoreCard />*/}
+          <KeystoreCard />
         </div>
       </div>
       <Button fullWidth onClick={() => {

@@ -1,7 +1,6 @@
 "use client";
 
 import Container from "@/components/atoms/Container";
-import IconButton from "@/components/atoms/IconButton";
 import Svg from "@/components/atoms/Svg";
 import { useRouter } from "@/navigation";
 import Image from "next/image";

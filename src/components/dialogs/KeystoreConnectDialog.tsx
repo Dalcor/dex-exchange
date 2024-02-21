@@ -3,13 +3,11 @@ import Button from "@/components/atoms/Button";
 import { ChangeEvent, useRef, useState } from "react";
 import { useConnect } from "wagmi";
 import { unlockKeystore } from "@/functions/keystore";
-import { privateKeyToAccount } from "viem/accounts";
-import { createWalletClient, http, publicActions } from "viem";
-import { mainnet } from "viem/chains";
-import { KeystoreConnector } from "@/config/connectors/keystore/connector";
+import { keystore } from "@/config/connectors/keystore/connector";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import AwaitingLoader from "@/components/atoms/AwaitingLoader";
 import TextField from "@/components/atoms/TextField";
+import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
 
 interface Props {
   isOpen: boolean,
@@ -18,9 +16,10 @@ interface Props {
 
 export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
   const fileInput = useRef<HTMLInputElement | null>(null);
+  const { chainToConnect } = useConnectWalletStore();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [keystore, setKeystore] = useState<{ [key: string]: string } | null>(null);
+  const [keystoreFile, setKeystore] = useState<{ [key: string]: string } | null>(null);
   const [isUnlockingKeystore, setIsUnlockingKeystore] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -57,24 +56,16 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
   const importKeystoreFileHandler = async () => {
     setIsUnlockingKeystore(true);
     try {
-      const result = await unlockKeystore(keystore, password);
+      const result = await unlockKeystore(keystoreFile, password);
       const PK: any = result?.getPrivateKeyString && result?.getPrivateKeyString();
 
       if (PK) {
-        const account = privateKeyToAccount(PK);
-        const walletClient = createWalletClient({
-          account,
-          chain: mainnet,
-          transport: http(),
-        }).extend(publicActions);
+        const connector = keystore({pk: PK});
 
-        // const connector = new KeystoreConnector({
-        //   chains,
-        //   options: {
-        //     walletClient: walletClient,
-        //   },
-        // });
-        // connect({ chainId: 820, connector });
+        // const a = connector.connect({chainId: 820});
+        // console.log(a);
+        connect({ chainId: chainToConnect, connector });
+
         setIsOpen(false);
       }
     } catch (error) {

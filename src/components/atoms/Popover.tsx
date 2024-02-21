@@ -16,7 +16,8 @@ interface Props {
   setIsOpened?: (isOpened: boolean) => void,
   trigger: ReactElement
 }
-export default function Popover({placement, isOpened, setIsOpened, children, trigger}: PropsWithChildren<Props>) {
+
+export default function Popover({ placement, isOpened, setIsOpened, children, trigger }: PropsWithChildren<Props>) {
   const { refs, floatingStyles, context } = useFloating({
     open: isOpened,
     onOpenChange: setIsOpened,
@@ -29,7 +30,7 @@ export default function Popover({placement, isOpened, setIsOpened, children, tri
     whileElementsMounted: autoUpdate
   });
 
-  const {isMounted, styles: transitionStyles} = useTransitionStyles(context, {
+  const { isMounted, styles: transitionStyles } = useTransitionStyles(context, {
     duration: {
       open: 200,
       close: 200
@@ -46,18 +47,17 @@ export default function Popover({placement, isOpened, setIsOpened, children, tri
     role
   ]);
 
-
   return (
     <>
       {React.cloneElement(
         trigger,
-        {...getReferenceProps, ref: refs.setReference}
+        { ...getReferenceProps, ref: refs.setReference }
       )}
       {isMounted && (
         <FloatingFocusManager context={context} modal={false}>
           <div
             ref={refs.setFloating}
-            style={{...floatingStyles, ...transitionStyles}}
+            style={{ ...floatingStyles, ...transitionStyles, zIndex: 2 }}
             {...getFloatingProps()}
           >
             {children}

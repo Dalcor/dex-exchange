@@ -22,7 +22,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
   const [keystoreFile, setKeystore] = useState<{ [key: string]: string } | null>(null);
   const [isUnlockingKeystore, setIsUnlockingKeystore] = useState(false);
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | undefined>();
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -61,12 +61,11 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
 
       if (PK) {
         const connector = keystore({pk: PK});
-
-        // const a = connector.connect({chainId: 820});
-        // console.log(a);
         connect({ chainId: chainToConnect, connector });
 
         setIsOpen(false);
+      } else {
+        setError("Wrong password");
       }
     } catch (error) {
       console.log("importKeystoreFileHandler ~ error:", error);
@@ -103,6 +102,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
         </div>
           <div>
             <TextField
+              disabled={!selectedFile || Boolean(fileError)}
               label="Key store password"
               value={password}
               type="password"
@@ -112,11 +112,11 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
                 setError(null);
               }}
               placeholder="Key store password"
-              error={fileError}
+              error={error || undefined}
               helperText="Helper text"
             />
             <div className="mt-6">
-              <Button fullWidth onClick={() => importKeystoreFileHandler()}>
+              <Button disabled={!selectedFile || Boolean(fileError)} fullWidth onClick={() => importKeystoreFileHandler()}>
                 {!isUnlockingKeystore ? "Unlock" : <AwaitingLoader size={30}/>}
               </Button>
             </div>

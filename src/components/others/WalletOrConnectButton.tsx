@@ -12,8 +12,7 @@ export default function WalletOrConnectButton({openWallet, openAccount}: Props) 
   const { address, isConnected, isConnecting } = useAccount();
 
 
-  return <ClientOnly>
-    {isConnected && address
+  return <>{isConnected && address
       ? <SelectButton withArrow={false} onClick={() => openAccount(true)}>
               <span className="flex gap-2 items-center px-3">
                 <Svg iconName="wallet"/>
@@ -21,6 +20,5 @@ export default function WalletOrConnectButton({openWallet, openAccount}: Props) 
               </span>
       </SelectButton>
       : <Button size="small" onClick={() => openWallet(true)}>Connect wallet</Button>
-    }
-  </ClientOnly>
+    }</>
 }

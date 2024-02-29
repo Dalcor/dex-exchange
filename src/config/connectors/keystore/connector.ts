@@ -5,13 +5,9 @@ import {
   fromHex,
   getAddress,
   http,
-  numberToHex,
-  SwitchChainError,
   WalletClient
 } from "viem";
-import { normalizeChainId } from "wagmi";
 import { privateKeyToAccount } from "viem/accounts";
-import { callisto } from "@/config/chains/callisto";
 import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 
 export type KeystoreConnectorParameters = {
@@ -75,18 +71,9 @@ export function keystore({ pk }: KeystoreConnectorParameters) {
 
       return chain!;
     },
-    onAccountsChanged(accounts) {
-      if (accounts.length === 0) this.onDisconnect()
-      else
-        config.emitter.emit('change', {
-          accounts: accounts.map((x) => getAddress(x)),
-        })
-    },
+    onAccountsChanged(accounts) {},
     onChainChanged(chain) {},
-    async onDisconnect(_error) {
-      config.emitter.emit('disconnect')
-      connected = false
-    },
+    async onDisconnect(_error) {},
     async getProvider(params: {chainId?: number}) {
       if(!client) {
         const account = privateKeyToAccount(pk);

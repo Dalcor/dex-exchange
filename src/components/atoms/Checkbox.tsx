@@ -15,6 +15,8 @@ export default function Checkbox({ checked, handleChange, id, label }: Props) {
         appearance-none peer shrink-0 w-6 h-6 border border-primary-border bg-transparent rounded-1
          hover:border-green checked:bg-green checked:border-green cursor-pointer relative duration-200"
       type="checkbox"
+      onChange={handleChange}
+      checked={checked}
     />
     <label className="pl-2 cursor-pointer" htmlFor={id}>{label}</label>
     <Svg iconName="check" className="duration-200 absolute opacity-0 peer-checked:opacity-100 pointer-events-none"/>

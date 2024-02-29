@@ -32,82 +32,7 @@ function StepLabel({step, label}: { step: string, label: string }) {
 }
 
 export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
-  const { walletName, chainToConnect, setChainToConnect} = useConnectWalletStore();
-
-  const { connectors, connectAsync, isPending } = useConnect({
-    config
-  });
-
-  const {setIsOpened} = useConnectWalletDialogStateStore()
-
-  const handleConnect = useCallback(() => {
-
-    if(walletName === "metamask") {
-      connectAsync({
-        connector: connectors[0],
-        chainId: chainToConnect
-      }).then(() => {
-        setIsOpened(false);
-        addToast("Successfully connected!")
-      }).catch((e) => {
-        if(e.code && e.code === 4001) {
-          addToast("User rejected the request", "error");
-        } else {
-          addToast("Error: something went wrong", "error");
-        }
-      });
-    }
-
-    if(walletName === "wc") {
-      connectAsync({
-        connector: connectors[1],
-        chainId: chainToConnect
-      }).then(() => {
-        setIsOpened(false);
-        addToast("Successfully connected!")
-      }).catch((e) => {
-        if(e.code && e.code === 4001) {
-          addToast("User rejected the request", "error");
-        } else {
-          addToast("Error: something went wrong", "error");
-        }
-      });
-    }
-
-    if(walletName === "trustWallet") {
-      connectAsync({
-        connector: connectors[2],
-        chainId: chainToConnect
-      }).then(() => {
-        setIsOpened(false);
-        addToast("Successfully connected!")
-      }).catch((e) => {
-        console.log(e);
-        if(e.code && e.code === 4001) {
-          addToast("User rejected the request", "error");
-        } else {
-          addToast("Error: something went wrong", "error");
-        }
-      });
-    }
-
-    if(walletName === "coinbase") {
-      connectAsync({
-        connector: connectors[3],
-        chainId: chainToConnect
-      }).then(() => {
-        setIsOpened(false);
-        addToast("Successfully connected!")
-      }).catch((e) => {
-        console.log(e);
-        if(e.code && e.code === 4001) {
-          addToast("User rejected the request", "error");
-        } else {
-          addToast("Error: something went wrong", "error");
-        }
-      });
-    }
-  }, [chainToConnect, connectAsync, connectors, setIsOpened, walletName]);
+  const { chainToConnect, setChainToConnect} = useConnectWalletStore();
 
   return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
     <div className="min-w-[600px]">
@@ -123,16 +48,13 @@ export default function ConnectWalletDialog({isOpen, setIsOpen}: Props) {
         </div>
         <StepLabel step="2" label="Choose wallet" />
         <div className="grid grid-cols-4 gap-3 mt-3">
-          <MetamaskCard isLoading={walletName === "metamask" && isPending} />
-          <CoinbaseCard isLoading={walletName === "coinbase" && isPending} />
+          <MetamaskCard />
           <WalletConnectCard />
-          <TrustWalletCard isLoading={walletName === "trustWallet" && isPending} />
+          <CoinbaseCard />
+          <TrustWalletCard />
           <KeystoreCard />
         </div>
       </div>
-      <Button fullWidth onClick={() => {
-        handleConnect();
-      }}>Connect wallet</Button>
     </div>
   </Dialog>
 }

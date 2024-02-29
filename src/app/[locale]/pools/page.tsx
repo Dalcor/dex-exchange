@@ -21,8 +21,10 @@ function PoolPosition({ onClick, inRange = false, closed = false }: {
               className="px-5 py-4 border-t border-secondary-border hover:bg-secondary-bg duration-200 cursor-pointer"
               onClick={onClick}>
     <div className="justify-between flex items-center mb-2">
-      <TokensPair/>
-      <TextLabel color="grey" text="1%"/>
+      <div className="flex items-center gap-2">
+        <TokensPair/>
+        <TextLabel color="grey" text="1%"/>
+      </div>
       <PoolStatusLabel status={closed ? "closed" : inRange ? "in-range" : "out-of-range"}/>
     </div>
     <div className="flex gap-2 items-center">

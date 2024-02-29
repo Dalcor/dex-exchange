@@ -10,10 +10,10 @@ interface Props {
 }
 export default function DialogHeader({onBack, onClose, title, paragraph}: Props) {
   return <div className={clsx(
-    "border-b border-b-secondary-border",
-    onBack ? "py-2.5 px-6" : "pt-2.5 pr-6 pb-2.5 pl-10"
+    "h-[60px] flex items-center",
+    onBack ? "px-6" : "pr-6 pl-10"
   )}>
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between flex-grow">
       {onBack && <IconButton onClick={onBack}>
         <Svg iconName="back"/>
       </IconButton>}

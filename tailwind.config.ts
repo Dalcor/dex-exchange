@@ -35,7 +35,7 @@ const config: Config = {
       'secondary-bg': "#1D1C1E",
       'tertiary-bg': "#272727",
 
-      'green': '#3BD171',
+      'green': '#70C59E',
       'red': "#D13B3B",
       'orange': "#D38932",
       'blue': "#22AEFC",
@@ -49,7 +49,8 @@ const config: Config = {
 
       'global-bg': "#121312",
 
-      'green-hover': "#2DBF61",
+      'green-hover': "#6FF8B8",
+      'red-hover': "#E62A2A",
       'white-hover': "rgba(255, 255, 255, 0.1)",
 
       'primary-text': "#F5FFF9",

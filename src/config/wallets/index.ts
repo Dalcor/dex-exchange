@@ -1,9 +1,4 @@
-export const wallets: {
-  [key: string]: {
-    name: string,
-    image: string
-  }
-} = {
+export const wallets = {
   metamask: {
     name: "Metamask",
     image: "/wallets/metamask.svg"
@@ -32,4 +27,4 @@ export const wallets: {
     name: "Unknown",
     image: "/wallets/default.svg"
   }
-}
+} as const;

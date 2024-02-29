@@ -60,7 +60,7 @@ export default function IncreaseLiquidityPage() {
     <div className="w-[600px] bg-primary-bg mx-auto my-[80px]">
       <div className="flex justify-between items-center rounded-t-2 border py-2.5 px-6 border-secondary-border">
         <SystemIconButton onClick={() => router.push("/pool")} size="large" iconName="back" iconSize={32} />
-        <h2 className="text-20 font-bold">Remove Liquidity</h2>
+        <h2 className="text-20 font-bold">Increase Liquidity</h2>
         <SystemIconButton onClick={() => setIsOpen(true)} size="large" iconName="settings" iconSize={32} />
       </div>
       <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">

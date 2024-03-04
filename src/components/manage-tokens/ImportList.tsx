@@ -1,7 +1,7 @@
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Input from "@/components/atoms/Input";
 import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount } from "wagmi";
 import { ChangeEvent, useCallback, useEffect, useRef, useState, DragEvent,  } from "react";
 import { useTokenListsStore } from "@/stores/useTokenListsStore";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
@@ -10,10 +10,11 @@ import RadioButton from "@/components/buttons/RadioButton";
 import { IIFE } from "@/functions/iife";
 import { fetchTokenList } from "@/hooks/useTokenLists";
 import { TokenList } from "@/config/types/TokenList";
-import Image from "next/image";
 import Svg from "@/components/atoms/Svg";
 import Checkbox from "@/components/atoms/Checkbox";
 import addToast from "@/other/toast";
+import clsx from "clsx";
+import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 
 interface Props {
   setContent: (content: ManageTokensDialogContent) => void,
@@ -51,9 +52,6 @@ export default function ImportList({ setContent, handleClose }: Props) {
 
   }, [tokenListAddressToImport]);
 
-  console.log("LIST TO IMG");
-  console.log(tokenListToImport);
-
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event?.target?.files?.[0];
 
@@ -77,10 +75,9 @@ export default function ImportList({ setContent, handleClose }: Props) {
             console.log(parsedJson);
 
             addTokenList({
-              name: "Imported list#1",
+              name: parsedJson.name,
               enabled: true,
-              list: parsedJson,
-              id: "1234"
+              list: parsedJson
             }, chainId as AvailableChains);
           }
         } catch (e) {
@@ -95,11 +92,22 @@ export default function ImportList({ setContent, handleClose }: Props) {
   const [importType, setImportType] = useState<"url" | "json">("url")
   const [checkedUnderstand, setCheckedUnderstand] = useState<boolean>(false);
 
-  console.log(getListImage(tokenListToImport?.logoURI || ""));
+  const [dragEntered, setDragEntered] = useState(false);
+
+  const handleDragEnter = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragEntered(true);
+  }, []);
+
+  const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragEntered(false);
+  }, []);
 
   const handleDrop = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setTokenListFile(event.dataTransfer.files[0]);
+    setDragEntered(false);
   }, [])
 
   const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
@@ -121,6 +129,11 @@ export default function ImportList({ setContent, handleClose }: Props) {
 
         <Input value={tokenListAddressToImport} onChange={(e) => setTokenListAddressToImport(e.target.value)}
                placeholder="https:// or ipfs://"/>
+
+        {!tokenListToImport && <div className="flex-grow flex justify-center items-center flex-col gap-2">
+          <EmptyStateIcon iconName="imported" />
+          <p className="text-secondary-text text-center">To import a list through a URL, enter a link in the format https:// or ipfs://</p>
+        </div>}
 
         {tokenListToImport && <>
           <div className="flex-grow">
@@ -150,8 +163,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
               addTokenList({
                 name: tokenListToImport?.name,
                 enabled: true,
-                url: tokenListAddressToImport,
-                id: "123"
+                url: tokenListAddressToImport
               }, chainId as AvailableChains);
               setContent("default");
               addToast("List imported");
@@ -186,7 +198,12 @@ export default function ImportList({ setContent, handleClose }: Props) {
           <div
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            className="mb-5 border-dashed border-green rounded-5 flex justify-center items-center h-[288px] border bg-secondary-bg flex-grow"
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            className={clsx(
+              "mb-5 rounded-2 flex justify-center items-center h-[288px] bg-drag-and-drop-dashed-pattern flex-grow duration-200",
+              dragEntered ? "bg-green/20" : "bg-secondary-bg"
+              )}
           >
             Import files or Drag & Drop
           </div>

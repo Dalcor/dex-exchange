@@ -34,20 +34,11 @@ export type ExternalTokenList = {
 
 export type SavedTokenList = LocalTokenList | ExternalTokenList;
 
-interface TokenLists {
-  tokenLists: {
-    1: SavedTokenList[],
-    820: SavedTokenList[]
-    42161: SavedTokenList[],
-    56: SavedTokenList[],
-    61: SavedTokenList[],
-    10: SavedTokenList[],
-    137: SavedTokenList[],
-    42220: SavedTokenList[],
-    43114: SavedTokenList[],
-    8453: SavedTokenList[]
-  },
-  addTokenList: (tokenList: SavedTokenList, chainId: AvailableChains) => void,
+type TokenLists = Record<AvailableChains, SavedTokenList[]>
+
+interface TokenListsStore {
+  tokenLists: TokenLists,
+  addTokenList: (tokenList: Omit<LocalTokenList, "id"> | Omit<ExternalTokenList, "id">, chainId: AvailableChains) => void,
   toggleTokenList: (tokenListId: string, chainId: AvailableChains) => void,
   addTokenToCustomTokenList: (chainId: AvailableChains, token: TokenInfo) => void,
   removeCustomToken: (chainId: AvailableChains, tokenAddress: Address) => void
@@ -80,7 +71,7 @@ const defaultTokenLists = {
       enabled: true
     },
     {
-      id: "custom_ethereum",
+      id: "custom",
       name: "Сustom Ethereum List",
       list: {
         version: {
@@ -89,15 +80,7 @@ const defaultTokenLists = {
           patch: 0
         },
         name: "Сustom Ethereum List",
-        tokens: [
-          {
-            address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-            chainId: 1,
-            name: "USD Coin",
-            symbol: "USDC",
-            decimals: 18
-          }
-        ]
+        tokens: []
       },
       enabled: true
     }
@@ -108,6 +91,20 @@ const defaultTokenLists = {
       name: "Coingecko Callisto",
       url: "https://tokens.coingecko.com/callisto/all.json",
       enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom Callisto List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom Callisto List",
+        tokens: []
+      },
+      enabled: true
     }
   ],
   42161: [
@@ -115,6 +112,20 @@ const defaultTokenLists = {
       id: "coingecko_arbitrum_one",
       name: "Coingecko Arbitrum",
       url: "https://tokens.coingecko.com/arbitrum-one/all.json",
+      enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom Arbitrum List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom Arbitrum List",
+        tokens: []
+      },
       enabled: true
     }
   ],
@@ -124,6 +135,20 @@ const defaultTokenLists = {
       name: "Coingecko BSC",
       url: "https://tokens.coingecko.com/binance-smart-chain/all.json",
       enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom BSC List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom BSC List",
+        tokens: []
+      },
+      enabled: true
     }
   ],
   61: [
@@ -131,6 +156,20 @@ const defaultTokenLists = {
       id: "coingecko_ethereum_classic",
       name: "Coingecko ETC",
       url: "https://tokens.coingecko.com/ethereum-classic/all.json",
+      enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom ETC List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom ETC List",
+        tokens: []
+      },
       enabled: true
     }
   ],
@@ -146,6 +185,20 @@ const defaultTokenLists = {
       name: "Main Optimism",
       url: "https://static.optimism.io/optimism.tokenlist.json",
       enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom Optimism List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom Optimism List",
+        tokens: []
+      },
+      enabled: true
     }
   ],
   137: [
@@ -153,6 +206,20 @@ const defaultTokenLists = {
       id: "coingecko_polygon-pos",
       name: "Coingecko Polygon",
       url: "https://tokens.coingecko.com/polygon-pos/all.json",
+      enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom Polygon List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom Polygon List",
+        tokens: []
+      },
       enabled: true
     }
   ],
@@ -168,6 +235,20 @@ const defaultTokenLists = {
       name: "Celo Token List",
       url: "https://celo-org.github.io/celo-token-list/celo.tokenlist.json",
       enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom Celo List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom Celo List",
+        tokens: []
+      },
+      enabled: true
     }
   ],
   43114: [
@@ -175,6 +256,20 @@ const defaultTokenLists = {
       id: "coingecko_avalanche",
       name: "Coingecko Avalanche",
       url: "https://tokens.coingecko.com/avalanche/all.json",
+      enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom Avalanche List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom Avalanche List",
+        tokens: []
+      },
       enabled: true
     }
   ],
@@ -184,18 +279,75 @@ const defaultTokenLists = {
       name: "Coingecko Base",
       url: "https://tokens.coingecko.com/base/all.json",
       enabled: true
+    },
+    {
+      id: "custom",
+      name: "Сustom Base List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom Base List",
+        tokens: []
+      },
+      enabled: true
+    }
+  ],
+  11155111: [
+    {
+      id: "custom",
+      name: "Сustom Sepolia List",
+      list: {
+        version: {
+          major: 1,
+          minor: 0,
+          patch: 0
+        },
+        name: "Сustom Sepolia List",
+        tokens: [
+          {
+            address: "0xBC88C16D3adAacCC1f52503C4C972bA9C151F853",
+            name: "Token A",
+            logoURI: "/tokens/placeholder.svg",
+            chainId: 11155111,
+            decimals: 6,
+            symbol: "Dex223 Test Token A"
+          },
+          {
+            address: "0xb32F7065949Ea3826d6E5936B07E5F1567707588",
+            name: "Token B",
+            logoURI: "/tokens/placeholder.svg",
+            chainId: 11155111,
+            decimals: 6,
+            symbol: "Dex223 Test Token B"
+          }
+        ]
+      },
+      enabled: true
     }
   ]
 };
 
-export const useTokenListsStore = create<TokenLists>()((set, get) => ({
+export const useTokenListsStore = create<TokenListsStore>()((set, get) => ({
   tokenLists: defaultTokenLists,
-  addTokenList: ((tokenList, chainId) => set({
-    tokenLists: {
-      ...get().tokenLists,
-      [chainId]: [...get().tokenLists[chainId], tokenList]
-    }
-  })),
+  addTokenList: ((tokenList, chainId) => {
+    const tokenListsForChainId = get().tokenLists[chainId]
+
+    set({
+      tokenLists: {
+        ...get().tokenLists,
+        [chainId]: [
+          ...tokenListsForChainId,
+          {
+            ...tokenList,
+            id: `imported_${tokenListsForChainId.length + 1}`
+          }
+        ]
+      }
+    })
+  }),
   toggleTokenList: ((tokenListId, chainId) => {
     const tokenListIndex = get().tokenLists[chainId].findIndex(list => tokenListId === list.id);
 
@@ -213,18 +365,20 @@ export const useTokenListsStore = create<TokenLists>()((set, get) => ({
     }
   }),
   addTokenToCustomTokenList: (chainId: AvailableChains, token: TokenInfo) => {
-    const tokenListIndex = get().tokenLists[chainId].findIndex(list => list.id === "custom_ethereum");
+    const tokenListIndex = get().tokenLists[chainId].findIndex(list => list.id === "custom");
     const newTokenList = [...get().tokenLists[chainId]];
 
     if (tokenListIndex !== -1) {
       const customList = newTokenList[tokenListIndex];
-      if("list" in customList) {
+      if ("list" in customList) {
         const newCustomTokenList = [...customList.list.tokens, token];
 
-        newTokenList[tokenListIndex] = { ...newTokenList[tokenListIndex], list: {
-          ...customList.list,
-          tokens: newCustomTokenList
-        }};
+        newTokenList[tokenListIndex] = {
+          ...newTokenList[tokenListIndex], list: {
+            ...customList.list,
+            tokens: newCustomTokenList
+          }
+        };
 
         set({
           tokenLists: {
@@ -236,18 +390,20 @@ export const useTokenListsStore = create<TokenLists>()((set, get) => ({
     }
   },
   removeCustomToken: (chainId: AvailableChains, tokenAddress: Address) => {
-    const tokenListIndex = get().tokenLists[chainId].findIndex(list => list.id === "custom_ethereum");
+    const tokenListIndex = get().tokenLists[chainId].findIndex(list => list.id === "custom");
     const newTokenList = [...get().tokenLists[chainId]];
 
     if (tokenListIndex !== -1) {
       const customList = newTokenList[tokenListIndex];
-      if("list" in customList) {
+      if ("list" in customList) {
         const newCustomTokenList = customList.list.tokens.filter(t => t.address !== tokenAddress);
 
-        newTokenList[tokenListIndex] = { ...newTokenList[tokenListIndex], list: {
-          ...customList.list,
-          tokens: newCustomTokenList
-        }};
+        newTokenList[tokenListIndex] = {
+          ...newTokenList[tokenListIndex], list: {
+            ...customList.list,
+            tokens: newCustomTokenList
+          }
+        };
 
         set({
           tokenLists: {

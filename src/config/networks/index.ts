@@ -49,5 +49,10 @@ export const networks: Array<{
     chainId: 8453,
     name: "Base",
     logo: "/chains/base.svg"
+  },
+  {
+    chainId: 11155111,
+    name: "Sepolia",
+    logo: "/chains/sepolia.svg"
   }
 ];

@@ -1,12 +1,12 @@
 import { cookieStorage, createConfig, createStorage } from "wagmi";
 import { callisto } from "@/config/chains/callisto";
-import { arbitrum, avalanche, base, bsc, celo, classic, optimism, polygon } from "wagmi/chains";
-import { coinbaseWallet, injected, safe, walletConnect } from "wagmi/connectors";
+import { arbitrum, avalanche, base, bsc, celo, classic, optimism, polygon, sepolia } from "wagmi/chains";
+import { coinbaseWallet, walletConnect } from "wagmi/connectors";
 import { http } from "viem";
 import { mainnet } from "viem/chains";
 
 export const config = createConfig({
-  chains: [callisto, classic, mainnet, celo, arbitrum, avalanche, bsc, polygon, optimism, base],
+  chains: [callisto, classic, mainnet, celo, arbitrum, avalanche, bsc, polygon, optimism, base, sepolia],
   connectors: [
     walletConnect({
       projectId: "0af4613ea1c747c660416c4a7a114616"
@@ -30,6 +30,7 @@ export const config = createConfig({
     [bsc.id]: http(),
     [polygon.id]: http(),
     [optimism.id]: http(),
-    [base.id]: http()
+    [base.id]: http(),
+    [sepolia.id]: http()
   },
 })

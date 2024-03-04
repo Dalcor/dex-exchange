@@ -6,7 +6,7 @@ import SelectButton from "@/components/atoms/SelectButton";
 import Image from "next/image";
 import Collapse from "@/components/atoms/Collapse";
 import Button from "@/components/atoms/Button";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "@/navigation";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import clsx from "clsx";
@@ -17,6 +17,8 @@ import IncrementDecrementIconButton from "@/components/buttons/IncrementDecremen
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import InputButton from "@/components/buttons/InputButton";
+import { useTokens } from "@/hooks/useTokenLists";
+import { WrappedToken } from "@/config/types/WrappedToken";
 
 function RadioButton({ active = false }: { active?: boolean }) {
   return <div className={clsx(
@@ -40,8 +42,8 @@ function PriceRangeCard() {
       <span className="text-12 text-secondary-text">DAI per ETH</span>
     </div>
     <div className="flex flex-col gap-2">
-      <IncrementDecrementIconButton icon="add" />
-      <IncrementDecrementIconButton icon="minus" />
+      <IncrementDecrementIconButton icon="add"/>
+      <IncrementDecrementIconButton icon="minus"/>
     </div>
   </div>
 }
@@ -69,38 +71,64 @@ export default function AddPoolPage() {
 
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
+  const tokens = useTokens();
+
+  const [tokenA, setTokenA] = useState<WrappedToken>();
+  const [tokenB, setTokenB] = useState<WrappedToken>();
+
+  const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
+
+  const handlePick = useCallback((token: WrappedToken) => {
+    if (currentlyPicking === "tokenA") {
+      setTokenA(token);
+    }
+
+    if (currentlyPicking === "tokenB") {
+      setTokenB(token);
+    }
+
+    setIsOpenedTokenPick(false);
+  }, [currentlyPicking]);
+
   return <Container>
     <div className="w-[600px] bg-primary-bg mx-auto my-[80px]">
       <div className="flex justify-between items-center rounded-t-2 border py-2.5 px-6 border-secondary-border">
-        <SystemIconButton iconSize={32} iconName="back" size="large" onClick={() => router.push("/pools")} />
+        <SystemIconButton iconSize={32} iconName="back" size="large" onClick={() => router.push("/pools")}/>
         <h2 className="text-20 font-bold">Add Liquidity</h2>
-        <SystemIconButton iconSize={32} size="large" iconName="settings" onClick={() => setIsOpen(true)} />
+        <SystemIconButton iconSize={32} size="large" iconName="settings" onClick={() => setIsOpen(true)}/>
       </div>
       <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">
         <h3 className="text-16 font-bold mb-4">Select pair</h3>
         <div className="flex gap-3 mb-5">
-          <SelectButton fullWidth onClick={() => setIsOpenedTokenPick(true)} size="large">
-                    <span className="flex gap-2 items-center">
-                      <Image src="/tokens/ETH.svg" alt="Ethereum" width={32} height={32}/>
-                      ETH
-                     </span>
+          <SelectButton fullWidth onClick={() => {
+            setCurrentlyPicking("tokenA");
+            setIsOpenedTokenPick(true);
+          }} size="large">
+            {tokenA ? <span className="flex gap-2 items-center">
+                      <Image src={tokenA.logoURI} alt="Ethereum" width={32} height={32}/>
+              {tokenA.symbol}
+                     </span> : <span>Select token</span>}
           </SelectButton>
-          <SelectButton fullWidth onClick={() => setIsOpenedTokenPick(true)} size="large">
-                    <span className="flex gap-2 items-center">
-                      <Image src="/tokens/ETH.svg" alt="Ethereum" width={32} height={32}/>
-                      ETH
-                     </span>
+          <SelectButton fullWidth onClick={() => {
+            setCurrentlyPicking("tokenB")
+            setIsOpenedTokenPick(true)
+          }} size="large">
+            {tokenB ? <span className="flex gap-2 items-center">
+                      <Image src={tokenB.logoURI} alt="Ethereum" width={32} height={32}/>
+              {tokenB.symbol}
+                     </span> : <span>Select token</span>}
           </SelectButton>
         </div>
         <div className="border border-primary-border rounded-1 py-[2px] px-5 mb-5">
           <div className="flex justify-between items-center py-[18px]">
             <div className="flex items-center gap-2">
               <span className="font-bold">0.3% fee tier</span>
-              <TextLabel text="67% select" color="grey" />
+              <TextLabel text="67% select" color="grey"/>
             </div>
             <button onClick={() => setIsFeeOpened(!isFeeOpened)} className="flex items-center gap-1 group">
-              <span className="text-secondary-text group-hover:text-primary-text duration-200">{isFeeOpened ? "Hide" : "Edit"}</span>
-              <Svg iconName="expand-arrow" className={isFeeOpened ? "duration-200 -rotate-180" : "duration-200 "} />
+              <span
+                className="text-secondary-text group-hover:text-primary-text duration-200">{isFeeOpened ? "Hide" : "Edit"}</span>
+              <Svg iconName="expand-arrow" className={isFeeOpened ? "duration-200 -rotate-180" : "duration-200 "}/>
             </button>
           </div>
           <Collapse open={isFeeOpened}>
@@ -116,7 +144,7 @@ export default function AddPoolPage() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-16 font-bold">Set price range</h3>
             <div className="flex gap-3 items-center">
-              <InputButton text="Full range" isActive={false} />
+              <InputButton text="Full range" isActive={false}/>
               <div className="flex">
                 <button>DAI</button>
                 <button>ETH</button>
@@ -136,8 +164,8 @@ export default function AddPoolPage() {
             <span className="text-12 text-secondary-text">DAI per ETH</span>
           </div>
           <div className="flex gap-3">
-           <ZoomButton icon="zoom-in" />
-           <ZoomButton icon="zoom-out" />
+            <ZoomButton icon="zoom-in"/>
+            <ZoomButton icon="zoom-out"/>
           </div>
         </div>
 
@@ -194,7 +222,7 @@ export default function AddPoolPage() {
           Preview
         </Button>
       </div>
-      <PickTokenDialog isOpen={isOpenedTokenPick} setIsOpen={setIsOpenedTokenPick}/>
+      <PickTokenDialog handlePick={handlePick} isOpen={isOpenedTokenPick} setIsOpen={setIsOpenedTokenPick}/>
 
     </div>
   </Container>

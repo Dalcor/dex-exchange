@@ -13,6 +13,7 @@ const config: Config = {
       },
       backgroundImage: {
         'account-card-pattern': "url('/account-bg.svg')",
+        'drag-and-drop-dashed-pattern': "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='8' ry='8' stroke='%2370C59EFF' stroke-width='1' stroke-dasharray='8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e\")"
       },
       keyframes: {
         orbit: {
@@ -36,22 +37,28 @@ const config: Config = {
       'tertiary-bg': "#272727",
 
       'green': '#70C59E',
-      'red': "#D13B3B",
-      'orange': "#D38932",
-      'blue': "#22AEFC",
+      'red': "#DC4141",
+      'orange': "#D9A251",
+      'blue': "#64B2EA",
       'black': '#000000',
       'white': "#FFFFFF",
+      'purple': "#A380DC",
 
-      'green-bg': "#0F1E15",
-      'red-bg': "#1A0D0A",
-      'orange-bg': "#1F170A",
-      'blue-bg': "#0F1929",
+
+      'green-bg': "#1A2B23",
+      'red-bg': "#2B1717",
+      'orange-bg': "#292115",
+      'blue-bg': "#14222B",
 
       'global-bg': "#121312",
 
       'green-hover': "#6FF8B8",
       'red-hover': "#E62A2A",
+      'purple-hover': "#7552D7",
+      'blue-hover': "#D27E1A",
+      'orange-hover': "",
       'white-hover': "rgba(255, 255, 255, 0.1)",
+      'tertiary-hover': "#3A3A3A",
 
       'primary-text': "#F5FFF9",
       'secondary-text': '#B2B2B2',

@@ -6,6 +6,7 @@ import Switch from "@/components/atoms/Switch";
 import Collapse from "@/components/atoms/Collapse";
 import { AutoSizer, List } from "react-virtualized";
 import Image from "next/image";
+import SystemIconButton from "@/components/buttons/SystemIconButton";
 
 export default function TokenListItem({ tokenList, toggle }: { tokenList: TokenList, toggle: any }) {
   const [open, setOpen] = useState(false);
@@ -46,8 +47,9 @@ export default function TokenListItem({ tokenList, toggle }: { tokenList: TokenL
         </div>
       </div>
       <div className="flex items-center gap-3">
-        {tokenList.id === "custom_ethereum" && <a download="custom-list.json"
-                                                  href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(tokenList))}`}>Download</a>}
+        {tokenList.id === "custom" && <a className="flex items-center justify-center w-10 h-10 text-primary-text bg-transparent rounded-full duration-200 hover:bg-white/10" download="custom-list.json"
+                                         href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(tokenList))}`}><Svg iconName="download" /></a>}
+        <SystemIconButton onClick={() => setOpen(!open)} iconName="details" />
         <Switch checked={tokenList.enabled} setChecked={() => toggle(tokenList.id)}/>
       </div>
     </div>

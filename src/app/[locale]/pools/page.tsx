@@ -38,9 +38,7 @@ function PoolPosition({ onClick, inRange = false, closed = false }: {
 export default function PoolsPage() {
   const { isConnected } = useAccount();
 
-  const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const router = useRouter();
-
 
   return <Container>
     <div className="py-[80px] flex justify-center">
@@ -73,6 +71,5 @@ export default function PoolsPage() {
         }
       </div>
     </div>
-    <PickTokenDialog isOpen={isOpenedTokenPick} setIsOpen={setIsOpenedTokenPick}/>
   </Container>
 }

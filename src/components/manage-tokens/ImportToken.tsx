@@ -11,6 +11,7 @@ import Svg from "@/components/atoms/Svg";
 import Checkbox from "@/components/atoms/Checkbox";
 import Button from "@/components/atoms/Button";
 import addToast from "@/other/toast";
+import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 
 interface Props {
   setContent: (content: ManageTokensDialogContent) => void,
@@ -58,8 +59,14 @@ export default function ImportToken({ setContent, handleClose }: Props) {
   return <>
     <DialogHeader onBack={() => setContent("default")} onClose={handleClose} title="Import token"/>
     <div className="w-[550px] px-10 pb-10 min-h-[580px] flex flex-col">
+      <h3 className="text-16 font-bold mb-1">Import token</h3>
       <Input value={tokenAddressToImport} onChange={(e) => setTokenAddressToImport(e.target.value)}
-             placeholder="Import token"/>
+             placeholder="Token address (0x...)"/>
+
+      {!tokenName && !tokenDecimals && !tokenSymbol && <div className="flex-grow flex justify-center items-center flex-col gap-2">
+        <EmptyStateIcon iconName="imported" />
+        <p className="text-secondary-text text-center">To import a token, enter a token address in the format 0x...</p>
+      </div>}
 
       {tokenName && tokenDecimals && tokenSymbol && <>
         <div className="flex-grow">

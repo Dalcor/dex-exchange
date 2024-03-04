@@ -6,6 +6,8 @@ import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 import Image from "next/image";
+import SystemIconButton from "@/components/buttons/SystemIconButton";
+import DeleteIconButton from "@/components/buttons/DeleteIconButton";
 
 export default function ManageTokenItem({ token }: { token: WrappedToken }) {
   const [open, setOpen] = useState(false);
@@ -47,9 +49,9 @@ export default function ManageTokenItem({ token }: { token: WrappedToken }) {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        {token.lists?.includes("custom_ethereum") &&
+        {token.lists?.includes("custom") &&
           <>
-            <button onClick={() => setDeleteOpened(true)}>Delete</button>
+            <DeleteIconButton onClick={() => setDeleteOpened(true)} />
             <Dialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>
               <DialogHeader onClose={() => setDeleteOpened(false)} title="Remove token" />
 
@@ -67,9 +69,7 @@ export default function ManageTokenItem({ token }: { token: WrappedToken }) {
             </Dialog>
           </>
         }
-        <button className="text-secondary-text hover:text-primary-text duration-200" onClick={() => setOpen(!open)}>
-          Details
-        </button>
+        <SystemIconButton onClick={() => setOpen(!open)} iconName="details" />
       </div>
     </div>
     <Dialog isOpen={open} setIsOpen={setOpen}>

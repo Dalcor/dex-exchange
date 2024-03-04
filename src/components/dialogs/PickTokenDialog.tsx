@@ -3,20 +3,23 @@ import DialogHeader from "@/components/atoms/DialogHeader";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
 import Image from "next/image";
-import { useState } from "react";
+import { WrappedToken } from "@/config/types/WrappedToken";
+import { useTokens } from "@/hooks/useTokenLists";
 
 interface Props {
   isOpen: boolean,
-  setIsOpen: (isOpen: boolean) => void
+  setIsOpen: (isOpen: boolean) => void,
+  handlePick: (token: WrappedToken) => void
 }
 
-function TokenRow() {
-  return <div role="button" className="px-10 flex justify-between py-2">
+function TokenRow({token, handlePick}: {token: WrappedToken, handlePick: (token: WrappedToken) => void}) {
+
+  return <div role="button" onClick={() => handlePick(token)} className="px-10 flex justify-between py-2">
     <div className="flex items-center gap-3">
-      <Image width={40} height={40} src="/tokens/ETH.svg" alt=""/>
+      <Image width={40} height={40} src={token.logoURI} alt=""/>
       <div className="grid">
-        <span>ETH</span>
-        <span className="text-secondary-text text-12">1.23 ETH</span>
+        <span>{token.symbol}</span>
+        <span className="text-secondary-text text-12">1.23 {token.symbol}</span>
       </div>
 
     </div>
@@ -30,7 +33,8 @@ function TokenRow() {
 
 
 
-export default function PickTokenDialog({ isOpen, setIsOpen }: Props) {
+export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props) {
+  const tokens = useTokens();
 
   return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
     <DialogHeader onClose={() => setIsOpen(false)} title="Select a token"/>
@@ -56,17 +60,7 @@ export default function PickTokenDialog({ isOpen, setIsOpen }: Props) {
         </div>
       </div>
       <div className="h-[420px] overflow-scroll">
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
-        <TokenRow/>
+        {tokens.map(token => <TokenRow handlePick={handlePick} key={token.address} token={token} />)}
       </div>
     </div>
   </Dialog>

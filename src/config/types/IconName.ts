@@ -95,7 +95,9 @@ export const svgIconsNames = [
   "double-arrow",
   "closed",
   "forward",
-  "import"
+  "import",
+  "details",
+  "download"
 ] as const;
 
 export const socialIconNames = [

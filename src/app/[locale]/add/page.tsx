@@ -1,36 +1,66 @@
 "use client";
 
-import IconButton from "@/components/atoms/IconButton";
 import Svg from "@/components/atoms/Svg";
 import SelectButton from "@/components/atoms/SelectButton";
 import Image from "next/image";
 import Collapse from "@/components/atoms/Collapse";
 import Button from "@/components/atoms/Button";
-import { useCallback, useEffect, useState } from "react";
+import { ButtonHTMLAttributes, ReactNode, useCallback, useMemo, useState } from "react";
 import { useRouter } from "@/navigation";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import clsx from "clsx";
 import Container from "@/components/atoms/Container";
-import TextLabel from "@/components/labels/TextLabel";
 import ZoomButton from "@/components/buttons/ZoomButton";
 import IncrementDecrementIconButton from "@/components/buttons/IncrementDecrementIconButton";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import InputButton from "@/components/buttons/InputButton";
-import { useTokens } from "@/hooks/useTokenLists";
 import { WrappedToken } from "@/config/types/WrappedToken";
+import { useLiquidityTierStore } from "@/app/[locale]/add/hooks/useLiquidityTierStore";
+import { FeeAmount } from "@/sdk";
+import { usePool, usePools } from "@/app/[locale]/add/hooks/usePools";
+import { PoolState } from "@/app/[locale]/add/hooks/types";
 
-function RadioButton({ active = false }: { active?: boolean }) {
-  return <div className={clsx(
+interface RadioButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  active?: boolean,
+  feeAmount: FeeAmount
+}
+
+const FEE_TIERS = [FeeAmount.LOWEST, FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH]
+
+const FEE_AMOUNT_DETAIL: Record<
+  FeeAmount,
+  { label: string; description: ReactNode }
+> = {
+  [FeeAmount.LOWEST]: {
+    label: '0.01',
+    description: 'Best for very stable pairs.',
+  },
+  [FeeAmount.LOW]: {
+    label: '0.05',
+    description: 'Best for stable pairs.',
+  },
+  [FeeAmount.MEDIUM]: {
+    label: '0.25',
+    description: 'Best for most pairs.',
+  },
+  [FeeAmount.HIGH]: {
+    label: '1',
+    description: 'Best for exotic pairs.',
+  },
+}
+
+function RadioButton({ feeAmount, active = false, ...props }: RadioButtonProps) {
+  return <button {...props} className={clsx(
     "flex justify-between items-center px-5 py-2 rounded-1 border  cursor-pointer hover:border-green duration-200",
     active ? "bg-green-bg border-green pointer-events-none" : "border-primary-border"
   )}>
     <div className="flex items-center gap-2">
-      <span>0.3% fee tier</span>
-      <TextLabel text="67% select" color="grey"/>
+      <span>{FEE_AMOUNT_DETAIL[feeAmount].label}% fee tier</span>
+      {/*<TextLabel text="1% select" color="grey"/>*/}
     </div>
-    <span className={active ? "text-green" : ""}>Best for most pair</span>
-  </div>
+    <span className={active ? "text-green" : ""}>{FEE_AMOUNT_DETAIL[feeAmount].description}</span>
+  </button>
 }
 
 function PriceRangeCard() {
@@ -51,7 +81,7 @@ function PriceRangeCard() {
 function DepositCard() {
   return <div className="bg-secondary-bg border border-secondary-border rounded-1 p-5">
     <div className="flex items-center justify-between mb-1">
-      <input className="font-medium text-16 bg-transparent border-0 outline-0 min-w-0" type="text" value={906.56209}/>
+      <input className="font-medium text-16 bg-transparent border-0 outline-0 min-w-0" type="text" defaultValue={906.56209}/>
       <div className="pr-3 py-1 pl-1 bg-primary-bg rounded-5 flex items-center gap-2 flex-shrink-0">
         <Image src="/tokens/ETH.svg" alt="Ethereum" width={24} height={24}/>
         MATIC
@@ -69,12 +99,56 @@ export default function AddPoolPage() {
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const router = useRouter();
 
-  const { setIsOpen } = useTransactionSettingsDialogStore();
-
-  const tokens = useTokens();
 
   const [tokenA, setTokenA] = useState<WrappedToken>();
   const [tokenB, setTokenB] = useState<WrappedToken>();
+
+  // const { isLoading, isError, largestUsageFeeTier, distributions } = useFeeTierDistribution(tokenA, tokenB);
+
+  const poolKeys: any = useMemo(() => {
+    return [
+      [tokenA, tokenB, FeeAmount.LOWEST],
+      [tokenA, tokenB, FeeAmount.LOW],
+      [tokenA, tokenB, FeeAmount.MEDIUM],
+      [tokenA, tokenB, FeeAmount.HIGH],
+    ]
+  }, [tokenA, tokenB]);
+
+  // get pool data on-chain for latest states
+  const pools = usePools(poolKeys);
+
+  const pool = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
+
+  console.log("POOL");
+  console.log(pool);
+
+  const poolsByFeeTier: Record<FeeAmount, PoolState> = useMemo(
+    () =>
+      pools.reduce(
+        (acc, [curPoolState, curPool]) => {
+          acc = {
+            ...acc,
+            ...{ [curPool?.fee as FeeAmount]: curPoolState },
+          }
+          return acc
+        },
+        {
+          // default all states to NOT_EXISTS
+          [FeeAmount.LOWEST]: PoolState.NOT_EXISTS,
+          [FeeAmount.LOW]: PoolState.NOT_EXISTS,
+          [FeeAmount.MEDIUM]: PoolState.NOT_EXISTS,
+          [FeeAmount.HIGH]: PoolState.NOT_EXISTS,
+        }
+      ),
+    [pools]
+  )
+
+  console.log(poolsByFeeTier);
+
+  const { setIsOpen } = useTransactionSettingsDialogStore();
+
+  const { tier, setTier } = useLiquidityTierStore();
+
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
@@ -113,17 +187,19 @@ export default function AddPoolPage() {
             setCurrentlyPicking("tokenB")
             setIsOpenedTokenPick(true)
           }} size="large">
-            {tokenB ? <span className="flex gap-2 items-center">
+            {tokenB
+              ? <span className="flex gap-2 items-center">
                       <Image src={tokenB.logoURI} alt="Ethereum" width={32} height={32}/>
-              {tokenB.symbol}
-                     </span> : <span>Select token</span>}
+                      {tokenB.symbol}
+               </span>
+              : <span>Select token</span>}
           </SelectButton>
         </div>
         <div className="border border-primary-border rounded-1 py-[2px] px-5 mb-5">
           <div className="flex justify-between items-center py-[18px]">
             <div className="flex items-center gap-2">
-              <span className="font-bold">0.3% fee tier</span>
-              <TextLabel text="67% select" color="grey"/>
+              <span className="font-bold">{FEE_AMOUNT_DETAIL[tier].label}% fee tier</span>
+              {/*<TextLabel text="67% select" color="grey"/>*/}
             </div>
             <button onClick={() => setIsFeeOpened(!isFeeOpened)} className="flex items-center gap-1 group">
               <span
@@ -133,10 +209,9 @@ export default function AddPoolPage() {
           </div>
           <Collapse open={isFeeOpened}>
             <div className="grid gap-2 pb-5">
-              <RadioButton/>
-              <RadioButton/>
-              <RadioButton active/>
-              <RadioButton/>
+              {FEE_TIERS.map(_feeAmount => <RadioButton feeAmount={_feeAmount} key={_feeAmount}
+                                                        active={tier === _feeAmount}
+                                                        onClick={() => setTier(_feeAmount)}/>)}
             </div>
           </Collapse>
         </div>

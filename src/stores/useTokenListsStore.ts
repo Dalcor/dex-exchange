@@ -3,7 +3,7 @@ import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletSto
 import { Address } from "viem";
 
 type TokenInfo = {
-  address: string,
+  address: Address,
   chainId: number,
   name: string,
   symbol: string,
@@ -308,7 +308,7 @@ const defaultTokenLists = {
         name: "Сustom Sepolia List",
         tokens: [
           {
-            address: "0xBC88C16D3adAacCC1f52503C4C972bA9C151F853",
+            address: "0xBC88C16D3adAacCC1f52503C4C972bA9C151F853" as Address,
             name: "Token A",
             logoURI: "/tokens/placeholder.svg",
             chainId: 11155111,
@@ -316,7 +316,7 @@ const defaultTokenLists = {
             symbol: "Dex223 Test Token A"
           },
           {
-            address: "0xb32F7065949Ea3826d6E5936B07E5F1567707588",
+            address: "0xb32F7065949Ea3826d6E5936B07E5F1567707588" as Address,
             name: "Token B",
             logoURI: "/tokens/placeholder.svg",
             chainId: 11155111,

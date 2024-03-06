@@ -4,16 +4,11 @@ import { useState } from "react";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
-import IconButton from "@/components/atoms/IconButton";
-import SwapSettingsDialog from "@/components/dialogs/SwapSettingsDialog";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import Button from "@/components/atoms/Button";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
-import SelectButton from "@/components/atoms/SelectButton";
-import Image from "next/image";
 import TokenInput from "@/components/others/TokenInput";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
-import TransactionSettingsDialog from "@/components/dialogs/SwapSettingsDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { useAccount, useBalance, useChainId } from "wagmi";
 
@@ -95,7 +90,7 @@ export default function SwapPage() {
             </div>
           </div>
         </div>
-        <PickTokenDialog isOpen={isOpenedTokenPick} setIsOpen={setIsOpenedTokenPick}/>
+        <PickTokenDialog handlePick={() => null} isOpen={isOpenedTokenPick} setIsOpen={setIsOpenedTokenPick}/>
       </Container>
     </>
   )

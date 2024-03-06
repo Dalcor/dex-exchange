@@ -1,7 +1,6 @@
 import DialogHeader from "@/components/atoms/DialogHeader";
 import clsx from "clsx";
 import Input from "@/components/atoms/Input";
-import Button from "@/components/atoms/Button";
 import TokenListItem from "@/components/manage-tokens/TokenListItem";
 import Checkbox from "@/components/atoms/Checkbox";
 import { AutoSizer, List } from "react-virtualized";
@@ -30,7 +29,7 @@ export default function TokensAndLists({setContent, handleClose}: Props) {
   const filteredTokens = useMemo(() => {
     const tokensAfterCustomCheck = onlyCustom ? tokens.filter(t => t.lists?.includes("custom")) : tokens;
 
-    return value ? tokensAfterCustomCheck.filter(t => t.name.toLowerCase().startsWith(value)) : tokensAfterCustomCheck;
+    return value ? tokensAfterCustomCheck.filter(t => t.name && t.name.toLowerCase().startsWith(value)) : tokensAfterCustomCheck;
   }, [onlyCustom, tokens, value]);
 
 

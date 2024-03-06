@@ -9,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       boxShadow: {
-        'tooltip': '0 0 32px 24px rgba(20, 19, 22, 0.50)'
+        'tooltip': '0 0 32px 24px rgba(20, 19, 22, 0.50)',
+        'select': '0 0 10px 0 #8EFFCB99'
       },
       backgroundImage: {
         'account-card-pattern': "url('/account-bg.svg')",
@@ -32,41 +33,43 @@ const config: Config = {
       transparent: 'transparent',
       current: 'currentColor',
 
-      'primary-bg': "#141316",
-      'secondary-bg': "#1D1C1E",
-      'tertiary-bg': "#272727",
+      'primary-bg': "#1D1E1E", // changed
+      'secondary-bg': "#0F0F0F", // changed
+      'tertiary-bg': "#272727", // changed
+      'active-bg': "#3C4C4A", // changed
 
-      'green': '#70C59E',
-      'red': "#DC4141",
-      'orange': "#D9A251",
-      'blue': "#64B2EA",
-      'black': '#000000',
-      'white': "#FFFFFF",
-      'purple': "#A380DC",
+      'green': '#70C59E', // changed
+      'red': "#DC4141", // changed
+      'orange': "#D9A251", // changed
+      'blue': "#64B2EA", // changed
+      'black': '#000000', // changed
+      'white': "#FFFFFF", // changed
+      'purple': "#A380DC", // changed
 
 
-      'green-bg': "#1A2B23",
-      'red-bg': "#2B1717",
-      'orange-bg': "#292115",
-      'blue-bg': "#14222B",
+      'green-bg': "#1A2B23", // changed
+      'red-bg': "#2B1717", // changed
+      'orange-bg': "#292115", // changed
+      'blue-bg': "#14222B", // changed
 
-      'global-bg': "#121312",
+      'global-bg': "#121312", // changed
 
-      'green-hover': "#6FF8B8",
-      'red-hover': "#E62A2A",
-      'purple-hover': "#7552D7",
-      'blue-hover': "#D27E1A",
-      'orange-hover': "",
-      'white-hover': "rgba(255, 255, 255, 0.1)",
-      'tertiary-hover': "#3A3A3A",
+      'green-hover': "#6FF8B8", // changed
+      'red-hover': "#E62A2A", // changed
+      'purple-hover': "#7552D7", // changed
+      'blue-hover': "#D27E1A", // changed
+      'orange-hover': "#D27E1A",  // changed
+      'white-hover': "rgba(255, 255, 255, 0.1)", // changed
+      'tertiary-hover': "#3A3A3A", // changed
 
-      'primary-text': "#F5FFF9",
-      'secondary-text': '#B2B2B2',
-      'placeholder-text': '#7F7F7F',
+      'primary-text': "#F5FFF9", // changed
+      'secondary-text': '#BCC3C2', // changed
+      'placeholder-text': '#798180', // changed
 
-      'primary-border': '#5A5A5A',
-      'secondary-border': '#393939',
-      'hover-border': '#848484',
+      'primary-border': '#5A5A5A',  // changed
+      'secondary-border': '#383C3A',  // changed
+      'tertiary-border': '#2A2D2C',  // changed
+      'hover-border': '#7E8281',  // changed
     },
     spacing: {
       '0': '0px',

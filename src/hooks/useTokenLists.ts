@@ -20,6 +20,7 @@ let isExternal = (obj: SavedTokenList): obj is ExternalTokenList => {
 let isLocal = (obj: SavedTokenList): obj is LocalTokenList => {
   return "list" in obj;
 }
+
 export function useTokenLists() {
   const { tokenLists: savedLists, toggleTokenList } = useTokenListsStore();
   const [lists, setLists] = useState<TokenList[]>([]);
@@ -49,7 +50,7 @@ export function useTokenLists() {
 
       results.forEach((result, index) => {
         const tokenListTokens = (result.tokens as {
-          address: string,
+          address: Address,
           name: string,
           symbol: string,
           decimals: string,
@@ -62,7 +63,8 @@ export function useTokenLists() {
             symbol,
             +decimals,
             logoURI,
-            +chainId
+            +chainId,
+            []
           )
         });
 
@@ -88,7 +90,8 @@ export function useTokenLists() {
           token.symbol,
           +token.decimals,
           "/tokens/placeholder.svg",
-          +token.chainId
+          +token.chainId,
+          []
         ));
 
         const geckoList = new TokenList(
@@ -119,7 +122,7 @@ export function useTokens() {
 
   console.log("RERENDER");
   return useMemo(() => {
-    if(tokenLists.lists.length > 1) {
+    if (tokenLists.lists.length > 1) {
       const inspect = (...arrays: TokenList[]) => {
         // const duplicates = [];
         const map = new Map<Address, WrappedToken>();
@@ -129,9 +132,9 @@ export function useTokens() {
 
           if (map.has(lowercaseAddress)) {
             // duplicates.push(item);
-            map.set(lowercaseAddress, {...item, lists: Array.from(new Set([...(map.get(lowercaseAddress)?.lists || []), id]))})
+            map.set(lowercaseAddress, new WrappedToken(item.address, item.name || "Unknown", item.symbol || "Unknown", item.decimals, item.logoURI, item.chainId, Array.from(new Set([...(map.get(lowercaseAddress)?.lists || []), id]))))
           } else {
-            map.set(lowercaseAddress, { ...item, lists: [id] });
+            map.set(lowercaseAddress, new WrappedToken(item.address, item.name || "Unknown", item.symbol || "Unknown", item.decimals, item.logoURI, item.chainId, [id]));
           }
         });
 
@@ -140,7 +143,7 @@ export function useTokens() {
         // console.log(duplicates);
         console.log();
         return [...map.values()].sort(function (a, b) {
-          if(a.lists && b.lists) {
+          if (a.lists && b.lists) {
             return b.lists.length - a.lists.length;
           }
 

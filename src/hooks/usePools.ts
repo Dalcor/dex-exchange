@@ -1,5 +1,3 @@
-import { Interface } from '@ethersproject/abi'
-import IUniswapV3PoolStateJSON from '@uniswap/v3-core/artifacts/contracts/interfaces/pool/IUniswapV3PoolState.sol/IUniswapV3PoolState.json'
 import JSBI from 'jsbi'
 import { useEffect, useMemo, useState } from 'react'
 import { Pool } from "@/sdk/entities/pool";
@@ -9,13 +7,10 @@ import { computePoolAddress } from "@/sdk/utils/computePoolAddress";
 import { Currency } from "@/sdk/entities/currency";
 import { useAccount } from "wagmi";
 import { V3_CORE_FACTORY_ADDRESSES } from "@/sdk/addresses";
-import { ChainId } from "@/sdk/chains";
 import { IIFE } from "@/functions/iife";
 import { multicall } from "@wagmi/core";
 import { config } from "@/config/wagmi/config";
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
-
-const POOL_STATE_INTERFACE = new Interface(IUniswapV3PoolStateJSON.abi) as any;
 
 // Classes are expensive to instantiate, so this caches the recently instantiated pools.
 // This avoids re-instantiating pools as the other pools in the same request are loaded.
@@ -128,10 +123,6 @@ export function usePools(
         }
       });
 
-      const dataSlot0s = await multicall(config,{
-        contracts: contractsA
-      });
-
       const contractsB = poolAddresses.map((address) => {
         return {
           abi: POOL_STATE_ABI,
@@ -140,15 +131,19 @@ export function usePools(
         }
       });
 
-      const dataLiquidities = await multicall(config,{
-        contracts: contractsB,
-      });
+      const [dataSlot0s, dataLiquidities] = await Promise.all([
+        multicall(config,{
+          contracts: contractsA
+        }),
+        multicall(config,{
+          contracts: contractsB,
+        })
+      ]);
 
       console.log(dataSlot0s);
       console.log(dataLiquidities);
       setSlot0s(dataSlot0s);
       setLiquidities(dataLiquidities);
-
     })
   }, [poolAddresses]);
 
@@ -207,41 +202,3 @@ export function usePool(
 
   return usePools(poolKeys)[0]
 }
-
-// export function usePoolMultichain(
-//   tokenA: Token | undefined,
-//   tokenB: Token | undefined,
-//   fee: number | undefined,
-//   chainId: ChainId
-// ): [PoolState, Pool | null] {
-//   const [poolData, setPoolData] = useState<[PoolState, Pool | null]>([PoolState.LOADING, null])
-//   const poolAddress =
-//     tokenA && tokenB && fee
-//       ? PoolCache.getPoolAddress(V3_CORE_FACTORY_ADDRESSES[chainId], tokenA, tokenB, fee)
-//       : undefined
-//
-//   const contractMap = useMemo(() => (poolAddress ? { [chainId]: poolAddress } : {}), [chainId, poolAddress])
-//   const contract = useContractMultichain<UniswapV3Pool>(contractMap, IUniswapV3PoolStateJSON.abi)[chainId]
-//
-//   useEffect(() => {
-//     async function getPool() {
-//       try {
-//         if (!tokenA || !tokenB || !fee || !poolAddress || !contract) {
-//           setPoolData([PoolState.INVALID, null])
-//           return
-//         }
-//
-//         const slot0 = await contract.slot0()
-//         const liquidity = await contract.liquidity()
-//         setPoolData([PoolState.NOT_EXISTS, null])
-//
-//         const pool = new Pool(tokenA, tokenB, fee, slot0.sqrtPriceX96.toString(), liquidity.toString(), slot0.tick)
-//         setPoolData([PoolState.EXISTS, pool])
-//       } catch (e) {
-//         setPoolData([PoolState.INVALID, null])
-//       }
-//     }
-//     getPool()
-//   }, [contract, fee, poolAddress, tokenA, tokenB])
-//   return poolData
-// }

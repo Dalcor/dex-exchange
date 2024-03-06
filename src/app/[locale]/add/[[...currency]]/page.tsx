@@ -5,7 +5,7 @@ import SelectButton from "@/components/atoms/SelectButton";
 import Image from "next/image";
 import Collapse from "@/components/atoms/Collapse";
 import Button from "@/components/atoms/Button";
-import { ButtonHTMLAttributes, ReactNode, useCallback, useMemo, useState } from "react";
+import { ButtonHTMLAttributes, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "@/navigation";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import clsx from "clsx";
@@ -18,19 +18,32 @@ import InputButton from "@/components/buttons/InputButton";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import { useLiquidityTierStore } from "@/app/[locale]/add/hooks/useLiquidityTierStore";
 import { FeeAmount } from "@/sdk";
-import { usePool, usePools } from "@/app/[locale]/add/hooks/usePools";
+import { usePool, usePools } from "@/hooks/usePools";
 import { PoolState } from "@/app/[locale]/add/hooks/types";
+import { useLocale } from "next-intl";
+import { useAddLiquidityTokensStore } from "@/app/[locale]/add/hooks/useAddLiquidityTokensStore";
+import { useTokens } from "@/hooks/useTokenLists";
+import useAllowance from "@/hooks/useAllowance";
+import { Abi, Address, encodeFunctionData, formatUnits, parseUnits } from "viem";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import useTransactionDeadline from "@/hooks/useTransactionDeadline";
+import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
+const nonFungiblePositionManagerAddress = "0x1238536071e1c677a632429e3655c799b22cda52";
 interface RadioButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean,
   feeAmount: FeeAmount
 }
 
-const FEE_TIERS = [FeeAmount.LOWEST, FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH]
+const FEE_TIERS = [FeeAmount.LOWEST, FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH];
 
 const FEE_AMOUNT_DETAIL: Record<
   FeeAmount,
-  { label: string; description: ReactNode }
+  {
+    label: string;
+    description: ReactNode
+  }
 > = {
   [FeeAmount.LOWEST]: {
     label: '0.01',
@@ -52,8 +65,8 @@ const FEE_AMOUNT_DETAIL: Record<
 
 function RadioButton({ feeAmount, active = false, ...props }: RadioButtonProps) {
   return <button {...props} className={clsx(
-    "flex justify-between items-center px-5 py-2 rounded-1 border  cursor-pointer hover:border-green duration-200",
-    active ? "bg-green-bg border-green pointer-events-none" : "border-primary-border"
+    "flex justify-between items-center px-5 py-2 rounded-1 border cursor-pointer bg-secondary-bg hover:bg-tertiary-hover duration-200",
+    active ? "bg-active-bg shadow-select border-green pointer-events-none" : "border-transparent"
   )}>
     <div className="flex items-center gap-2">
       <span>{FEE_AMOUNT_DETAIL[feeAmount].label}% fee tier</span>
@@ -81,7 +94,8 @@ function PriceRangeCard() {
 function DepositCard() {
   return <div className="bg-secondary-bg border border-secondary-border rounded-1 p-5">
     <div className="flex items-center justify-between mb-1">
-      <input className="font-medium text-16 bg-transparent border-0 outline-0 min-w-0" type="text" defaultValue={906.56209}/>
+      <input className="font-medium text-16 bg-transparent border-0 outline-0 min-w-0" type="text"
+             defaultValue={906.56209}/>
       <div className="pr-3 py-1 pl-1 bg-primary-bg rounded-5 flex items-center gap-2 flex-shrink-0">
         <Image src="/tokens/ETH.svg" alt="Ethereum" width={24} height={24}/>
         MATIC
@@ -94,16 +108,42 @@ function DepositCard() {
   </div>
 }
 
-export default function AddPoolPage() {
+export default function AddPoolPage({ params }: {
+  params: {
+    currency: [string, string, string]
+  }
+}) {
+
   const [isFeeOpened, setIsFeeOpened] = useState(false);
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const router = useRouter();
 
+  const {address: accountAddress} = useAccount();
 
-  const [tokenA, setTokenA] = useState<WrappedToken>();
-  const [tokenB, setTokenB] = useState<WrappedToken>();
+  const currency = params.currency;
+
+  const { slippage, deadline: _deadline } = useTransactionSettingsStore();
+
+  const deadline = useTransactionDeadline(_deadline);
+
+  const {
+    tokenA,
+    tokenB,
+    setTokenA,
+    setTokenB
+  } = useAddLiquidityTokensStore();
+
+  const tokens = useTokens();
+
 
   // const { isLoading, isError, largestUsageFeeTier, distributions } = useFeeTierDistribution(tokenA, tokenB);
+  //
+  // const { currencyIdA, currencyIdB, feeAmount } = useCurrencyParams();
+  //
+  console.log("PARAMS");
+  console.log(currency?.[0]);
+  console.log(currency?.[1]);
+  console.log(currency?.[2]);
 
   const poolKeys: any = useMemo(() => {
     return [
@@ -149,20 +189,153 @@ export default function AddPoolPage() {
 
   const { tier, setTier } = useLiquidityTierStore();
 
+  const lang = useLocale();
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
   const handlePick = useCallback((token: WrappedToken) => {
     if (currentlyPicking === "tokenA") {
       setTokenA(token);
+      if (tokenB) {
+        const newPath = `/${lang}/add/${token.address}/${tokenB.address}`;
+        window.history.replaceState(null, "", newPath);
+      } else {
+        const newPath = `/${lang}/add/${token.address}`;
+        window.history.replaceState(null, "", newPath);
+      }
     }
 
     if (currentlyPicking === "tokenB") {
       setTokenB(token);
+      if (tokenA) {
+        const newPath = `/${lang}/add/${tokenA.address}/${token.address}`;
+        window.history.replaceState(null, "", newPath);
+      } else {
+        const newPath = `/${lang}/add/undefined/${token.address}`;
+        window.history.replaceState(null, "", newPath);
+      }
     }
 
     setIsOpenedTokenPick(false);
-  }, [currentlyPicking]);
+  }, [currentlyPicking, lang, setTokenA, setTokenB, tokenA, tokenB]);
+
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
+
+  useEffect(() => {
+    if (currency?.[0]) {
+      const token = tokens.find((t) => t.address === currency[0]);
+      if (token) {
+        setTokenA(token);
+      }
+    }
+
+    if (currency?.[1]) {
+      const token = tokens.find((t) => t.address === currency[1]);
+      if (token) {
+        setTokenB(token);
+      }
+    }
+
+    if (currency?.[2]) {
+      if (FEE_TIERS.includes(Number(currency[2]))) {
+        console.log("FOUND");
+        setTier(Number(currency[2]));
+      }
+    }
+  }, [currency, setTier, setTokenA, setTokenB, tokens]);
+
+  const [mainPriceToken, setMainPriceToken] = useState("DAI");
+  const [fullRange, setFullRange] = useState(false);
+
+  const {isAllowed: isAllowedA, writeTokenApprove: approveA, isApproving: isApprovingA} = useAllowance({
+    token: tokenA,
+    contractAddress: nonFungiblePositionManagerAddress,
+    amountToCheck: parseUnits("1", tokenA?.decimals || 18)
+  });
+
+  const {isAllowed: isAllowedB, writeTokenApprove: approveB, isApproving: isApprovingB} = useAllowance({
+    token: tokenB,
+    contractAddress: nonFungiblePositionManagerAddress,
+    amountToCheck: parseUnits("1", tokenB?.decimals || 18)
+  });
+
+  const handleAddLiquidity = useCallback(async () => {
+    if(!publicClient || !walletClient || !accountAddress || !tokenA || !tokenB) {
+      return;
+    }
+
+    const params: {
+      account: Address,
+      abi: Abi,
+      functionName: "mint",
+      address: Address,
+      args: [
+        Address, //token0
+        Address, //token1
+        number, //fee
+        number, //tickLower
+        number, //tickUpper
+        bigint, //amount0Desired
+        bigint, //amount1Desired
+        bigint, //amount0Min
+        bigint, //amount1Min
+        Address, //recipient
+        bigint //deadline
+      ]
+    } = {
+      account: accountAddress,
+      abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+      functionName: "mint" as const,
+      address: nonFungiblePositionManagerAddress as Address,
+      args: [
+        tokenA.address as Address,
+        tokenB.address as Address,
+        tier,
+        -400000,
+        100000,
+        BigInt(1),
+        BigInt(1),
+        BigInt(1),
+        BigInt(1),
+        "0xAxxxx",
+        deadline
+      ]
+    }
+
+    // const data = encodeFunctionData({
+    //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+    //   functionName: "mint",
+    //   args: [
+    //     tokenA.address as Address,
+    //     tokenB.address as Address,
+    //     tier,
+    //     -400000,
+    //     100000,
+    //     BigInt(1),
+    //     BigInt(1),
+    //     BigInt(1),
+    //     BigInt(1),
+    //     "0xAxxxx",
+    //     deadline
+    //   ]
+    // })
+    //
+    // try {
+    //   const estimatedGas = await publicClient.estimateContractGas(params);
+    //
+    //   const { request } = await publicClient.simulateContract({
+    //     ...params,
+    //     gas: estimatedGas + BigInt(30000),
+    //   })
+    //   const hash = await walletClient.writeContract(request);
+    //   console.log(hash);
+    //
+    // } catch (e) {
+    //   console.log(e);
+    // }
+
+  }, [accountAddress, deadline, publicClient, tier, tokenA, tokenB, walletClient]);
 
   return <Container>
     <div className="w-[600px] bg-primary-bg mx-auto my-[80px]">
@@ -174,28 +347,28 @@ export default function AddPoolPage() {
       <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">
         <h3 className="text-16 font-bold mb-4">Select pair</h3>
         <div className="flex gap-3 mb-5">
-          <SelectButton fullWidth onClick={() => {
+          <SelectButton variant="rounded-secondary" fullWidth onClick={() => {
             setCurrentlyPicking("tokenA");
             setIsOpenedTokenPick(true);
           }} size="large">
             {tokenA ? <span className="flex gap-2 items-center">
-                      <Image src={tokenA.logoURI} alt="Ethereum" width={32} height={32}/>
-              {tokenA.symbol}
+                      <Image className="flex-shrink-0" src={tokenA.logoURI} alt="Ethereum" width={32} height={32}/>
+                      <span className="block overflow-ellipsis whitespace-nowrap w-[141px] overflow-hidden">{tokenA.symbol}</span>
                      </span> : <span>Select token</span>}
           </SelectButton>
-          <SelectButton fullWidth onClick={() => {
+          <SelectButton variant="rounded-secondary" fullWidth onClick={() => {
             setCurrentlyPicking("tokenB")
             setIsOpenedTokenPick(true)
           }} size="large">
             {tokenB
               ? <span className="flex gap-2 items-center">
-                      <Image src={tokenB.logoURI} alt="Ethereum" width={32} height={32}/>
-                      {tokenB.symbol}
-               </span>
+                      <Image className="flex-shrink-0" src={tokenB.logoURI} alt="Ethereum" width={32} height={32}/>
+                      <span className="block overflow-ellipsis whitespace-nowrap w-[141px] overflow-hidden">{tokenB.symbol}</span>
+                     </span>
               : <span>Select token</span>}
           </SelectButton>
         </div>
-        <div className="border border-primary-border rounded-1 py-[2px] px-5 mb-5">
+        <div className="rounded-1 py-[2px] px-5 mb-5 bg-tertiary-bg">
           <div className="flex justify-between items-center py-[18px]">
             <div className="flex items-center gap-2">
               <span className="font-bold">{FEE_AMOUNT_DETAIL[tier].label}% fee tier</span>
@@ -211,7 +384,10 @@ export default function AddPoolPage() {
             <div className="grid gap-2 pb-5">
               {FEE_TIERS.map(_feeAmount => <RadioButton feeAmount={_feeAmount} key={_feeAmount}
                                                         active={tier === _feeAmount}
-                                                        onClick={() => setTier(_feeAmount)}/>)}
+                                                        onClick={() => {
+                                                          setTier(_feeAmount);
+                                                          window.history.replaceState(null, "", `/${lang}/add/${tokenA?.address}/${tokenB?.address}/${_feeAmount}`);
+                                                        }}/>)}
             </div>
           </Collapse>
         </div>
@@ -219,10 +395,11 @@ export default function AddPoolPage() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-16 font-bold">Set price range</h3>
             <div className="flex gap-3 items-center">
-              <InputButton text="Full range" isActive={false}/>
-              <div className="flex">
-                <button>DAI</button>
-                <button>ETH</button>
+              {/*<InputButton text="Full range" isActive={false}/>*/}
+              <button onClick={() => setFullRange(!fullRange)} className={clsx("text-12 h-7 rounded-1 min-w-[60px] px-4 border duration-200", fullRange ? "bg-active-bg border-green text-primary-text" : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text")}>Full range</button>
+              <div className="flex p-0.5 gap-0.5 rounded-1 bg-secondary-bg">
+                <button onClick={() => setMainPriceToken("DAI")} className={clsx("text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200", mainPriceToken === "DAI" ? "bg-active-bg border-green text-primary-text" : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text")}>DAI</button>
+                <button onClick={() => setMainPriceToken("ETH")} className={clsx("text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200", mainPriceToken === "ETH" ? "bg-active-bg border-green text-primary-text" : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text")}>ETH</button>
               </div>
             </div>
           </div>
@@ -293,8 +470,13 @@ export default function AddPoolPage() {
           </div>
         </div>
 
-        <Button fullWidth>
-          Preview
+        <div className="grid gap-2 mb-2 grid-cols-2">
+          {!isAllowedA && <Button variant="outline" fullWidth onClick={() => approveA()}>{isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}</Button>}
+          {!isAllowedB && <Button variant="outline" fullWidth onClick={() => approveB()}>{isApprovingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}</Button>}
+        </div>
+
+        <Button onClick={handleAddLiquidity} fullWidth>
+          Add liquidity
         </Button>
       </div>
       <PickTokenDialog handlePick={handlePick} isOpen={isOpenedTokenPick} setIsOpen={setIsOpenedTokenPick}/>

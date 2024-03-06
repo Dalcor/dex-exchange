@@ -3,6 +3,7 @@ import invariant from 'tiny-invariant';
 import { checkValidAddress, validateAndParseAddress } from '../utils/validateAndParseAddress';
 import { BaseCurrency } from './baseCurrency';
 import { Currency } from './currency';
+import { Address } from "viem";
 
 /**
  * Represents an ERC20 token with a unique address and some metadata.

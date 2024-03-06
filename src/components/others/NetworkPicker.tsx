@@ -1,18 +1,19 @@
-import SelectButton from "@/components/atoms/SelectButton";
 import Image from "next/image";
-import { networks } from "@/config/networks";
-import SelectOption from "@/components/atoms/SelectOption";
-import Svg from "@/components/atoms/Svg";
-import Popover from "@/components/atoms/Popover";
 import { useMemo, useState } from "react";
 import { useChainId, useSwitchChain } from "wagmi";
+
+import Popover from "@/components/atoms/Popover";
+import SelectButton from "@/components/atoms/SelectButton";
+import SelectOption from "@/components/atoms/SelectOption";
+import Svg from "@/components/atoms/Svg";
 import ClientOnly from "@/components/others/ClientOnly";
+import { networks } from "@/config/networks";
 
 export default function NetworkPicker() {
   const [isOpened, setIsOpened] = useState(false);
   const chain = useChainId();
   const currentNetwork = useMemo(() => {
-    return networks.find(n => n.chainId === chain);
+    return networks.find((n) => n.chainId === chain);
   }, [chain]);
   const { switchChain } = useSwitchChain();
 
@@ -21,39 +22,53 @@ export default function NetworkPicker() {
     return null;
   }
 
-  return <ClientOnly>
-    <Popover isOpened={isOpened} setIsOpened={setIsOpened} placement="bottom-start" trigger={
-      <SelectButton isOpen={isOpened} onClick={() => setIsOpened(!isOpened)}>
+  return (
+    <ClientOnly>
+      <Popover
+        isOpened={isOpened}
+        setIsOpened={setIsOpened}
+        placement="bottom-start"
+        trigger={
+          <SelectButton isOpen={isOpened} onClick={() => setIsOpened(!isOpened)}>
             <span className="flex items-center gap-2 min-w-[110px]">
-              <Image src={`${currentNetwork?.logo}`} alt="Ethereum" width={24} height={24}/>
+              <Image src={`${currentNetwork?.logo}`} alt="Ethereum" width={24} height={24} />
               {currentNetwork?.name}
             </span>
-      </SelectButton>}>
-      <div className="py-1 text-16 bg-primary-bg border border-primary-border rounded-1 min-w-[280px]">
-        <div className="border-b-primary-border pb-1 border-b">
-          {networks.map(({ chainId, name, logo }) => {
-            return <SelectOption key={chainId} onClick={async () => {
-              if (switchChain) {
-                switchChain({ chainId });
-              }
-              setIsOpened(false);
-            }} isActive={chainId === chain}>
-              <Image src={logo} alt={name} width={24} height={24}/>
-              {name}
-            </SelectOption>
-          })}
-        </div>
-        <div className="pt-1">
-          <div role="button"
-               className="flex gap-2 items-center py-3 px-5 bg-primary-bg hover:bg-tertiary-bg duration-200">
-            <Svg iconName="add"/>
-            Add custom node
-            <span className="text-red block ml-auto">Risky</span>
+          </SelectButton>
+        }
+      >
+        <div className="py-1 text-16 bg-primary-bg border border-primary-border rounded-1 min-w-[280px]">
+          <div className="border-b-primary-border pb-1 border-b">
+            {networks.map(({ chainId, name, logo }) => {
+              return (
+                <SelectOption
+                  key={chainId}
+                  onClick={async () => {
+                    if (switchChain) {
+                      switchChain({ chainId });
+                    }
+                    setIsOpened(false);
+                  }}
+                  isActive={chainId === chain}
+                >
+                  <Image src={logo} alt={name} width={24} height={24} />
+                  {name}
+                </SelectOption>
+              );
+            })}
+          </div>
+          <div className="pt-1">
+            <div
+              role="button"
+              className="flex gap-2 items-center py-3 px-5 bg-primary-bg hover:bg-tertiary-bg duration-200"
+            >
+              <Svg iconName="add" />
+              Add custom node
+              <span className="text-red block ml-auto">Risky</span>
+            </div>
           </div>
         </div>
-
-
-      </div>
-    </Popover>
-  </ClientOnly>
+      </Popover>
+    </ClientOnly>
+  );
 }

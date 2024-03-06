@@ -1,23 +1,32 @@
-import {
-  useAccount, useBlockNumber, useChainId, usePublicClient,
-  useReadContract,
-  useSimulateContract,
-  useWaitForTransactionReceipt, useWalletClient,
-  useWriteContract
-} from "wagmi";
-import { ERC20_ABI } from "@/config/abis/erc20";
+import { useCallback, useEffect, useMemo, useState } from "react";
 // import { isNativeToken } from "@/other/isNativeToken";
 import { Abi, Address, formatUnits } from "viem";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import addToast from "@/other/toast";
+import {
+  useAccount,
+  useBlockNumber,
+  useChainId,
+  usePublicClient,
+  useReadContract,
+  useSimulateContract,
+  useWaitForTransactionReceipt,
+  useWalletClient,
+  useWriteContract,
+} from "wagmi";
+
+import { ERC20_ABI } from "@/config/abis/erc20";
 // import { useRecentTransactionsStore } from "@/stores/useRecentTransactions";
 // import { useAwaitingDialogStore } from "@/stores/useAwaitingDialogStore";
 import { WrappedToken } from "@/config/types/WrappedToken";
+import addToast from "@/other/toast";
 
-export default function useAllowance({ token, contractAddress, amountToCheck}: {
-  token: WrappedToken | undefined,
-  contractAddress: Address | undefined,
-  amountToCheck: bigint | null
+export default function useAllowance({
+  token,
+  contractAddress,
+  amountToCheck,
+}: {
+  token: WrappedToken | undefined;
+  contractAddress: Address | undefined;
+  amountToCheck: bigint | null;
 }) {
   const { address } = useAccount();
 
@@ -34,19 +43,17 @@ export default function useAllowance({ token, contractAddress, amountToCheck}: {
     args: [
       //set ! to avoid ts errors, make sure it is not undefined with "enable" option
       address!,
-      contractAddress!
+      contractAddress!,
     ],
     query: {
       //make sure hook don't run when there is no addresses
-      enabled: Boolean(token?.address) && Boolean(address) && Boolean(contractAddress)
-    }
+      enabled: Boolean(token?.address) && Boolean(address) && Boolean(contractAddress),
+    },
     // cacheTime: 0,
     // watch: true,
-
   });
 
-  const { data: blockNumber } = useBlockNumber({ watch: true })
-
+  const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {
     currentAllowance.refetch();
@@ -62,7 +69,7 @@ export default function useAllowance({ token, contractAddress, amountToCheck}: {
     // }
 
     if (currentAllowance?.data && amountToCheck) {
-      return currentAllowance.data >= amountToCheck
+      return currentAllowance.data >= amountToCheck;
     }
 
     return false;
@@ -90,7 +97,15 @@ export default function useAllowance({ token, contractAddress, amountToCheck}: {
   const [isApproving, setIsApproving] = useState(false);
 
   const writeTokenApprove = useCallback(async () => {
-    if(!amountToCheck || !contractAddress || !token || !walletClient || !address || !chainId || !publicClient) {
+    if (
+      !amountToCheck ||
+      !contractAddress ||
+      !token ||
+      !walletClient ||
+      !address ||
+      !chainId ||
+      !publicClient
+    ) {
       return;
     }
 
@@ -98,24 +113,18 @@ export default function useAllowance({ token, contractAddress, amountToCheck}: {
     // setOpened(`Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`)
 
     const params: {
-      address: Address,
-      account: Address,
-      abi: Abi,
-      functionName: "approve",
-      args: [
-        Address,
-        bigint
-      ]
+      address: Address;
+      account: Address;
+      abi: Abi;
+      functionName: "approve";
+      args: [Address, bigint];
     } = {
       address: token.address,
       account: address,
       abi: ERC20_ABI,
       functionName: "approve",
-      args: [
-        contractAddress!,
-        amountToCheck!
-      ],
-    }
+      args: [contractAddress!, amountToCheck!],
+    };
 
     try {
       const estimatedGas = await publicClient.estimateContractGas(params);
@@ -123,9 +132,9 @@ export default function useAllowance({ token, contractAddress, amountToCheck}: {
       const { request } = await publicClient.simulateContract({
         ...params,
         gas: estimatedGas + BigInt(30000),
-      })
+      });
       const hash = await walletClient.writeContract(request);
-      if(hash) {
+      if (hash) {
         // addTransaction({
         //   account: address,
         //   hash,
@@ -134,8 +143,8 @@ export default function useAllowance({ token, contractAddress, amountToCheck}: {
         // }, address);
         // setSubmitted(hash, chainId as any);
 
-        await publicClient.waitForTransactionReceipt({hash});
-        setIsApproving(false)
+        await publicClient.waitForTransactionReceipt({ hash });
+        setIsApproving(false);
       }
     } catch (e) {
       console.log(e);
@@ -143,13 +152,11 @@ export default function useAllowance({ token, contractAddress, amountToCheck}: {
       setIsApproving(false);
       addToast("Unexpected error, please contact support", "error");
     }
-
   }, [address, amountToCheck, chainId, contractAddress, token, publicClient, walletClient]);
-
 
   return {
     isAllowed,
     isApproving,
-    writeTokenApprove
-  }
+    writeTokenApprove,
+  };
 }

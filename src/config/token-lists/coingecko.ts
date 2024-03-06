@@ -1,4 +1,3 @@
-
 // find coingecko network id here: https://api.coingecko.com/api/v3/asset_platforms
 
 import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
@@ -13,9 +12,9 @@ const idMap = {
   137: "polygon-pos",
   42220: "celo",
   43114: "avalanche",
-  8453: "base"
-}
+  8453: "base",
+};
 
 export function getCoingeckoTokenListURI(chainId: AvailableChains) {
-  return `https://tokens.coingecko.com/${idMap[chainId]}/all.json`
+  return `https://tokens.coingecko.com/${idMap[chainId]}/all.json`;
 }

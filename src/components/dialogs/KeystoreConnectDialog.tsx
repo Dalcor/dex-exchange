@@ -1,17 +1,18 @@
-import Dialog from "@/components/atoms/Dialog";
-import Button from "@/components/atoms/Button";
 import { ChangeEvent, useRef, useState } from "react";
 import { useConnect } from "wagmi";
-import { unlockKeystore } from "@/functions/keystore";
-import { keystore } from "@/config/connectors/keystore/connector";
-import DialogHeader from "@/components/atoms/DialogHeader";
+
 import AwaitingLoader from "@/components/atoms/AwaitingLoader";
+import Button from "@/components/atoms/Button";
+import Dialog from "@/components/atoms/Dialog";
+import DialogHeader from "@/components/atoms/DialogHeader";
 import TextField from "@/components/atoms/TextField";
 import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
+import { keystore } from "@/config/connectors/keystore/connector";
+import { unlockKeystore } from "@/functions/keystore";
 
 interface Props {
-  isOpen: boolean,
-  setIsOpen: (isOpen: boolean) => void
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
 export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
@@ -45,7 +46,6 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
         }
       };
       reader.readAsText(file);
-
     } else {
       setKeystore(null);
     }
@@ -60,7 +60,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
       const PK: any = result?.getPrivateKeyString && result?.getPrivateKeyString();
 
       if (PK) {
-        const connector = keystore({pk: PK});
+        const connector = keystore({ pk: PK });
         connect({ chainId: chainToConnect, connector });
 
         setIsOpen(false);
@@ -74,32 +74,40 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
     }
   };
 
-  return <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
-    <div className="min-w-[440px]">
-      <DialogHeader onClose={() => setIsOpen(false)} title="Import wallet with JSON file"/>
+  return (
+    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
+      <div className="min-w-[440px]">
+        <DialogHeader onClose={() => setIsOpen(false)} title="Import wallet with JSON file" />
 
-      <div className="p-10">
-        <input
-          type="file"
-          onChange={(e) => handleFileChange(e)}
-          style={{ display: "none" }}
-          ref={fileInput}
-        />
-        <div className="flex items-center justify-between">
-          <div className="w-[120px]">
-            <Button onClick={() => {
-              if (fileInput.current && fileInput.current) {
-                fileInput.current.click()
-              }
-            }} variant="outline">Browse...</Button>
+        <div className="p-10">
+          <input
+            type="file"
+            onChange={(e) => handleFileChange(e)}
+            style={{ display: "none" }}
+            ref={fileInput}
+          />
+          <div className="flex items-center justify-between">
+            <div className="w-[120px]">
+              <Button
+                onClick={() => {
+                  if (fileInput.current && fileInput.current) {
+                    fileInput.current.click();
+                  }
+                }}
+                variant="outline"
+              >
+                Browse...
+              </Button>
+            </div>
+            <p className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">
+              {selectedFile?.name ? (
+                `${selectedFile?.name}`
+              ) : (
+                <span className="text-secondary-text">Select keystore file</span>
+              )}
+            </p>
           </div>
-          <p
-            className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">{selectedFile?.name ? `${selectedFile?.name}` :
-            <span className="text-secondary-text">Select keystore file</span>}</p>
-        </div>
-        <div className="text-red text-12 pb-4 pt-1 h-10">
-          {fileError && fileError}
-        </div>
+          <div className="text-red text-12 pb-4 pt-1 h-10">{fileError && fileError}</div>
           <div>
             <TextField
               disabled={!selectedFile || Boolean(fileError)}
@@ -116,13 +124,17 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
               helperText="Helper text"
             />
             <div className="mt-6">
-              <Button disabled={!selectedFile || Boolean(fileError)} fullWidth onClick={() => importKeystoreFileHandler()}>
-                {!isUnlockingKeystore ? "Unlock" : <AwaitingLoader size={30}/>}
+              <Button
+                disabled={!selectedFile || Boolean(fileError)}
+                fullWidth
+                onClick={() => importKeystoreFileHandler()}
+              >
+                {!isUnlockingKeystore ? "Unlock" : <AwaitingLoader size={30} />}
               </Button>
             </div>
           </div>
+        </div>
       </div>
-
-    </div>
-  </Dialog>
+    </Dialog>
+  );
 }

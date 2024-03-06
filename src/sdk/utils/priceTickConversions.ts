@@ -1,9 +1,11 @@
-import JSBI from 'jsbi'
-import { Q192 } from '../internalConstants'
-import { TickMath } from "@/sdk/utils/tickMath";
-import { Token } from "@/sdk/entities/token";
+import JSBI from "jsbi";
+
 import { Price } from "@/sdk/entities/fractions/price";
+import { Token } from "@/sdk/entities/token";
 import { encodeSqrtRatioX96 } from "@/sdk/utils/encodeSqrtRatioX96";
+import { TickMath } from "@/sdk/utils/tickMath";
+
+import { Q192 } from "../internalConstants";
 
 /**
  * Returns a price object corresponding to the input tick and the base/quote token
@@ -12,14 +14,18 @@ import { encodeSqrtRatioX96 } from "@/sdk/utils/encodeSqrtRatioX96";
  * @param quoteToken the quote token of the price
  * @param tick the tick for which to return the price
  */
-export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): Price<Token, Token> {
-  const sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick)
+export function tickToPrice(
+  baseToken: Token,
+  quoteToken: Token,
+  tick: number,
+): Price<Token, Token> {
+  const sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
 
-  const ratioX192 = JSBI.multiply(sqrtRatioX96, sqrtRatioX96)
+  const ratioX192 = JSBI.multiply(sqrtRatioX96, sqrtRatioX96);
 
   return baseToken.sortsBefore(quoteToken)
     ? new Price(baseToken, quoteToken, Q192, ratioX192)
-    : new Price(baseToken, quoteToken, ratioX192, Q192)
+    : new Price(baseToken, quoteToken, ratioX192, Q192);
 }
 
 /**
@@ -28,22 +34,22 @@ export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): 
  * i.e. the price of the returned tick is less than or equal to the input price
  */
 export function priceToClosestTick(price: Price<Token, Token>): number {
-  const sorted = price.baseCurrency.sortsBefore(price.quoteCurrency)
+  const sorted = price.baseCurrency.sortsBefore(price.quoteCurrency);
 
   const sqrtRatioX96 = sorted
     ? encodeSqrtRatioX96(price.numerator, price.denominator)
-    : encodeSqrtRatioX96(price.denominator, price.numerator)
+    : encodeSqrtRatioX96(price.denominator, price.numerator);
 
-  let tick = TickMath.getTickAtSqrtRatio(sqrtRatioX96)
-  const nextTickPrice = tickToPrice(price.baseCurrency, price.quoteCurrency, tick + 1)
+  let tick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
+  const nextTickPrice = tickToPrice(price.baseCurrency, price.quoteCurrency, tick + 1);
   if (sorted) {
     if (!price.lessThan(nextTickPrice)) {
-      tick++
+      tick++;
     }
   } else {
     if (!price.greaterThan(nextTickPrice)) {
-      tick++
+      tick++;
     }
   }
-  return tick
+  return tick;
 }

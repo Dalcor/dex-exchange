@@ -1,13 +1,15 @@
-import { defaultAbiCoder, Interface } from '@ethersproject/abi';
-import IUniswapV3Staker from '@uniswap/v3-staker/artifacts/contracts/UniswapV3Staker.sol/UniswapV3Staker.json'
-import { Multicall } from './multicall';
+import { defaultAbiCoder, Interface } from "@ethersproject/abi";
+import IUniswapV3Staker from "@uniswap/v3-staker/artifacts/contracts/UniswapV3Staker.sol/UniswapV3Staker.json";
+
+import { BigintIsh } from "@/sdk/constants";
 import { Pool } from "@/sdk/entities/pool";
 import { Token } from "@/sdk/entities/token";
-import { BigintIsh } from "@/sdk/constants";
 import { MethodParameters, toHex } from "@/sdk/utils/calldata";
 import { validateAndParseAddress } from "@/sdk/utils/validateAndParseAddress";
 
-export type FullWithdrawOptions = ClaimOptions & WithdrawOptions
+import { Multicall } from "./multicall";
+
+export type FullWithdrawOptions = ClaimOptions & WithdrawOptions;
 /**
  * Represents a unique staking program.
  */
@@ -15,23 +17,23 @@ export interface IncentiveKey {
   /**
    * The token rewarded for participating in the staking program.
    */
-  rewardToken: Token
+  rewardToken: Token;
   /**
    * The pool that the staked positions must provide in.
    */
-  pool: Pool
+  pool: Pool;
   /**
    * The time when the incentive program begins.
    */
-  startTime: BigintIsh
+  startTime: BigintIsh;
   /**
    * The time that the incentive program ends.
    */
-  endTime: BigintIsh
+  endTime: BigintIsh;
   /**
    * The address which receives any remaining reward tokens at `endTime`.
    */
-  refundee: string
+  refundee: string;
 }
 
 /**
@@ -41,17 +43,17 @@ export interface ClaimOptions {
   /**
    * The id of the NFT
    */
-  tokenId: BigintIsh
+  tokenId: BigintIsh;
 
   /**
    * Address to send rewards to.
    */
-  recipient: string
+  recipient: string;
 
   /**
    * The amount of `rewardToken` to claim. 0 claims all.
    */
-  amount?: BigintIsh
+  amount?: BigintIsh;
 }
 /**
  * Options to specify when withdrawing a position.
@@ -60,20 +62,20 @@ export interface WithdrawOptions {
   /**
    * Set when withdrawing. The position will be sent to `owner` on withdraw.
    */
-  owner: string
+  owner: string;
 
   /**
    * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
    */
-  data?: string
+  data?: string;
 }
 
 export abstract class Staker {
-  public static INTERFACE: Interface = new Interface(IUniswapV3Staker.abi)
+  public static INTERFACE: Interface = new Interface(IUniswapV3Staker.abi);
 
   protected constructor() {}
   private static INCENTIVE_KEY_ABI =
-    'tuple(address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee)'
+    "tuple(address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee)";
 
   /**
    *  To claim rewards, must unstake and then claim.
@@ -82,19 +84,23 @@ export abstract class Staker {
    * @returns The calldatas for 'unstakeToken' and 'claimReward'.
    */
   private static encodeClaim(incentiveKey: IncentiveKey, options: ClaimOptions): string[] {
-    const calldatas: string[] = []
+    const calldatas: string[] = [];
     calldatas.push(
-      Staker.INTERFACE.encodeFunctionData('unstakeToken', [
+      Staker.INTERFACE.encodeFunctionData("unstakeToken", [
         this._encodeIncentiveKey(incentiveKey),
-        toHex(options.tokenId)
-      ])
-    )
-    const recipient: string = validateAndParseAddress(options.recipient)
-    const amount = options.amount ?? 0
+        toHex(options.tokenId),
+      ]),
+    );
+    const recipient: string = validateAndParseAddress(options.recipient);
+    const amount = options.amount ?? 0;
     calldatas.push(
-      Staker.INTERFACE.encodeFunctionData('claimReward', [incentiveKey.rewardToken.address, recipient, toHex(amount)])
-    )
-    return calldatas
+      Staker.INTERFACE.encodeFunctionData("claimReward", [
+        incentiveKey.rewardToken.address,
+        recipient,
+        toHex(amount),
+      ]),
+    );
+    return calldatas;
   }
 
   /**
@@ -106,27 +112,30 @@ export abstract class Staker {
    * Note that you can only specify one amount and one recipient across the various programs if you are collecting from multiple programs at once.
    * @returns
    */
-  public static collectRewards(incentiveKeys: IncentiveKey | IncentiveKey[], options: ClaimOptions): MethodParameters {
-    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys]
-    let calldatas: string[] = []
+  public static collectRewards(
+    incentiveKeys: IncentiveKey | IncentiveKey[],
+    options: ClaimOptions,
+  ): MethodParameters {
+    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys];
+    let calldatas: string[] = [];
 
     for (let i = 0; i < incentiveKeys.length; i++) {
       // the unique program tokenId is staked in
-      const incentiveKey = incentiveKeys[i]
+      const incentiveKey = incentiveKeys[i];
       // unstakes and claims for the unique program
-      calldatas = calldatas.concat(this.encodeClaim(incentiveKey, options))
+      calldatas = calldatas.concat(this.encodeClaim(incentiveKey, options));
       // re-stakes the position for the unique program
       calldatas.push(
-        Staker.INTERFACE.encodeFunctionData('stakeToken', [
+        Staker.INTERFACE.encodeFunctionData("stakeToken", [
           this._encodeIncentiveKey(incentiveKey),
-          toHex(options.tokenId)
-        ])
-      )
+          toHex(options.tokenId),
+        ]),
+      );
     }
     return {
       calldata: Multicall.encodeMulticall(calldatas),
-      value: toHex(0)
-    }
+      value: toHex(0),
+    };
   }
 
   /**
@@ -137,34 +146,34 @@ export abstract class Staker {
    */
   public static withdrawToken(
     incentiveKeys: IncentiveKey | IncentiveKey[],
-    withdrawOptions: FullWithdrawOptions
+    withdrawOptions: FullWithdrawOptions,
   ): MethodParameters {
-    let calldatas: string[] = []
+    let calldatas: string[] = [];
 
-    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys]
+    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys];
 
     const claimOptions = {
       tokenId: withdrawOptions.tokenId,
       recipient: withdrawOptions.recipient,
-      amount: withdrawOptions.amount
-    }
+      amount: withdrawOptions.amount,
+    };
 
     for (let i = 0; i < incentiveKeys.length; i++) {
-      const incentiveKey = incentiveKeys[i]
-      calldatas = calldatas.concat(this.encodeClaim(incentiveKey, claimOptions))
+      const incentiveKey = incentiveKeys[i];
+      calldatas = calldatas.concat(this.encodeClaim(incentiveKey, claimOptions));
     }
-    const owner = validateAndParseAddress(withdrawOptions.owner)
+    const owner = validateAndParseAddress(withdrawOptions.owner);
     calldatas.push(
-      Staker.INTERFACE.encodeFunctionData('withdrawToken', [
+      Staker.INTERFACE.encodeFunctionData("withdrawToken", [
         toHex(withdrawOptions.tokenId),
         owner,
-        withdrawOptions.data ? withdrawOptions.data : toHex(0)
-      ])
-    )
+        withdrawOptions.data ? withdrawOptions.data : toHex(0),
+      ]),
+    );
     return {
       calldata: Multicall.encodeMulticall(calldatas),
-      value: toHex(0)
-    }
+      value: toHex(0),
+    };
   }
 
   /**
@@ -173,20 +182,23 @@ export abstract class Staker {
    * @returns An IncentiveKey as a string
    */
   public static encodeDeposit(incentiveKeys: IncentiveKey | IncentiveKey[]): string {
-    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys]
-    let data: string
+    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys];
+    let data: string;
 
     if (incentiveKeys.length > 1) {
-      const keys = []
+      const keys = [];
       for (let i = 0; i < incentiveKeys.length; i++) {
-        const incentiveKey = incentiveKeys[i]
-        keys.push(this._encodeIncentiveKey(incentiveKey))
+        const incentiveKey = incentiveKeys[i];
+        keys.push(this._encodeIncentiveKey(incentiveKey));
       }
-      data = defaultAbiCoder.encode([`${Staker.INCENTIVE_KEY_ABI}[]`], [keys])
+      data = defaultAbiCoder.encode([`${Staker.INCENTIVE_KEY_ABI}[]`], [keys]);
     } else {
-      data = defaultAbiCoder.encode([Staker.INCENTIVE_KEY_ABI], [this._encodeIncentiveKey(incentiveKeys[0])])
+      data = defaultAbiCoder.encode(
+        [Staker.INCENTIVE_KEY_ABI],
+        [this._encodeIncentiveKey(incentiveKeys[0])],
+      );
     }
-    return data
+    return data;
   }
   /**
    *
@@ -194,14 +206,14 @@ export abstract class Staker {
    * @returns An encoded IncentiveKey to be read by ethers
    */
   private static _encodeIncentiveKey(incentiveKey: IncentiveKey): {} {
-    const { token0, token1, fee } = incentiveKey.pool
-    const refundee = validateAndParseAddress(incentiveKey.refundee)
+    const { token0, token1, fee } = incentiveKey.pool;
+    const refundee = validateAndParseAddress(incentiveKey.refundee);
     return {
       rewardToken: incentiveKey.rewardToken.address,
       pool: Pool.getAddress(token0, token1, fee),
       startTime: toHex(incentiveKey.startTime),
       endTime: toHex(incentiveKey.endTime),
-      refundee
-    }
+      refundee,
+    };
   }
 }

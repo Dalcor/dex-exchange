@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint -c .eslintrc.json --ext .js,.jsx,.ts,.tsx src --quiet --fix"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",

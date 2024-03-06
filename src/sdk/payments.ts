@@ -1,25 +1,26 @@
-import JSBI from 'jsbi'
-import { Interface } from '@ethersproject/abi'
-import IPeripheryPaymentsWithFee from '@uniswap/v3-periphery/artifacts/contracts/interfaces/IPeripheryPaymentsWithFee.sol/IPeripheryPaymentsWithFee.json'
+import { Interface } from "@ethersproject/abi";
+import IPeripheryPaymentsWithFee from "@uniswap/v3-periphery/artifacts/contracts/interfaces/IPeripheryPaymentsWithFee.sol/IPeripheryPaymentsWithFee.json";
+import JSBI from "jsbi";
+
 import { Percent } from "@/sdk/entities/fractions/percent";
+import { Token } from "@/sdk/entities/token";
 import { toHex } from "@/sdk/utils/calldata";
 import { validateAndParseAddress } from "@/sdk/utils/validateAndParseAddress";
-import { Token } from "@/sdk/entities/token";
 
 export interface FeeOptions {
   /**
    * The percent of the output that will be taken as a fee.
    */
-  fee: Percent
+  fee: Percent;
 
   /**
    * The recipient of the fee.
    */
-  recipient: string
+  recipient: string;
 }
 
 export abstract class Payments {
-  public static INTERFACE: Interface = new Interface(IPeripheryPaymentsWithFee.abi)
+  public static INTERFACE: Interface = new Interface(IPeripheryPaymentsWithFee.abi);
 
   /**
    * Cannot be constructed.
@@ -27,24 +28,31 @@ export abstract class Payments {
   private constructor() {}
 
   private static encodeFeeBips(fee: Percent): string {
-    return toHex(fee.multiply(10_000).quotient)
+    return toHex(fee.multiply(10_000).quotient);
   }
 
-  public static encodeUnwrapWETH9(amountMinimum: JSBI, recipient: string, feeOptions?: FeeOptions): string {
-    recipient = validateAndParseAddress(recipient)
+  public static encodeUnwrapWETH9(
+    amountMinimum: JSBI,
+    recipient: string,
+    feeOptions?: FeeOptions,
+  ): string {
+    recipient = validateAndParseAddress(recipient);
 
     if (!!feeOptions) {
-      const feeBips = this.encodeFeeBips(feeOptions.fee)
-      const feeRecipient: string = validateAndParseAddress(feeOptions.recipient)
+      const feeBips = this.encodeFeeBips(feeOptions.fee);
+      const feeRecipient: string = validateAndParseAddress(feeOptions.recipient);
 
-      return Payments.INTERFACE.encodeFunctionData('unwrapWETH9WithFee', [
+      return Payments.INTERFACE.encodeFunctionData("unwrapWETH9WithFee", [
         toHex(amountMinimum),
         recipient,
         feeBips,
-        feeRecipient
-      ])
+        feeRecipient,
+      ]);
     } else {
-      return Payments.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(amountMinimum), recipient])
+      return Payments.INTERFACE.encodeFunctionData("unwrapWETH9", [
+        toHex(amountMinimum),
+        recipient,
+      ]);
     }
   }
 
@@ -52,27 +60,31 @@ export abstract class Payments {
     token: Token,
     amountMinimum: JSBI,
     recipient: string,
-    feeOptions?: FeeOptions
+    feeOptions?: FeeOptions,
   ): string {
-    recipient = validateAndParseAddress(recipient)
+    recipient = validateAndParseAddress(recipient);
 
     if (!!feeOptions) {
-      const feeBips = this.encodeFeeBips(feeOptions.fee)
-      const feeRecipient: string = validateAndParseAddress(feeOptions.recipient)
+      const feeBips = this.encodeFeeBips(feeOptions.fee);
+      const feeRecipient: string = validateAndParseAddress(feeOptions.recipient);
 
-      return Payments.INTERFACE.encodeFunctionData('sweepTokenWithFee', [
+      return Payments.INTERFACE.encodeFunctionData("sweepTokenWithFee", [
         token.address,
         toHex(amountMinimum),
         recipient,
         feeBips,
-        feeRecipient
-      ])
+        feeRecipient,
+      ]);
     } else {
-      return Payments.INTERFACE.encodeFunctionData('sweepToken', [token.address, toHex(amountMinimum), recipient])
+      return Payments.INTERFACE.encodeFunctionData("sweepToken", [
+        token.address,
+        toHex(amountMinimum),
+        recipient,
+      ]);
     }
   }
 
   public static encodeRefundETH(): string {
-    return Payments.INTERFACE.encodeFunctionData('refundETH')
+    return Payments.INTERFACE.encodeFunctionData("refundETH");
   }
 }

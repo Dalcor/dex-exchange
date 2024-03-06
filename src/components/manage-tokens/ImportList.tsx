@@ -1,29 +1,30 @@
-import DialogHeader from "@/components/atoms/DialogHeader";
-import Input from "@/components/atoms/Input";
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
+import clsx from "clsx";
+import { ChangeEvent, DragEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useAccount } from "wagmi";
-import { ChangeEvent, useCallback, useEffect, useRef, useState, DragEvent,  } from "react";
-import { useTokenListsStore } from "@/stores/useTokenListsStore";
-import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
+
 import Button from "@/components/atoms/Button";
+import Checkbox from "@/components/atoms/Checkbox";
+import DialogHeader from "@/components/atoms/DialogHeader";
+import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
+import Input from "@/components/atoms/Input";
+import Svg from "@/components/atoms/Svg";
 import RadioButton from "@/components/buttons/RadioButton";
+import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
+import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
+import { TokenList } from "@/config/types/TokenList";
 import { IIFE } from "@/functions/iife";
 import { fetchTokenList } from "@/hooks/useTokenLists";
-import { TokenList } from "@/config/types/TokenList";
-import Svg from "@/components/atoms/Svg";
-import Checkbox from "@/components/atoms/Checkbox";
 import addToast from "@/other/toast";
-import clsx from "clsx";
-import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
+import { useTokenListsStore } from "@/stores/useTokenListsStore";
 
 interface Props {
-  setContent: (content: ManageTokensDialogContent) => void,
-  handleClose: () => void
+  setContent: (content: ManageTokensDialogContent) => void;
+  handleClose: () => void;
 }
 //https://wispy-bird-88a7.uniswap.workers.dev/?url=https://tokenlist.aave.eth.link for test
 function getListImage(url: string) {
   if (url.startsWith("ipfs")) {
-    return `https://cloudflare-ipfs.com/${url.replace(":/", '')}`
+    return `https://cloudflare-ipfs.com/${url.replace(":/", "")}`;
   }
 
   return url;
@@ -37,7 +38,6 @@ export default function ImportList({ setContent, handleClose }: Props) {
   const [tokenListToImport, setTokenListToImport] = useState<TokenList | null>(null);
 
   useEffect(() => {
-
     IIFE(async () => {
       try {
         const data = await fetchTokenList(tokenListAddressToImport);
@@ -48,8 +48,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
       } catch (e) {
         console.log(e);
       }
-    })
-
+    });
   }, [tokenListAddressToImport]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -74,11 +73,14 @@ export default function ImportList({ setContent, handleClose }: Props) {
             const parsedJson = JSON.parse(fileContents);
             console.log(parsedJson);
 
-            addTokenList({
-              name: parsedJson.name,
-              enabled: true,
-              list: parsedJson
-            }, chainId as AvailableChains);
+            addTokenList(
+              {
+                name: parsedJson.name,
+                enabled: true,
+                list: parsedJson,
+              },
+              chainId as AvailableChains,
+            );
           }
         } catch (e) {
           console.log(e);
@@ -89,7 +91,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
   }, [addTokenList, chainId, tokenListFile]);
 
   const fileInput = useRef<HTMLInputElement | null>(null);
-  const [importType, setImportType] = useState<"url" | "json">("url")
+  const [importType, setImportType] = useState<"url" | "json">("url");
   const [checkedUnderstand, setCheckedUnderstand] = useState<boolean>(false);
 
   const [dragEntered, setDragEntered] = useState(false);
@@ -108,113 +110,169 @@ export default function ImportList({ setContent, handleClose }: Props) {
     event.preventDefault();
     setTokenListFile(event.dataTransfer.files[0]);
     setDragEntered(false);
-  }, [])
+  }, []);
 
   const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-  }, [])
+  }, []);
 
-  return <>
-    <DialogHeader onBack={() => setContent("default")} onClose={handleClose} title="Import list"/>
+  return (
+    <>
+      <DialogHeader
+        onBack={() => setContent("default")}
+        onClose={handleClose}
+        title="Import list"
+      />
 
-    <div className="px-10 pb-10 w-[550px] h-[580px] flex flex-col">
-      <h3 className="text-16 font-bold mb-1">Importing type</h3>
-      <div className="grid grid-cols-2 gap-2 mb-5">
-        <RadioButton isActive={importType === "url"} onClick={() => setImportType("url")}>From URL</RadioButton>
-        <RadioButton isActive={importType === "json"} onClick={() => setImportType("json")}>From JSON</RadioButton>
-      </div>
+      <div className="px-10 pb-10 w-[550px] h-[580px] flex flex-col">
+        <h3 className="text-16 font-bold mb-1">Importing type</h3>
+        <div className="grid grid-cols-2 gap-2 mb-5">
+          <RadioButton isActive={importType === "url"} onClick={() => setImportType("url")}>
+            From URL
+          </RadioButton>
+          <RadioButton isActive={importType === "json"} onClick={() => setImportType("json")}>
+            From JSON
+          </RadioButton>
+        </div>
 
-      {importType === "url" && <div className="flex flex-col flex-grow">
-        <h3 className="text-16 font-bold mb-1">Import token list from URL</h3>
+        {importType === "url" && (
+          <div className="flex flex-col flex-grow">
+            <h3 className="text-16 font-bold mb-1">Import token list from URL</h3>
 
-        <Input value={tokenListAddressToImport} onChange={(e) => setTokenListAddressToImport(e.target.value)}
-               placeholder="https:// or ipfs://"/>
+            <Input
+              value={tokenListAddressToImport}
+              onChange={(e) => setTokenListAddressToImport(e.target.value)}
+              placeholder="https:// or ipfs://"
+            />
 
-        {!tokenListToImport && <div className="flex-grow flex justify-center items-center flex-col gap-2">
-          <EmptyStateIcon iconName="imported" />
-          <p className="text-secondary-text text-center">To import a list through a URL, enter a link in the format https:// or ipfs://</p>
-        </div>}
-
-        {tokenListToImport && <>
-          <div className="flex-grow">
-
-            <div className="flex items-center gap-3 py-2.5 mt-3 mb-3">
-              <img className="w-12 h-12" width={48} height={48} src={getListImage(tokenListToImport.logoURI)} alt=""/>
-              <div className="flex flex-col text-16">
-                <span className="text-primary-text">{tokenListToImport.name}</span>
-                <span className="text-secondary-text">{tokenListToImport.tokens.length} tokens</span>
+            {!tokenListToImport && (
+              <div className="flex-grow flex justify-center items-center flex-col gap-2">
+                <EmptyStateIcon iconName="imported" />
+                <p className="text-secondary-text text-center">
+                  To import a list through a URL, enter a link in the format https:// or ipfs://
+                </p>
               </div>
-            </div>
-            <div className="px-5 py-3 flex gap-2 rounded-1 border border-orange bg-orange-bg">
-              <Svg className="text-orange shrink-0" iconName="warning"/>
-              <p className="text-16 text-primary-text flex-grow">
-                By adding this list you are implicitly trusting that the data is correct. Anyone can create a list,
-                including creating fake versions of existing lists and lists that claim to represent projects that do
-                not have one.
+            )}
+
+            {tokenListToImport && (
+              <>
+                <div className="flex-grow">
+                  <div className="flex items-center gap-3 py-2.5 mt-3 mb-3">
+                    <img
+                      className="w-12 h-12"
+                      width={48}
+                      height={48}
+                      src={getListImage(tokenListToImport.logoURI)}
+                      alt=""
+                    />
+                    <div className="flex flex-col text-16">
+                      <span className="text-primary-text">{tokenListToImport.name}</span>
+                      <span className="text-secondary-text">
+                        {tokenListToImport.tokens.length} tokens
+                      </span>
+                    </div>
+                  </div>
+                  <div className="px-5 py-3 flex gap-2 rounded-1 border border-orange bg-orange-bg">
+                    <Svg className="text-orange shrink-0" iconName="warning" />
+                    <p className="text-16 text-primary-text flex-grow">
+                      By adding this list you are implicitly trusting that the data is correct.
+                      Anyone can create a list, including creating fake versions of existing lists
+                      and lists that claim to represent projects that do not have one.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-5">
+                  <Checkbox
+                    checked={checkedUnderstand}
+                    handleChange={() => setCheckedUnderstand(!checkedUnderstand)}
+                    id="approve-list-import"
+                    label="I understand"
+                  />
+                  <Button
+                    fullWidth
+                    size="regular"
+                    disabled={!checkedUnderstand}
+                    onClick={() => {
+                      addTokenList(
+                        {
+                          name: tokenListToImport?.name,
+                          enabled: true,
+                          url: tokenListAddressToImport,
+                        },
+                        chainId as AvailableChains,
+                      );
+                      setContent("default");
+                      addToast("List imported");
+                    }}
+                  >
+                    Import with URL
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {importType === "json" && (
+          <div className="flex flex-col flex-grow">
+            <input
+              type="file"
+              onChange={(e) => handleFileChange(e)}
+              style={{ display: "none" }}
+              ref={fileInput}
+            />
+            <div className="flex items-center justify-between">
+              <div className="w-[120px]">
+                <Button
+                  size="regular"
+                  onClick={() => {
+                    if (fileInput.current && fileInput.current) {
+                      fileInput.current.click();
+                    }
+                  }}
+                  variant="outline"
+                >
+                  Browse...
+                </Button>
+              </div>
+              <p className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">
+                {tokenListFile?.name ? (
+                  `${tokenListFile?.name}`
+                ) : (
+                  <span className="text-secondary-text">Select json file</span>
+                )}
               </p>
             </div>
 
-          </div>
+            <h3 className="text-16 font-bold mt-5 mb-1">Please select JSON file to import</h3>
+            <div
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              className={clsx(
+                "mb-5 rounded-2 flex justify-center items-center h-[288px] bg-drag-and-drop-dashed-pattern flex-grow duration-200",
+                dragEntered ? "bg-green/20" : "bg-secondary-bg",
+              )}
+            >
+              Import files or Drag & Drop
+            </div>
 
-          <div className="flex flex-col gap-5">
-            <Checkbox checked={checkedUnderstand} handleChange={() => setCheckedUnderstand(!checkedUnderstand)}
-                      id="approve-list-import" label="I understand"/>
-            <Button fullWidth size="regular" disabled={!checkedUnderstand} onClick={() => {
-              addTokenList({
-                name: tokenListToImport?.name,
-                enabled: true,
-                url: tokenListAddressToImport
-              }, chainId as AvailableChains);
-              setContent("default");
-              addToast("List imported");
-            }}>Import with URL
+            <Button
+              fullWidth
+              size="regular"
+              onClick={() => {
+                handleJSONImport();
+                setContent("default");
+                addToast("List imported");
+              }}
+            >
+              Import with JSON
             </Button>
           </div>
-        </>}
-      </div>}
-
-      {importType === "json" && <div className="flex flex-col flex-grow">
-
-          <input
-            type="file"
-            onChange={(e) => handleFileChange(e)}
-            style={{ display: "none" }}
-            ref={fileInput}
-          />
-          <div className="flex items-center justify-between">
-            <div className="w-[120px]">
-              <Button size="regular" onClick={() => {
-                if (fileInput.current && fileInput.current) {
-                  fileInput.current.click()
-                }
-              }} variant="outline">Browse...</Button>
-            </div>
-            <p
-              className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">{tokenListFile?.name ? `${tokenListFile?.name}` :
-              <span className="text-secondary-text">Select json file</span>}</p>
-          </div>
-
-          <h3 className="text-16 font-bold mt-5 mb-1">Please select JSON file to import</h3>
-          <div
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            className={clsx(
-              "mb-5 rounded-2 flex justify-center items-center h-[288px] bg-drag-and-drop-dashed-pattern flex-grow duration-200",
-              dragEntered ? "bg-green/20" : "bg-secondary-bg"
-              )}
-          >
-            Import files or Drag & Drop
-          </div>
-
-        <Button fullWidth size="regular" onClick={() => {
-          handleJSONImport();
-          setContent("default");
-          addToast("List imported");
-        }}>Import with JSON
-        </Button>
-      </div>}
-    </div>
-  </>
+        )}
+      </div>
+    </>
+  );
 }

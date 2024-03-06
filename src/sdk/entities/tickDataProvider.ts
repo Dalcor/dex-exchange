@@ -1,4 +1,4 @@
-import { BigintIsh } from '../constants';
+import { BigintIsh } from "../constants";
 
 /**
  * Provides information about ticks
@@ -8,7 +8,7 @@ export interface TickDataProvider {
    * Return information corresponding to a specific tick
    * @param tick the tick to load
    */
-  getTick(tick: number): Promise<{ liquidityNet: BigintIsh }>
+  getTick(tick: number): Promise<{ liquidityNet: BigintIsh }>;
 
   /**
    * Return the next tick that is initialized within a single word
@@ -16,7 +16,11 @@ export interface TickDataProvider {
    * @param lte Whether the next tick should be lte the current tick
    * @param tickSpacing The tick spacing of the pool
    */
-  nextInitializedTickWithinOneWord(tick: number, lte: boolean, tickSpacing: number): Promise<[number, boolean]>
+  nextInitializedTickWithinOneWord(
+    tick: number,
+    lte: boolean,
+    tickSpacing: number,
+  ): Promise<[number, boolean]>;
 }
 
 /**
@@ -24,16 +28,16 @@ export interface TickDataProvider {
  * do not need to load tick data for your use case.
  */
 export class NoTickDataProvider implements TickDataProvider {
-  private static ERROR_MESSAGE = 'No tick data provider was given'
+  private static ERROR_MESSAGE = "No tick data provider was given";
   async getTick(_tick: number): Promise<{ liquidityNet: BigintIsh }> {
-    throw new Error(NoTickDataProvider.ERROR_MESSAGE)
+    throw new Error(NoTickDataProvider.ERROR_MESSAGE);
   }
 
   async nextInitializedTickWithinOneWord(
     _tick: number,
     _lte: boolean,
-    _tickSpacing: number
+    _tickSpacing: number,
   ): Promise<[number, boolean]> {
-    throw new Error(NoTickDataProvider.ERROR_MESSAGE)
+    throw new Error(NoTickDataProvider.ERROR_MESSAGE);
   }
 }

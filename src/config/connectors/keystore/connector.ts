@@ -1,20 +1,14 @@
-import { ConnectorNotConnectedError, createConnector } from '@wagmi/core'
-import {
-  Address,
-  createWalletClient,
-  fromHex,
-  getAddress,
-  http,
-  WalletClient
-} from "viem";
+import { ConnectorNotConnectedError, createConnector } from "@wagmi/core";
+import { Address, createWalletClient, fromHex, getAddress, http, WalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+
 import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 
 export type KeystoreConnectorParameters = {
-  pk: Address
+  pk: Address;
 };
 
-keystore.type = 'keystore' as const;
+keystore.type = "keystore" as const;
 export function keystore({ pk }: KeystoreConnectorParameters) {
   let connected = false;
   let connectedChainId: number;
@@ -25,10 +19,10 @@ export function keystore({ pk }: KeystoreConnectorParameters) {
     name: "Keystore",
     type: keystore.type,
     async setup() {
-      connectedChainId = config.chains[0].id
+      connectedChainId = config.chains[0].id;
     },
-    async connect({ chainId }: {chainId: AvailableChains}) {
-      const provider: WalletClient = await this.getProvider({chainId})
+    async connect({ chainId }: { chainId: AvailableChains }) {
+      const provider: WalletClient = await this.getProvider({ chainId });
       console.log("PROVIDER");
       console.log(provider);
 
@@ -40,44 +34,44 @@ export function keystore({ pk }: KeystoreConnectorParameters) {
         connected = true;
         console.log("ACCOUNTS");
         console.log(accounts);
-        return { accounts, chainId: currentChainId }
+        return { accounts, chainId: currentChainId };
       } catch (e) {
         console.log(e);
-        return {accounts: [], chainId: 1}
+        return { accounts: [], chainId: 1 };
       }
     },
     async disconnect() {
-      connected = false
+      connected = false;
     },
     async getAccounts() {
-      if (!connected) throw new ConnectorNotConnectedError()
-      const provider = await this.getProvider()
-      const accounts = await provider.request({ method: 'eth_accounts' })
-      return accounts.map((x: any) => getAddress(x))
+      if (!connected) throw new ConnectorNotConnectedError();
+      const provider = await this.getProvider();
+      const accounts = await provider.request({ method: "eth_accounts" });
+      return accounts.map((x: any) => getAddress(x));
     },
     async getChainId() {
-      const provider = await this.getProvider()
-      const hexChainId = await provider.request({ method: 'eth_chainId' })
-      return fromHex(hexChainId, 'number')
+      const provider = await this.getProvider();
+      const hexChainId = await provider.request({ method: "eth_chainId" });
+      return fromHex(hexChainId, "number");
     },
     async isAuthorized() {
-      if (!connected) return false
-      const accounts = await this.getAccounts()
-      return !!accounts.length
+      if (!connected) return false;
+      const accounts = await this.getAccounts();
+      return !!accounts.length;
     },
     async switchChain({ chainId }) {
-      config.emitter.emit('change', { chainId });
-      const chain = config.chains.find((x) => x.id === chainId)
+      config.emitter.emit("change", { chainId });
+      const chain = config.chains.find((x) => x.id === chainId);
 
       return chain!;
     },
     onAccountsChanged(accounts) {},
     onChainChanged(chain) {},
     async onDisconnect(_error) {},
-    async getProvider(params: {chainId?: number}) {
-      if(!client) {
+    async getProvider(params: { chainId?: number }) {
+      if (!client) {
         const account = privateKeyToAccount(pk);
-        const chain = config.chains.find((x) => x.id === params.chainId)
+        const chain = config.chains.find((x) => x.id === params.chainId);
 
         client = createWalletClient({
           account,
@@ -87,5 +81,5 @@ export function keystore({ pk }: KeystoreConnectorParameters) {
       }
       return client;
     },
-  }))
+  }));
 }

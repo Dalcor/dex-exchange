@@ -1,7 +1,7 @@
-import { Price } from "@/sdk/entities/fractions/price";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk/entities/fractions/percent";
+import { Price } from "@/sdk/entities/fractions/price";
 
 /**
  * Returns the percent difference between the mid price and the execution price, i.e. price impact.
@@ -12,10 +12,10 @@ import { Percent } from "@/sdk/entities/fractions/percent";
 export function computePriceImpact<TBase extends Currency, TQuote extends Currency>(
   midPrice: Price<TBase, TQuote>,
   inputAmount: CurrencyAmount<TBase>,
-  outputAmount: CurrencyAmount<TQuote>
+  outputAmount: CurrencyAmount<TQuote>,
 ): Percent {
-  const quotedOutputAmount = midPrice.quote(inputAmount)
+  const quotedOutputAmount = midPrice.quote(inputAmount);
   // calculate price impact := (exactQuote - outputAmount) / exactQuote
-  const priceImpact = quotedOutputAmount.subtract(outputAmount).divide(quotedOutputAmount)
-  return new Percent(priceImpact.numerator, priceImpact.denominator)
+  const priceImpact = quotedOutputAmount.subtract(outputAmount).divide(quotedOutputAmount);
+  return new Percent(priceImpact.numerator, priceImpact.denominator);
 }

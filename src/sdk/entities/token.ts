@@ -1,28 +1,29 @@
-import { BigNumber } from '@ethersproject/bignumber';
-import invariant from 'tiny-invariant';
-import { checkValidAddress, validateAndParseAddress } from '../utils/validateAndParseAddress';
-import { BaseCurrency } from './baseCurrency';
-import { Currency } from './currency';
+import { BigNumber } from "@ethersproject/bignumber";
+import invariant from "tiny-invariant";
 import { Address } from "viem";
+
+import { checkValidAddress, validateAndParseAddress } from "../utils/validateAndParseAddress";
+import { BaseCurrency } from "./baseCurrency";
+import { Currency } from "./currency";
 
 /**
  * Represents an ERC20 token with a unique address and some metadata.
  */
 export class Token extends BaseCurrency {
-  public readonly isNative: false = false
-  public readonly isToken: true = true
+  public readonly isNative: false = false;
+  public readonly isToken: true = true;
 
   /**
    * The contract address on the chain on which this token lives
    */
-  public readonly address: string
+  public readonly address: string;
 
   /**
    * Relevant for fee-on-transfer (FOT) token taxes,
    * Not every ERC20 token is FOT token, so this field is optional
    */
-  public readonly buyFeeBps?: BigNumber
-  public readonly sellFeeBps?: BigNumber
+  public readonly buyFeeBps?: BigNumber;
+  public readonly sellFeeBps?: BigNumber;
 
   /**
    *
@@ -43,22 +44,22 @@ export class Token extends BaseCurrency {
     name?: string,
     bypassChecksum?: boolean,
     buyFeeBps?: BigNumber,
-    sellFeeBps?: BigNumber
+    sellFeeBps?: BigNumber,
   ) {
-    super(chainId, decimals, symbol, name)
+    super(chainId, decimals, symbol, name);
     if (bypassChecksum) {
-      this.address = checkValidAddress(address)
+      this.address = checkValidAddress(address);
     } else {
-      this.address = validateAndParseAddress(address)
+      this.address = validateAndParseAddress(address);
     }
     if (buyFeeBps) {
-      invariant(buyFeeBps.gte(BigNumber.from(0)), 'NON-NEGATIVE FOT FEES')
+      invariant(buyFeeBps.gte(BigNumber.from(0)), "NON-NEGATIVE FOT FEES");
     }
     if (sellFeeBps) {
-      invariant(sellFeeBps.gte(BigNumber.from(0)), 'NON-NEGATIVE FOT FEES')
+      invariant(sellFeeBps.gte(BigNumber.from(0)), "NON-NEGATIVE FOT FEES");
     }
-    this.buyFeeBps = buyFeeBps
-    this.sellFeeBps = sellFeeBps
+    this.buyFeeBps = buyFeeBps;
+    this.sellFeeBps = sellFeeBps;
   }
 
   /**
@@ -66,7 +67,11 @@ export class Token extends BaseCurrency {
    * @param other other token to compare
    */
   public equals(other: Currency): boolean {
-    return other.isToken && this.chainId === other.chainId && this.address.toLowerCase() === other.address.toLowerCase()
+    return (
+      other.isToken &&
+      this.chainId === other.chainId &&
+      this.address.toLowerCase() === other.address.toLowerCase()
+    );
   }
 
   /**
@@ -76,15 +81,15 @@ export class Token extends BaseCurrency {
    * @throws if the tokens are on different chains
    */
   public sortsBefore(other: Token): boolean {
-    invariant(this.chainId === other.chainId, 'CHAIN_IDS')
-    invariant(this.address.toLowerCase() !== other.address.toLowerCase(), 'ADDRESSES')
-    return this.address.toLowerCase() < other.address.toLowerCase()
+    invariant(this.chainId === other.chainId, "CHAIN_IDS");
+    invariant(this.address.toLowerCase() !== other.address.toLowerCase(), "ADDRESSES");
+    return this.address.toLowerCase() < other.address.toLowerCase();
   }
 
   /**
    * Return this token, which does not need to be wrapped
    */
   public get wrapped(): Token {
-    return this
+    return this;
   }
 }

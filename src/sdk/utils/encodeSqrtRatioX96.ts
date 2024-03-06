@@ -1,4 +1,5 @@
-import JSBI from 'jsbi'
+import JSBI from "jsbi";
+
 import { BigintIsh } from "@/sdk/constants";
 import { sqrt } from "@/sdk/utils/sqrt";
 
@@ -10,8 +11,8 @@ import { sqrt } from "@/sdk/utils/sqrt";
  */
 
 export function encodeSqrtRatioX96(amount1: BigintIsh, amount0: BigintIsh): JSBI {
-  const numerator = JSBI.leftShift(JSBI.BigInt(amount1), JSBI.BigInt(192))
-  const denominator = JSBI.BigInt(amount0)
-  const ratioX192 = JSBI.divide(numerator, denominator)
-  return sqrt(ratioX192)
+  const numerator = JSBI.leftShift(JSBI.BigInt(amount1), JSBI.BigInt(192));
+  const denominator = JSBI.BigInt(amount0);
+  const ratioX192 = JSBI.divide(numerator, denominator);
+  return sqrt(ratioX192);
 }

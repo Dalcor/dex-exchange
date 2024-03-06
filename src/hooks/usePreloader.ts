@@ -6,9 +6,9 @@ export default function usePreloaderTimeout({ isLoading }: { isLoading: boolean 
   loadingRef.current = isLoading;
 
   useEffect(() => {
-    if(isLoading) {
+    if (isLoading) {
       const a = setTimeout(() => {
-        if(Boolean(loadingRef.current)) {
+        if (Boolean(loadingRef.current)) {
           setLoadingInternal(true);
         }
       }, 100);

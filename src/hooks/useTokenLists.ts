@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { TokenList } from "@/config/types/TokenList";
-import { IIFE } from "@/functions/iife";
-import { WrappedToken } from "@/config/types/WrappedToken";
-import { ExternalTokenList, LocalTokenList, SavedTokenList, useTokenListsStore } from "@/stores/useTokenListsStore";
-import { useAccount } from "wagmi";
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 import { Address } from "viem";
+import { useAccount } from "wagmi";
+
+import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
+import { TokenList } from "@/config/types/TokenList";
+import { WrappedToken } from "@/config/types/WrappedToken";
+import { IIFE } from "@/functions/iife";
+import {
+  ExternalTokenList,
+  LocalTokenList,
+  SavedTokenList,
+  useTokenListsStore,
+} from "@/stores/useTokenListsStore";
 
 export async function fetchTokenList(url: string) {
   const data = await fetch(url);
@@ -15,17 +21,16 @@ export async function fetchTokenList(url: string) {
 
 let isExternal = (obj: SavedTokenList): obj is ExternalTokenList => {
   return "url" in obj;
-}
+};
 
 let isLocal = (obj: SavedTokenList): obj is LocalTokenList => {
   return "list" in obj;
-}
+};
 
 export function useTokenLists() {
   const { tokenLists: savedLists, toggleTokenList } = useTokenListsStore();
   const [lists, setLists] = useState<TokenList[]>([]);
   const { chainId } = useAccount();
-
 
   useEffect(() => {
     if (!chainId) {
@@ -36,11 +41,10 @@ export function useTokenLists() {
     const externalLists = tokenListsFromStorage.filter(isExternal);
     const localLists = tokenListsFromStorage.filter(isLocal);
 
-    const urls = externalLists.map(list => (list).url);
+    const urls = externalLists.map((list) => list.url);
 
     console.log("Token lists from storage");
     console.log(tokenListsFromStorage);
-
 
     IIFE(async () => {
       const promises = urls.map((url) => fetchTokenList(url));
@@ -49,24 +53,20 @@ export function useTokenLists() {
       let internalLists: TokenList[] = [];
 
       results.forEach((result, index) => {
-        const tokenListTokens = (result.tokens as {
-          address: Address,
-          name: string,
-          symbol: string,
-          decimals: string,
-          chainId: string
-          logoURI: string
-        }[]).filter(t => +t.chainId === chainId).map(({ address, name, symbol, decimals, chainId, logoURI }) => {
-          return new WrappedToken(
-            address,
-            name,
-            symbol,
-            +decimals,
-            logoURI,
-            +chainId,
-            []
-          )
-        });
+        const tokenListTokens = (
+          result.tokens as {
+            address: Address;
+            name: string;
+            symbol: string;
+            decimals: string;
+            chainId: string;
+            logoURI: string;
+          }[]
+        )
+          .filter((t) => +t.chainId === chainId)
+          .map(({ address, name, symbol, decimals, chainId, logoURI }) => {
+            return new WrappedToken(address, name, symbol, +decimals, logoURI, +chainId, []);
+          });
 
         const geckoList = new TokenList(
           externalLists[index].id,
@@ -75,7 +75,7 @@ export function useTokenLists() {
           result.logoURI,
           chainId,
           tokenListTokens,
-          tokenListsFromStorage[index].enabled
+          tokenListsFromStorage[index].enabled,
         );
 
         internalLists.push(geckoList);
@@ -84,15 +84,18 @@ export function useTokenLists() {
       localLists.forEach((listItem, index) => {
         const tokens = listItem.list.tokens;
 
-        const wrappedTokens = tokens.map((token) => new WrappedToken(
-          token.address,
-          token.name,
-          token.symbol,
-          +token.decimals,
-          "/tokens/placeholder.svg",
-          +token.chainId,
-          []
-        ));
+        const wrappedTokens = tokens.map(
+          (token) =>
+            new WrappedToken(
+              token.address,
+              token.name,
+              token.symbol,
+              +token.decimals,
+              "/tokens/placeholder.svg",
+              +token.chainId,
+              [],
+            ),
+        );
 
         const geckoList = new TokenList(
           localLists[index].id,
@@ -100,20 +103,20 @@ export function useTokenLists() {
           "/token-list-placeholder.svg",
           chainId,
           wrappedTokens,
-          localLists[index].enabled
+          localLists[index].enabled,
         );
 
         internalLists.push(geckoList);
       });
 
-      setLists(internalLists)
+      setLists(internalLists);
     });
   }, [chainId, savedLists]);
 
   return {
     lists,
     toggleTokenList: (id: string) => toggleTokenList(id, chainId as AvailableChains),
-    loading: !lists.length
+    loading: !lists.length,
   };
 }
 
@@ -127,18 +130,41 @@ export function useTokens() {
         // const duplicates = [];
         const map = new Map<Address, WrappedToken>();
 
-        const fill = (array: WrappedToken[], id: string) => array.forEach(item => {
-          const lowercaseAddress = item.address.toLowerCase() as Address;
+        const fill = (array: WrappedToken[], id: string) =>
+          array.forEach((item) => {
+            const lowercaseAddress = item.address.toLowerCase() as Address;
 
-          if (map.has(lowercaseAddress)) {
-            // duplicates.push(item);
-            map.set(lowercaseAddress, new WrappedToken(item.address, item.name || "Unknown", item.symbol || "Unknown", item.decimals, item.logoURI, item.chainId, Array.from(new Set([...(map.get(lowercaseAddress)?.lists || []), id]))))
-          } else {
-            map.set(lowercaseAddress, new WrappedToken(item.address, item.name || "Unknown", item.symbol || "Unknown", item.decimals, item.logoURI, item.chainId, [id]));
-          }
-        });
+            if (map.has(lowercaseAddress)) {
+              // duplicates.push(item);
+              map.set(
+                lowercaseAddress,
+                new WrappedToken(
+                  item.address,
+                  item.name || "Unknown",
+                  item.symbol || "Unknown",
+                  item.decimals,
+                  item.logoURI,
+                  item.chainId,
+                  Array.from(new Set([...(map.get(lowercaseAddress)?.lists || []), id])),
+                ),
+              );
+            } else {
+              map.set(
+                lowercaseAddress,
+                new WrappedToken(
+                  item.address,
+                  item.name || "Unknown",
+                  item.symbol || "Unknown",
+                  item.decimals,
+                  item.logoURI,
+                  item.chainId,
+                  [id],
+                ),
+              );
+            }
+          });
 
-        arrays.forEach(array => fill(array.tokens, array.id));
+        arrays.forEach((array) => fill(array.tokens, array.id));
 
         // console.log(duplicates);
         console.log();
@@ -151,11 +177,14 @@ export function useTokens() {
         });
       };
 
-      const tokensArrays = tokenLists.lists.filter(list => list.enabled);
+      const tokensArrays = tokenLists.lists.filter((list) => list.enabled);
 
       return inspect(...tokensArrays);
     }
 
-    return tokenLists.lists.filter(list => list.enabled).map((l) => l.tokens).flat();
+    return tokenLists.lists
+      .filter((list) => list.enabled)
+      .map((l) => l.tokens)
+      .flat();
   }, [tokenLists.lists]);
 }

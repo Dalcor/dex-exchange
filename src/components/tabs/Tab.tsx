@@ -1,8 +1,8 @@
 import React from "react";
 
 interface Props {
-  title: string,
-  children: any
+  title: string;
+  children: any;
 }
 
 function Tab({ children }: Props) {

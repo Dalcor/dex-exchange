@@ -1,23 +1,27 @@
-import React, { useRef, useState } from "react";
 import {
+  arrow,
   autoUpdate,
+  flip,
+  FloatingArrow,
   FloatingPortal,
   offset,
-  useDismiss, useFloating,
+  shift,
+  useDismiss,
+  useFloating,
   useFocus,
   useHover,
   useInteractions,
   useRole,
-  flip,
-  shift, useTransitionStyles,
-  arrow, FloatingArrow
+  useTransitionStyles,
 } from "@floating-ui/react";
+import React, { useRef, useState } from "react";
+
 import Svg from "@/components/atoms/Svg";
 
 interface Props {
-  text: string
+  text: string;
 }
-export default function Tooltip({text}: Props) {
+export default function Tooltip({ text }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const arrowRef = useRef(null);
 
@@ -30,19 +34,19 @@ export default function Tooltip({text}: Props) {
     middleware: [
       offset(12),
       flip({
-        fallbackAxisSideDirection: "start"
+        fallbackAxisSideDirection: "start",
       }),
       shift(),
       arrow({
-        element: arrowRef
-      })
-    ]
+        element: arrowRef,
+      }),
+    ],
   });
 
-  const {isMounted, styles: transitionStyles} = useTransitionStyles(context, {
+  const { isMounted, styles: transitionStyles } = useTransitionStyles(context, {
     duration: {
       open: 200,
-      close: 200
+      close: 200,
     },
   });
 
@@ -54,12 +58,7 @@ export default function Tooltip({text}: Props) {
   const role = useRole(context, { role: "tooltip" });
 
   // Merge all the interactions into prop getters
-  const { getReferenceProps, getFloatingProps } = useInteractions([
-    hover,
-    focus,
-    dismiss,
-    role
-  ]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover, focus, dismiss, role]);
 
   return (
     <>
@@ -75,7 +74,13 @@ export default function Tooltip({text}: Props) {
             {...getFloatingProps()}
           >
             {text}
-            <FloatingArrow ref={arrowRef} context={context} strokeWidth={1} stroke={'#5A5A5A'} fill={'#141316'} />
+            <FloatingArrow
+              ref={arrowRef}
+              context={context}
+              strokeWidth={1}
+              stroke={"#5A5A5A"}
+              fill={"#141316"}
+            />
           </div>
         )}
       </FloatingPortal>

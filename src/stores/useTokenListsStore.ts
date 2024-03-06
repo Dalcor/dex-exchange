@@ -1,47 +1,51 @@
-import { create } from "zustand";
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 import { Address } from "viem";
+import { create } from "zustand";
+
+import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 
 type TokenInfo = {
-  address: Address,
-  chainId: number,
-  name: string,
-  symbol: string,
-  decimals: number
-}
+  address: Address;
+  chainId: number;
+  name: string;
+  symbol: string;
+  decimals: number;
+};
 
 export type LocalTokenList = {
-  id: string,
-  name: string,
+  id: string;
+  name: string;
   list: {
     version: {
-      major: number,
-      minor: number,
-      patch: number
-    },
-    name: string,
-    tokens: TokenInfo[]
-  },
-  enabled: boolean
-}
+      major: number;
+      minor: number;
+      patch: number;
+    };
+    name: string;
+    tokens: TokenInfo[];
+  };
+  enabled: boolean;
+};
 
 export type ExternalTokenList = {
-  id: string,
-  name: string,
-  url: string,
-  enabled: boolean
-}
+  id: string;
+  name: string;
+  url: string;
+  enabled: boolean;
+};
 
 export type SavedTokenList = LocalTokenList | ExternalTokenList;
 
-type TokenLists = Record<AvailableChains, SavedTokenList[]>
+type TokenLists = Record<AvailableChains, SavedTokenList[]>;
 
 interface TokenListsStore {
-  tokenLists: TokenLists,
-  addTokenList: (tokenList: Omit<LocalTokenList, "id"> | Omit<ExternalTokenList, "id">, chainId: AvailableChains) => void,
-  toggleTokenList: (tokenListId: string, chainId: AvailableChains) => void,
-  addTokenToCustomTokenList: (chainId: AvailableChains, token: TokenInfo) => void,
-  removeCustomToken: (chainId: AvailableChains, tokenAddress: Address) => void
+  tokenLists: TokenLists;
+  addTokenList: (
+    tokenList: Omit<LocalTokenList, "id"> | Omit<ExternalTokenList, "id">,
+    chainId: AvailableChains,
+  ) => void;
+  toggleTokenList: (tokenListId: string, chainId: AvailableChains) => void;
+  addTokenToCustomTokenList: (chainId: AvailableChains, token: TokenInfo) => void;
+  removeCustomToken: (chainId: AvailableChains, tokenAddress: Address) => void;
 }
 
 const defaultTokenLists = {
@@ -50,25 +54,25 @@ const defaultTokenLists = {
       id: "coingecko_ethereum",
       name: "Coingecko Ethereum",
       url: "https://tokens.coingecko.com/ethereum/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "optimism-main",
       name: "Main Optimism",
       url: "https://static.optimism.io/optimism.tokenlist.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "uniswap-main",
       name: "Uniswap Labs Default",
       url: "https://tokens.uniswap.org/",
-      enabled: true
+      enabled: true,
     },
     {
       id: "1inch",
       name: "1NCH",
       url: "https://wispy-bird-88a7.uniswap.workers.dev/?url=https://tokens.1inch.eth.link",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -77,20 +81,20 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Ethereum List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   820: [
     {
       id: "coingecko_callisto",
       name: "Coingecko Callisto",
       url: "https://tokens.coingecko.com/callisto/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -99,20 +103,20 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Callisto List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   42161: [
     {
       id: "coingecko_arbitrum_one",
       name: "Coingecko Arbitrum",
       url: "https://tokens.coingecko.com/arbitrum-one/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -121,20 +125,20 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Arbitrum List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   56: [
     {
       id: "coingecko_bsc",
       name: "Coingecko BSC",
       url: "https://tokens.coingecko.com/binance-smart-chain/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -143,20 +147,20 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom BSC List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   61: [
     {
       id: "coingecko_ethereum_classic",
       name: "Coingecko ETC",
       url: "https://tokens.coingecko.com/ethereum-classic/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -165,26 +169,26 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom ETC List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   10: [
     {
       id: "coingecko_optimistic-ethereum",
       name: "Coingecko Optimism",
       url: "https://tokens.coingecko.com/optimistic-ethereum/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "optimism-main",
       name: "Main Optimism",
       url: "https://static.optimism.io/optimism.tokenlist.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -193,20 +197,20 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Optimism List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   137: [
     {
       id: "coingecko_polygon-pos",
       name: "Coingecko Polygon",
       url: "https://tokens.coingecko.com/polygon-pos/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -215,26 +219,26 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Polygon List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   42220: [
     {
       id: "coingecko_celo",
       name: "Coingecko Celo",
       url: "https://tokens.coingecko.com/celo/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "celo_main",
       name: "Celo Token List",
       url: "https://celo-org.github.io/celo-token-list/celo.tokenlist.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -243,20 +247,20 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Celo List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   43114: [
     {
       id: "coingecko_avalanche",
       name: "Coingecko Avalanche",
       url: "https://tokens.coingecko.com/avalanche/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -265,20 +269,20 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Avalanche List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   8453: [
     {
       id: "coingecko_base",
       name: "Coingecko Base",
       url: "https://tokens.coingecko.com/base/all.json",
-      enabled: true
+      enabled: true,
     },
     {
       id: "custom",
@@ -287,13 +291,13 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Base List",
-        tokens: []
+        tokens: [],
       },
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   11155111: [
     {
@@ -303,7 +307,7 @@ const defaultTokenLists = {
         version: {
           major: 1,
           minor: 0,
-          patch: 0
+          patch: 0,
         },
         name: "Сustom Sepolia List",
         tokens: [
@@ -313,7 +317,7 @@ const defaultTokenLists = {
             logoURI: "/tokens/placeholder.svg",
             chainId: 11155111,
             decimals: 6,
-            symbol: "Dex223 Test Token A"
+            symbol: "Dex223 Test Token A",
           },
           {
             address: "0xb32F7065949Ea3826d6E5936B07E5F1567707588" as Address,
@@ -321,19 +325,19 @@ const defaultTokenLists = {
             logoURI: "/tokens/placeholder.svg",
             chainId: 11155111,
             decimals: 6,
-            symbol: "Dex223 Test Token B"
-          }
-        ]
+            symbol: "Dex223 Test Token B",
+          },
+        ],
       },
-      enabled: true
-    }
-  ]
+      enabled: true,
+    },
+  ],
 };
 
 export const useTokenListsStore = create<TokenListsStore>()((set, get) => ({
   tokenLists: defaultTokenLists,
-  addTokenList: ((tokenList, chainId) => {
-    const tokenListsForChainId = get().tokenLists[chainId]
+  addTokenList: (tokenList, chainId) => {
+    const tokenListsForChainId = get().tokenLists[chainId];
 
     set({
       tokenLists: {
@@ -342,30 +346,32 @@ export const useTokenListsStore = create<TokenListsStore>()((set, get) => ({
           ...tokenListsForChainId,
           {
             ...tokenList,
-            id: `imported_${tokenListsForChainId.length + 1}`
-          }
-        ]
-      }
-    })
-  }),
-  toggleTokenList: ((tokenListId, chainId) => {
-    const tokenListIndex = get().tokenLists[chainId].findIndex(list => tokenListId === list.id);
-
+            id: `imported_${tokenListsForChainId.length + 1}`,
+          },
+        ],
+      },
+    });
+  },
+  toggleTokenList: (tokenListId, chainId) => {
+    const tokenListIndex = get().tokenLists[chainId].findIndex((list) => tokenListId === list.id);
 
     if (tokenListIndex !== -1) {
       const newTokenList = [...get().tokenLists[chainId]];
-      newTokenList[tokenListIndex] = { ...newTokenList[tokenListIndex], enabled: !newTokenList[tokenListIndex].enabled }
+      newTokenList[tokenListIndex] = {
+        ...newTokenList[tokenListIndex],
+        enabled: !newTokenList[tokenListIndex].enabled,
+      };
 
       set({
         tokenLists: {
           ...get().tokenLists,
-          [chainId]: newTokenList
-        }
-      })
+          [chainId]: newTokenList,
+        },
+      });
     }
-  }),
+  },
   addTokenToCustomTokenList: (chainId: AvailableChains, token: TokenInfo) => {
-    const tokenListIndex = get().tokenLists[chainId].findIndex(list => list.id === "custom");
+    const tokenListIndex = get().tokenLists[chainId].findIndex((list) => list.id === "custom");
     const newTokenList = [...get().tokenLists[chainId]];
 
     if (tokenListIndex !== -1) {
@@ -374,44 +380,46 @@ export const useTokenListsStore = create<TokenListsStore>()((set, get) => ({
         const newCustomTokenList = [...customList.list.tokens, token];
 
         newTokenList[tokenListIndex] = {
-          ...newTokenList[tokenListIndex], list: {
+          ...newTokenList[tokenListIndex],
+          list: {
             ...customList.list,
-            tokens: newCustomTokenList
-          }
+            tokens: newCustomTokenList,
+          },
         };
 
         set({
           tokenLists: {
             ...get().tokenLists,
-            [chainId]: newTokenList
-          }
-        })
+            [chainId]: newTokenList,
+          },
+        });
       }
     }
   },
   removeCustomToken: (chainId: AvailableChains, tokenAddress: Address) => {
-    const tokenListIndex = get().tokenLists[chainId].findIndex(list => list.id === "custom");
+    const tokenListIndex = get().tokenLists[chainId].findIndex((list) => list.id === "custom");
     const newTokenList = [...get().tokenLists[chainId]];
 
     if (tokenListIndex !== -1) {
       const customList = newTokenList[tokenListIndex];
       if ("list" in customList) {
-        const newCustomTokenList = customList.list.tokens.filter(t => t.address !== tokenAddress);
+        const newCustomTokenList = customList.list.tokens.filter((t) => t.address !== tokenAddress);
 
         newTokenList[tokenListIndex] = {
-          ...newTokenList[tokenListIndex], list: {
+          ...newTokenList[tokenListIndex],
+          list: {
             ...customList.list,
-            tokens: newCustomTokenList
-          }
+            tokens: newCustomTokenList,
+          },
         };
 
         set({
           tokenLists: {
             ...get().tokenLists,
-            [chainId]: newTokenList
-          }
-        })
+            [chainId]: newTokenList,
+          },
+        });
       }
     }
-  }
+  },
 }));

@@ -1,39 +1,44 @@
-import React, { PropsWithChildren, ReactElement } from "react";
+import { flip, shift } from "@floating-ui/core";
 import {
   autoUpdate,
   FloatingFocusManager,
-  offset, Placement,
+  offset,
+  Placement,
   useClick,
-  useDismiss, useFloating,
+  useDismiss,
+  useFloating,
   useInteractions,
-  useRole, useTransitionStyles
+  useRole,
+  useTransitionStyles,
 } from "@floating-ui/react";
-import { flip, shift } from "@floating-ui/core";
+import React, { PropsWithChildren, ReactElement } from "react";
 
 interface Props {
-  placement: Placement,
-  isOpened?: boolean,
-  setIsOpened?: (isOpened: boolean) => void,
-  trigger: ReactElement
+  placement: Placement;
+  isOpened?: boolean;
+  setIsOpened?: (isOpened: boolean) => void;
+  trigger: ReactElement;
 }
 
-export default function Popover({ placement, isOpened, setIsOpened, children, trigger }: PropsWithChildren<Props>) {
+export default function Popover({
+  placement,
+  isOpened,
+  setIsOpened,
+  children,
+  trigger,
+}: PropsWithChildren<Props>) {
   const { refs, floatingStyles, context } = useFloating({
     open: isOpened,
     onOpenChange: setIsOpened,
-    middleware: [
-      offset(24),
-      flip({ fallbackAxisSideDirection: "end" }),
-      shift()
-    ],
+    middleware: [offset(24), flip({ fallbackAxisSideDirection: "end" }), shift()],
     placement,
-    whileElementsMounted: autoUpdate
+    whileElementsMounted: autoUpdate,
   });
 
   const { isMounted, styles: transitionStyles } = useTransitionStyles(context, {
     duration: {
       open: 200,
-      close: 200
+      close: 200,
     },
   });
 
@@ -41,18 +46,11 @@ export default function Popover({ placement, isOpened, setIsOpened, children, tr
   const dismiss = useDismiss(context);
   const role = useRole(context);
 
-  const { getReferenceProps, getFloatingProps } = useInteractions([
-    click,
-    dismiss,
-    role
-  ]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
 
   return (
     <>
-      {React.cloneElement(
-        trigger,
-        { ...getReferenceProps, ref: refs.setReference }
-      )}
+      {React.cloneElement(trigger, { ...getReferenceProps, ref: refs.setReference })}
       {isMounted && (
         <FloatingFocusManager context={context} modal={false}>
           <div

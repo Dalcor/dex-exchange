@@ -8,7 +8,14 @@ export class TokenList {
   tokens: WrappedToken[];
   enabled: boolean;
 
-  constructor(id: string, name: string, logoURI: string, chainId: number, tokens: WrappedToken[], enabled: boolean) {
+  constructor(
+    id: string,
+    name: string,
+    logoURI: string,
+    chainId: number,
+    tokens: WrappedToken[],
+    enabled: boolean,
+  ) {
     this.id = id;
     this.name = name;
     this.logoURI = logoURI;

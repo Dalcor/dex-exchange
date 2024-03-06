@@ -97,21 +97,13 @@ export const svgIconsNames = [
   "forward",
   "import",
   "details",
-  "download"
+  "download",
 ] as const;
 
-export const socialIconNames = [
-  "twitter"
-] as const;
+export const socialIconNames = ["twitter"] as const;
 
-export const emptyIconNames = [
-  "wallet",
-  "search",
-  "pool",
-  "list",
-  "assets"
-] as const;
+export const emptyIconNames = ["wallet", "search", "pool", "list", "assets"] as const;
 
-export type IconName = typeof svgIconsNames[number];
-export type SocialIconName = typeof socialIconNames[number];
-export type EmptyIconName = typeof emptyIconNames[number];
+export type IconName = (typeof svgIconsNames)[number];
+export type SocialIconName = (typeof socialIconNames)[number];
+export type EmptyIconName = (typeof emptyIconNames)[number];

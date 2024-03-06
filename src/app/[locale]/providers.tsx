@@ -1,23 +1,24 @@
 "use client";
 
-import { config } from "@/config/wagmi/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { type State, WagmiProvider } from "wagmi";
-import { ReactNode } from "react";
-import ToastProvider from "@/providers/ToastProvider";
-import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AbstractIntlMessages, NextIntlClientProvider } from "next-intl";
+import { ReactNode } from "react";
+import { type State, WagmiProvider } from "wagmi";
+
+import { config } from "@/config/wagmi/config";
 import { Locale } from "@/navigation";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import ToastProvider from "@/providers/ToastProvider";
 
 type Props = {
-  children: ReactNode,
-  initialState: State | undefined,
-  messages: AbstractIntlMessages | undefined,
-  locale: Locale
-}
+  children: ReactNode;
+  initialState: State | undefined;
+  messages: AbstractIntlMessages | undefined;
+  locale: Locale;
+};
 
-const queryClient = new QueryClient()
-const timeZone = 'Europe/Vienna';
+const queryClient = new QueryClient();
+const timeZone = "Europe/Vienna";
 
 export function Providers({ children, initialState, messages, locale }: Props) {
   return (
@@ -25,12 +26,10 @@ export function Providers({ children, initialState, messages, locale }: Props) {
       <QueryClientProvider client={queryClient}>
         <NextIntlClientProvider locale={locale} timeZone={timeZone} messages={messages}>
           <ThemeProvider attribute="class">
-            <ToastProvider>
-              {children}
-            </ToastProvider>
+            <ToastProvider>{children}</ToastProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </QueryClientProvider>
     </WagmiProvider>
-  )
+  );
 }

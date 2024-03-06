@@ -14,6 +14,6 @@ const emptyStateIconUrlMap = {
 
 type EmptyIconName = keyof typeof emptyStateIconUrlMap;
 
-export default function EmptyStateIcon({iconName}: {iconName: EmptyIconName}) {
-  return <Image width={80} height={80} src={emptyStateIconUrlMap[iconName]} alt="" />
+export default function EmptyStateIcon({ iconName }: { iconName: EmptyIconName }) {
+  return <Image width={80} height={80} src={emptyStateIconUrlMap[iconName]} alt="" />;
 }

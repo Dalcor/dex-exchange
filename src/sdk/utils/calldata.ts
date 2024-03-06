@@ -1,5 +1,6 @@
-import { BigintIsh } from '../constants';
-import JSBI from 'jsbi'
+import JSBI from "jsbi";
+
+import { BigintIsh } from "../constants";
 
 /**
  * Generated method parameters for executing a call.
@@ -8,11 +9,11 @@ export interface MethodParameters {
   /**
    * The hex encoded calldata to perform the given operation
    */
-  calldata: string
+  calldata: string;
   /**
    * The amount of ether (wei) to send in hex.
    */
-  value: string
+  value: string;
 }
 
 /**
@@ -21,10 +22,10 @@ export interface MethodParameters {
  * @returns The hex encoded calldata
  */
 export function toHex(bigintIsh: BigintIsh) {
-  const bigInt = JSBI.BigInt(bigintIsh)
-  let hex = bigInt.toString(16)
+  const bigInt = JSBI.BigInt(bigintIsh);
+  let hex = bigInt.toString(16);
   if (hex.length % 2 !== 0) {
-    hex = `0${hex}`
+    hex = `0${hex}`;
   }
-  return `0x${hex}`
+  return `0x${hex}`;
 }

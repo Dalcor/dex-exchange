@@ -2,29 +2,29 @@ export const erc20Bytes32ABI = [
   {
     constant: true,
     inputs: [],
-    name: 'name',
+    name: "name",
     outputs: [
       {
-        name: '',
-        type: 'bytes32',
+        name: "",
+        type: "bytes32",
       },
     ],
     payable: false,
-    stateMutability: 'view',
-    type: 'function',
+    stateMutability: "view",
+    type: "function",
   },
   {
     constant: true,
     inputs: [],
-    name: 'symbol',
+    name: "symbol",
     outputs: [
       {
-        name: '',
-        type: 'bytes32',
+        name: "",
+        type: "bytes32",
       },
     ],
     payable: false,
-    stateMutability: 'view',
-    type: 'function',
+    stateMutability: "view",
+    type: "function",
   },
-] as const
+] as const;

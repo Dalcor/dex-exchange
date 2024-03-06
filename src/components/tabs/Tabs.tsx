@@ -1,11 +1,12 @@
 import React, { ReactElement, useState } from "react";
+
 import TabTitle from "./TabTitle";
 
 interface Props {
-  children: ReactElement[],
-  defaultTab?: number
-  activeTab?: number,
-  setActiveTab?: any
+  children: ReactElement[];
+  defaultTab?: number;
+  activeTab?: number;
+  setActiveTab?: any;
 }
 
 function Tabs({ children, defaultTab = 0, activeTab = 0, setActiveTab = null }: Props) {
@@ -23,7 +24,6 @@ function Tabs({ children, defaultTab = 0, activeTab = 0, setActiveTab = null }: 
             setSelectedTab={setActiveTab || setSelectedTab}
           />
         ))}
-
       </ul>
       {children[activeTab || selectedTab]}
     </div>

@@ -1,19 +1,24 @@
 import clsx from "clsx";
 
 interface Props {
-  checked: boolean,
-  setChecked: any,
-  small?: boolean,
-  disabled?: boolean
+  checked: boolean;
+  setChecked: any;
+  small?: boolean;
+  disabled?: boolean;
 }
 
 export default function Switch({ checked, setChecked, small = false, disabled = false }: Props) {
-  return <label className={clsx(
-    "relative inline-block w-12 h-6"
-  )}>
-    <input className="peer appearance-none" disabled={disabled} checked={checked} onChange={setChecked}
-           type="checkbox"/>
-    <span className={clsx(`
+  return (
+    <label className={clsx("relative inline-block w-12 h-6")}>
+      <input
+        className="peer appearance-none"
+        disabled={disabled}
+        checked={checked}
+        onChange={setChecked}
+        type="checkbox"
+      />
+      <span
+        className={clsx(`
                       absolute
                       cursor-pointer
                       w-full
@@ -36,7 +41,8 @@ export default function Switch({ checked, setChecked, small = false, disabled = 
                       before:bg-primary-border
                       before:rounded-full
                       before:duration-200
-                  `
-    )}/>
-  </label>;
+                  `)}
+      />
+    </label>
+  );
 }

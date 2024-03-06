@@ -1,19 +1,42 @@
-import { cookieStorage, createConfig, createStorage } from "wagmi";
-import { callisto } from "@/config/chains/callisto";
-import { arbitrum, avalanche, base, bsc, celo, classic, optimism, polygon, sepolia } from "wagmi/chains";
-import { coinbaseWallet, walletConnect } from "wagmi/connectors";
 import { http } from "viem";
 import { mainnet } from "viem/chains";
+import { cookieStorage, createConfig, createStorage } from "wagmi";
+import {
+  arbitrum,
+  avalanche,
+  base,
+  bsc,
+  celo,
+  classic,
+  optimism,
+  polygon,
+  sepolia,
+} from "wagmi/chains";
+import { coinbaseWallet, walletConnect } from "wagmi/connectors";
+
+import { callisto } from "@/config/chains/callisto";
 
 export const config = createConfig({
-  chains: [callisto, classic, mainnet, celo, arbitrum, avalanche, bsc, polygon, optimism, base, sepolia],
+  chains: [
+    callisto,
+    classic,
+    mainnet,
+    celo,
+    arbitrum,
+    avalanche,
+    bsc,
+    polygon,
+    optimism,
+    base,
+    sepolia,
+  ],
   connectors: [
     walletConnect({
-      projectId: "0af4613ea1c747c660416c4a7a114616"
+      projectId: "0af4613ea1c747c660416c4a7a114616",
     }),
     coinbaseWallet({
-      appName: "DEX223"
-    })
+      appName: "DEX223",
+    }),
   ],
   multiInjectedProviderDiscovery: true,
   ssr: true,
@@ -31,6 +54,6 @@ export const config = createConfig({
     [polygon.id]: http(),
     [optimism.id]: http(),
     [base.id]: http(),
-    [sepolia.id]: http()
+    [sepolia.id]: http(),
   },
-})
+});

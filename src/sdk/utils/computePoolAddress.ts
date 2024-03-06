@@ -1,8 +1,9 @@
-import { defaultAbiCoder } from '@ethersproject/abi';
-import { getCreate2Address } from '@ethersproject/address';
-import { keccak256 } from '@ethersproject/solidity';
-import { Token } from "@/sdk/entities/token";
+import { defaultAbiCoder } from "@ethersproject/abi";
+import { getCreate2Address } from "@ethersproject/address";
+import { keccak256 } from "@ethersproject/solidity";
+
 import { FeeAmount, POOL_INIT_CODE_HASH } from "@/sdk/constants";
+import { Token } from "@/sdk/entities/token";
 
 /**
  * Computes a pool address
@@ -18,21 +19,26 @@ export function computePoolAddress({
   tokenA,
   tokenB,
   fee,
-  initCodeHashManualOverride
+  initCodeHashManualOverride,
 }: {
-  factoryAddress: string
-  tokenA: Token
-  tokenB: Token
-  fee: FeeAmount
-  initCodeHashManualOverride?: string
+  factoryAddress: string;
+  tokenA: Token;
+  tokenB: Token;
+  fee: FeeAmount;
+  initCodeHashManualOverride?: string;
 }): string {
-  const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
+  const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
   return getCreate2Address(
     factoryAddress,
     keccak256(
-      ['bytes'],
-      [defaultAbiCoder.encode(['address', 'address', 'uint24'], [token0.address, token1.address, fee])]
+      ["bytes"],
+      [
+        defaultAbiCoder.encode(
+          ["address", "address", "uint24"],
+          [token0.address, token1.address, fee],
+        ),
+      ],
     ),
-    initCodeHashManualOverride ?? POOL_INIT_CODE_HASH
-  )
+    initCodeHashManualOverride ?? POOL_INIT_CODE_HASH,
+  );
 }

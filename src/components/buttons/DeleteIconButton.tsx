@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { ButtonHTMLAttributes } from "react";
 
 import Svg from "@/components/atoms/Svg";
-import { IconName } from "@/config/types/IconName";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "default" | "large";

@@ -4,7 +4,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { ButtonHTMLAttributes, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Abi, Address, parseUnits } from "viem";
+import { Abi, Address, encodeFunctionData, parseUnits, toHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { PoolState } from "@/app/[locale]/add/hooks/types";
@@ -28,6 +28,7 @@ import { useTokens } from "@/hooks/useTokenLists";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk";
+import { Pool } from "@/sdk/entities/pool";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 const nonFungiblePositionManagerAddress = "0x1238536071e1c677a632429e3655c799b22cda52";
@@ -55,7 +56,7 @@ const FEE_AMOUNT_DETAIL: Record<
     description: "Best for stable pairs.",
   },
   [FeeAmount.MEDIUM]: {
-    label: "0.25",
+    label: "0.3",
     description: "Best for most pairs.",
   },
   [FeeAmount.HIGH]: {
@@ -125,6 +126,8 @@ function DepositCard() {
     </div>
   );
 }
+
+const recipient = "0xF1602175601606E8ffEe38CE433A4DB4C6cf5d60";
 
 export default function AddPoolPage({
   params,
@@ -289,75 +292,94 @@ export default function AddPoolPage({
       return;
     }
 
-    const params: {
-      account: Address;
-      abi: Abi;
-      functionName: "mint";
-      address: Address;
+    const initializeParams = {
+      account: accountAddress,
+      abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+      functionName: "createAndInitializePoolIfNecessary" as const,
+      address: nonFungiblePositionManagerAddress as Address,
+      args: [tokenA.address, tokenB.address, tier, 0],
+    };
+
+    try {
+      // const estimatedGas = await publicClient.estimateContractGas(initializeParams as any);
+      //
+      // const { request } = await publicClient.simulateContract({
+      //   ...(initializeParams as any),
+      //   gas: estimatedGas + BigInt(30000),
+      // });
+      const hash = await walletClient.writeContract({
+        account: accountAddress,
+        abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+        functionName: "createAndInitializePoolIfNecessary" as const,
+        address: nonFungiblePositionManagerAddress as Address,
+        args: [
+          tokenB.address as Address,
+          tokenA.address as Address,
+          tier,
+          BigInt("76000000000000000000"),
+        ],
+        gas: BigInt(10_000_000),
+      });
+      console.log("POOL INITIALIZES");
+      console.log(hash);
+    } catch (e) {
+      console.log(e);
+    }
+
+    const data = encodeFunctionData({
+      abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+      functionName: "mint",
       args: [
-        Address, //token0
-        Address, //token1
-        number, //fee
-        number, //tickLower
-        number, //tickUpper
-        bigint, //amount0Desired
-        bigint, //amount1Desired
-        bigint, //amount0Min
-        bigint, //amount1Min
-        Address, //recipient
-        bigint, //deadline
-      ];
-    } = {
+        {
+          token0: tokenA.address as Address,
+          token1: tokenB.address as Address,
+          fee: tier,
+          tickLower: 400000,
+          tickUpper: 100000,
+          amount0Desired: BigInt(1),
+          amount1Desired: BigInt(1),
+          amount0Min: BigInt(1),
+          amount1Min: BigInt(1),
+          recipient,
+          deadline,
+        },
+      ],
+    });
+
+    const params = {
       account: accountAddress,
       abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
       functionName: "mint" as const,
       address: nonFungiblePositionManagerAddress as Address,
       args: [
-        tokenA.address as Address,
-        tokenB.address as Address,
-        tier,
-        -400000,
-        100000,
-        BigInt(1),
-        BigInt(1),
-        BigInt(1),
-        BigInt(1),
-        "0xAxxxx",
-        deadline,
+        {
+          token0: tokenA.address as Address,
+          token1: tokenB.address as Address,
+          fee: tier,
+          tickLower: -1000,
+          tickUpper: 1000,
+          amount0Desired: parseUnits("1", tokenA.decimals),
+          amount1Desired: parseUnits("1", tokenB.decimals),
+          amount0Min: parseUnits("0.9", tokenA.decimals),
+          amount1Min: parseUnits("0.9", tokenB.decimals),
+          recipient,
+          deadline: deadline,
+        },
       ],
     };
 
-    // const data = encodeFunctionData({
-    //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-    //   functionName: "mint",
-    //   args: [
-    //     tokenA.address as Address,
-    //     tokenB.address as Address,
-    //     tier,
-    //     -400000,
-    //     100000,
-    //     BigInt(1),
-    //     BigInt(1),
-    //     BigInt(1),
-    //     BigInt(1),
-    //     "0xAxxxx",
-    //     deadline
-    //   ]
-    // })
-    //
-    // try {
-    //   const estimatedGas = await publicClient.estimateContractGas(params);
-    //
-    //   const { request } = await publicClient.simulateContract({
-    //     ...params,
-    //     gas: estimatedGas + BigInt(30000),
-    //   })
-    //   const hash = await walletClient.writeContract(request);
-    //   console.log(hash);
-    //
-    // } catch (e) {
-    //   console.log(e);
-    // }
+    try {
+      const estimatedGas = await publicClient.estimateContractGas(params as any);
+
+      const { request } = await publicClient.simulateContract({
+        ...(params as any),
+        gas: estimatedGas + BigInt(30000),
+      });
+      const hash = await walletClient.writeContract(request);
+      console.log(hash);
+    } catch (e) {
+      console.log(e);
+    }
   }, [accountAddress, deadline, publicClient, tier, tokenA, tokenB, walletClient]);
 
   return (

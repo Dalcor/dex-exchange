@@ -71,7 +71,6 @@ export default function ImportList({ setContent, handleClose }: Props) {
           if (e.target) {
             const fileContents: any = e.target.result;
             const parsedJson = JSON.parse(fileContents);
-            console.log(parsedJson);
 
             addTokenList(
               {

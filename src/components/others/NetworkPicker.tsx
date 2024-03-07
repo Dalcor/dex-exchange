@@ -17,7 +17,6 @@ export default function NetworkPicker() {
   }, [chain]);
   const { switchChain } = useSwitchChain();
 
-  console.log(chain);
   if (!chain) {
     return null;
   }

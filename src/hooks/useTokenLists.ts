@@ -15,7 +15,6 @@ import {
 
 export async function fetchTokenList(url: string) {
   const data = await fetch(url);
-  console.log(data);
   return await data.json();
 }
 
@@ -42,9 +41,6 @@ export function useTokenLists() {
     const localLists = tokenListsFromStorage.filter(isLocal);
 
     const urls = externalLists.map((list) => list.url);
-
-    console.log("Token lists from storage");
-    console.log(tokenListsFromStorage);
 
     IIFE(async () => {
       const promises = urls.map((url) => fetchTokenList(url));
@@ -123,7 +119,6 @@ export function useTokenLists() {
 export function useTokens() {
   const tokenLists = useTokenLists();
 
-  console.log("RERENDER");
   return useMemo(() => {
     if (tokenLists.lists.length > 1) {
       const inspect = (...arrays: TokenList[]) => {

@@ -3,8 +3,8 @@
 import clsx from "clsx";
 import Image from "next/image";
 import { useLocale } from "next-intl";
-import { ButtonHTMLAttributes, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Abi, Address, encodeFunctionData, parseUnits, toHex } from "viem";
+import { ButtonHTMLAttributes, useCallback, useEffect, useMemo, useState } from "react";
+import { Address, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { PoolState } from "@/app/[locale]/add/hooks/types";
@@ -21,6 +21,7 @@ import ZoomButton from "@/components/buttons/ZoomButton";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { FEE_AMOUNT_DETAIL, FEE_TIERS } from "@/config/constants/liquidityFee";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import useAllowance from "@/hooks/useAllowance";
 import { usePool, usePools } from "@/hooks/usePools";
@@ -29,6 +30,8 @@ import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk";
 import { Pool } from "@/sdk/entities/pool";
+import { SqrtPriceMath } from "@/sdk/utils/sqrtPriceMath";
+import { TickMath } from "@/sdk/utils/tickMath";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 const nonFungiblePositionManagerAddress = "0x1238536071e1c677a632429e3655c799b22cda52";
@@ -37,33 +40,6 @@ interface RadioButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
   feeAmount: FeeAmount;
 }
-
-const FEE_TIERS = [FeeAmount.LOWEST, FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH];
-
-const FEE_AMOUNT_DETAIL: Record<
-  FeeAmount,
-  {
-    label: string;
-    description: ReactNode;
-  }
-> = {
-  [FeeAmount.LOWEST]: {
-    label: "0.01",
-    description: "Best for very stable pairs.",
-  },
-  [FeeAmount.LOW]: {
-    label: "0.05",
-    description: "Best for stable pairs.",
-  },
-  [FeeAmount.MEDIUM]: {
-    label: "0.3",
-    description: "Best for most pairs.",
-  },
-  [FeeAmount.HIGH]: {
-    label: "1",
-    description: "Best for exotic pairs.",
-  },
-};
 
 function RadioButton({ feeAmount, active = false, ...props }: RadioButtonProps) {
   return (
@@ -156,10 +132,6 @@ export default function AddPoolPage({
   //
   // const { currencyIdA, currencyIdB, feeAmount } = useCurrencyParams();
   //
-  console.log("PARAMS");
-  console.log(currency?.[0]);
-  console.log(currency?.[1]);
-  console.log(currency?.[2]);
 
   const poolKeys: any = useMemo(() => {
     return [
@@ -173,10 +145,23 @@ export default function AddPoolPage({
   // get pool data on-chain for latest states
   const pools = usePools(poolKeys);
 
-  const pool = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
+  const pool = usePool(tokenA, tokenB, FeeAmount.LOWEST);
 
-  console.log("POOL");
-  console.log(pool);
+  //
+  // useEffect(() => {
+  //   console.log("Effect pools");
+  //   if (pool && pool[1]) {
+  //     console.log(pool[1]);
+  //     const a = SqrtPriceMath.getNextSqrtPriceFromInput(
+  //       pool[1].sqrtRatioX96,
+  //       pool[1].liquidity,
+  //       JSBI.BigInt(1),
+  //       true,
+  //     );
+  //
+  //     console.log("Output estimation:" + a);
+  //   }
+  // }, [pool]);
 
   const poolsByFeeTier: Record<FeeAmount, PoolState> = useMemo(
     () =>
@@ -198,8 +183,6 @@ export default function AddPoolPage({
       ),
     [pools],
   );
-
-  console.log(poolsByFeeTier);
 
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
@@ -258,7 +241,6 @@ export default function AddPoolPage({
 
     if (currency?.[2]) {
       if (FEE_TIERS.includes(Number(currency[2]))) {
-        console.log("FOUND");
         setTier(Number(currency[2]));
       }
     }
@@ -292,91 +274,110 @@ export default function AddPoolPage({
       return;
     }
 
-    const initializeParams = {
-      account: accountAddress,
-      abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-      functionName: "createAndInitializePoolIfNecessary" as const,
-      address: nonFungiblePositionManagerAddress as Address,
-      args: [tokenA.address, tokenB.address, tier, 0],
-    };
+    // const initializeParams = {
+    //   account: accountAddress,
+    //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+    //   functionName: "createAndInitializePoolIfNecessary" as const,
+    //   address: nonFungiblePositionManagerAddress as Address,
+    //   args: [tokenA.address, tokenB.address, tier, 0],
+    // };
+    //
+    // try {
+    //   // const estimatedGas = await publicClient.estimateContractGas(initializeParams as any);
+    //   //
+    //   // const { request } = await publicClient.simulateContract({
+    //   //   ...(initializeParams as any),
+    //   //   gas: estimatedGas + BigInt(30000),
+    //   // });
+    //   const hash = await walletClient.writeContract({
+    //     account: accountAddress,
+    //     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+    //     functionName: "createAndInitializePoolIfNecessary" as const,
+    //     address: nonFungiblePositionManagerAddress as Address,
+    //     args: [
+    //       tokenB.address as Address,
+    //       tokenA.address as Address,
+    //       tier,
+    //       BigInt("76000000000000000000"),
+    //     ],
+    //     gas: BigInt(10_000_000),
+    //   });
+    //   console.log("POOL INITIALIZES");
+    //   console.log(hash);
+    // } catch (e) {
+    //   console.log(e);
+    // }
+    //
+    // const data = encodeFunctionData({
+    //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+    //   functionName: "mint",
+    //   args: [
+    //     {
+    //       token0: tokenA.address as Address,
+    //       token1: tokenB.address as Address,
+    //       fee: tier,
+    //       tickLower: 400000,
+    //       tickUpper: 100000,
+    //       amount0Desired: BigInt(1),
+    //       amount1Desired: BigInt(1),
+    //       amount0Min: BigInt(1),
+    //       amount1Min: BigInt(1),
+    //       recipient,
+    //       deadline,
+    //     },
+    //   ],
+    // });
+
+    // const params = {
+    //   account: accountAddress,
+    //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+    //   functionName: "mint" as const,
+    //   address: nonFungiblePositionManagerAddress as Address,
+    //   args: [
+    //     {
+    //       token0: tokenB.address as Address,
+    //       token1: tokenA.address as Address,
+    //       fee: tier,
+    //       tickLower: TickMath.MIN_TICK,
+    //       tickUpper: TickMath.MAX_TICK,
+    //       amount0Desired: parseUnits("1", tokenB.decimals),
+    //       amount1Desired: parseUnits("1", tokenA.decimals),
+    //       amount0Min: 0,
+    //       amount1Min: 0,
+    //       recipient,
+    //       deadline: deadline,
+    //     },
+    //   ],
+    // };
 
     try {
-      // const estimatedGas = await publicClient.estimateContractGas(initializeParams as any);
+      // const estimatedGas = await publicClient.estimateContractGas(params as any);
       //
       // const { request } = await publicClient.simulateContract({
-      //   ...(initializeParams as any),
+      //   ...(params as any),
       //   gas: estimatedGas + BigInt(30000),
       // });
       const hash = await walletClient.writeContract({
         account: accountAddress,
         abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-        functionName: "createAndInitializePoolIfNecessary" as const,
+        functionName: "mint" as const,
         address: nonFungiblePositionManagerAddress as Address,
         args: [
-          tokenB.address as Address,
-          tokenA.address as Address,
-          tier,
-          BigInt("76000000000000000000"),
+          {
+            token0: tokenB.address as Address, // correct
+            token1: tokenA.address as Address, // correct
+            fee: tier,
+            tickLower: 0,
+            tickUpper: 60,
+            amount0Desired: BigInt(10),
+            amount1Desired: BigInt(10),
+            amount0Min: BigInt(0),
+            amount1Min: BigInt(0),
+            recipient,
+            deadline: deadline,
+          },
         ],
-        gas: BigInt(10_000_000),
       });
-      console.log("POOL INITIALIZES");
-      console.log(hash);
-    } catch (e) {
-      console.log(e);
-    }
-
-    const data = encodeFunctionData({
-      abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-      functionName: "mint",
-      args: [
-        {
-          token0: tokenA.address as Address,
-          token1: tokenB.address as Address,
-          fee: tier,
-          tickLower: 400000,
-          tickUpper: 100000,
-          amount0Desired: BigInt(1),
-          amount1Desired: BigInt(1),
-          amount0Min: BigInt(1),
-          amount1Min: BigInt(1),
-          recipient,
-          deadline,
-        },
-      ],
-    });
-
-    const params = {
-      account: accountAddress,
-      abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-      functionName: "mint" as const,
-      address: nonFungiblePositionManagerAddress as Address,
-      args: [
-        {
-          token0: tokenA.address as Address,
-          token1: tokenB.address as Address,
-          fee: tier,
-          tickLower: -1000,
-          tickUpper: 1000,
-          amount0Desired: parseUnits("1", tokenA.decimals),
-          amount1Desired: parseUnits("1", tokenB.decimals),
-          amount0Min: parseUnits("0.9", tokenA.decimals),
-          amount1Min: parseUnits("0.9", tokenB.decimals),
-          recipient,
-          deadline: deadline,
-        },
-      ],
-    };
-
-    try {
-      const estimatedGas = await publicClient.estimateContractGas(params as any);
-
-      const { request } = await publicClient.simulateContract({
-        ...(params as any),
-        gas: estimatedGas + BigInt(30000),
-      });
-      const hash = await walletClient.writeContract(request);
-      console.log(hash);
     } catch (e) {
       console.log(e);
     }
@@ -421,7 +422,7 @@ export default function AddPoolPage({
                     width={32}
                     height={32}
                   />
-                  <span className="block overflow-ellipsis whitespace-nowrap w-[141px] overflow-hidden">
+                  <span className="block overflow-ellipsis whitespace-nowrap w-[141px] overflow-hidden text-left">
                     {tokenA.symbol}
                   </span>
                 </span>
@@ -447,7 +448,7 @@ export default function AddPoolPage({
                     width={32}
                     height={32}
                   />
-                  <span className="block overflow-ellipsis whitespace-nowrap w-[141px] overflow-hidden">
+                  <span className="block overflow-ellipsis whitespace-nowrap w-[141px] overflow-hidden text-left">
                     {tokenB.symbol}
                   </span>
                 </span>

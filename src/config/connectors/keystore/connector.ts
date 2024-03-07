@@ -23,17 +23,12 @@ export function keystore({ pk }: KeystoreConnectorParameters) {
     },
     async connect({ chainId }: { chainId: AvailableChains }) {
       const provider: WalletClient = await this.getProvider({ chainId });
-      console.log("PROVIDER");
-      console.log(provider);
 
       try {
         const accounts = await provider.getAddresses();
-        console.log("ADF");
         let currentChainId = await provider.getChainId();
 
         connected = true;
-        console.log("ACCOUNTS");
-        console.log(accounts);
         return { accounts, chainId: currentChainId };
       } catch (e) {
         console.log(e);

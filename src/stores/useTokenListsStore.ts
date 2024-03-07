@@ -317,7 +317,7 @@ const defaultTokenLists = {
             logoURI: "/tokens/placeholder.svg",
             chainId: 11155111,
             decimals: 6,
-            symbol: "Dex223 Test Token A",
+            symbol: "DTA",
           },
           {
             address: "0xb32F7065949Ea3826d6E5936B07E5F1567707588" as Address,
@@ -325,7 +325,7 @@ const defaultTokenLists = {
             logoURI: "/tokens/placeholder.svg",
             chainId: 11155111,
             decimals: 6,
-            symbol: "Dex223 Test Token B",
+            symbol: "DTB",
           },
         ],
       },

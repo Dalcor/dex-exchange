@@ -149,8 +149,6 @@ export function usePools(
         }),
       ]);
 
-      console.log(dataSlot0s);
-      console.log(dataLiquidities);
       setSlot0s(dataSlot0s);
       setLiquidities(dataLiquidities);
     });

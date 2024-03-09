@@ -38,7 +38,7 @@ export default function useAllowance({
 
   const currentAllowance = useReadContract({
     abi: ERC20_ABI,
-    address: token?.address,
+    address: token?.address as Address,
     functionName: "allowance",
     args: [
       //set ! to avoid ts errors, make sure it is not undefined with "enable" option
@@ -119,7 +119,7 @@ export default function useAllowance({
       functionName: "approve";
       args: [Address, bigint];
     } = {
-      address: token.address,
+      address: token.address as Address,
       account: address,
       abi: ERC20_ABI,
       functionName: "approve",

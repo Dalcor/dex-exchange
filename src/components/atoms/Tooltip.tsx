@@ -62,7 +62,11 @@ export default function Tooltip({ text }: Props) {
 
   return (
     <>
-      <span className="w-6 h-6 cursor-pointer" ref={refs.setReference} {...getReferenceProps()}>
+      <span
+        className="w-6 h-6 cursor-pointer text-secondary-text"
+        ref={refs.setReference}
+        {...getReferenceProps()}
+      >
         <Svg iconName="info" />
       </span>
       <FloatingPortal>

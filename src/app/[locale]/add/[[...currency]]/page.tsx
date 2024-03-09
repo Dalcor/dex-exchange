@@ -1,12 +1,15 @@
 "use client";
 
 import clsx from "clsx";
+import JSBI from "jsbi";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { ButtonHTMLAttributes, useCallback, useEffect, useMemo, useState } from "react";
-import { Address, parseUnits } from "viem";
+import { Address, formatUnits, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
+import FeeAmountSettings from "@/app/[locale]/add/components/FeeAmountSettings";
+import TokenDepositCard from "@/app/[locale]/add/components/TokenDepositCard";
 import { PoolState } from "@/app/[locale]/add/hooks/types";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/hooks/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/hooks/useLiquidityTierStore";
@@ -29,37 +32,11 @@ import { useTokens } from "@/hooks/useTokenLists";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk";
-import { Pool } from "@/sdk/entities/pool";
 import { SqrtPriceMath } from "@/sdk/utils/sqrtPriceMath";
 import { TickMath } from "@/sdk/utils/tickMath";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 const nonFungiblePositionManagerAddress = "0x1238536071e1c677a632429e3655c799b22cda52";
-
-interface RadioButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  active?: boolean;
-  feeAmount: FeeAmount;
-}
-
-function RadioButton({ feeAmount, active = false, ...props }: RadioButtonProps) {
-  return (
-    <button
-      {...props}
-      className={clsx(
-        "flex justify-between items-center px-5 py-2 rounded-1 border cursor-pointer bg-secondary-bg hover:bg-tertiary-hover duration-200",
-        active
-          ? "bg-active-bg shadow-select border-green pointer-events-none"
-          : "border-transparent",
-      )}
-    >
-      <div className="flex items-center gap-2">
-        <span>{FEE_AMOUNT_DETAIL[feeAmount].label}% fee tier</span>
-        {/*<TextLabel text="1% select" color="grey"/>*/}
-      </div>
-      <span className={active ? "text-green" : ""}>{FEE_AMOUNT_DETAIL[feeAmount].description}</span>
-    </button>
-  );
-}
 
 function PriceRangeCard() {
   return (
@@ -112,7 +89,6 @@ export default function AddPoolPage({
     currency: [string, string, string];
   };
 }) {
-  const [isFeeOpened, setIsFeeOpened] = useState(false);
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const router = useRouter();
 
@@ -279,7 +255,7 @@ export default function AddPoolPage({
     //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
     //   functionName: "createAndInitializePoolIfNecessary" as const,
     //   address: nonFungiblePositionManagerAddress as Address,
-    //   args: [tokenA.address, tokenB.address, tier, 0],
+    //   args: [tokenA.address, tokenB.address, FeeAmount.LOW, 1],
     // };
     //
     // try {
@@ -294,12 +270,7 @@ export default function AddPoolPage({
     //     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
     //     functionName: "createAndInitializePoolIfNecessary" as const,
     //     address: nonFungiblePositionManagerAddress as Address,
-    //     args: [
-    //       tokenB.address as Address,
-    //       tokenA.address as Address,
-    //       tier,
-    //       BigInt("76000000000000000000"),
-    //     ],
+    //     args: [tokenA.address, tokenB.address, FeeAmount.LOW, BigInt(1)],
     //     gas: BigInt(10_000_000),
     //   });
     //   console.log("POOL INITIALIZES");
@@ -367,10 +338,10 @@ export default function AddPoolPage({
             token0: tokenB.address as Address, // correct
             token1: tokenA.address as Address, // correct
             fee: tier,
-            tickLower: 0,
-            tickUpper: 60,
-            amount0Desired: BigInt(10),
-            amount1Desired: BigInt(10),
+            tickLower: TickMath.MIN_TICK,
+            tickUpper: TickMath.MAX_TICK,
+            amount0Desired: BigInt(1),
+            amount1Desired: BigInt(1) / BigInt("75999999999781595658"),
             amount0Min: BigInt(0),
             amount1Min: BigInt(0),
             recipient,
@@ -383,9 +354,38 @@ export default function AddPoolPage({
     }
   }, [accountAddress, deadline, publicClient, tier, tokenA, tokenB, walletClient]);
 
+  const a = useMemo(() => {
+    if (!pool[1]) {
+      return null;
+    }
+    const data = SqrtPriceMath.getNextSqrtPriceFromInput(
+      pool[1]?.sqrtRatioX96,
+      JSBI.BigInt(3338),
+      JSBI.BigInt(10),
+      true,
+    );
+    if (data) {
+    }
+
+    return data;
+  }, [pool]);
+
+  console.log("Price output");
+  useEffect(() => {
+    if (pool[1]) {
+      const expon = JSBI.exponentiate(pool[1].sqrtRatioX96, JSBI.BigInt(2));
+      const divider = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(192));
+
+      console.log("PRICE CALCULATEION");
+      console.log(expon);
+      console.log(divider.toString());
+      console.log(JSBI.divide(expon, divider).toString());
+    }
+  }, [pool]);
+
   return (
     <Container>
-      <div className="w-[600px] bg-primary-bg mx-auto my-[80px]">
+      <div className="w-[1200px] bg-primary-bg mx-auto my-[80px]">
         <div className="flex justify-between items-center rounded-t-2 border py-2.5 px-6 border-secondary-border">
           <SystemIconButton
             iconSize={32}
@@ -457,45 +457,16 @@ export default function AddPoolPage({
               )}
             </SelectButton>
           </div>
-          <div className="rounded-1 py-[2px] px-5 mb-5 bg-tertiary-bg">
-            <div className="flex justify-between items-center py-[18px]">
-              <div className="flex items-center gap-2">
-                <span className="font-bold">{FEE_AMOUNT_DETAIL[tier].label}% fee tier</span>
-                {/*<TextLabel text="67% select" color="grey"/>*/}
-              </div>
-              <button
-                onClick={() => setIsFeeOpened(!isFeeOpened)}
-                className="flex items-center gap-1 group"
-              >
-                <span className="text-secondary-text group-hover:text-primary-text duration-200">
-                  {isFeeOpened ? "Hide" : "Edit"}
-                </span>
-                <Svg
-                  iconName="expand-arrow"
-                  className={isFeeOpened ? "duration-200 -rotate-180" : "duration-200 "}
-                />
-              </button>
+          <FeeAmountSettings />
+          <div className="mb-5" />
+          <div className="grid gap-5 grid-cols-2">
+            <div className="flex flex-col gap-5">
+              {tokenA && <TokenDepositCard token={tokenA} />}
+              {tokenB && <TokenDepositCard token={tokenB} />}
             </div>
-            <Collapse open={isFeeOpened}>
-              <div className="grid gap-2 pb-5">
-                {FEE_TIERS.map((_feeAmount) => (
-                  <RadioButton
-                    feeAmount={_feeAmount}
-                    key={_feeAmount}
-                    active={tier === _feeAmount}
-                    onClick={() => {
-                      setTier(_feeAmount);
-                      window.history.replaceState(
-                        null,
-                        "",
-                        `/${lang}/add/${tokenA?.address}/${tokenB?.address}/${_feeAmount}`,
-                      );
-                    }}
-                  />
-                ))}
-              </div>
-            </Collapse>
+            <div></div>
           </div>
+
           <div className="mb-5">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-16 font-bold">Set price range</h3>

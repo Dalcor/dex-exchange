@@ -1,4 +1,5 @@
 import { multicall } from "@wagmi/core";
+import invariant from "invariant";
 import JSBI from "jsbi";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
@@ -124,6 +125,10 @@ export function usePools(
 
   useEffect(() => {
     IIFE(async () => {
+      if (!poolAddresses.filter((t) => t !== undefined).length) {
+        return;
+      }
+
       const contractsA = poolAddresses.map((address) => {
         return {
           abi: POOL_STATE_ABI,
@@ -139,6 +144,9 @@ export function usePools(
           functionName: "liquidity",
         };
       });
+
+      console.log(contractsA);
+      console.log(contractsB);
 
       const [dataSlot0s, dataLiquidities] = await Promise.all([
         multicall(config, {

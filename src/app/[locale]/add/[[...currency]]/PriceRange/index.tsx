@@ -1,6 +1,9 @@
 import JSBI from "jsbi";
 import { useEffect, useMemo, useState } from "react";
 
+import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
+import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
+import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityPriceRangeStore";
 import { usePool } from "@/hooks/usePools";
 import { FeeAmount, TICK_SPACINGS } from "@/sdk";
 import { Price } from "@/sdk/entities/fractions/price";
@@ -10,9 +13,6 @@ import { nearestUsableTick } from "@/sdk/utils/nearestUsableTick";
 import { priceToClosestTick, tickToPrice } from "@/sdk/utils/priceTickConversions";
 import { TickMath } from "@/sdk/utils/tickMath";
 
-import { useAddLiquidityTokensStore } from "../../hooks/useAddLiquidityTokensStore";
-import { useLiquidityPriceRangeStore } from "../../hooks/useLiquidityPriceRangeStore";
-import { useLiquidityTierStore } from "../../hooks/useLiquidityTierStore";
 import LiquidityChartRangeInput from "./LiquidityChartRangeInput";
 import { Bound } from "./LiquidityChartRangeInput/types";
 

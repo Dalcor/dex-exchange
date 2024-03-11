@@ -8,14 +8,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Address, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
-import FeeAmountSettings from "@/app/[locale]/add/components/FeeAmountSettings";
-import PriceRangeInput from "@/app/[locale]/add/components/PriceRangeInput";
-import TokenDepositCard from "@/app/[locale]/add/components/TokenDepositCard";
-import { PoolState } from "@/app/[locale]/add/hooks/types";
-import useAddLiquidity from "@/app/[locale]/add/hooks/useAddLiquidity";
-import { useAddLiquidityTokensStore } from "@/app/[locale]/add/hooks/useAddLiquidityTokensStore";
-import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/hooks/useLiquidityPriceRangeStore";
-import { useLiquidityTierStore } from "@/app/[locale]/add/hooks/useLiquidityTierStore";
+import FeeAmountSettings from "@/app/[locale]/add/[[...currency]]/components/FeeAmountSettings";
+import PriceRangeInput from "@/app/[locale]/add/[[...currency]]/components/PriceRangeInput";
+import TokenDepositCard from "@/app/[locale]/add/[[...currency]]/components/TokenDepositCard";
+import { PoolState } from "@/app/[locale]/add/[[...currency]]/hooks/types";
+import useAddLiquidity from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
+import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
+import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
+import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityPriceRangeStore";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import SelectButton from "@/components/atoms/SelectButton";
@@ -129,29 +129,15 @@ export default function AddPoolPage({
     (token: WrappedToken) => {
       if (currentlyPicking === "tokenA") {
         setTokenA(token);
-        if (tokenB) {
-          const newPath = `/${lang}/add/${token.address}/${tokenB.address}`;
-          window.history.replaceState(null, "", newPath);
-        } else {
-          const newPath = `/${lang}/add/${token.address}`;
-          window.history.replaceState(null, "", newPath);
-        }
       }
 
       if (currentlyPicking === "tokenB") {
         setTokenB(token);
-        if (tokenA) {
-          const newPath = `/${lang}/add/${tokenA.address}/${token.address}`;
-          window.history.replaceState(null, "", newPath);
-        } else {
-          const newPath = `/${lang}/add/undefined/${token.address}`;
-          window.history.replaceState(null, "", newPath);
-        }
       }
 
       setIsOpenedTokenPick(false);
     },
-    [currentlyPicking, lang, setTokenA, setTokenB, tokenA, tokenB],
+    [currentlyPicking, setTokenA, setTokenB],
   );
 
   useEffect(() => {
@@ -185,7 +171,7 @@ export default function AddPoolPage({
   } = useAllowance({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
-    amountToCheck: parseUnits("1", tokenA?.decimals || 18),
+    amountToCheck: parseUnits("2", tokenA?.decimals || 18),
   });
 
   const {
@@ -195,7 +181,7 @@ export default function AddPoolPage({
   } = useAllowance({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
-    amountToCheck: parseUnits("1", tokenB?.decimals || 18),
+    amountToCheck: parseUnits("2", tokenB?.decimals || 18),
   });
 
   const { leftRangeTypedValue, rightRangeTypedValue } = useLiquidityPriceRangeStore();

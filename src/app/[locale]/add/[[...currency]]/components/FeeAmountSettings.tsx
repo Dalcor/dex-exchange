@@ -2,8 +2,8 @@ import clsx from "clsx";
 import { useLocale } from "next-intl";
 import { ButtonHTMLAttributes, useState } from "react";
 
-import { useAddLiquidityTokensStore } from "@/app/[locale]/add/hooks/useAddLiquidityTokensStore";
-import { useLiquidityTierStore } from "@/app/[locale]/add/hooks/useLiquidityTierStore";
+import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
+import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
 import Collapse from "@/components/atoms/Collapse";
 import Svg from "@/components/atoms/Svg";
 import { FEE_AMOUNT_DETAIL, FEE_TIERS } from "@/config/constants/liquidityFee";

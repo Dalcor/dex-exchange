@@ -3,7 +3,14 @@ import Image from "next/image";
 import { useMemo } from "react";
 import { parseUnits } from "viem";
 
-import TokenDepositCard from "@/app/[locale]/add/components/TokenDepositCard";
+import TokenDepositCard from "@/app/[locale]/add/[[...currency]]/components/TokenDepositCard";
+import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
+import {
+  Field,
+  useLiquidityAmountsStore,
+} from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityAmountsStore";
+import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
+import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityPriceRangeStore";
 import Button from "@/components/atoms/Button";
 import Tooltip from "@/components/atoms/Tooltip";
 import { WrappedToken } from "@/config/types/WrappedToken";
@@ -11,11 +18,6 @@ import { usePool } from "@/hooks/usePools";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
 import { Position } from "@/sdk/entities/position";
-
-import { Field, useLiquidityAmountsStore } from "../../hooks/useAddLiquidityAmountsStore";
-import { useAddLiquidityTokensStore } from "../../hooks/useAddLiquidityTokensStore";
-import { useLiquidityPriceRangeStore } from "../../hooks/useLiquidityPriceRangeStore";
-import { useLiquidityTierStore } from "../../hooks/useLiquidityTierStore";
 
 function truncateValue(value: string, decimals: number): string {
   const parts = value.split(/[.,]/);

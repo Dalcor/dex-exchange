@@ -53,6 +53,8 @@ export default function useAllowance({
     // watch: true,
   });
 
+  console.log(currentAllowance, "Allowance ", token?.symbol);
+
   const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {

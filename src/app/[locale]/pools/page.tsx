@@ -1,5 +1,6 @@
 "use client";
 
+import { multicall } from "@wagmi/core";
 import JSBI from "jsbi";
 import { useEffect, useMemo, useState } from "react";
 import { Address } from "viem";
@@ -14,6 +15,8 @@ import TextLabel from "@/components/labels/TextLabel";
 import TokensPair from "@/components/others/TokensPair";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
+import { config } from "@/config/wagmi/config";
+import { IIFE } from "@/functions/iife";
 import { usePool } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
@@ -72,7 +75,6 @@ function PoolPosition({
     }
   }, [pool, position]);
 
-  console.log("Position");
   // console.log(pool[1]);
   // console.log(position);
 
@@ -158,6 +160,9 @@ export default function PoolsPage() {
       enabled: Boolean(account),
     },
   });
+  console.log("balance");
+
+  console.log(balance);
 
   //4n
 
@@ -172,68 +177,80 @@ export default function PoolsPage() {
     return [];
   }, [account, balance]);
 
+  console.log("TOKENIDARGS");
+  console.log(tokenIdsArgs);
+
+  const [uPositions, setUPositions] = useState([]);
   //1n => [[account, 0],[account, 1]]
 
-  const { data: tokenId } = useReadContract({
-    address: nonFungiblePositionManagerAddress,
-    abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-    functionName: "tokenOfOwnerByIndex",
-    args: [account as Address, BigInt(0)],
-    query: {
-      enabled: Boolean(account),
-    },
-  });
+  useEffect(() => {
+    IIFE(async () => {
+      if (tokenIdsArgs.length) {
+        const contracts = tokenIdsArgs.map((tokenId) => ({
+          abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+          functionName: "tokenOfOwnerByIndex",
+          args: tokenId,
+          address: nonFungiblePositionManagerAddress as Address,
+        }));
 
-  //9851n
+        const results = await multicall(config, { contracts });
 
-  const { data: position } = useReadContract({
-    address: nonFungiblePositionManagerAddress,
-    abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-    functionName: "positions",
-    args: [tokenId!],
-    query: {
-      enabled: Boolean(tokenId),
-    },
-  });
+        console.log("RESULTS");
+        console.log(results);
 
-  const positions = useMemo(() => {
-    if (!position || !tokenId) {
-      return [];
-    }
+        const positionsContracts = results
+          .filter((res) => res.status === "success")
+          .map((result) => {
+            return {
+              address: nonFungiblePositionManagerAddress as Address,
+              abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+              functionName: "positions",
+              args: [result.result],
+            };
+          });
 
-    const [
-      nonce,
-      operator,
-      token0,
-      token1,
-      tier,
-      tickLower,
-      tickUpper,
-      liquidity,
-      feeGrowthInside0LastX128,
-      feeGrowthInside1LastX128,
-      tokensOwed0,
-      tokensOwed1,
-    ] = position;
+        const positionsResult = await multicall(config, { contracts: positionsContracts });
 
-    return [
-      {
-        nonce,
-        operator,
-        token0,
-        token1,
-        tier,
-        tickLower,
-        tickUpper,
-        liquidity,
-        feeGrowthInside0LastX128,
-        feeGrowthInside1LastX128,
-        tokensOwed0,
-        tokensOwed1,
-        tokenId,
-      },
-    ];
-  }, [position, tokenId]);
+        console.log(positionsResult);
+
+        const userPositions = positionsResult
+          // .filter((pos) => pos.status === "success")
+          .map((pos, i) => {
+            const [
+              nonce,
+              operator,
+              token0,
+              token1,
+              tier,
+              tickLower,
+              tickUpper,
+              liquidity,
+              feeGrowthInside0LastX128,
+              feeGrowthInside1LastX128,
+              tokensOwed0,
+              tokensOwed1,
+            ] = pos.result as any;
+            return {
+              nonce,
+              operator,
+              token0,
+              token1,
+              tier,
+              tickLower,
+              tickUpper,
+              liquidity,
+              feeGrowthInside0LastX128,
+              feeGrowthInside1LastX128,
+              tokensOwed0,
+              tokensOwed1,
+              tokenId: results[i].result,
+            };
+          });
+
+        setUPositions(userPositions);
+      }
+    });
+  }, [tokenIdsArgs]);
 
   return (
     <Container>
@@ -263,7 +280,7 @@ export default function PoolsPage() {
                 <span>Your positions</span>
                 <span className="text-green">Hide closed positions</span>
               </div>
-              {positions.map((position) => {
+              {uPositions.map((position) => {
                 return (
                   <PoolPosition
                     position={position}

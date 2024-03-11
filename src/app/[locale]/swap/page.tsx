@@ -141,10 +141,6 @@ export default function SwapPage() {
         BigInt(0),
       ],
     });
-    console.log(tokenA);
-    console.log(tokenB);
-    console.log(amountA);
-    console.log(amountB);
   }, [amountA, amountB, tokenA, tokenB, walletClient]);
 
   const { data, error, failureReason } = useSimulateContract({
@@ -180,8 +176,6 @@ export default function SwapPage() {
     contractAddress: quoterAddress,
     amountToCheck: parseUnits("20", tokenB?.decimals || 18),
   });
-  console.log("DATA");
-  console.log(data, error);
 
   return (
     <>

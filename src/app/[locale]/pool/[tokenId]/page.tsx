@@ -123,9 +123,6 @@ export default function PoolPage({
     };
   }, [params.tokenId, position]);
 
-  console.log("PARSED");
-  console.log(positionParsed);
-
   const tokens = useTokens();
 
   const tokenA = useMemo(() => {
@@ -138,8 +135,6 @@ export default function PoolPage({
 
   const pool = usePool(tokenA, tokenB, positionParsed?.tier);
 
-  console.log(pool);
-
   const positionC = useMemo(() => {
     if (pool[1] && positionParsed) {
       return new Position({
@@ -151,8 +146,6 @@ export default function PoolPage({
     }
   }, [pool, positionParsed]);
 
-  console.log("Position");
-  console.log(positionC);
   // console.log(pool[1]);
   // console.log(position);
 

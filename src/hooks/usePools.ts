@@ -145,9 +145,6 @@ export function usePools(
         };
       });
 
-      console.log(contractsA);
-      console.log(contractsB);
-
       const [dataSlot0s, dataLiquidities] = await Promise.all([
         multicall(config, {
           contracts: contractsA,
@@ -214,8 +211,6 @@ export function usePool(
     () => [[currencyA, currencyB, feeAmount]],
     [currencyA, currencyB, feeAmount],
   );
-
-  console.log(feeAmount);
 
   return usePools(poolKeys)[0];
 }

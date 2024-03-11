@@ -11,11 +11,15 @@ function InputWithCheckboxControl({
   setEnabled,
   standard,
   token,
+  value,
+  onChange,
 }: {
   enabled: boolean;
   setEnabled: (enabled: boolean) => void;
   standard: "ERC-20" | "ERC-223";
   token: WrappedToken;
+  value: string;
+  onChange: (value: string) => void;
 }) {
   return (
     <div>
@@ -37,6 +41,8 @@ function InputWithCheckboxControl({
             className="text-20 bg-transparent flex-grow outline-0"
             placeholder="0"
             type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
           />
           <div className="bg-secondary-bg rounded-5 py-1 pl-1 pr-3 flex items-center gap-2">
             <Image src={token.logoURI} alt="" width={24} height={24} />
@@ -51,7 +57,15 @@ function InputWithCheckboxControl({
     </div>
   );
 }
-export default function TokenDepositCard({ token }: { token: WrappedToken }) {
+export default function TokenDepositCard({
+  token,
+  value,
+  onChange,
+}: {
+  token: WrappedToken;
+  value: string;
+  onChange: (value: string) => void;
+}) {
   const [enabledERC20, setEnabledERC20] = useState(false);
   const [enabledERC223, setEnabledERC223] = useState(false);
 
@@ -68,6 +82,8 @@ export default function TokenDepositCard({ token }: { token: WrappedToken }) {
           enabled={enabledERC20}
           setEnabled={setEnabledERC20}
           token={token}
+          value={value}
+          onChange={onChange}
         />
         <InputWithCheckboxControl
           standard="ERC-223"

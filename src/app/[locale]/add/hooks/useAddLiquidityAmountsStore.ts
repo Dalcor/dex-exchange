@@ -1,36 +1,28 @@
-import { parseUnits } from "viem";
 import { create } from "zustand";
 
+export enum Field {
+  CURRENCY_A = "CURRENCY_A",
+  CURRENCY_B = "CURRENCY_B",
+}
+
+export type FullRange = true;
+
 interface LiquidityAmountsStore {
-  amountA: bigint | null;
-  amountB: bigint | null;
-  amountAString: string;
-  amountBString: string;
-  setAmountA: (amount: string, decimals?: number) => void;
-  setAmountB: (amount: string, decimals?: number) => void;
+  independentField: Field;
+  typedValue: string;
+  dependentField: Field;
+  setTypedValue: (data: { typedValue: string; field: Field }) => void;
 }
 
 export const useLiquidityAmountsStore = create<LiquidityAmountsStore>((set, get) => ({
-  amountA: null,
-  amountB: null,
-  amountAString: "",
-  amountBString: "",
-  setAmountA: (amount, decimals) => {
-    const stringObj = { amountAString: amount };
-
-    if (decimals) {
-      return set({ amountA: parseUnits(amount, decimals), ...stringObj });
-    }
-
-    return set(stringObj);
-  },
-  setAmountB: (amount, decimals) => {
-    const stringObj = { amountBString: amount };
-
-    if (decimals) {
-      return set({ amountB: parseUnits(amount, decimals), ...stringObj });
-    }
-
-    return set(stringObj);
+  independentField: Field.CURRENCY_A,
+  dependentField: Field.CURRENCY_B,
+  typedValue: "2",
+  setTypedValue: ({ field, typedValue }) => {
+    set({
+      independentField: field,
+      dependentField: field === Field.CURRENCY_A ? Field.CURRENCY_B : Field.CURRENCY_A,
+      typedValue,
+    });
   },
 }));

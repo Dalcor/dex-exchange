@@ -207,5 +207,7 @@ export function usePool(
     [currencyA, currencyB, feeAmount],
   );
 
+  console.log(feeAmount);
+
   return usePools(poolKeys)[0];
 }

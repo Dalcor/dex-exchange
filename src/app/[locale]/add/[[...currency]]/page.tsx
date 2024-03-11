@@ -14,10 +14,12 @@ import TokenDepositCard from "@/app/[locale]/add/components/TokenDepositCard";
 import { PoolState } from "@/app/[locale]/add/hooks/types";
 import useAddLiquidity from "@/app/[locale]/add/hooks/useAddLiquidity";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/hooks/useAddLiquidityTokensStore";
+import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/hooks/useLiquidityPriceRangeStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/hooks/useLiquidityTierStore";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import SelectButton from "@/components/atoms/SelectButton";
+import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
 import Tooltip from "@/components/atoms/Tooltip";
 import IncrementDecrementIconButton from "@/components/buttons/IncrementDecrementIconButton";
@@ -32,50 +34,12 @@ import { usePool, usePools } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk";
+import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
+
+import { DepositAmount } from "./DepositAmount";
+import { PriceRange } from "./PriceRange";
 
 const nonFungiblePositionManagerAddress = "0x1238536071e1c677a632429e3655c799b22cda52";
-
-function PriceRangeCard() {
-  return (
-    <div className="bg-secondary-bg border border-secondary-border rounded-1 p-5 flex justify-between items-center">
-      <div className="flex flex-col gap-1">
-        <span className="text-12 text-secondary-text">Low price</span>
-        <input
-          className="font-medium text-16 bg-transparent border-0 outline-0"
-          type="text"
-          value={906.56209}
-        />
-        <span className="text-12 text-secondary-text">DAI per ETH</span>
-      </div>
-      <div className="flex flex-col gap-2">
-        <IncrementDecrementIconButton icon="add" />
-        <IncrementDecrementIconButton icon="minus" />
-      </div>
-    </div>
-  );
-}
-
-function DepositCard() {
-  return (
-    <div className="bg-secondary-bg border border-secondary-border rounded-1 p-5">
-      <div className="flex items-center justify-between mb-1">
-        <input
-          className="font-medium text-16 bg-transparent border-0 outline-0 min-w-0"
-          type="text"
-          defaultValue={906.56209}
-        />
-        <div className="pr-3 py-1 pl-1 bg-primary-bg rounded-5 flex items-center gap-2 flex-shrink-0">
-          <Image src="/tokens/ETH.svg" alt="Ethereum" width={24} height={24} />
-          MATIC
-        </div>
-      </div>
-      <div className="flex justify-between items-center text-12">
-        <span>—</span>
-        <span>Balance: 23.245 ETH</span>
-      </div>
-    </div>
-  );
-}
 
 export default function AddPoolPage({
   params,
@@ -89,7 +53,9 @@ export default function AddPoolPage({
 
   const currency = params.currency;
 
-  const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
+  const { tokenA, tokenB, setTokenA, setTokenB, setBothTokens } = useAddLiquidityTokensStore();
+
+  const isSorted = tokenA && tokenB && tokenA.sortsBefore(tokenB);
 
   const tokens = useTokens();
 
@@ -210,7 +176,6 @@ export default function AddPoolPage({
     }
   }, [currency, setTier, setTokenA, setTokenB, tokens]);
 
-  const [mainPriceToken, setMainPriceToken] = useState("DAI");
   const [fullRange, setFullRange] = useState(false);
 
   const {
@@ -232,6 +197,8 @@ export default function AddPoolPage({
     contractAddress: nonFungiblePositionManagerAddress,
     amountToCheck: parseUnits("1", tokenB?.decimals || 18),
   });
+
+  const { leftRangeTypedValue, rightRangeTypedValue } = useLiquidityPriceRangeStore();
 
   return (
     <Container>
@@ -311,30 +278,7 @@ export default function AddPoolPage({
           <div className="mb-5" />
           <div className="grid gap-5 grid-cols-2">
             <div className="flex flex-col gap-5">
-              {tokenA && <TokenDepositCard token={tokenA} />}
-              <div className="px-5 py-2 flex justify-between bg-tertiary-bg rounded-3">
-                <div className="flex flex-col">
-                  <div className="text-secondary-text flex items-center gap-1 text-14">
-                    Gas price
-                    <Tooltip iconSize={20} text="Tooltip text" />
-                  </div>
-                  <div>33.53 GWEI</div>
-                </div>
-                <div className="flex flex-col">
-                  <div className="text-secondary-text text-14">Total fee</div>
-                  <div>0.005 ETH</div>
-                </div>
-                <div className="flex flex-col">
-                  <div className="text-secondary-text text-14">Transactions</div>
-                  <div>2</div>
-                </div>
-                <div>
-                  <Button size="x-small" variant="outline">
-                    Details
-                  </Button>
-                </div>
-              </div>
-              {tokenB && <TokenDepositCard token={tokenB} />}
+              <DepositAmount />
             </div>
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-3">
@@ -349,52 +293,50 @@ export default function AddPoolPage({
 
                       <div className="flex p-0.5 gap-0.5 rounded-2 bg-secondary-bg">
                         <button
-                          onClick={() => setMainPriceToken("DAI")}
+                          onClick={() => {
+                            if (!isSorted) {
+                              setBothTokens({
+                                tokenA: tokenB,
+                                tokenB: tokenA,
+                              });
+                            }
+                          }}
                           className={clsx(
                             "text-12 h-7 rounded-2 min-w-[60px] px-3 border duration-200",
-                            mainPriceToken === "DAI"
+                            isSorted
                               ? "bg-active-bg border-green text-primary-text"
                               : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
                           )}
                         >
-                          DAI
+                          {isSorted ? tokenA?.symbol : tokenB?.symbol}
                         </button>
                         <button
-                          onClick={() => setMainPriceToken("ETH")}
+                          onClick={() => {
+                            if (isSorted) {
+                              setBothTokens({
+                                tokenA: tokenB,
+                                tokenB: tokenA,
+                              });
+                            }
+                          }}
                           className={clsx(
                             "text-12 h-7 rounded-2 min-w-[60px] px-3 border duration-200",
-                            mainPriceToken === "ETH"
+                            !isSorted
                               ? "bg-active-bg border-green text-primary-text"
                               : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
                           )}
                         >
-                          ETH
+                          {isSorted ? tokenB?.symbol : tokenA?.symbol}
                         </button>
                       </div>
                     </div>
                   </div>
                 </div>
-                <PriceRangeInput />
-                <PriceRangeInput />
+                <PriceRangeInput value={leftRangeTypedValue} title="Low price" />
+                <PriceRangeInput value={rightRangeTypedValue} title="High price" />
               </div>
-              <div className="bg-secondary-bg rounded-3 px-5 pt-5 pb-4">
-                <div className="flex justify-between items-end mb-5">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-12 text-secondary-text">Low price</span>
-                    <input
-                      className="font-medium text-16 bg-transparent border-0 outline-0"
-                      type="text"
-                      value={906.56209}
-                    />
-                    <span className="text-12 text-secondary-text">DAI per ETH</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <ZoomButton icon="zoom-in" />
-                    <ZoomButton icon="zoom-out" />
-                  </div>
-                </div>
-                Сhart Placeholder
-              </div>
+
+              <PriceRange />
             </div>
           </div>
 

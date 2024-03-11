@@ -12,10 +12,14 @@ import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
 import { Position } from "@/sdk/entities/position";
 
+import useAddLiquidity from "../../hooks/useAddLiquidity";
 import { Field, useLiquidityAmountsStore } from "../../hooks/useAddLiquidityAmountsStore";
 import { useAddLiquidityTokensStore } from "../../hooks/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "../../hooks/useLiquidityPriceRangeStore";
 import { useLiquidityTierStore } from "../../hooks/useLiquidityTierStore";
+
+// TODO
+const BIG_INT_ZERO = JSBI.BigInt(0);
 
 function truncateValue(value: string, decimals: number): string {
   const parts = value.split(/[.,]/);
@@ -181,6 +185,59 @@ export const DepositAmount = () => {
     [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? "",
   };
 
+  // TODO
+  const deposit0Disabled = false;
+  const deposit1Disabled = false;
+
+  // create position entity based on users selection
+  const position: Position | undefined = useMemo(() => {
+    if (
+      !poolForPosition ||
+      !tokenA ||
+      !tokenB ||
+      typeof tickLower !== "number" ||
+      typeof tickUpper !== "number" ||
+      invalidRange
+    ) {
+      return undefined;
+    }
+
+    // mark as 0 if disabled because out of range
+    const amount0 = !deposit0Disabled
+      ? parsedAmounts?.[tokenA.equals(poolForPosition.token0) ? Field.CURRENCY_A : Field.CURRENCY_B]
+          ?.quotient
+      : BIG_INT_ZERO;
+    const amount1 = !deposit1Disabled
+      ? parsedAmounts?.[tokenA.equals(poolForPosition.token0) ? Field.CURRENCY_B : Field.CURRENCY_A]
+          ?.quotient
+      : BIG_INT_ZERO;
+
+    if (amount0 !== undefined && amount1 !== undefined) {
+      return Position.fromAmounts({
+        pool: poolForPosition,
+        tickLower,
+        tickUpper,
+        amount0,
+        amount1,
+        useFullPrecision: true, // we want full precision for the theoretical position
+      });
+    } else {
+      return undefined;
+    }
+  }, [
+    parsedAmounts,
+    poolForPosition,
+    tokenA,
+    tokenB,
+    deposit0Disabled,
+    deposit1Disabled,
+    invalidRange,
+    tickLower,
+    tickUpper,
+  ]);
+
+  const { handleAddLiquidity } = useAddLiquidity();
+
   return (
     <>
       {currencies[Field.CURRENCY_A] && (
@@ -219,6 +276,9 @@ export const DepositAmount = () => {
           token={currencies[Field.CURRENCY_B]}
         />
       )}
+      <Button onClick={() => handleAddLiquidity(position)} fullWidth>
+        Add liquidity
+      </Button>
     </>
   );
 };

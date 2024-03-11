@@ -353,9 +353,9 @@ export default function AddPoolPage({
             )}
           </div>
 
-          <Button onClick={handleAddLiquidity} fullWidth>
+          {/* <Button onClick={handleAddLiquidity} fullWidth>
             Add liquidity
-          </Button>
+          </Button> */}
         </div>
         <PickTokenDialog
           handlePick={handlePick}

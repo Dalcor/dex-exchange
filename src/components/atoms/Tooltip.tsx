@@ -20,8 +20,9 @@ import Svg from "@/components/atoms/Svg";
 
 interface Props {
   text: string;
+  iconSize?: number;
 }
-export default function Tooltip({ text }: Props) {
+export default function Tooltip({ text, iconSize = 24 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const arrowRef = useRef(null);
 
@@ -63,11 +64,11 @@ export default function Tooltip({ text }: Props) {
   return (
     <>
       <span
-        className="w-6 h-6 cursor-pointer text-secondary-text"
+        className="cursor-pointer text-secondary-text"
         ref={refs.setReference}
         {...getReferenceProps()}
       >
-        <Svg iconName="info" />
+        <Svg size={iconSize} iconName="info" />
       </span>
       <FloatingPortal>
         {isMounted && (

@@ -11,7 +11,7 @@ export default function IncrementDecrementIconButton({ icon = "add", ...props }:
   return (
     <button
       {...props}
-      className="duration-200 w-8 h-8 rounded-1 bg-transparent flex items-center justify-center text-primary-text border border-primary-border hover:border-primary-text"
+      className="duration-200 w-8 h-8 rounded-1 bg-primary-bg flex items-center justify-center text-primary-text hover:bg-active-bg"
     >
       <Svg iconName={icon} />
     </button>

@@ -11,7 +11,7 @@ export default function ZoomButton({ icon = "zoom-in", ...props }: Props) {
   return (
     <button
       {...props}
-      className="w-9 h-9 border border-primary-border rounded-full text-placeholder-text flex items-center justify-center hover:text-primary-text hover:border-primary-text duration-200"
+      className="w-8 h-8 outline-0 rounded-full text-primary-text flex items-center justify-center hover:bg-active-bg duration-200"
     >
       <Svg iconName={icon} />
     </button>

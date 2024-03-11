@@ -90,6 +90,8 @@ export default function TokenDepositCard({
           enabled={enabledERC223}
           setEnabled={setEnabledERC223}
           token={token}
+          value={"value"}
+          onChange={() => null}
         />
       </div>
     </div>

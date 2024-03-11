@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useState } from "react";
+import { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
@@ -63,7 +64,7 @@ export default function ManageTokenItem({ token }: { token: WrappedToken }) {
                   <button
                     onClick={() => {
                       if (chainId) {
-                        removeCustomToken(chainId as AvailableChains, token.address);
+                        removeCustomToken(chainId as AvailableChains, token.address as Address);
                         setDeleteOpened(false);
                       }
                     }}

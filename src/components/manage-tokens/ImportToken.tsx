@@ -121,7 +121,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                 onClick={() => {
                   if (chainId && tokenName && tokenDecimals && tokenSymbol) {
                     addTokenToCustomTokenList(chainId as AvailableChains, {
-                      address: tokenAddressToImport,
+                      address: tokenAddressToImport as Address,
                       name: tokenName,
                       decimals: tokenDecimals,
                       symbol: tokenSymbol,

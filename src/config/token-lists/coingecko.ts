@@ -13,6 +13,7 @@ const idMap = {
   42220: "celo",
   43114: "avalanche",
   8453: "base",
+  11155111: "sepolia",
 };
 
 export function getCoingeckoTokenListURI(chainId: AvailableChains) {

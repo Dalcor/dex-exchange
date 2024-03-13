@@ -14,8 +14,10 @@ import TextLabel from "@/components/labels/TextLabel";
 import TokensPair from "@/components/others/TokensPair";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
+import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import { usePool } from "@/hooks/usePools";
+import { PositionInfo, usePositionFromTokenId } from "@/hooks/usePositions";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk";
@@ -63,7 +65,30 @@ function RangePriceCard({
   );
 }
 
-const nonFungiblePositionManagerAddress = "0x1238536071e1c677a632429e3655c799b22cda52";
+function usePositionFromPositionInfo(positionDetails: PositionInfo) {
+  const tokens = useTokens();
+
+  const tokenA = useMemo(() => {
+    return tokens.find((t) => t.address === positionDetails?.token0);
+  }, [positionDetails?.token0, tokens]);
+
+  const tokenB = useMemo(() => {
+    return tokens.find((t) => t.address === positionDetails?.token1);
+  }, [positionDetails?.token1, tokens]);
+  //
+  const pool = usePool(tokenA, tokenB, positionDetails?.tier);
+
+  return useMemo(() => {
+    if (pool[1] && positionDetails) {
+      return new Position({
+        pool: pool[1],
+        tickLower: positionDetails.tickLower,
+        tickUpper: positionDetails.tickUpper,
+        liquidity: JSBI.BigInt(positionDetails.liquidity.toString()),
+      });
+    }
+  }, [pool, positionDetails]);
+}
 
 export default function PoolPage({
   params,
@@ -74,94 +99,25 @@ export default function PoolPage({
 }) {
   const router = useRouter();
 
-  const [values, setValues] = useState(["0", "0", "0", "0"]);
+  const { position: positionInfo, loading } = usePositionFromTokenId(BigInt(params.tokenId));
 
-  const { data: position } = useReadContract({
-    address: nonFungiblePositionManagerAddress,
-    abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-    functionName: "positions",
-    args: [BigInt(params.tokenId)!],
-    query: {
-      enabled: Boolean(params.tokenId),
-    },
-  });
-
-  const positionParsed = useMemo(() => {
-    if (!position || !params.tokenId) {
-      return undefined;
+  const position = usePositionFromPositionInfo(positionInfo);
+  //
+  // // console.log(pool[1]);
+  // // console.log(position);
+  //
+  const values = useMemo(() => {
+    if (position) {
+      return [
+        position.token0PriceLower.toSignificant(),
+        position.token0PriceUpper.toSignificant(),
+        position.token0PriceUpper.invert().toSignificant(),
+        position.token0PriceLower.invert().toSignificant(),
+      ];
     }
-
-    const [
-      nonce,
-      operator,
-      token0,
-      token1,
-      tier,
-      tickLower,
-      tickUpper,
-      liquidity,
-      feeGrowthInside0LastX128,
-      feeGrowthInside1LastX128,
-      tokensOwed0,
-      tokensOwed1,
-    ] = position;
-
-    return {
-      nonce,
-      operator,
-      token0,
-      token1,
-      tier: tier as FeeAmount,
-      tickLower,
-      tickUpper,
-      liquidity,
-      feeGrowthInside0LastX128,
-      feeGrowthInside1LastX128,
-      tokensOwed0,
-      tokensOwed1,
-      tokenId: params.tokenId,
-    };
-  }, [params.tokenId, position]);
-
-  const tokens = useTokens();
-
-  const tokenA = useMemo(() => {
-    return tokens.find((t) => t.address === positionParsed?.token0);
-  }, [positionParsed?.token0, tokens]);
-
-  const tokenB = useMemo(() => {
-    return tokens.find((t) => t.address === positionParsed?.token1);
-  }, [positionParsed?.token1, tokens]);
-
-  const pool = usePool(tokenA, tokenB, positionParsed?.tier);
-
-  const positionC = useMemo(() => {
-    if (pool[1] && positionParsed) {
-      return new Position({
-        pool: pool[1],
-        tickLower: positionParsed.tickLower,
-        tickUpper: positionParsed.tickUpper,
-        liquidity: JSBI.BigInt(positionParsed.liquidity.toString()),
-      });
-    }
-  }, [pool, positionParsed]);
-
-  // console.log(pool[1]);
-  // console.log(position);
-
-  useEffect(() => {
-    if (positionC) {
-      setValues([
-        positionC.token0PriceLower.toSignificant(),
-        positionC.token0PriceUpper.toSignificant(),
-        positionC.token0PriceUpper.invert().toSignificant(),
-        positionC.token0PriceLower.invert().toSignificant(),
-      ]);
-      // console.log(positionC.token0PriceLower.toSignificant());
-      // console.log(positionC.token0PriceUpper.toSignificant());
-    }
-  }, [positionC]);
-
+    return ["0", "0", "0", "0"];
+  }, [position]);
+  //
   const [showFirst, setShowFirst] = useState(true);
 
   return (
@@ -177,14 +133,14 @@ export default function PoolPage({
 
         <div className="w-full flex justify-between mb-5">
           <div className="flex items-center gap-2.5">
-            <TokensPair tokenA={tokenA} tokenB={tokenB} />
-            {positionParsed && (
-              <TextLabel text={`${FEE_AMOUNT_DETAIL[positionParsed.tier].label}%`} color="grey" />
+            <TokensPair tokenA={position?.pool.token0} tokenB={position?.pool.token1} />
+            {position && (
+              <TextLabel text={`${FEE_AMOUNT_DETAIL[position.pool.fee].label}%`} color="grey" />
             )}
             <PoolStatusLabel status="in-range" />
           </div>
           <div className="flex items-center gap-3">
-            <Button size="small" onClick={() => router.push("/increase")}>
+            <Button size="small" onClick={() => router.push(`/increase/${params.tokenId}`)}>
               Increase liquidity
             </Button>
             <Button size="small" onClick={() => router.push("/remove")} variant="outline">
@@ -227,7 +183,7 @@ export default function PoolPage({
                       : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
                   )}
                 >
-                  {tokenA?.symbol}
+                  {position?.pool.token0?.symbol}
                 </button>
                 <button
                   onClick={() => setShowFirst(false)}
@@ -238,14 +194,14 @@ export default function PoolPage({
                       : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
                   )}
                 >
-                  {tokenB?.symbol}
+                  {position?.pool.token1?.symbol}
                 </button>
               </div>
             </div>
             <div className="grid grid-cols-[1fr_20px_1fr] mb-5">
               <RangePriceCard
-                token0={tokenA}
-                token1={tokenB}
+                token0={position?.pool.token0}
+                token1={position?.pool.token1}
                 minPrice={showFirst ? values[0] : values[2]}
               />
               <div className="relative">
@@ -254,8 +210,8 @@ export default function PoolPage({
                 </div>
               </div>
               <RangePriceCard
-                token0={tokenA}
-                token1={tokenB}
+                token0={position?.pool.token0}
+                token1={position?.pool.token1}
                 maxPrice={showFirst ? values[1] : values[3]}
               />
             </div>

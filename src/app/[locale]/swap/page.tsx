@@ -26,7 +26,6 @@ import TokenInput from "@/components/others/TokenInput";
 import { QUOTER_ABI } from "@/config/abis/quoter";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import useAllowance from "@/hooks/useAllowance";
-import { usePool, usePools } from "@/hooks/usePools";
 import { FeeAmount } from "@/sdk";
 
 //sepolia v3 addresses I found

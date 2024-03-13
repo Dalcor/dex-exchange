@@ -1,18 +1,16 @@
-import { multicall } from "@wagmi/core";
-import invariant from "invariant";
 import JSBI from "jsbi";
-import { useEffect, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import { useMemo } from "react";
+import { Address } from "viem";
+import { useAccount, useReadContracts } from "wagmi";
 
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
-import { config } from "@/config/wagmi/config";
-import { IIFE } from "@/functions/iife";
 import { BigintIsh, FeeAmount } from "@/sdk";
 import { V3_CORE_FACTORY_ADDRESSES } from "@/sdk/addresses";
 import { Currency } from "@/sdk/entities/currency";
 import { Pool } from "@/sdk/entities/pool";
 import { Token } from "@/sdk/entities/token";
 import { computePoolAddress } from "@/sdk/utils/computePoolAddress";
+import { usePoolsStore } from "@/stores/usePoolsStore";
 
 // Classes are expensive to instantiate, so this caches the recently instantiated pools.
 // This avoids re-instantiating pools as the other pools in the same request are loaded.
@@ -88,11 +86,11 @@ export enum PoolState {
   EXISTS,
   INVALID,
 }
-
-export function usePools(
+export default function usePools(
   poolKeys: [Currency | undefined, Currency | undefined, FeeAmount | undefined][],
 ): [PoolState, Pool | null][] {
   const { chainId } = useAccount();
+  const { pools, addPool } = usePoolsStore();
 
   const poolTokens: ([Token, Token, FeeAmount] | undefined)[] = useMemo(() => {
     if (!chainId) return new Array(poolKeys.length);
@@ -111,53 +109,49 @@ export function usePools(
     });
   }, [chainId, poolKeys]);
 
-  const poolAddresses: (string | undefined)[] = useMemo(() => {
+  const poolAddresses: (Address | undefined)[] = useMemo(() => {
     const v3CoreFactoryAddress = chainId && V3_CORE_FACTORY_ADDRESSES[chainId];
     if (!v3CoreFactoryAddress) return new Array(poolTokens.length);
 
     return poolTokens.map(
-      (value) => value && PoolCache.getPoolAddress(v3CoreFactoryAddress, ...value),
+      (value) =>
+        value &&
+        computePoolAddress({
+          factoryAddress: v3CoreFactoryAddress,
+          tokenA: value[0],
+          tokenB: value[1],
+          fee: value[2],
+        }),
     );
   }, [chainId, poolTokens]);
 
-  const [slot0s, setSlot0s] = useState<any>();
-  const [liquidities, setLiquidities] = useState<any>();
-
-  useEffect(() => {
-    IIFE(async () => {
-      if (!poolAddresses.filter((t) => t !== undefined).length) {
-        return;
-      }
-
-      const contractsA = poolAddresses.map((address) => {
-        return {
-          abi: POOL_STATE_ABI,
-          address: address as `0x${string}`,
-          functionName: "slot0",
-        };
-      });
-
-      const contractsB = poolAddresses.map((address) => {
-        return {
-          abi: POOL_STATE_ABI,
-          address: address as `0x${string}`,
-          functionName: "liquidity",
-        };
-      });
-
-      const [dataSlot0s, dataLiquidities] = await Promise.all([
-        multicall(config, {
-          contracts: contractsA,
-        }),
-        multicall(config, {
-          contracts: contractsB,
-        }),
-      ]);
-
-      setSlot0s(dataSlot0s);
-      setLiquidities(dataLiquidities);
+  const slot0Contracts = useMemo(() => {
+    return poolAddresses.map((address) => {
+      return {
+        abi: POOL_STATE_ABI,
+        address: address,
+        functionName: "slot0",
+      };
     });
   }, [poolAddresses]);
+
+  const liquidityContracts = useMemo(() => {
+    return poolAddresses.map((address) => {
+      return {
+        abi: POOL_STATE_ABI,
+        address: address,
+        functionName: "liquidity",
+      };
+    });
+  }, [poolAddresses]);
+
+  const { data: slot0Data, isLoading: slot0Loading } = useReadContracts({
+    contracts: slot0Contracts,
+  });
+
+  const { data: liquidityData, isLoading: liquidityLoading } = useReadContracts({
+    contracts: liquidityContracts,
+  });
 
   return useMemo(() => {
     return poolKeys.map((_key, index) => {
@@ -165,41 +159,58 @@ export function usePools(
       if (!tokens) return [PoolState.INVALID, null];
       const [token0, token1, fee] = tokens;
 
-      if (!slot0s || slot0s[index].error) return [PoolState.INVALID, null];
-      if (!liquidities || liquidities[index].error) return [PoolState.INVALID, null];
+      if (!slot0Data || slot0Data[index].error) return [PoolState.INVALID, null];
+      if (!liquidityData || liquidityData[index].error) return [PoolState.INVALID, null];
 
-      const [
-        sqrtPriceX96,
-        tick,
-        observationIndex,
-        observationCardinality,
-        observationCardinalityNext,
-        feeProtocol,
-        unlocked,
-      ] = slot0s[index].result;
+      if (!slot0Data[index]) return [PoolState.INVALID, null];
+      if (!liquidityData[index]) return [PoolState.INVALID, null];
 
-      const liquidity = liquidities[index].result;
+      const [sqrtPriceX96, tick] = slot0Data[index].result as [bigint, number];
+      const liquidity = liquidityData[index].result as bigint;
 
-      // if (!slot0s[index]) return [PoolState.INVALID, null]
-      // const { result: slot0, loading: slot0Loading, valid: slot0Valid } = slot0s[index]
-      //
-      // if (!liquidities[index]) return [PoolState.INVALID, null]
-      // const { result: liquidity, loading: liquidityLoading, valid: liquidityValid } = liquidities[index]
-      //
-      // if (!tokens || !slot0Valid || !liquidityValid) return [PoolState.INVALID, null]
-      // if (slot0Loading || liquidityLoading) return [PoolState.LOADING, null]
-      // if (!slot0 || !liquidity) return [PoolState.NOT_EXISTS, null]
-      // if (!slot0.sqrtPriceX96 || slot0.sqrtPriceX96.eq(0)) return [PoolState.NOT_EXISTS, null]
+      if (slot0Loading || liquidityLoading) return [PoolState.LOADING, null];
+      if (!sqrtPriceX96 || sqrtPriceX96 === BigInt(0)) return [PoolState.NOT_EXISTS, null];
 
       try {
-        const pool = PoolCache.getPool(token0, token1, fee, sqrtPriceX96, liquidity, tick);
-        return [PoolState.EXISTS, pool];
+        const pool = pools.find((pool) => {
+          return (
+            token0 === pool.token0 &&
+            token1 === pool.token1 &&
+            fee === pool.fee &&
+            JSBI.EQ(pool.sqrtRatioX96, sqrtPriceX96) &&
+            JSBI.EQ(pool.liquidity, liquidity) &&
+            pool.tickCurrent === tick
+          );
+        });
+        if (pool) {
+          return [PoolState.EXISTS, pool];
+        } else {
+          const poolToAdd = new Pool(
+            token0,
+            token1,
+            fee,
+            sqrtPriceX96.toString(),
+            liquidity.toString(),
+            tick,
+          );
+          addPool(poolToAdd);
+          return [PoolState.EXISTS, poolToAdd];
+        }
       } catch (error) {
         console.error("Error when constructing the pool", error);
         return [PoolState.NOT_EXISTS, null];
       }
     });
-  }, [liquidities, poolKeys, slot0s, poolTokens]);
+  }, [
+    poolKeys,
+    poolTokens,
+    slot0Data,
+    liquidityData,
+    slot0Loading,
+    liquidityLoading,
+    pools,
+    addPool,
+  ]);
 }
 
 export function usePool(

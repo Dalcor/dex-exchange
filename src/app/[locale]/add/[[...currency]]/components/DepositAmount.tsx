@@ -36,7 +36,7 @@ function truncateValue(value: string, decimals: number): string {
  * Parses a CurrencyAmount from the passed string.
  * Returns the CurrencyAmount, or undefined if parsing fails.
  */
-export default function tryParseCurrencyAmount<T extends Currency>(
+export function tryParseCurrencyAmount<T extends Currency>(
   value?: string,
   currency?: T,
 ): CurrencyAmount<T> | undefined {
@@ -89,7 +89,7 @@ function DepositCard({
   );
 }
 
-export const DepositAmount = () => {
+export default function DepositAmount() {
   const { ticks } = useLiquidityPriceRangeStore();
   const { LOWER: tickLower, UPPER: tickUpper } = ticks;
 
@@ -278,9 +278,9 @@ export const DepositAmount = () => {
           token={currencies[Field.CURRENCY_B]}
         />
       )}
-      <Button onClick={() => handleAddLiquidity(position)} fullWidth>
+      <Button onClick={() => handleAddLiquidity(position, true)} fullWidth>
         Add liquidity
       </Button>
     </>
   );
-};
+}

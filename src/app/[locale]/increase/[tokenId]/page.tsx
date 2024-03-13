@@ -1,7 +1,15 @@
 "use client";
 
+import JSBI from "jsbi";
 import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
+import { useReadContract } from "wagmi";
 
+import { Bound } from "@/app/[locale]/add/[[...currency]]/components/PriceRange/LiquidityChartRangeInput/types";
+import useAddLiquidity from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
+import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
+import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
+import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityPriceRangeStore";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
@@ -9,7 +17,16 @@ import SystemIconButton from "@/components/buttons/SystemIconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import PoolStatusLabel from "@/components/labels/PoolStatusLabel";
 import TokensPair from "@/components/others/TokensPair";
+import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { nonFungiblePositionManagerAddress } from "@/config/contracts";
+import { usePool } from "@/hooks/usePools";
+import { usePositionFromTokenId } from "@/hooks/usePositions";
+import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
+import { FeeAmount } from "@/sdk";
+import { Position } from "@/sdk/entities/position";
+
+import DepositAmount from "../../add/[[...currency]]/components/DepositAmount";
 
 function RangePriceCard() {
   return (
@@ -62,10 +79,74 @@ function DepositCard() {
     </div>
   );
 }
-export default function IncreaseLiquidityPage() {
+export default function IncreaseLiquidityPage({
+  params,
+}: {
+  params: {
+    tokenId: string;
+  };
+}) {
+  const { setIsOpen } = useTransactionSettingsDialogStore();
+  const { setLeftRangeTypedValue, setRightRangeTypedValue, setTicks } =
+    useLiquidityPriceRangeStore();
+
   const router = useRouter();
 
-  const { setIsOpen } = useTransactionSettingsDialogStore();
+  const { handleAddLiquidity } = useAddLiquidity();
+
+  const { position, loading } = usePositionFromTokenId(BigInt(params.tokenId));
+  //
+  const tokens = useTokens();
+
+  const tokenA = useMemo(() => {
+    return tokens.find((t) => t.address === position?.token0);
+  }, [position?.token0, tokens]);
+
+  const tokenB = useMemo(() => {
+    return tokens.find((t) => t.address === position?.token1);
+  }, [position?.token1, tokens]);
+  //
+
+  const { setBothTokens } = useAddLiquidityTokensStore();
+  const { setTier } = useLiquidityTierStore();
+
+  useEffect(() => {
+    if (tokenA && tokenB && position) {
+      setBothTokens({ tokenA, tokenB });
+      setTier(position.tier);
+      setTicks({
+        [Bound.LOWER]: position.tickLower,
+        [Bound.UPPER]: position.tickUpper,
+      });
+    }
+  }, [tokenA, tokenB]);
+
+  const pool = usePool(tokenA, tokenB, position?.tier);
+
+  const positionC = useMemo(() => {
+    if (pool[1] && position) {
+      return new Position({
+        pool: pool[1],
+        tickLower: position.tickLower,
+        tickUpper: position.tickUpper,
+        liquidity: JSBI.BigInt(position.liquidity.toString()),
+      });
+    }
+  }, [pool, position]);
+
+  console.log(positionC);
+
+  const values = useMemo(() => {
+    if (positionC) {
+      return [
+        positionC.token0PriceLower.toSignificant(),
+        positionC.token0PriceUpper.toSignificant(),
+        positionC.token0PriceUpper.invert().toSignificant(),
+        positionC.token0PriceLower.invert().toSignificant(),
+      ];
+    }
+    return ["0", "0", "0", "0"];
+  }, [positionC]);
 
   return (
     <Container>
@@ -87,7 +168,7 @@ export default function IncreaseLiquidityPage() {
         </div>
         <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">
           <div className="flex items-center justify-between mb-5">
-            <TokensPair />
+            <TokensPair tokenA={tokenA} tokenB={tokenB} />
             <PoolStatusLabel status="in-range" />
           </div>
 
@@ -98,7 +179,7 @@ export default function IncreaseLiquidityPage() {
             </div>
             <div className="flex items-center justify-between px-5 py-3">
               <span className="font-bold">Fee tier</span>
-              <span>0.3%</span>
+              <span>{position?.tier}%</span>
             </div>
           </div>
 
@@ -127,14 +208,26 @@ export default function IncreaseLiquidityPage() {
           </div>
 
           <div className="mb-5">
-            <h3 className="text-16 font-bold mb-4">Add more liquidity</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <DepositCard />
-              <DepositCard />
-            </div>
+            <DepositAmount />
+            {/*<h3 className="text-16 font-bold mb-4">Add more liquidity</h3>*/}
+            {/*<div className="grid grid-cols-2 gap-3">*/}
+            {/*  /!*<DepositCard />*!/*/}
+            {/*  /!*<DepositCard />*!/*/}
+
+            {/*  */}
+            {/*</div>*/}
           </div>
 
-          <Button fullWidth>Add liquidity</Button>
+          <Button
+            onClick={() => {
+              if (positionC) {
+                handleAddLiquidity(positionC, true);
+              }
+            }}
+            fullWidth
+          >
+            Add liquidity
+          </Button>
         </div>
       </div>
     </Container>

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { Bound } from "../PriceRange/LiquidityChartRangeInput/types";
+import { Bound } from "@/app/[locale]/add/[[...currency]]/components/PriceRange/LiquidityChartRangeInput/types";
 
 type Ticks = {
   [Bound.LOWER]?: number;

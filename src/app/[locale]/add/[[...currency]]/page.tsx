@@ -1,16 +1,13 @@
 "use client";
 
 import clsx from "clsx";
-import JSBI from "jsbi";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, parseUnits } from "viem";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { parseUnits } from "viem";
 
 import FeeAmountSettings from "@/app/[locale]/add/[[...currency]]/components/FeeAmountSettings";
 import PriceRangeInput from "@/app/[locale]/add/[[...currency]]/components/PriceRangeInput";
-import TokenDepositCard from "@/app/[locale]/add/[[...currency]]/components/TokenDepositCard";
 import { PoolState } from "@/app/[locale]/add/[[...currency]]/hooks/types";
 import useAddLiquidity from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
 import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
@@ -19,27 +16,21 @@ import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import SelectButton from "@/components/atoms/SelectButton";
-import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
-import Tooltip from "@/components/atoms/Tooltip";
-import IncrementDecrementIconButton from "@/components/buttons/IncrementDecrementIconButton";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
-import ZoomButton from "@/components/buttons/ZoomButton";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { FEE_TIERS } from "@/config/constants/liquidityFee";
+import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import useAllowance from "@/hooks/useAllowance";
-import { usePool, usePools } from "@/hooks/usePools";
+import usePools, { usePool } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk";
-import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
-import { DepositAmount } from "./DepositAmount";
-import { PriceRange } from "./PriceRange";
-
-const nonFungiblePositionManagerAddress = "0x1238536071e1c677a632429e3655c799b22cda52";
+import DepositAmount from "./components/DepositAmount";
+import { PriceRange } from "./components/PriceRange";
 
 export default function AddPoolPage({
   params,
@@ -76,6 +67,8 @@ export default function AddPoolPage({
   }, [tokenA, tokenB]);
 
   // get pool data on-chain for latest states
+  // const pools = usePools(poolKeys);
+
   const pools = usePools(poolKeys);
 
   const pool = usePool(tokenA, tokenB, FeeAmount.LOWEST);

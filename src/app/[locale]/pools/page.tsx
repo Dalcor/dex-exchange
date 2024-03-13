@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Address } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 
+import AwaitingLoader from "@/components/atoms/AwaitingLoader";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
@@ -15,9 +16,11 @@ import TextLabel from "@/components/labels/TextLabel";
 import TokensPair from "@/components/others/TokensPair";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
+import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import { config } from "@/config/wagmi/config";
 import { IIFE } from "@/functions/iife";
 import { usePool } from "@/hooks/usePools";
+import usePositions from "@/hooks/usePositions";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk";
@@ -75,9 +78,6 @@ function PoolPosition({
     }
   }, [pool, position]);
 
-  // console.log(pool[1]);
-  // console.log(position);
-
   useEffect(() => {
     if (positionC) {
       setValues([
@@ -86,39 +86,8 @@ function PoolPosition({
         positionC.token0PriceUpper.invert().toSignificant(),
         positionC.token0PriceLower.invert().toSignificant(),
       ]);
-      // console.log(positionC.token0PriceLower.toSignificant());
-      // console.log(positionC.token0PriceUpper.toSignificant());
     }
   }, [positionC]);
-
-  // const test = useMemo(() => {
-  //   if (pool[1]) {
-  //     const test1 = SqrtPriceMath.getNextSqrtPriceFromInput(
-  //       pool[1]?.sqrtRatioX96,
-  //       JSBI.BigInt(position.liquidity.toString()),
-  //       JSBI.BigInt(1),
-  //       true,
-  //     );
-  //
-  //     console.log("test1");
-  //     console.log(test1.toString());
-  //
-  //     const test2 = SqrtPriceMath.getNextSqrtPriceFromOutput(
-  //       pool[1]?.sqrtRatioX96,
-  //       JSBI.BigInt(position.liquidity.toString()),
-  //       JSBI.BigInt(1),
-  //       false,
-  //     );
-  //
-  //     console.log("test1");
-  //     console.log(test1.toString());
-  //     console.log(test2.toString());
-  //
-  //     return [test1, test2];
-  //   }
-  //
-  //   return [JSBI.BigInt(0), JSBI.BigInt(0)];
-  // }, [pool, position.liquidity]);
 
   return (
     <div
@@ -144,113 +113,11 @@ function PoolPosition({
   );
 }
 
-const nonFungiblePositionManagerAddress = "0x1238536071e1c677a632429e3655c799b22cda52";
-
 export default function PoolsPage() {
   const { isConnected } = useAccount();
-  const { address: account } = useAccount();
   const router = useRouter();
 
-  const { data: balance } = useReadContract({
-    address: nonFungiblePositionManagerAddress,
-    abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-    functionName: "balanceOf",
-    args: [account!],
-    query: {
-      enabled: Boolean(account),
-    },
-  });
-  console.log("balance");
-
-  console.log(balance);
-
-  //4n
-
-  const tokenIdsArgs = useMemo(() => {
-    if (balance && account) {
-      const tokenRequests = [];
-      for (let i = 0; i < Number(balance); i++) {
-        tokenRequests.push([account, i]);
-      }
-      return tokenRequests;
-    }
-    return [];
-  }, [account, balance]);
-
-  console.log("TOKENIDARGS");
-  console.log(tokenIdsArgs);
-
-  const [uPositions, setUPositions] = useState([]);
-  //1n => [[account, 0],[account, 1]]
-
-  useEffect(() => {
-    IIFE(async () => {
-      if (tokenIdsArgs.length) {
-        const contracts = tokenIdsArgs.map((tokenId) => ({
-          abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-          functionName: "tokenOfOwnerByIndex",
-          args: tokenId,
-          address: nonFungiblePositionManagerAddress as Address,
-        }));
-
-        const results = await multicall(config, { contracts });
-
-        console.log("RESULTS");
-        console.log(results);
-
-        const positionsContracts = results
-          .filter((res) => res.status === "success")
-          .map((result) => {
-            return {
-              address: nonFungiblePositionManagerAddress as Address,
-              abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-              functionName: "positions",
-              args: [result.result],
-            };
-          });
-
-        const positionsResult = await multicall(config, { contracts: positionsContracts });
-
-        console.log(positionsResult);
-
-        const userPositions = positionsResult
-          // .filter((pos) => pos.status === "success")
-          .map((pos, i) => {
-            const [
-              nonce,
-              operator,
-              token0,
-              token1,
-              tier,
-              tickLower,
-              tickUpper,
-              liquidity,
-              feeGrowthInside0LastX128,
-              feeGrowthInside1LastX128,
-              tokensOwed0,
-              tokensOwed1,
-            ] = pos.result as any;
-            return {
-              nonce,
-              operator,
-              token0,
-              token1,
-              tier,
-              tickLower,
-              tickUpper,
-              liquidity,
-              feeGrowthInside0LastX128,
-              feeGrowthInside1LastX128,
-              tokensOwed0,
-              tokensOwed1,
-              tokenId: results[i].result,
-            };
-          });
-
-        setUPositions(userPositions);
-      }
-    });
-  }, [tokenIdsArgs]);
+  const { loading, positions } = usePositions();
 
   return (
     <Container>
@@ -275,21 +142,35 @@ export default function PoolsPage() {
               </div>
             </div>
           ) : (
-            <div className="border rounded-2 border-secondary-border bg-primary-bg w-full">
+            <div className="border rounded-2 border-secondary-border bg-primary-bg w-full overflow-hidden">
               <div className="flex justify-between px-5 py-3">
                 <span>Your positions</span>
                 <span className="text-green">Hide closed positions</span>
               </div>
-              {uPositions.map((position) => {
-                return (
-                  <PoolPosition
-                    position={position}
-                    key={position.nonce}
-                    inRange={true}
-                    onClick={() => router.push(`/pool/${position.tokenId.toString()}`)}
-                  />
-                );
-              })}
+              {loading ? (
+                <div className="py-10 flex justify-center items-center">
+                  <AwaitingLoader />
+                </div>
+              ) : (
+                <>
+                  {positions ? (
+                    positions.map((position) => {
+                      return (
+                        <PoolPosition
+                          position={position}
+                          key={(position as any).nonce}
+                          inRange={true}
+                          onClick={() =>
+                            router.push(`/pool/${(position as any).tokenId.toString()}`)
+                          }
+                        />
+                      );
+                    })
+                  ) : (
+                    <div>You have no positions yet</div>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>

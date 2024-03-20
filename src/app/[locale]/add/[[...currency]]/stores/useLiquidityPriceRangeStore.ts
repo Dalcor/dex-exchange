@@ -1,6 +1,9 @@
 import { create } from "zustand";
 
+import { FeeAmount } from "@/sdk";
+
 import { Bound } from "../components/PriceRange/LiquidityChartRangeInput/types";
+import { ZOOM_LEVELS } from "../hooks/types";
 import { FullRange } from "./useAddLiquidityAmountsStore";
 
 type Ticks = {
@@ -13,8 +16,8 @@ interface LiquidityPriceRangeStore {
   ticks: Ticks;
   setLeftRangeTypedValue: (leftRangeTypedValue: string | FullRange) => void;
   setRightRangeTypedValue: (rightRangeTypedValue: string | FullRange) => void;
+  resetPriceRangeValue: ({ price, feeAmount }: { price?: number; feeAmount: FeeAmount }) => void;
   setFullRange: () => void;
-  clearRangeTypedValues: () => void;
   clearPriceRange: () => void;
   setTicks: (ticks: Ticks) => void;
 }
@@ -29,15 +32,20 @@ export const useLiquidityPriceRangeStore = create<LiquidityPriceRangeStore>((set
 
   setLeftRangeTypedValue: (leftRangeTypedValue) => set({ leftRangeTypedValue }),
   setRightRangeTypedValue: (rightRangeTypedValue) => set({ rightRangeTypedValue }),
+
+  resetPriceRangeValue: ({ price, feeAmount }) => {
+    if (price) {
+      const zoomLevels = ZOOM_LEVELS[feeAmount ?? FeeAmount.MEDIUM];
+      set({
+        leftRangeTypedValue: (price * zoomLevels.initialMin).toFixed(6),
+        rightRangeTypedValue: (price * zoomLevels.initialMax).toFixed(6),
+      });
+    }
+  },
   setFullRange: () =>
     set({
       leftRangeTypedValue: true,
       rightRangeTypedValue: true,
-    }),
-  clearRangeTypedValues: () =>
-    set({
-      leftRangeTypedValue: "",
-      rightRangeTypedValue: "",
     }),
   clearPriceRange: () =>
     set({

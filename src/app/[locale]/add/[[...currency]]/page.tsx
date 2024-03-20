@@ -29,7 +29,9 @@ import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
 import { FeeAmount, Rounding, TICK_SPACINGS } from "@/sdk";
 import { Currency } from "@/sdk/entities/currency";
+import { Price } from "@/sdk/entities/fractions/price";
 import { Pool } from "@/sdk/entities/pool";
+import { Token } from "@/sdk/entities/token";
 import { nearestUsableTick } from "@/sdk/utils/nearestUsableTick";
 import { tickToPrice } from "@/sdk/utils/priceTickConversions";
 import { TickMath } from "@/sdk/utils/tickMath";
@@ -140,6 +142,7 @@ export default function AddPoolPage({
   const currency = params.currency;
 
   const { tokenA, tokenB, setTokenA, setTokenB, setBothTokens } = useAddLiquidityTokensStore();
+  const { tier, setTier } = useLiquidityTierStore();
 
   const isSorted = tokenA && tokenB && tokenA.sortsBefore(tokenB);
 
@@ -166,7 +169,7 @@ export default function AddPoolPage({
 
   const pools = usePools(poolKeys);
 
-  const [, pool] = usePool(tokenA, tokenB, FeeAmount.LOWEST);
+  const [, pool] = usePool(tokenA, tokenB, tier);
 
   //
   // useEffect(() => {
@@ -206,8 +209,6 @@ export default function AddPoolPage({
   );
 
   const { setIsOpen } = useTransactionSettingsDialogStore();
-
-  const { tier, setTier } = useLiquidityTierStore();
 
   const lang = useLocale();
 
@@ -278,26 +279,11 @@ export default function AddPoolPage({
     setFullRange,
     setLeftRangeTypedValue,
     setRightRangeTypedValue,
+    resetPriceRangeValue,
   } = useLiquidityPriceRangeStore();
 
-  // const [fullRange, setFullRange] = useState(false);
-
-  // TODO
-  const fullRange = false;
-  const handleSetFullRange = useCallback(() => {
-    setFullRange();
-
-    // const minPrice = pricesAtLimit[Bound.LOWER];
-    // if (minPrice) searchParams.set("minPrice", minPrice.toSignificant(5));
-    // const maxPrice = pricesAtLimit[Bound.UPPER];
-    // if (maxPrice) searchParams.set("maxPrice", maxPrice.toSignificant(5));
-    // setSearchParams(searchParams);
-  }, [
-    setFullRange,
-    // pricesAtLimit,
-    // searchParams,
-    // setSearchParams,
-  ]);
+  const isFullRange =
+    typeof leftRangeTypedValue === "boolean" && typeof rightRangeTypedValue === "boolean";
 
   const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper } =
     useRangeHopCallbacks(
@@ -351,6 +337,56 @@ export default function AddPoolPage({
 
   const leftPrice = isSorted ? priceLower : priceUpper?.invert();
   const rightPrice = isSorted ? priceUpper : priceLower?.invert();
+
+  const invertPrice = Boolean(tokenA && token0 && !tokenA.equals(token0));
+
+  // always returns the price with 0 as base token
+  const price: Price<Token, Token> | undefined = useMemo(() => {
+    // TODO — if no liquidity use typed value
+    // if no liquidity use typed value
+    // if (noLiquidity) {
+    //   const parsedQuoteAmount = tryParseCurrencyAmount(startPriceTypedValue, invertPrice ? token0 : token1)
+    //   if (parsedQuoteAmount && token0 && token1) {
+    //     const baseAmount = tryParseCurrencyAmount('1', invertPrice ? token1 : token0)
+    //     const price =
+    //       baseAmount && parsedQuoteAmount
+    //         ? new Price(
+    //             baseAmount.currency,
+    //             parsedQuoteAmount.currency,
+    //             baseAmount.quotient,
+    //             parsedQuoteAmount.quotient
+    //           )
+    //         : undefined
+    //     return (invertPrice ? price?.invert() : price) ?? undefined
+    //   }
+    //   return undefined
+    // } else {
+    // get the amount of quote currency
+    return pool && token0 ? pool.priceOf(token0) : undefined;
+    // }
+  }, [
+    // noLiquidity,
+    // startPriceTypedValue,
+    // invertPrice,
+    // token1,
+    token0,
+    pool,
+  ]);
+
+  const handleSetFullRange = useCallback(() => {
+    const currentPrice = price
+      ? parseFloat((invertPrice ? price.invert() : price).toSignificant(8))
+      : undefined;
+
+    if (!isFullRange) {
+      setFullRange();
+    } else {
+      resetPriceRangeValue({
+        price: currentPrice,
+        feeAmount: tier,
+      });
+    }
+  }, [setFullRange, isFullRange, resetPriceRangeValue, price, invertPrice, tier]);
 
   return (
     <Container>
@@ -440,7 +476,7 @@ export default function AddPoolPage({
                     <div className="flex gap-3 items-center">
                       <div className="flex items-center gap-2">
                         <span className="text-primary-text text-12">Full range</span>
-                        <Switch checked={fullRange} setChecked={() => setFullRange()} />
+                        <Switch checked={isFullRange} setChecked={handleSetFullRange} />
                       </div>
 
                       <div className="flex p-0.5 gap-0.5 rounded-2 bg-secondary-bg">

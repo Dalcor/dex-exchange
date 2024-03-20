@@ -27,7 +27,7 @@ function TokenRow({
       className="px-10 flex justify-between py-2"
     >
       <div className="flex items-center gap-3">
-        <Image width={40} height={40} src={token.logoURI} alt="" />
+        <Image width={40} height={40} src={token?.logoURI || ""} alt="" />
         <div className="grid">
           <span>{token.symbol}</span>
           <span className="text-secondary-text text-12">1.23 {token.symbol}</span>

@@ -45,7 +45,7 @@ function InputWithCheckboxControl({
             onChange={(e) => onChange(e.target.value)}
           />
           <div className="bg-secondary-bg rounded-5 py-1 pl-1 pr-3 flex items-center gap-2">
-            <Image src={token.logoURI} alt="" width={24} height={24} />
+            <Image src={token?.logoURI || ""} alt="" width={24} height={24} />
             <span>{token.symbol}</span>
           </div>
         </div>
@@ -72,7 +72,7 @@ export default function TokenDepositCard({
   return (
     <div className="rounded-3 bg-secondary-bg p-5">
       <div className="flex items-center gap-2 mb-3">
-        <Image width={24} height={24} src={token.logoURI} alt="" />
+        <Image width={24} height={24} src={token?.logoURI || ""} alt="" />
         <h3 className="text-16 font-bold">{token.symbol} deposit amounts</h3>
       </div>
       <div className="text-secondary-text text-14 mb-3">Total balance: 1400</div>

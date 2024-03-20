@@ -34,7 +34,7 @@ export default function TokenInput({
             <span className="flex gap-2 items-center pr-2">
               <Image
                 className="flex-shrink-0"
-                src={token.logoURI}
+                src={token?.logoURI || ""}
                 alt="Ethereum"
                 width={32}
                 height={32}

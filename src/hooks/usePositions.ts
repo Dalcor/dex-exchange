@@ -1,10 +1,28 @@
-import { useMemo } from "react";
+import { BigNumber } from "@ethersproject/bignumber";
+import JSBI from "jsbi";
+import { useCallback, useMemo, useState } from "react";
 import { Address } from "viem";
-import { useAccount, useReadContract, UseReadContractReturnType, useReadContracts } from "wagmi";
+import {
+  useAccount,
+  useBlockNumber,
+  useReadContract,
+  useReadContracts,
+  useSimulateContract,
+  useWriteContract,
+} from "wagmi";
 
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
+import { usePool } from "@/hooks/usePools";
+import { useTokens } from "@/hooks/useTokenLists";
+import addToast from "@/other/toast";
 import { FeeAmount } from "@/sdk";
+import { Currency } from "@/sdk/entities/currency";
+import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
+import { Price } from "@/sdk/entities/fractions/price";
+import { Pool } from "@/sdk/entities/pool";
+import { Position } from "@/sdk/entities/position";
+import { toHex } from "@/sdk/utils/calldata";
 
 export type PositionInfo = {
   nonce: bigint;
@@ -135,5 +153,202 @@ export default function usePositions() {
   return {
     positions,
     loading: positionsLoading || tokenIdsLoading || balanceLoading,
+  };
+}
+
+export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
+  const tokens = useTokens();
+
+  const tokenA = useMemo(() => {
+    return tokens.find((t) => t.address === positionDetails?.token0);
+  }, [positionDetails?.token0, tokens]);
+
+  const tokenB = useMemo(() => {
+    return tokens.find((t) => t.address === positionDetails?.token1);
+  }, [positionDetails?.token1, tokens]);
+  //
+  const pool = usePool(tokenA, tokenB, positionDetails?.tier);
+
+  return useMemo(() => {
+    if (pool[1] && positionDetails) {
+      return new Position({
+        pool: pool[1],
+        tickLower: positionDetails.tickLower,
+        tickUpper: positionDetails.tickUpper,
+        liquidity: JSBI.BigInt(positionDetails.liquidity.toString()),
+      });
+    }
+  }, [pool, positionDetails]);
+}
+
+const MAX_UINT128 = BigInt(2) ** BigInt(128) - BigInt(1);
+
+export function usePositionFees(
+  pool?: Pool,
+  tokenId?: bigint,
+  asWETH: boolean = false,
+): {
+  fees: [CurrencyAmount<Currency>, CurrencyAmount<Currency>] | [undefined, undefined];
+  handleCollectFees: () => void;
+} {
+  const result = useReadContract({
+    address: nonFungiblePositionManagerAddress,
+    abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+    functionName: "ownerOf",
+    args: [tokenId!],
+    query: {
+      enabled: Boolean(tokenId),
+    },
+  });
+
+  const latestBlockNumber = useBlockNumber();
+
+  const { data: collectResult } = useSimulateContract({
+    address: nonFungiblePositionManagerAddress,
+    abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+    functionName: "collect",
+    args: [
+      {
+        tokenId: tokenId!,
+        recipient: result.data!,
+        amount0Max: MAX_UINT128,
+        amount1Max: MAX_UINT128,
+      },
+    ],
+    query: {
+      enabled: Boolean(tokenId && result.data),
+    },
+  });
+
+  const { writeContract } = useWriteContract();
+
+  const handleCollectFees = useCallback(() => {
+    writeContract({
+      address: nonFungiblePositionManagerAddress,
+      abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+      functionName: "collect",
+      args: [
+        {
+          tokenId: tokenId!,
+          recipient: result.data!,
+          amount0Max: MAX_UINT128,
+          amount1Max: MAX_UINT128,
+        },
+      ],
+    });
+    addToast("Submitted");
+  }, [result.data, tokenId, writeContract]);
+
+  return {
+    fees:
+      pool && collectResult?.result
+        ? [
+            CurrencyAmount.fromRawAmount(pool.token0, collectResult.result[0].toString()),
+            CurrencyAmount.fromRawAmount(pool.token1, collectResult.result[1].toString()),
+          ]
+        : [undefined, undefined],
+    handleCollectFees,
+  };
+}
+
+function getRatio(
+  lower: Price<Currency, Currency>,
+  current: Price<Currency, Currency>,
+  upper: Price<Currency, Currency>,
+) {
+  try {
+    if (+current < +lower) {
+      return 100;
+    } else if (+current > +upper) {
+      return 0;
+    }
+
+    const a = Number.parseFloat(lower.toSignificant(15));
+    const b = Number.parseFloat(upper.toSignificant(15));
+    const c = Number.parseFloat(current.toSignificant(15));
+
+    const ratio = Math.floor(
+      (1 / ((Math.sqrt(a * b) - Math.sqrt(b * c)) / (c - Math.sqrt(b * c)) + 1)) * 100,
+    );
+
+    if (ratio < 0 || ratio > 100) {
+      throw Error("Out of range");
+    }
+
+    return ratio;
+  } catch {
+    return undefined;
+  }
+}
+export function usePositionPrices({
+  position,
+  showFirst,
+}: {
+  position: Position | undefined;
+  showFirst: boolean;
+}) {
+  const minPrice = useMemo(() => {
+    if (showFirst) {
+      return position?.token0PriceLower.invert();
+    }
+
+    return position?.token0PriceLower;
+  }, [position?.token0PriceLower, showFirst]);
+
+  const maxPrice = useMemo(() => {
+    if (showFirst) {
+      return position?.token0PriceUpper.invert();
+    }
+
+    return position?.token0PriceUpper;
+  }, [position?.token0PriceUpper, showFirst]);
+
+  const currentPrice = useMemo(() => {
+    if (showFirst) {
+      return position?.pool.token1Price;
+    }
+
+    return position?.pool.token0Price;
+  }, [position?.pool.token0Price, position?.pool.token1Price, showFirst]);
+
+  const [minPriceString, maxPriceString, currentPriceString] = useMemo(() => {
+    if (minPrice && maxPrice && currentPrice) {
+      return [minPrice.toSignificant(), maxPrice.toSignificant(), currentPrice.toSignificant()];
+    }
+
+    return ["0", "0", "0"];
+  }, [currentPrice, maxPrice, minPrice]);
+
+  const ratio = useMemo(() => {
+    if (minPrice && currentPrice && maxPrice) {
+      return getRatio(minPrice, currentPrice, maxPrice);
+    }
+  }, [currentPrice, maxPrice, minPrice]);
+
+  return {
+    minPriceString,
+    maxPriceString,
+    currentPriceString,
+    ratio,
+  };
+}
+
+export function usePositionRangeStatus({ position }: { position: Position | undefined }) {
+  const below =
+    position?.pool && typeof position?.tickUpper === "number"
+      ? position.pool.tickCurrent < position.tickLower
+      : undefined;
+  const above =
+    position?.pool && typeof position?.tickLower === "number"
+      ? position.pool.tickCurrent >= position.tickUpper
+      : undefined;
+  const inRange: boolean =
+    typeof below === "boolean" && typeof above === "boolean" ? !below && !above : false;
+
+  const removed = position ? JSBI.equal(position.liquidity, JSBI.BigInt(0)) : false;
+
+  return {
+    inRange,
+    removed,
   };
 }

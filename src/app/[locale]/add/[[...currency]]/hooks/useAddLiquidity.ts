@@ -12,7 +12,6 @@ import { FeeAmount } from "@/sdk";
 import { Percent } from "@/sdk/entities/fractions/percent";
 import { Position } from "@/sdk/entities/position";
 import { toHex } from "@/sdk/utils/calldata";
-import { TickMath } from "@/sdk/utils/tickMath";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 export default function useAddLiquidity() {
@@ -61,8 +60,6 @@ export default function useAddLiquidity() {
           gas: estimatedGas + BigInt(30000),
         });
         const hash = await walletClient.writeContract(request);
-        console.log("POOL INITIALIZES");
-        console.log(hash);
       } catch (e) {
         console.log(e);
       }

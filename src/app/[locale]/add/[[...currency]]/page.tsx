@@ -422,7 +422,7 @@ export default function AddPoolPage({
                 <span className="flex gap-2 items-center">
                   <Image
                     className="flex-shrink-0"
-                    src={tokenA.logoURI}
+                    src={tokenA?.logoURI || ""}
                     alt="Ethereum"
                     width={32}
                     height={32}
@@ -448,7 +448,7 @@ export default function AddPoolPage({
                 <span className="flex gap-2 items-center">
                   <Image
                     className="flex-shrink-0"
-                    src={tokenB.logoURI}
+                    src={tokenB?.logoURI || ""}
                     alt="Ethereum"
                     width={32}
                     height={32}

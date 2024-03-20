@@ -2,17 +2,11 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Address, parseUnits } from "viem";
-import {
-  useAccount,
-  useBalance,
-  useBlockNumber,
-  useChainId,
-  useReadContract,
-  useSimulateContract,
-  useWalletClient,
-  useWriteContract,
-} from "wagmi";
+import { useAccount, useBalance, useBlockNumber, useChainId, useWalletClient } from "wagmi";
 
+import { tryParseCurrencyAmount } from "@/app/[locale]/add/[[...currency]]/components/DepositAmount";
+import { useTrade } from "@/app/[locale]/swap/libs/trading";
+import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
@@ -23,10 +17,14 @@ import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog"
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import TokenInput from "@/components/others/TokenInput";
-import { QUOTER_ABI } from "@/config/abis/quoter";
+import { ROUTER_ABI } from "@/config/abis/router";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import useAllowance from "@/hooks/useAllowance";
+import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { FeeAmount } from "@/sdk";
+import { Currency } from "@/sdk/entities/currency";
+import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
+import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 //sepolia v3 addresses I found
 // UniversalRouter: 0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD
@@ -41,6 +39,7 @@ import { FeeAmount } from "@/sdk";
 // USD: 0x6f14C02Fc1F78322cFd7d707aB90f18baD3B54f5
 
 const quoterAddress = "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3";
+const swapAddress = "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E";
 export default function SwapPage() {
   const t = useTranslations("Trade");
 
@@ -50,6 +49,8 @@ export default function SwapPage() {
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
   const chainId = useChainId();
+  const { slippage, deadline: _deadline } = useTransactionSettingsStore();
+  const deadline = useTransactionDeadline(_deadline);
 
   const { address } = useAccount();
 
@@ -68,24 +69,10 @@ export default function SwapPage() {
     (token: WrappedToken) => {
       if (currentlyPicking === "tokenA") {
         setTokenA(token);
-        // if (tokenB) {
-        //   const newPath = `/${lang}/add/${token.address}/${tokenB.address}`;
-        //   window.history.replaceState(null, "", newPath);
-        // } else {
-        //   const newPath = `/${lang}/add/${token.address}`;
-        //   window.history.replaceState(null, "", newPath);
-        // }
       }
 
       if (currentlyPicking === "tokenB") {
         setTokenB(token);
-        // if (tokenA) {
-        //   const newPath = `/${lang}/add/${tokenA.address}/${token.address}`;
-        //   window.history.replaceState(null, "", newPath);
-        // } else {
-        //   const newPath = `/${lang}/add/undefined/${token.address}`;
-        //   window.history.replaceState(null, "", newPath);
-        // }
       }
 
       setIsOpenedTokenPick(false);
@@ -93,8 +80,27 @@ export default function SwapPage() {
     [currentlyPicking, setTokenA, setTokenB],
   );
 
-  const [amountA, setAmountA] = useState("");
-  const [amountB, setAmountB] = useState("");
+  const trade = useTrade();
+
+  const { setTypedValue, independentField, dependentField, typedValue } = useSwapAmountsStore();
+
+  const currencies = {
+    [Field.CURRENCY_A]: tokenA,
+    [Field.CURRENCY_B]: tokenB,
+  };
+
+  // amounts
+  const independentAmount: CurrencyAmount<Currency> | undefined = tryParseCurrencyAmount(
+    typedValue,
+    currencies[independentField],
+  );
+
+  const dependentAmount: CurrencyAmount<Currency> | undefined = useMemo(() => {
+    return trade?.outputAmount;
+  }, [trade?.outputAmount]);
+
+  console.log("Trade");
+  console.log(trade);
 
   const { data: blockNumber } = useBlockNumber({ watch: true });
   const { data: tokenABalance, refetch: refetchBalanceA } = useBalance({
@@ -112,49 +118,43 @@ export default function SwapPage() {
     refetchBalanceB();
   }, [blockNumber, refetchBalanceA, refetchBalanceB]);
 
-  const poolKeys: any = useMemo(() => {
-    return [
-      [tokenA, tokenB, FeeAmount.LOWEST],
-      [tokenA, tokenB, FeeAmount.LOW],
-      [tokenA, tokenB, FeeAmount.MEDIUM],
-      [tokenA, tokenB, FeeAmount.HIGH],
-    ];
-  }, [tokenA, tokenB]);
+  const output = useMemo(() => {
+    if (!trade) {
+      return "";
+    }
+
+    return +trade.outputAmount.toSignificant() * (1 - slippage / 10);
+  }, [slippage, trade]);
+
+  console.log("output");
+  console.log(output);
 
   const { data: walletClient } = useWalletClient();
 
   const handleSwap = useCallback(async () => {
-    if (!walletClient) {
+    if (!walletClient || !address || !tokenA || !tokenB || !trade || !output) {
       return;
     }
 
     const res = await walletClient.writeContract({
-      address: quoterAddress,
-      abi: QUOTER_ABI,
-      functionName: "quoteExactInputSingle",
+      address: swapAddress,
+      abi: ROUTER_ABI,
+      functionName: "exactInputSingle",
       args: [
-        tokenA?.address as Address,
-        tokenB?.address as Address,
-        FeeAmount.MEDIUM,
-        BigInt(1),
-        BigInt(0),
+        {
+          tokenIn: tokenA.address as Address,
+          tokenOut: tokenB.address as Address,
+          fee: FeeAmount.LOW,
+          recipient: address,
+          amountIn: parseUnits(typedValue, 18),
+          amountOutMinimum: parseUnits(output.toString(), 18),
+          sqrtPriceLimitX96: BigInt(0),
+        },
       ],
     });
-  }, [amountA, amountB, tokenA, tokenB, walletClient]);
 
-  const { data, error, failureReason } = useSimulateContract({
-    address: quoterAddress,
-    abi: QUOTER_ABI,
-    functionName: "quoteExactInputSingle",
-    args: [
-      tokenA?.address as Address,
-      tokenB?.address as Address,
-      FeeAmount.MEDIUM,
-      BigInt(0),
-      BigInt(0),
-    ],
-    gas: BigInt(10_000_000),
-  });
+    console.log(res);
+  }, [address, output, tokenA, tokenB, trade, typedValue, walletClient]);
 
   const {
     isAllowed: isAllowedA,
@@ -162,19 +162,11 @@ export default function SwapPage() {
     isApproving: isApprovingA,
   } = useAllowance({
     token: tokenA,
-    contractAddress: quoterAddress,
-    amountToCheck: parseUnits("20", tokenA?.decimals || 18),
+    contractAddress: swapAddress,
+    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
-  const {
-    isAllowed: isAllowedB,
-    writeTokenApprove: approveB,
-    isApproving: isApprovingB,
-  } = useAllowance({
-    token: tokenB,
-    contractAddress: quoterAddress,
-    amountToCheck: parseUnits("20", tokenB?.decimals || 18),
-  });
+  console.log(isAllowedA, "isAllowedA");
 
   return (
     <>
@@ -213,8 +205,10 @@ export default function SwapPage() {
                 />
               </div>
               <TokenInput
-                value={amountA}
-                onInputChange={(value) => setAmountA(value)}
+                value={typedValue}
+                onInputChange={(value) =>
+                  setTypedValue({ typedValue: value, field: Field.CURRENCY_A })
+                }
                 handleClick={() => {
                   setCurrentlyPicking("tokenA");
                   setIsOpenedTokenPick(true);
@@ -228,8 +222,8 @@ export default function SwapPage() {
                 </button>
               </div>
               <TokenInput
-                value={amountB}
-                onInputChange={(value) => setAmountB(value)}
+                value={dependentAmount?.toSignificant() || ""}
+                onInputChange={(value) => null}
                 handleClick={() => {
                   setCurrentlyPicking("tokenB");
                   setIsOpenedTokenPick(true);
@@ -261,11 +255,6 @@ export default function SwapPage() {
                 {!isAllowedA && (
                   <Button variant="outline" fullWidth onClick={() => approveA()}>
                     {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
-                  </Button>
-                )}
-                {!isAllowedB && (
-                  <Button variant="outline" fullWidth onClick={() => approveB()}>
-                    {isApprovingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}
                   </Button>
                 )}
               </div>

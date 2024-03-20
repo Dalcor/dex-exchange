@@ -1,30 +1,23 @@
 "use client";
 
-import { multicall } from "@wagmi/core";
-import JSBI from "jsbi";
-import { useEffect, useMemo, useState } from "react";
-import { Address } from "viem";
-import { useAccount, useReadContract } from "wagmi";
+import { useMemo } from "react";
+import { useAccount } from "wagmi";
 
 import AwaitingLoader from "@/components/atoms/AwaitingLoader";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Svg from "@/components/atoms/Svg";
-import PoolStatusLabel from "@/components/labels/PoolStatusLabel";
-import TextLabel from "@/components/labels/TextLabel";
+import Badge from "@/components/badges/Badge";
+import RangeBadge from "@/components/badges/RangeBadge";
 import TokensPair from "@/components/others/TokensPair";
-import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
-import { config } from "@/config/wagmi/config";
-import { IIFE } from "@/functions/iife";
-import { usePool } from "@/hooks/usePools";
-import usePositions from "@/hooks/usePositions";
-import { useTokens } from "@/hooks/useTokenLists";
+import usePositions, {
+  usePositionFromPositionInfo,
+  usePositionRangeStatus,
+} from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk";
-import { Position } from "@/sdk/entities/position";
 
 type PositionInfo = {
   nonce: bigint;
@@ -42,52 +35,24 @@ type PositionInfo = {
   tokenId: bigint | undefined;
 };
 
-function PoolPosition({
-  onClick,
-  inRange = false,
-  closed = false,
-  position,
-}: {
-  onClick: any;
-  inRange?: boolean;
-  closed?: boolean;
-  position: PositionInfo;
-}) {
-  const [values, setValues] = useState(["0", "0", "0", "0"]);
+function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: PositionInfo }) {
+  const position = usePositionFromPositionInfo(positionInfo);
 
-  const tokens = useTokens();
+  const [tokenA, tokenB, fee] = useMemo(() => {
+    return position?.pool.token0 && position?.pool.token1 && position?.pool.fee
+      ? [position.pool.token0, position.pool.token1, position.pool.fee]
+      : [undefined, undefined];
+  }, [position?.pool.fee, position?.pool.token0, position?.pool.token1]);
 
-  const tokenA = useMemo(() => {
-    return tokens.find((t) => t.address === position.token0);
-  }, [position.token0, tokens]);
+  const minTokenAPerTokenB = useMemo(() => {
+    return position?.token0PriceLower.invert().toSignificant() || "0";
+  }, [position?.token0PriceLower]);
 
-  const tokenB = useMemo(() => {
-    return tokens.find((t) => t.address === position.token1);
-  }, [position.token1, tokens]);
+  const maxTokenAPerTokenB = useMemo(() => {
+    return position?.token0PriceUpper.invert().toSignificant() || "0";
+  }, [position?.token0PriceUpper]);
 
-  const pool = usePool(tokenA, tokenB, position.tier);
-
-  const positionC = useMemo(() => {
-    if (pool[1] && position) {
-      return new Position({
-        pool: pool[1],
-        tickLower: position.tickLower,
-        tickUpper: position.tickUpper,
-        liquidity: JSBI.BigInt(position.liquidity.toString()),
-      });
-    }
-  }, [pool, position]);
-
-  useEffect(() => {
-    if (positionC) {
-      setValues([
-        positionC.token0PriceLower.toSignificant(),
-        positionC.token0PriceUpper.toSignificant(),
-        positionC.token0PriceUpper.invert().toSignificant(),
-        positionC.token0PriceLower.invert().toSignificant(),
-      ]);
-    }
-  }, [positionC]);
+  const { inRange, removed } = usePositionRangeStatus({ position });
 
   return (
     <div
@@ -98,15 +63,19 @@ function PoolPosition({
       <div className="justify-between flex items-center mb-2">
         <div className="flex items-center gap-2">
           <TokensPair tokenA={tokenA} tokenB={tokenB} />
-          <TextLabel color="grey" text={`${FEE_AMOUNT_DETAIL[position.tier].label}%`} />
+          {fee ? (
+            <Badge color="grey" text={`${FEE_AMOUNT_DETAIL[fee].label}%`} />
+          ) : (
+            <Badge color="grey" text="loading..." />
+          )}
         </div>
-        <PoolStatusLabel status={closed ? "closed" : inRange ? "in-range" : "out-of-range"} />
+        <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
       </div>
       <div className="flex gap-2 items-center">
-        <span className="text-secondary-text">Min:</span> {values[0]} {tokenA?.symbol} per{" "}
+        <span className="text-secondary-text">Min:</span> {minTokenAPerTokenB} {tokenA?.symbol} per{" "}
         {tokenB?.symbol}
         <Svg iconName="double-arrow" />
-        <span className="text-secondary-text">Max:</span> {values[1]} {tokenA?.symbol} per{" "}
+        <span className="text-secondary-text">Max:</span> {maxTokenAPerTokenB} {tokenA?.symbol} per{" "}
         {tokenB?.symbol}
       </div>
     </div>
@@ -157,9 +126,8 @@ export default function PoolsPage() {
                     positions.map((position) => {
                       return (
                         <PoolPosition
-                          position={position}
+                          positionInfo={position}
                           key={(position as any).nonce}
-                          inRange={true}
                           onClick={() =>
                             router.push(`/pool/${(position as any).tokenId.toString()}`)
                           }

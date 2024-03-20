@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import Checkbox from "@/components/atoms/Checkbox";
 import Tooltip from "@/components/atoms/Tooltip";
-import TextLabel from "@/components/labels/TextLabel";
+import Badge from "@/components/badges/Badge";
 import { WrappedToken } from "@/config/types/WrappedToken";
 
 function InputWithCheckboxControl({
@@ -31,7 +31,7 @@ function InputWithCheckboxControl({
             id={`${token.address}_${standard}`}
             label={"Standard"}
           />
-          <TextLabel color="green" text={standard} />
+          <Badge color="green" text={standard} />
         </div>
         <Tooltip text="Tooltip text" />
       </div>

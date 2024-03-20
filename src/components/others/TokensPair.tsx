@@ -6,8 +6,8 @@ export default function TokensPair({
   tokenA,
   tokenB,
 }: {
-  tokenA?: WrappedToken;
-  tokenB?: WrappedToken;
+  tokenA?: WrappedToken | undefined;
+  tokenB?: WrappedToken | undefined;
 }) {
   return (
     <div className="flex items-center gap-2.5">

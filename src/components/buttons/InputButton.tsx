@@ -11,8 +11,10 @@ export default function InputButton({ text, isActive, ...props }: Props) {
     <button
       {...props}
       className={clsx(
-        "rounded-1 px-4 py-2 border border-primary-border hover:bg-secondary-bg",
-        isActive ? "text-primary-text pointer-events-none bg-secondary-bg" : "text-secondary-text",
+        "rounded-5 px-2 text-12 py-0.5 border hover:bg-active-bg duration-200",
+        isActive
+          ? "text-green shadow-checkbox pointer-events-none border-green bg-active-bg"
+          : "text-green bg-tertiary-bg border-transparent ",
       )}
     >
       {text}

@@ -70,9 +70,9 @@ input[type="range"] {
   appearance: none;
   cursor: pointer;
   border-radius: 4px;
-  background: #272727;
+  background: theme("colors.secondary-bg");
   height: 8px;
-
+  transition-duration: 200ms;
 }
 
 /* Removes default focus */
@@ -94,25 +94,26 @@ input[type="range"]::-webkit-slider-thumb {
 
   border-radius: 50%;
   /*custom styles*/
-  background-color: #3BD171;
+  background-color: theme("colors.green");
   height: 24px;
   width: 24px;
   transition: outline-color 200ms;
   outline: 12px solid transparent;
+  box-shadow: theme("boxShadow.checkbox");
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  outline: 12px solid #3BD1711A;
+  outline: 12px solid theme("colors.green_opacity_20");
 }
 
 input[type="range"]:focus::-webkit-slider-thumb {
-  outline: 12px solid #3BD1711A;
+  outline: 12px solid theme("colors.green_opacity_20");
 }
 
 /******** Firefox styles ********/
 /* slider track */
 input[type="range"]::-moz-range-track {
-  background-color: #272727;
+  background-color: theme("colors.secondary-bg");
   border-radius: 4px;
   height: 8px;
 }
@@ -123,13 +124,13 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 50%; /*Removes default border-radius that FF applies*/
 
   /*custom styles*/
-  background-color: #3BD171;
+  background-color: theme("colors.green");
   height: 24px;
   width: 24px;
 }
 
 input[type="range"]:hover::-moz-range-thumb,
 input[type="range"]:focus::-moz-range-thumb {
-  outline: 12px solid #3BD1711A;
+  outline: 12px solid theme("colors.green_opacity_20");
 }
 

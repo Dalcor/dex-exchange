@@ -3,92 +3,29 @@
 import clsx from "clsx";
 import JSBI from "jsbi";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
-import { useReadContract } from "wagmi";
+import { useMemo, useState } from "react";
+import { Address } from "viem";
 
+import PositionLiquidityCard from "@/app/[locale]/add/[[...currency]]/components/PositionLiquidityCard";
+import PositionPriceRangeCard from "@/app/[locale]/add/[[...currency]]/components/PositionPriceRangeCard";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
-import PoolStatusLabel from "@/components/labels/PoolStatusLabel";
-import TextLabel from "@/components/labels/TextLabel";
+import Tooltip from "@/components/atoms/Tooltip";
+import Badge from "@/components/badges/Badge";
+import RangeBadge from "@/components/badges/RangeBadge";
+import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
-import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import { WrappedToken } from "@/config/types/WrappedToken";
-import { usePool } from "@/hooks/usePools";
-import { PositionInfo, usePositionFromTokenId } from "@/hooks/usePositions";
-import { useTokens } from "@/hooks/useTokenLists";
+import {
+  usePositionFees,
+  usePositionFromPositionInfo,
+  usePositionFromTokenId,
+  usePositionPrices,
+  usePositionRangeStatus,
+} from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
-import { FeeAmount } from "@/sdk";
-import { Position } from "@/sdk/entities/position";
-
-function PoolLiquidityCard() {
-  return (
-    <div className="flex justify-between items-center">
-      <div className="flex items-center gap-2">
-        <Image src="/tokens/ETH.svg" alt="Ethereum" width={24} height={24} />
-        ETH
-      </div>
-      <div className="flex items-center gap-1">
-        <span>4.07</span>
-        <span>(6%)</span>
-      </div>
-    </div>
-  );
-}
-
-function RangePriceCard({
-  minPrice,
-  maxPrice,
-  token0,
-  token1,
-}: {
-  minPrice?: string;
-  maxPrice?: string;
-  token0: WrappedToken | undefined;
-  token1: WrappedToken | undefined;
-}) {
-  return (
-    <div className="border border-secondary-border">
-      <div className="py-3 flex items-center justify-center flex-col bg-secondary-bg">
-        <div className="text-14 text-secondary-text">{minPrice ? "Min" : "Max"} price</div>
-        <div className="text-18">{minPrice ? minPrice : maxPrice}</div>
-        <div className="text-14 text-secondary-text">
-          {token0?.symbol} per {token1?.symbol}
-        </div>
-      </div>
-      <div className="bg-tertiary-bg py-3 px-5 text-14 rounded-1">
-        Your position will be 100% ETH at this price
-      </div>
-    </div>
-  );
-}
-
-function usePositionFromPositionInfo(positionDetails: PositionInfo) {
-  const tokens = useTokens();
-
-  const tokenA = useMemo(() => {
-    return tokens.find((t) => t.address === positionDetails?.token0);
-  }, [positionDetails?.token0, tokens]);
-
-  const tokenB = useMemo(() => {
-    return tokens.find((t) => t.address === positionDetails?.token1);
-  }, [positionDetails?.token1, tokens]);
-  //
-  const pool = usePool(tokenA, tokenB, positionDetails?.tier);
-
-  return useMemo(() => {
-    if (pool[1] && positionDetails) {
-      return new Position({
-        pool: pool[1],
-        tickLower: positionDetails.tickLower,
-        tickUpper: positionDetails.tickUpper,
-        liquidity: JSBI.BigInt(positionDetails.liquidity.toString()),
-      });
-    }
-  }, [pool, positionDetails]);
-}
 
 export default function PoolPage({
   params,
@@ -99,129 +36,204 @@ export default function PoolPage({
 }) {
   const router = useRouter();
 
-  const { position: positionInfo, loading } = usePositionFromTokenId(BigInt(params.tokenId));
-
-  const position = usePositionFromPositionInfo(positionInfo);
-  //
-  // // console.log(pool[1]);
-  // // console.log(position);
-  //
-  const values = useMemo(() => {
-    if (position) {
-      return [
-        position.token0PriceLower.toSignificant(),
-        position.token0PriceUpper.toSignificant(),
-        position.token0PriceUpper.invert().toSignificant(),
-        position.token0PriceLower.invert().toSignificant(),
-      ];
-    }
-    return ["0", "0", "0", "0"];
-  }, [position]);
-  //
+  //TODO: make centralize function instead of boolean useState value to control invert
   const [showFirst, setShowFirst] = useState(true);
+
+  const { position: positionInfo, loading } = usePositionFromTokenId(BigInt(params.tokenId));
+  const position = usePositionFromPositionInfo(positionInfo);
+  const { fees, handleCollectFees } = usePositionFees(position?.pool, positionInfo?.tokenId);
+
+  const [tokenA, tokenB, fee] = useMemo(() => {
+    return position?.pool.token0 && position?.pool.token1 && position?.pool.fee
+      ? [position.pool.token0, position.pool.token1, position.pool.fee]
+      : [undefined, undefined];
+  }, [position?.pool.fee, position?.pool.token0, position?.pool.token1]);
+
+  const { inRange, removed } = usePositionRangeStatus({ position });
+  const { minPriceString, maxPriceString, currentPriceString, ratio } = usePositionPrices({
+    position,
+    showFirst,
+  });
 
   return (
     <Container>
-      <div className="w-[800px] mx-auto py-[80px]">
-        <button
-          onClick={() => router.push("/pools")}
-          className="flex items-center gap-3 py-1.5 mb-5"
-        >
-          <Svg iconName="back" />
-          Back to pools
-        </button>
+      <div className="w-[800px] mx-auto mt-[80px] mb-5 bg-primary-bg px-10 pb-10">
+        <div className="flex justify-between items-center py-1.5 -mx-3">
+          <button
+            onClick={() => router.push("/pools")}
+            className="flex items-center w-12 h-12 justify-center"
+          >
+            <Svg iconName="back" />
+          </button>
+          <h2 className="text-20 font-bold">Position</h2>
+          <button
+            onClick={() => router.push("/pools")}
+            className="flex items-center w-12 h-12 justify-center"
+          >
+            <Svg iconName="recent-transactions" />
+          </button>
+        </div>
 
         <div className="w-full flex justify-between mb-5">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <TokensPair tokenA={position?.pool.token0} tokenB={position?.pool.token1} />
             {position && (
-              <TextLabel text={`${FEE_AMOUNT_DETAIL[position.pool.fee].label}%`} color="grey" />
+              <Badge text={`${FEE_AMOUNT_DETAIL[position.pool.fee].label}%`} color="grey" />
             )}
-            <PoolStatusLabel status="in-range" />
-          </div>
-          <div className="flex items-center gap-3">
-            <Button size="small" onClick={() => router.push(`/increase/${params.tokenId}`)}>
-              Increase liquidity
-            </Button>
-            <Button size="small" onClick={() => router.push("/remove")} variant="outline">
-              Remove liquidity
-            </Button>
+            <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
           </div>
         </div>
-        <div className="border border-secondary-border rounded-2">
-          <div className="px-10 pb-10 pt-8 border-b border-secondary-border grid grid-cols-2 gap-5">
-            <div>
-              <h3 className="text-14">Liquidity</h3>
-              <p className="text-20 font-bold mb-3">$26.08</p>
-              <div className="p-5 grid gap-3 border border-secondary-border rounded-1 bg-secondary-bg">
-                <PoolLiquidityCard />
-                <PoolLiquidityCard />
-              </div>
-            </div>
-            <div>
-              <h3 className="text-14">Unclaimed fees</h3>
-              <p className="text-20 font-bold mb-3 text-green">$21.08</p>
-              <div className="p-5 grid gap-3 border border-secondary-border rounded-1 bg-secondary-bg">
-                <PoolLiquidityCard />
-                <PoolLiquidityCard />
-              </div>
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex items-center gap-1 px-3 py-2 rounded-2 bg-tertiary-bg">
+            <Tooltip text="Tooltip text" />
+            <span className="text-secondary-text">NFT ID:</span>
+            {params.tokenId}
+            <button>
+              <Svg iconName="arrow-up" />
+            </button>
+          </div>
+          <div className="flex items-center gap-1 px-3 py-2 rounded-2 bg-tertiary-bg">
+            <Tooltip text="Tooltip text" />
+            <span className="text-secondary-text">Min tick:</span>
+            {position?.tickLower}
+          </div>
+          <div className="flex items-center gap-1 px-3 py-2 rounded-2 bg-tertiary-bg">
+            <Tooltip text="Tooltip text" />
+            <span className="text-secondary-text">Max tick:</span>
+            {position?.tickUpper}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 items-center gap-3 mb-5">
+          <Button
+            size="small"
+            onClick={() => router.push(`/increase/${params.tokenId}`)}
+            variant="outline"
+            fullWidth
+          >
+            Increase liquidity
+          </Button>
+          <Button
+            size="small"
+            onClick={() => router.push(`/remove/${params.tokenId}`)}
+            variant="outline"
+            fullWidth
+          >
+            Remove liquidity
+          </Button>
+        </div>
+
+        <div className="p-5 bg-tertiary-bg mb-5 rounded-3">
+          <div>
+            <h3 className="text-14">Liquidity</h3>
+            <p className="text-20 font-bold mb-3">$0.00</p>
+            <div className="p-5 grid gap-3 rounded-1 bg-quaternary-bg">
+              <PositionLiquidityCard
+                token={tokenA}
+                standards={["ERC-20", "ERC-223"]}
+                amount={position?.amount0.toSignificant() || "Loading..."}
+                percentage={ratio ? (showFirst ? ratio : 100 - ratio) : "Loading..."}
+              />
+              <PositionLiquidityCard
+                token={tokenB}
+                standards={["ERC-20", "ERC-223"]}
+                amount={position?.amount1.toSignificant() || "Loading..."}
+                percentage={ratio ? (!showFirst ? ratio : 100 - ratio) : "Loading..."}
+              />
             </div>
           </div>
-          <div className="p-10">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2">
-                <span>Selected Range</span>
-                <PoolStatusLabel status="in-range" />
+        </div>
+        <div className="p-5 bg-tertiary-bg mb-5 rounded-3">
+          <div>
+            <div className="flex justify-between">
+              <div>
+                <h3 className="text-14">Unclaimed fees</h3>
+                <p className="text-20 font-bold mb-3 text-green">$0.00</p>
               </div>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setShowFirst(true)}
-                  className={clsx(
-                    "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
-                    showFirst
-                      ? "bg-active-bg border-green text-primary-text"
-                      : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
-                  )}
-                >
-                  {position?.pool.token0?.symbol}
-                </button>
-                <button
-                  onClick={() => setShowFirst(false)}
-                  className={clsx(
-                    "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
-                    !showFirst
-                      ? "bg-active-bg border-green text-primary-text"
-                      : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
-                  )}
-                >
-                  {position?.pool.token1?.symbol}
-                </button>
-              </div>
+              <Button onClick={handleCollectFees} size="small">
+                Collect fees
+              </Button>
             </div>
-            <div className="grid grid-cols-[1fr_20px_1fr] mb-5">
-              <RangePriceCard
-                token0={position?.pool.token0}
-                token1={position?.pool.token1}
-                minPrice={showFirst ? values[0] : values[2]}
+
+            <div className="p-5 grid gap-3 rounded-1 bg-quaternary-bg">
+              <PositionLiquidityCard
+                token={tokenA}
+                standards={["ERC-20", "ERC-223"]}
+                amount={fees[0]?.toSignificant(2) || "Loading..."}
               />
-              <div className="relative">
-                <div className="bg-primary-bg border border-secondary-border w-12 h-12 rounded-1 text-placeholder-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-                  <Svg iconName="double-arrow" />
-                </div>
-              </div>
-              <RangePriceCard
-                token0={position?.pool.token0}
-                token1={position?.pool.token1}
-                maxPrice={showFirst ? values[1] : values[3]}
+              <PositionLiquidityCard
+                token={tokenB}
+                standards={["ERC-20", "ERC-223"]}
+                amount={fees[1]?.toSignificant(2) || "Loading..."}
               />
             </div>
-            <div className="bg-secondary-bg flex items-center justify-center flex-col py-3 border rounded-1 border-secondary-border">
+          </div>
+        </div>
+        <div>
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center gap-2">
+              <span>Selected Range</span>
+              <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
+            </div>
+            <div className="flex gap-0.5 bg-secondary-bg rounded-2 p-0.5">
+              <button
+                onClick={() => setShowFirst(true)}
+                className={clsx(
+                  "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
+                  showFirst
+                    ? "bg-active-bg border-green text-primary-text"
+                    : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
+                )}
+              >
+                {tokenA?.symbol}
+              </button>
+              <button
+                onClick={() => setShowFirst(false)}
+                className={clsx(
+                  "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
+                  !showFirst
+                    ? "bg-active-bg border-green text-primary-text"
+                    : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
+                )}
+              >
+                {tokenB?.symbol}
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-[1fr_20px_1fr] mb-5">
+            <PositionPriceRangeCard
+              showFirst={showFirst}
+              token0={tokenA}
+              token1={tokenB}
+              price={minPriceString}
+            />
+            <div className="relative">
+              <div className="bg-primary-bg w-12 h-12 rounded-full text-placeholder-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+                <Svg iconName="double-arrow" />
+              </div>
+            </div>
+            <PositionPriceRangeCard
+              showFirst={showFirst}
+              token0={tokenA}
+              token1={tokenB}
+              price={maxPriceString}
+              isMax
+            />
+          </div>
+          <div className="rounded-3 overflow-hidden">
+            <div className="bg-tertiary-bg flex items-center justify-center flex-col py-3">
               <div className="text-14 text-secondary-text">Current price</div>
-              <div className="text-18">0.0026439</div>
-              <div className="text-14 text-secondary-text">ETH per UNI</div>
+              <div className="text-18">{currentPriceString}</div>
+              <div className="text-14 text-secondary-text">
+                {showFirst
+                  ? `${tokenA?.symbol} per ${tokenB?.symbol}`
+                  : `${tokenB?.symbol} per ${tokenA?.symbol}`}
+              </div>
             </div>
           </div>
         </div>
+      </div>
+      <div className="w-[800px] mx-auto mb-[80px]">
+        <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
       </div>
     </Container>
   );

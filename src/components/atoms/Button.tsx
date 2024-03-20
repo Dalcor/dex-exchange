@@ -21,9 +21,9 @@ export default function Button({
         "duration-200 px-6",
         variant === "contained" &&
           "bg-green text-black hover:bg-green-hover border border-green rounded-2",
-        variant === "outline" && "border-green text-font-white hover:text-green border rounded-5",
+        variant === "outline" && "border-green text-font-white hover:text-green border rounded-2",
         size === "x-small" && "h-[42px] text-base",
-        size === "small" && "h-12 text-base",
+        size === "small" && "h-10 text-base",
         size === "regular" && "h-[48px] text-lg",
         size === "large" && "py-4 text-lg",
         props.disabled && "opacity-50 pointer-events-none",

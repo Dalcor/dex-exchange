@@ -38,9 +38,11 @@ const config: Config = {
       "primary-bg": "#1D1E1E", // changed
       "secondary-bg": "#0F0F0F", // changed
       "tertiary-bg": "#272727", // changed
+      "quaternary-bg": "#2E2F2F", // changed
       "active-bg": "#3C4C4A", // changed
 
       green: "#70C59E", // changed
+      green_opacity_20: "#70C59E33", // changed
       red: "#DC4141", // changed
       orange: "#D9A251", // changed
       blue: "#64B2EA", // changed
@@ -99,6 +101,7 @@ const config: Config = {
       "3": "12px",
       "4": "16px",
       "5": "20px",
+      "20": "80px",
       full: "50%",
     },
     fontSize: {
@@ -111,6 +114,9 @@ const config: Config = {
       32: ["32px", "48px"],
     },
   },
-  plugins: [],
+  plugins: [
+    require("@tailwindcss/container-queries"),
+    require("@savvywombat/tailwindcss-grid-areas"),
+  ],
 };
 export default config;

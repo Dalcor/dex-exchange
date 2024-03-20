@@ -3,7 +3,7 @@ import { Address } from "viem";
 import { Token } from "@/sdk/entities/token";
 
 export class WrappedToken extends Token {
-  public readonly logoURI: string;
+  public readonly logoURI?: string;
   public readonly lists?: string[];
 
   constructor(

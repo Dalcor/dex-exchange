@@ -8,11 +8,11 @@ import Checkbox from "@/components/atoms/Checkbox";
 import Dialog from "@/components/atoms/Dialog";
 import Switch from "@/components/atoms/Switch";
 import TextField from "@/components/atoms/TextField";
+import Badge from "@/components/badges/Badge";
+import RangeBadge from "@/components/badges/RangeBadge";
 import IncrementDecrementIconButton from "@/components/buttons/IncrementDecrementIconButton";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import ZoomButton from "@/components/buttons/ZoomButton";
-import PoolStatusLabel from "@/components/labels/PoolStatusLabel";
-import TextLabel from "@/components/labels/TextLabel";
 import addToast from "@/other/toast";
 
 export default function Lib({ params: { locale } }: { params: { locale: string } }) {
@@ -156,14 +156,14 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
       <div className="p-3 border border-primary-border">
         <h2 className="mb-3 border-b border-primary-border pb-3">Pool labels</h2>
         <div className="inline-flex gap-3 py-3 items-center">
-          <PoolStatusLabel status="in-range" />
-          <PoolStatusLabel status="out-of-range" />
-          <PoolStatusLabel status="closed" />
+          <RangeBadge status="in-range" />
+          <RangeBadge status="out-of-range" />
+          <RangeBadge status="closed" />
           <span>|</span>
           <div className="flex gap-3 items-center">
-            <TextLabel color="blue" text="Custom" />
-            <TextLabel color="red" text="Risky" />
-            <TextLabel color="grey" text="67% select" />
+            <Badge color="blue" text="Custom" />
+            <Badge color="red" text="Risky" />
+            <Badge color="grey" text="67% select" />
           </div>
         </div>
       </div>

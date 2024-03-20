@@ -171,8 +171,7 @@ export default function LiquidityChartRangeInput({
     [isSorted, price, ticksAtLimit],
   );
 
-  // const isUninitialized = !currencyA || !currencyB || (formattedData === undefined && !isLoading);
-  const isUninitialized = false;
+  const isUninitialized = !currencyA || !currencyB || (formattedData === undefined && !isLoading);
 
   return (
     // <AutoColumn gap="md" style={{ minHeight: "200px" }}>
@@ -196,7 +195,7 @@ export default function LiquidityChartRangeInput({
         <InfoBox
           message={<span>There is no liquidity data.</span>}
           // icon={<BarChart2 size={56} stroke={theme.neutral2} />}
-          icon={<span>BarChart2</span>}
+          icon={<span>BarChart2 </span>}
         />
       ) : (
         <ChartWrapper>

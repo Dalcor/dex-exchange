@@ -27,10 +27,105 @@ import useAllowance from "@/hooks/useAllowance";
 import usePools, { usePool } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
-import { FeeAmount } from "@/sdk";
+import { FeeAmount, Rounding, TICK_SPACINGS } from "@/sdk";
+import { Currency } from "@/sdk/entities/currency";
+import { Pool } from "@/sdk/entities/pool";
+import { nearestUsableTick } from "@/sdk/utils/nearestUsableTick";
+import { tickToPrice } from "@/sdk/utils/priceTickConversions";
+import { TickMath } from "@/sdk/utils/tickMath";
 
 import DepositAmount from "./components/DepositAmount";
-import { PriceRange } from "./components/PriceRange";
+import { getTickToPrice, PriceRange } from "./components/PriceRange";
+import { Bound } from "./components/PriceRange/LiquidityChartRangeInput/types";
+
+export function useRangeHopCallbacks(
+  baseCurrency: Currency | undefined,
+  quoteCurrency: Currency | undefined,
+  feeAmount: FeeAmount | undefined,
+  tickLower: number | undefined,
+  tickUpper: number | undefined,
+  pool?: Pool | undefined | null,
+) {
+  // const dispatch = useAppDispatch();
+
+  const baseToken = useMemo(() => baseCurrency?.wrapped, [baseCurrency]);
+  const quoteToken = useMemo(() => quoteCurrency?.wrapped, [quoteCurrency]);
+
+  const getDecrementLower = useCallback(() => {
+    if (baseToken && quoteToken && typeof tickLower === "number" && feeAmount) {
+      const newPrice = tickToPrice(baseToken, quoteToken, tickLower - TICK_SPACINGS[feeAmount]);
+      return newPrice.toSignificant(5, undefined, Rounding.ROUND_UP);
+    }
+    // use pool current tick as starting tick if we have pool but no tick input
+    if (!(typeof tickLower === "number") && baseToken && quoteToken && feeAmount && pool) {
+      const newPrice = tickToPrice(
+        baseToken,
+        quoteToken,
+        pool.tickCurrent - TICK_SPACINGS[feeAmount],
+      );
+      return newPrice.toSignificant(5, undefined, Rounding.ROUND_UP);
+    }
+    return "";
+  }, [baseToken, quoteToken, tickLower, feeAmount, pool]);
+
+  const getIncrementLower = useCallback(() => {
+    if (baseToken && quoteToken && typeof tickLower === "number" && feeAmount) {
+      const newPrice = tickToPrice(baseToken, quoteToken, tickLower + TICK_SPACINGS[feeAmount]);
+      return newPrice.toSignificant(5, undefined, Rounding.ROUND_UP);
+    }
+    // use pool current tick as starting tick if we have pool but no tick input
+    if (!(typeof tickLower === "number") && baseToken && quoteToken && feeAmount && pool) {
+      const newPrice = tickToPrice(
+        baseToken,
+        quoteToken,
+        pool.tickCurrent + TICK_SPACINGS[feeAmount],
+      );
+      return newPrice.toSignificant(5, undefined, Rounding.ROUND_UP);
+    }
+    return "";
+  }, [baseToken, quoteToken, tickLower, feeAmount, pool]);
+
+  const getDecrementUpper = useCallback(() => {
+    if (baseToken && quoteToken && typeof tickUpper === "number" && feeAmount) {
+      const newPrice = tickToPrice(baseToken, quoteToken, tickUpper - TICK_SPACINGS[feeAmount]);
+      return newPrice.toSignificant(5, undefined, Rounding.ROUND_UP);
+    }
+    // use pool current tick as starting tick if we have pool but no tick input
+    if (!(typeof tickUpper === "number") && baseToken && quoteToken && feeAmount && pool) {
+      const newPrice = tickToPrice(
+        baseToken,
+        quoteToken,
+        pool.tickCurrent - TICK_SPACINGS[feeAmount],
+      );
+      return newPrice.toSignificant(5, undefined, Rounding.ROUND_UP);
+    }
+    return "";
+  }, [baseToken, quoteToken, tickUpper, feeAmount, pool]);
+
+  const getIncrementUpper = useCallback(() => {
+    if (baseToken && quoteToken && typeof tickUpper === "number" && feeAmount) {
+      const newPrice = tickToPrice(baseToken, quoteToken, tickUpper + TICK_SPACINGS[feeAmount]);
+      return newPrice.toSignificant(5, undefined, Rounding.ROUND_UP);
+    }
+    // use pool current tick as starting tick if we have pool but no tick input
+    if (!(typeof tickUpper === "number") && baseToken && quoteToken && feeAmount && pool) {
+      const newPrice = tickToPrice(
+        baseToken,
+        quoteToken,
+        pool.tickCurrent + TICK_SPACINGS[feeAmount],
+      );
+      return newPrice.toSignificant(5, undefined, Rounding.ROUND_UP);
+    }
+    return "";
+  }, [baseToken, quoteToken, tickUpper, feeAmount, pool]);
+
+  return {
+    getDecrementLower,
+    getIncrementLower,
+    getDecrementUpper,
+    getIncrementUpper,
+  };
+}
 
 export default function AddPoolPage({
   params,
@@ -71,7 +166,7 @@ export default function AddPoolPage({
 
   const pools = usePools(poolKeys);
 
-  const pool = usePool(tokenA, tokenB, FeeAmount.LOWEST);
+  const [, pool] = usePool(tokenA, tokenB, FeeAmount.LOWEST);
 
   //
   // useEffect(() => {
@@ -155,8 +250,6 @@ export default function AddPoolPage({
     }
   }, [currency, setTier, setTokenA, setTokenB, tokens]);
 
-  const [fullRange, setFullRange] = useState(false);
-
   const {
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
@@ -177,7 +270,87 @@ export default function AddPoolPage({
     amountToCheck: parseUnits("2", tokenB?.decimals || 18),
   });
 
-  const { leftRangeTypedValue, rightRangeTypedValue } = useLiquidityPriceRangeStore();
+  const {
+    ticks,
+    leftRangeTypedValue,
+    rightRangeTypedValue,
+    clearPriceRange,
+    setFullRange,
+    setLeftRangeTypedValue,
+    setRightRangeTypedValue,
+  } = useLiquidityPriceRangeStore();
+
+  // const [fullRange, setFullRange] = useState(false);
+
+  // TODO
+  const fullRange = false;
+  const handleSetFullRange = useCallback(() => {
+    setFullRange();
+
+    // const minPrice = pricesAtLimit[Bound.LOWER];
+    // if (minPrice) searchParams.set("minPrice", minPrice.toSignificant(5));
+    // const maxPrice = pricesAtLimit[Bound.UPPER];
+    // if (maxPrice) searchParams.set("maxPrice", maxPrice.toSignificant(5));
+    // setSearchParams(searchParams);
+  }, [
+    setFullRange,
+    // pricesAtLimit,
+    // searchParams,
+    // setSearchParams,
+  ]);
+
+  const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper } =
+    useRangeHopCallbacks(
+      tokenA ?? undefined,
+      tokenB ?? undefined,
+      tier,
+      ticks.LOWER,
+      ticks.UPPER,
+      pool,
+    );
+
+  const [token0, token1] = useMemo(
+    () =>
+      tokenA && tokenB
+        ? tokenA.sortsBefore(tokenB)
+          ? [tokenA, tokenB]
+          : [tokenB, tokenA]
+        : [undefined, undefined],
+    [tokenA, tokenB],
+  );
+
+  // always returns the price with 0 as base token
+  const pricesAtTicks = useMemo(() => {
+    return {
+      [Bound.LOWER]: getTickToPrice(token0, token1, ticks[Bound.LOWER]),
+      [Bound.UPPER]: getTickToPrice(token0, token1, ticks[Bound.UPPER]),
+    };
+  }, [token0, token1, ticks]);
+
+  const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks;
+
+  const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks || {};
+
+  // lower and upper limits in the tick space for `feeAmoun<Trans>
+  const tickSpaceLimits = useMemo(
+    () => ({
+      [Bound.LOWER]: tier ? nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[tier]) : undefined,
+      [Bound.UPPER]: tier ? nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[tier]) : undefined,
+    }),
+    [tier],
+  );
+
+  // specifies whether the lower and upper ticks is at the exteme bounds
+  const ticksAtLimit = useMemo(
+    () => ({
+      [Bound.LOWER]: tier && tickLower === tickSpaceLimits.LOWER,
+      [Bound.UPPER]: tier && tickUpper === tickSpaceLimits.UPPER,
+    }),
+    [tickSpaceLimits, tickLower, tickUpper, tier],
+  );
+
+  const leftPrice = isSorted ? priceLower : priceUpper?.invert();
+  const rightPrice = isSorted ? priceUpper : priceLower?.invert();
 
   return (
     <Container>
@@ -267,7 +440,7 @@ export default function AddPoolPage({
                     <div className="flex gap-3 items-center">
                       <div className="flex items-center gap-2">
                         <span className="text-primary-text text-12">Full range</span>
-                        <Switch checked={fullRange} setChecked={() => setFullRange(!fullRange)} />
+                        <Switch checked={fullRange} setChecked={() => setFullRange()} />
                       </div>
 
                       <div className="flex p-0.5 gap-0.5 rounded-2 bg-secondary-bg">
@@ -278,6 +451,7 @@ export default function AddPoolPage({
                                 tokenA: tokenB,
                                 tokenB: tokenA,
                               });
+                              clearPriceRange();
                             }
                           }}
                           className={clsx(
@@ -296,6 +470,7 @@ export default function AddPoolPage({
                                 tokenA: tokenB,
                                 tokenB: tokenA,
                               });
+                              clearPriceRange();
                             }
                           }}
                           className={clsx(
@@ -311,8 +486,28 @@ export default function AddPoolPage({
                     </div>
                   </div>
                 </div>
-                <PriceRangeInput value={leftRangeTypedValue} title="Low price" />
-                <PriceRangeInput value={rightRangeTypedValue} title="High price" />
+                <PriceRangeInput
+                  value={
+                    ticksAtLimit[isSorted ? Bound.LOWER : Bound.UPPER]
+                      ? "0"
+                      : leftPrice?.toSignificant(8) ?? ""
+                  }
+                  onUserInput={setLeftRangeTypedValue}
+                  title="Low price"
+                  decrement={isSorted ? getDecrementLower : getIncrementUpper}
+                  increment={isSorted ? getIncrementLower : getDecrementUpper}
+                />
+                <PriceRangeInput
+                  title="High price"
+                  value={
+                    ticksAtLimit[isSorted ? Bound.UPPER : Bound.LOWER]
+                      ? "∞"
+                      : rightPrice?.toSignificant(8) ?? ""
+                  }
+                  onUserInput={setRightRangeTypedValue}
+                  decrement={isSorted ? getDecrementUpper : getIncrementLower}
+                  increment={isSorted ? getIncrementUpper : getDecrementLower}
+                />
               </div>
 
               <PriceRange />

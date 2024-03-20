@@ -153,6 +153,8 @@ export const PriceRange = () => {
     setRightRangeTypedValue,
     setTicks,
   } = useLiquidityPriceRangeStore();
+
+  // TODO existingPosition
   const existingPosition = undefined as any;
 
   // parse typed range values and determine the closest ticks

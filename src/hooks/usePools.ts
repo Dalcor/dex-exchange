@@ -111,17 +111,19 @@ export default function usePools(
 
   const poolAddresses: (Address | undefined)[] = useMemo(() => {
     const v3CoreFactoryAddress = chainId && V3_CORE_FACTORY_ADDRESSES[chainId];
-    if (!v3CoreFactoryAddress) return new Array(poolTokens.length);
+
+    if (!v3CoreFactoryAddress)
+      return Array.apply(undefined, Array(poolTokens.length)) as undefined[];
 
     return poolTokens.map(
       (value) =>
         value &&
-        computePoolAddress({
+        (computePoolAddress({
           factoryAddress: v3CoreFactoryAddress,
           tokenA: value[0],
           tokenB: value[1],
           fee: value[2],
-        }),
+        }) as Address),
     );
   }, [chainId, poolTokens]);
 

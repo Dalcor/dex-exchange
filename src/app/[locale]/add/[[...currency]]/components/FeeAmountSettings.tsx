@@ -9,6 +9,8 @@ import Svg from "@/components/atoms/Svg";
 import { FEE_AMOUNT_DETAIL, FEE_TIERS } from "@/config/constants/liquidityFee";
 import { FeeAmount } from "@/sdk";
 
+import { useLiquidityPriceRangeStore } from "../stores/useLiquidityPriceRangeStore";
+
 interface FeeAmountOptionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
   feeAmount: FeeAmount;
@@ -40,6 +42,7 @@ export default function FeeAmountSettings() {
 
   const { tier, setTier } = useLiquidityTierStore();
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
+  const { clearPriceRange } = useLiquidityPriceRangeStore();
 
   return (
     <div className="rounded-3 mb-5 bg-secondary-bg">
@@ -72,6 +75,7 @@ export default function FeeAmountSettings() {
               active={tier === _feeAmount}
               onClick={() => {
                 setTier(_feeAmount);
+                clearPriceRange();
                 window.history.replaceState(
                   null,
                   "",

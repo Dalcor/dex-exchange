@@ -93,8 +93,12 @@ export default function DepositAmount() {
   const { ticks } = useLiquidityPriceRangeStore();
   const { LOWER: tickLower, UPPER: tickUpper } = ticks;
 
+  // TODO
   const outOfRange = false;
-  const invalidRange = false;
+  // mark invalid range
+  const invalidRange = Boolean(
+    typeof tickLower === "number" && typeof tickUpper === "number" && tickLower >= tickUpper,
+  );
   const { typedValue, independentField, dependentField, setTypedValue } =
     useLiquidityAmountsStore();
 

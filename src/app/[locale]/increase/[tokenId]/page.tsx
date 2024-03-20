@@ -87,8 +87,7 @@ export default function IncreaseLiquidityPage({
   };
 }) {
   const { setIsOpen } = useTransactionSettingsDialogStore();
-  const { setLeftRangeTypedValue, setRightRangeTypedValue, setTicks } =
-    useLiquidityPriceRangeStore();
+  const { setTicks } = useLiquidityPriceRangeStore();
 
   const router = useRouter();
 

@@ -1,13 +1,11 @@
 import { ScaleLinear } from "d3";
 import { useMemo } from "react";
-import styled from "styled-components";
 
-const StyledLine = styled.line`
-  opacity: 0.5;
-  stroke-width: 2;
-  stroke: ${({ theme }) => theme.neutral1};
-  fill: none;
-`;
+const StyledLine = ({ children, ...props }: any) => (
+  <line className="stroke-[#FFFFFF] opacity-50 stroke-[2px] fill-none" {...props}>
+    {children}
+  </line>
+);
 
 export const Line = ({
   value,

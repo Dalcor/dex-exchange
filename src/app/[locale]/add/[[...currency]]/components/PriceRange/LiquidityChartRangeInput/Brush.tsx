@@ -1,42 +1,63 @@
+import clsx from "clsx";
 import { BrushBehavior, brushX, D3BrushEvent, ScaleLinear, select } from "d3";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import styled from "styled-components";
 
 import { usePrevious } from "./hooks";
 import { brushHandleAccentPath, brushHandlePath, OffScreenHandle } from "./svg";
 
-const Handle = styled.path<{ color: string }>`
-  cursor: ew-resize;
-  pointer-events: none;
+const Handle = ({ color, ...props }: { color: string; d: string }) => (
+  <path
+    className="cursor-ew-resize pointer-events-none stroke-[3px]"
+    style={{
+      stroke: color,
+      fill: color,
+    }}
+    {...props}
+  />
+);
 
-  stroke-width: 3;
-  stroke: ${({ color }) => color};
-  fill: ${({ color }) => color};
-`;
+const HandleAccent = (props: { d: string }) => (
+  <path
+    className="cursor-ew-resize pointer-events-none stroke-[1.5px] opacity-60"
+    style={{
+      stroke: "white",
+    }}
+    {...props}
+  />
+);
 
-const HandleAccent = styled.path`
-  cursor: ew-resize;
-  pointer-events: none;
+const LabelGroup = ({
+  children,
+  transform,
+  visible,
+  ...props
+}: {
+  children: any;
+  transform: string;
+  visible: boolean;
+}) => (
+  <g
+    className={clsx("transition-opacity", visible ? "opacity-100" : "opacity-0")}
+    transform={transform}
+    {...props}
+  >
+    {children}
+  </g>
+);
 
-  stroke-width: 1.5;
-  stroke: ${({ theme }) => theme.white};
-  opacity: ${({ theme }) => theme.opacity.hover};
-`;
+const TooltipBackground = (props: any) => <rect className="fill-[#FFFFFF12]" {...props} />;
 
-const LabelGroup = styled.g<{ visible: boolean }>`
-  opacity: ${({ visible }) => (visible ? "1" : "0")};
-  transition: opacity 300ms;
-`;
-
-const TooltipBackground = styled.rect`
-  fill: ${({ theme }) => theme.surface3};
-`;
-
-const Tooltip = styled.text`
-  text-anchor: middle;
-  font-size: 13px;
-  fill: ${({ theme }) => theme.neutral1};
-`;
+const Tooltip = ({ children, ...props }: any) => (
+  <text
+    className="text-[13px] fill-[#FFFFFF]"
+    style={{
+      "text-anchor": "middle",
+    }}
+    {...props}
+  >
+    {children}
+  </text>
+);
 
 // flips the handles draggers when close to the container edges
 const FLIP_HANDLE_THRESHOLD_PX = 20;

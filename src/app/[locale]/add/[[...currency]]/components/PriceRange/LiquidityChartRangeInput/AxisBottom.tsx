@@ -1,17 +1,15 @@
 import { Axis as d3Axis, axisBottom, NumberValue, ScaleLinear, select } from "d3";
 import { useMemo } from "react";
-import styled from "styled-components";
 
-const StyledGroup = styled.g`
-  line {
-    display: none;
-  }
-
-  text {
-    color: ${({ theme }) => theme.neutral2};
-    transform: translateY(5px);
-  }
-`;
+const StyledGroup = ({ children, transform, ...props }: { children: any; transform: string }) => (
+  <g
+    transform={transform}
+    className="[&_text]:text-[#9B9B9B] [&_text]:translate-y-[5px] [&_line]:hidden"
+    {...props}
+  >
+    {children}
+  </g>
+);
 
 const Axis = ({ axisGenerator }: { axisGenerator: d3Axis<NumberValue> }) => {
   const axisRef = (axis: SVGGElement) => {

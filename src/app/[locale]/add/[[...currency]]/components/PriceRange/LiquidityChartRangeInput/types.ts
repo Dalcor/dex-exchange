@@ -1,3 +1,5 @@
+import { ZoomLevels } from "../../../hooks/types";
+
 export enum Bound {
   LOWER = "LOWER",
   UPPER = "UPPER",
@@ -18,13 +20,6 @@ interface Margins {
   right: number;
   bottom: number;
   left: number;
-}
-
-export interface ZoomLevels {
-  initialMin: number;
-  initialMax: number;
-  min: number;
-  max: number;
 }
 
 export interface LiquidityChartRangeInputProps {

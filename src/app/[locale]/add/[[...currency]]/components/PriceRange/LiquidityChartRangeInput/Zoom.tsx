@@ -1,19 +1,24 @@
 import { ScaleLinear, select, zoom, ZoomBehavior, zoomIdentity, ZoomTransform } from "d3";
-import { useEffect, useMemo, useRef } from "react";
-import styled from "styled-components";
+import { forwardRef, useEffect, useMemo, useRef } from "react";
 
 import ZoomButton from "@/components/buttons/ZoomButton";
 
-import { ZoomLevels } from "./types";
+import { ZoomLevels } from "../../../hooks/types";
 
-export const ZoomOverlay = styled.rect`
-  fill: transparent;
-  // cursor: grab;
-
-  &:active {
-    cursor: grabbing;
-  }
-`;
+export const ZoomOverlay = forwardRef(
+  ({ height, width, ...props }: { height: number; width: number }, ref: any) => (
+    <rect
+      ref={ref}
+      className="fill-transparent cursor-grab active:cursor-grabbing"
+      style={{
+        height,
+        width,
+      }}
+      {...props}
+    />
+  ),
+);
+ZoomOverlay.displayName = "ZoomOverlay";
 
 export default function Zoom({
   svg,

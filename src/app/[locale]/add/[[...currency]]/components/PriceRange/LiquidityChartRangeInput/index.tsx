@@ -1,58 +1,20 @@
-// import { Currency, Price, Token } from "@uniswap/sdk-core";
-// import { FeeAmount } from "@uniswap/v3-sdk";
-// import { AutoColumn, ColumnCenter } from "components/Column";
-// import Loader from "components/Icons/LoadingSpinner";
-// import { useColor } from "hooks/useColor";
-// import { saturate } from "polished";
 import { ReactNode, useCallback, useMemo } from "react";
-// import { Bound } from "state/mint/v3/actions";
-import styled, { useTheme } from "styled-components";
 
-// import { ThemedText } from "theme/components";
-// import { useFormatter } from "utils/formatNumbers";
 import { FeeAmount } from "@/sdk";
 import { Currency } from "@/sdk/entities/currency";
 import { Price } from "@/sdk/entities/fractions/price";
 import { Token } from "@/sdk/entities/token";
 
+import { ZOOM_LEVELS } from "../../../hooks/types";
 import { Chart } from "./Chart";
 import { formatDelta, useDensityChartData } from "./hooks";
-import { Bound, ZoomLevels } from "./types";
+import { Bound } from "./types";
 
-const ZOOM_LEVELS: Record<FeeAmount, ZoomLevels> = {
-  [FeeAmount.LOWEST]: {
-    initialMin: 0.999,
-    initialMax: 1.001,
-    min: 0.00001,
-    max: 1.5,
-  },
-  [FeeAmount.LOW]: {
-    initialMin: 0.999,
-    initialMax: 1.001,
-    min: 0.00001,
-    max: 1.5,
-  },
-  [FeeAmount.MEDIUM]: {
-    initialMin: 0.5,
-    initialMax: 2,
-    min: 0.00001,
-    max: 20,
-  },
-  [FeeAmount.HIGH]: {
-    initialMin: 0.5,
-    initialMax: 2,
-    min: 0.00001,
-    max: 20,
-  },
-};
-
-const ChartWrapper = styled.div`
-  position: relative;
-  width: 100%;
-  max-height: 200px;
-  justify-content: center;
-  align-content: center;
-`;
+const ChartWrapper = ({ children, ...props }: any) => (
+  <div className="relative w-full max-h-[200px] justify-center items-center" {...props}>
+    {children}
+  </div>
+);
 
 function InfoBox({ message, icon }: { message?: ReactNode; icon: ReactNode }) {
   return (
@@ -92,8 +54,6 @@ export default function LiquidityChartRangeInput({
   onRightRangeInput: (typedValue: string) => void;
   interactive: boolean;
 }) {
-  const theme = useTheme();
-
   // const tokenAColor = useColor(currencyA);
   // const tokenBColor = useColor(currencyB);
 

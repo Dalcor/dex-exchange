@@ -49,7 +49,7 @@ export const SelectButton = forwardRef(
         {withArrow && (
           <Svg
             className={clsx(isOpen ? "-rotate-180" : "", "duration-200", "flex-shrink-0")}
-            iconName="expand-arrow"
+            iconName="small-expand-arrow"
           />
         )}
       </button>

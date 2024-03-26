@@ -1,10 +1,19 @@
 "use client";
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, parseUnits } from "viem";
-import { useAccount, useBalance, useBlockNumber, useChainId, useWalletClient } from "wagmi";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Address, formatUnits, getAbiItem, parseUnits } from "viem";
+import {
+  useAccount,
+  useBalance,
+  useBlockNumber,
+  useChainId,
+  usePublicClient,
+  useWalletClient,
+} from "wagmi";
 
 import { tryParseCurrencyAmount } from "@/app/[locale]/add/[[...currency]]/components/DepositAmount";
+import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
@@ -16,7 +25,10 @@ import SystemIconButton from "@/components/buttons/SystemIconButton";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import RecentTransaction from "@/components/others/RecentTransaction";
+import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokenInput from "@/components/others/TokenInput";
+import { ERC20_ABI } from "@/config/abis/erc20";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import useAllowance from "@/hooks/useAllowance";
@@ -24,6 +36,12 @@ import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { FeeAmount } from "@/sdk";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
+import {
+  GasFeeModel,
+  RecentTransactionTitleTemplate,
+  useRecentTransactionsStore,
+} from "@/stores/useRecentTransactionsStore";
+import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 //sepolia v3 addresses I found
@@ -40,7 +58,56 @@ import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStor
 
 const quoterAddress = "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3";
 const swapAddress = "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E";
+
+function SwapActionButton() {
+  const { tokenA, tokenB } = useSwapTokensStore();
+  const { typedValue } = useSwapAmountsStore();
+
+  const { handleSwap } = useSwap();
+
+  const {
+    isAllowed: isAllowedA,
+    writeTokenApprove: approveA,
+    isApproving: isApprovingA,
+  } = useAllowance({
+    token: tokenA,
+    contractAddress: swapAddress,
+    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
+  });
+
+  if (!tokenA || !tokenB) {
+    return (
+      <Button variant="outline" fullWidth disabled>
+        Select tokens
+      </Button>
+    );
+  }
+
+  if (!typedValue) {
+    return (
+      <Button variant="outline" fullWidth disabled>
+        Enter amount
+      </Button>
+    );
+  }
+
+  if (!isAllowedA) {
+    return (
+      <Button fullWidth variant="outline" onClick={() => approveA()}>
+        {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
+      </Button>
+    );
+  }
+
+  return (
+    <Button onClick={handleSwap} fullWidth>
+      Swap
+    </Button>
+  );
+}
 export default function SwapPage() {
+  useRecentTransactionTracking();
+
   const t = useTranslations("Trade");
 
   const [isOpenedFee, setIsOpenedFee] = useState(false);
@@ -48,16 +115,10 @@ export default function SwapPage() {
 
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
-  const chainId = useChainId();
   const { slippage, deadline: _deadline } = useTransactionSettingsStore();
   const deadline = useTransactionDeadline(_deadline);
 
   const { address } = useAccount();
-
-  const balance = useBalance({
-    chainId,
-    address,
-  });
 
   const lang = useLocale();
 
@@ -123,147 +184,135 @@ export default function SwapPage() {
       return "";
     }
 
-    return +trade.outputAmount.toSignificant() * (1 - slippage / 10);
+    return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
   }, [slippage, trade]);
 
   console.log("output");
   console.log(output);
 
-  const { data: walletClient } = useWalletClient();
+  const { transactions } = useRecentTransactionsStore();
 
-  const handleSwap = useCallback(async () => {
-    if (!walletClient || !address || !tokenA || !tokenB || !trade || !output) {
-      return;
+  const _transactions = useMemo(() => {
+    if (address && transactions[address]) {
+      return transactions[address];
     }
 
-    const res = await walletClient.writeContract({
-      address: swapAddress,
-      abi: ROUTER_ABI,
-      functionName: "exactInputSingle",
-      args: [
-        {
-          tokenIn: tokenA.address as Address,
-          tokenOut: tokenB.address as Address,
-          fee: FeeAmount.LOW,
-          recipient: address,
-          amountIn: parseUnits(typedValue, 18),
-          amountOutMinimum: parseUnits(output.toString(), 18),
-          sqrtPriceLimitX96: BigInt(0),
-        },
-      ],
-    });
+    return [];
+  }, [address, transactions]);
 
-    console.log(res);
-  }, [address, output, tokenA, tokenB, trade, typedValue, walletClient]);
-
-  const {
-    isAllowed: isAllowedA,
-    writeTokenApprove: approveA,
-    isApproving: isApprovingA,
-  } = useAllowance({
-    token: tokenA,
-    contractAddress: swapAddress,
-    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
-  });
-
-  console.log(isAllowedA, "isAllowedA");
+  const [effect, setEffect] = useState(false);
 
   return (
     <>
       <Container>
-        <div className="py-[80px] flex justify-center">
-          <div className="grid gap-5 w-[600px]">
-            <div>
-              <div className="flex justify-between rounded-t-1 bg-tertiary-bg border-secondary-border border py-2 px-5">
-                <div className="flex items-center gap-2.5">
-                  <Svg iconName="wallet" size={32} />
-                  Wallet balance: {balance?.data?.formatted} ETH
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-green">
-                    <Svg iconName="check" size={32} />
-                  </span>
-                  <Tooltip text="Wallet balance tooltip" />
-                </div>
-              </div>
-              <div className="flex justify-between items-center bg-primary-bg rounded-b-1 text-secondary-text border-secondary-border border border-t-0 py-2 px-5">
-                <div className="flex items-center gap-2.5">
-                  <Svg iconName="borrow" size={32} />
-                  Borrowed balance: 0 ETH
-                </div>
-                <Tooltip text="Wallet balance tooltip" />
+        <div className="grid grid-cols-2 py-[80px]">
+          <div className="px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
+            <div className="flex justify-between items-center mb-2.5">
+              <h3 className="font-bold text-20">Transactions</h3>
+              <div className="flex items-center">
+                <SystemIconButton iconSize={24} iconName="close" onClick={() => setIsOpen(true)} />
               </div>
             </div>
-
-            <div className="px-5 pt-2.5 pb-5 bg-primary-bg rounded-2 border border-secondary-border">
-              <div className="flex justify-between items-center mb-2.5">
-                <h3 className="font-bold text-20">Swap</h3>
-                <SystemIconButton
-                  iconSize={32}
-                  iconName="settings"
-                  onClick={() => setIsOpen(true)}
-                />
-              </div>
-              <TokenInput
-                value={typedValue}
-                onInputChange={(value) =>
-                  setTypedValue({ typedValue: value, field: Field.CURRENCY_A })
-                }
-                handleClick={() => {
-                  setCurrentlyPicking("tokenA");
-                  setIsOpenedTokenPick(true);
-                }}
-                token={tokenA}
-                balance={tokenABalance?.formatted}
-              />
-              <div className="relative h-3">
-                <button className="text-secondary-text w-[48px] h-[48px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary-bg rounded-1 flex items-center justify-center border border-primary-border hover:bg-green duration-200 hover:text-global-bg hover:border-green">
-                  <Svg iconName="swap" />
-                </button>
-              </div>
-              <TokenInput
-                value={dependentAmount?.toSignificant() || ""}
-                onInputChange={(value) => null}
-                handleClick={() => {
-                  setCurrentlyPicking("tokenB");
-                  setIsOpenedTokenPick(true);
-                }}
-                token={tokenB}
-                balance={tokenBBalance?.formatted}
-              />
-
-              <div className="my-3 py-3 px-5 border border-primary-border flex justify-between">
-                <div className="flex items-center gap-1">
-                  <Tooltip text="Network fee" />
-                  Network fee
+            <div>
+              {_transactions.length ? (
+                <div className="min-h-[324px] flex flex-col gap-1">
+                  {_transactions.map((transaction) => {
+                    return <RecentTransaction transaction={transaction} key={transaction.hash} />;
+                  })}
                 </div>
-                <div className="flex gap-1">
+              ) : (
+                <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
+                  <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
                   <span className="text-secondary-text">
-                    <Svg iconName="gas" />
+                    All transaction will be displayed here.
                   </span>
-                  <span className="mr-1">$1.95</span>
-                  <button
-                    className="duration-200 text-green hover:text-green-hover"
-                    onClick={() => setIsOpenedFee(true)}
-                  >
-                    EDIT
-                  </button>
-                  <NetworkFeeConfigDialog isOpen={isOpenedFee} setIsOpen={setIsOpenedFee} />
                 </div>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <div className="grid gap-5 w-[600px]">
+              <div className="px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
+                <div className="flex justify-between items-center mb-2.5">
+                  <h3 className="font-bold text-20">Swap</h3>
+                  <div className="flex items-center">
+                    <SystemIconButton
+                      iconSize={24}
+                      iconName="recent-transactions"
+                      onClick={() => setIsOpen(true)}
+                    />
+                    <SystemIconButton
+                      iconSize={24}
+                      iconName="settings"
+                      onClick={() => setIsOpen(true)}
+                    />
+                  </div>
+                </div>
+                <TokenInput
+                  value={typedValue}
+                  onInputChange={(value) =>
+                    setTypedValue({ typedValue: value, field: Field.CURRENCY_A })
+                  }
+                  handleClick={() => {
+                    setCurrentlyPicking("tokenA");
+                    setIsOpenedTokenPick(true);
+                  }}
+                  token={tokenA}
+                  balance={tokenABalance?.formatted}
+                  label="You pay"
+                />
+                <div className="relative h-3 z-10">
+                  <button
+                    onClick={() => {
+                      setEffect(true);
+                    }}
+                    className="border-[3px] text-green border-tertiary-bg outline outline-tertiary-bg  w-10 h-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary-bg rounded-full flex items-center justify-center duration-200 hover:outline-green hover:shadow-checkbox"
+                  >
+                    <Svg
+                      className={effect ? "animate-swap" : ""}
+                      onAnimationEnd={() => setEffect(false)}
+                      iconName="swap"
+                    />
+                  </button>
+                </div>
+                <TokenInput
+                  value={dependentAmount?.toSignificant() || ""}
+                  onInputChange={(value) => null}
+                  handleClick={() => {
+                    setCurrentlyPicking("tokenB");
+                    setIsOpenedTokenPick(true);
+                  }}
+                  token={tokenB}
+                  balance={tokenBBalance?.formatted}
+                  label="You receive"
+                />
+
+                <div className="my-3 py-3 px-5 border border-primary-border flex justify-between">
+                  <div className="flex items-center gap-1">
+                    <Tooltip text="Network fee" />
+                    Network fee
+                  </div>
+                  <div className="flex gap-1">
+                    <span className="text-secondary-text">
+                      <Svg iconName="gas" />
+                    </span>
+                    <span className="mr-1">$1.95</span>
+                    <button
+                      className="duration-200 text-green hover:text-green-hover"
+                      onClick={() => setIsOpenedFee(true)}
+                    >
+                      EDIT
+                    </button>
+                    <NetworkFeeConfigDialog isOpen={isOpenedFee} setIsOpen={setIsOpenedFee} />
+                  </div>
+                </div>
+                <SwapActionButton />
               </div>
-              <div className="grid gap-2 mb-2 grid-cols-2">
-                {!isAllowedA && (
-                  <Button variant="outline" fullWidth onClick={() => approveA()}>
-                    {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
-                  </Button>
-                )}
-              </div>
-              <Button onClick={handleSwap} fullWidth>
-                Swap
-              </Button>
+              <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
             </div>
           </div>
         </div>
+
         <PickTokenDialog
           handlePick={handlePick}
           isOpen={isOpenedTokenPick}

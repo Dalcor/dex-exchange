@@ -100,6 +100,10 @@ export const svgIconsNames = [
   "download",
   "list",
   "recent-transactions",
+  "collect",
+  "deposit",
+  "withdraw",
+  "small-expand-arrow",
 ] as const;
 
 export const socialIconNames = ["twitter"] as const;

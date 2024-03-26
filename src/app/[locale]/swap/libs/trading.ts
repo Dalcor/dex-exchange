@@ -16,6 +16,7 @@ import { Trade } from "@/sdk/entities/trade";
 export type TokenTrade = Trade<Currency, Currency, TradeType>;
 
 // Trading Functions
+const quoterAddress = "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3";
 
 export function useTrade(): TokenTrade | null {
   const { tokenA, tokenB, setTokenA, setTokenB } = useSwapTokensStore();
@@ -33,7 +34,7 @@ export function useTrade(): TokenTrade | null {
   }, [pool, tokenA, tokenB]);
 
   const amountOutData = useSimulateContract({
-    address: "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3",
+    address: quoterAddress,
     abi: QUOTER_ABI,
     functionName: "quoteExactInputSingle",
     args: [

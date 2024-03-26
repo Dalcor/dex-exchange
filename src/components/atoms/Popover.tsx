@@ -55,7 +55,7 @@ export default function Popover({
         <FloatingFocusManager context={context} modal={false}>
           <div
             ref={refs.setFloating}
-            style={{ ...floatingStyles, ...transitionStyles, zIndex: 2 }}
+            style={{ ...floatingStyles, ...transitionStyles, zIndex: 20 }}
             {...getFloatingProps()}
           >
             {children}

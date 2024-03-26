@@ -8,7 +8,7 @@ interface TransactionSettingsStore {
 }
 
 export const useTransactionSettingsStore = create<TransactionSettingsStore>((set, get) => ({
-  slippage: 0.5,
+  slippage: 12,
   deadline: 20,
 
   setSlippage: (slippage) => set({ slippage }),

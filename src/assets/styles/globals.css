@@ -24,7 +24,7 @@ body {
   background: rgba(0, 0, 0, 0.7);
   display: grid;
   place-items: center;
-  /*z-index: 88;*/
+  z-index: 88;
 }
 
 @keyframes appear {

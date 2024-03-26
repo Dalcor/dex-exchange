@@ -1,18 +1,22 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import JSBI from "jsbi";
 import { useCallback, useMemo, useState } from "react";
-import { Address } from "viem";
+import { Address, formatUnits, getAbiItem } from "viem";
 import {
   useAccount,
   useBlockNumber,
+  usePublicClient,
   useReadContract,
   useReadContracts,
   useSimulateContract,
+  useWalletClient,
   useWriteContract,
 } from "wagmi";
 
+import { ERC20_ABI } from "@/config/abis/erc20";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
+import { WrappedToken } from "@/config/types/WrappedToken";
 import { usePool } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
@@ -23,6 +27,11 @@ import { Price } from "@/sdk/entities/fractions/price";
 import { Pool } from "@/sdk/entities/pool";
 import { Position } from "@/sdk/entities/position";
 import { toHex } from "@/sdk/utils/calldata";
+import {
+  GasFeeModel,
+  RecentTransactionTitleTemplate,
+  useRecentTransactionsStore,
+} from "@/stores/useRecentTransactionsStore";
 
 export type PositionInfo = {
   nonce: bigint;
@@ -191,6 +200,12 @@ export function usePositionFees(
   fees: [CurrencyAmount<Currency>, CurrencyAmount<Currency>] | [undefined, undefined];
   handleCollectFees: () => void;
 } {
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
+
+  const { address, chainId } = useAccount();
+  const { addRecentTransaction } = useRecentTransactionsStore();
+
   const result = useReadContract({
     address: nonFungiblePositionManagerAddress,
     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
@@ -222,11 +237,15 @@ export function usePositionFees(
 
   const { writeContract } = useWriteContract();
 
-  const handleCollectFees = useCallback(() => {
-    writeContract({
+  const handleCollectFees = useCallback(async () => {
+    if (!publicClient || !walletClient || !chainId || !address || !pool || !collectResult) {
+      return;
+    }
+
+    const params = {
       address: nonFungiblePositionManagerAddress,
       abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-      functionName: "collect",
+      functionName: "collect" as "collect",
       args: [
         {
           tokenId: tokenId!,
@@ -234,10 +253,66 @@ export function usePositionFees(
           amount0Max: MAX_UINT128,
           amount1Max: MAX_UINT128,
         },
-      ],
+      ] as any,
+    };
+
+    const estimatedGas = await publicClient.estimateContractGas(params);
+
+    const { request } = await publicClient.simulateContract({
+      ...params,
+      gas: estimatedGas + BigInt(30000),
     });
-    addToast("Submitted");
-  }, [result.data, tokenId, writeContract]);
+    const hash = await walletClient.writeContract(request);
+
+    const nonce = await publicClient.getTransactionCount({
+      address,
+      blockTag: "pending",
+    });
+
+    addRecentTransaction(
+      {
+        hash,
+        nonce,
+        chainId,
+        gas: {
+          model: GasFeeModel.EIP1559,
+          gas: estimatedGas + BigInt(30000),
+          maxFeePerGas: undefined,
+          maxPriorityFeePerGas: undefined,
+        },
+        params: {
+          ...params,
+          abi: [getAbiItem({ name: "collect", abi: NONFUNGIBLE_POSITION_MANAGER_ABI })],
+        },
+        title: {
+          template: RecentTransactionTitleTemplate.COLLECT,
+          symbol0: pool.token0.symbol!,
+          symbol1: pool.token1.symbol!,
+          amount0: CurrencyAmount.fromRawAmount(
+            pool.token0,
+            collectResult.result[0].toString(),
+          ).toSignificant(2),
+          amount1: CurrencyAmount.fromRawAmount(
+            pool.token1,
+            collectResult.result[1].toString(),
+          ).toSignificant(2),
+          logoURI0: (pool?.token0 as WrappedToken).logoURI!,
+          logoURI1: (pool?.token1 as WrappedToken).logoURI!,
+        },
+      },
+      address,
+    );
+  }, [
+    addRecentTransaction,
+    address,
+    chainId,
+    collectResult,
+    pool,
+    publicClient,
+    result.data,
+    tokenId,
+    walletClient,
+  ]);
 
   return {
     fees:

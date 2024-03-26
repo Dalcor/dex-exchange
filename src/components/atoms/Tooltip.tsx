@@ -73,7 +73,7 @@ export default function Tooltip({ text, iconSize = 24 }: Props) {
       <FloatingPortal>
         {isMounted && (
           <div
-            className="py-3 px-5 bg-primary-bg border border-primary-border rounded-2 max-w-[400px] shadow-tooltip relative"
+            className="py-3 px-5 bg-primary-bg border border-primary-border rounded-2 max-w-[400px] shadow-tooltip relative z-20"
             ref={refs.setFloating}
             style={{ ...floatingStyles, ...transitionStyles }}
             {...getFloatingProps()}

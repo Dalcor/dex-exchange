@@ -17,15 +17,22 @@ const config: Config = {
         "account-card-pattern": "url('/account-bg.svg')",
         "drag-and-drop-dashed-pattern":
           "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='8' ry='8' stroke='%2370C59EFF' stroke-width='1' stroke-dasharray='8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e\")",
+        "standard-gradient": "linear-gradient(90deg, #3C4C4A 0%, #0F0F0F 100%)",
       },
       keyframes: {
         orbit: {
           "0%": { transform: "rotate(0deg)" },
           "80%, 100%": { transform: "rotate(360deg)" },
         },
+        swap: {
+          "0%": { transform: "rotate(0deg)" },
+          "50%": { transform: "rotate(-90deg)" },
+          "100%": { transform: "rotate(0deg)" },
+        },
       },
       animation: {
         orbit: "orbit ease-in-out 1.5s infinite",
+        swap: "swap ease-in-out 0.5s",
       },
       gridTemplateRows: {
         layout: "auto 1fr auto",

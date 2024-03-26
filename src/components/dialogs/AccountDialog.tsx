@@ -3,15 +3,18 @@ import Image from "next/image";
 import React, { ButtonHTMLAttributes, PropsWithChildren, useMemo } from "react";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 
+import Button from "@/components/atoms/Button";
 import ButtonWithIcon from "@/components/atoms/ButtonWithIcon";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Svg from "@/components/atoms/Svg";
+import RecentTransaction from "@/components/others/RecentTransaction";
 import Tab from "@/components/tabs/Tab";
 import Tabs from "@/components/tabs/Tabs";
 import { wallets } from "@/config/wallets";
 import { copyToClipboard } from "@/functions/copyToClipboard";
+import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
 // import { MetaMaskConnector } from "@wagmi/connectors/metaMask";
 // import { KeystoreConnector } from "@/config/connectors/keystore/connector";
 // import { WalletConnectConnector } from "@wagmi/connectors/walletConnect";
@@ -43,6 +46,15 @@ export default function AccountDialog({ isOpen, setIsOpen }: Props) {
 
   const { data } = useBalance({ address });
 
+  const { transactions } = useRecentTransactionsStore();
+
+  const _transactions = useMemo(() => {
+    if (address && transactions[address]) {
+      return transactions[address];
+    }
+
+    return [];
+  }, [address, transactions]);
   // const connectorKey = useMemo(() => {
   //   if(connector instanceof MetaMaskConnector) {
   //     return "metamask";
@@ -118,10 +130,18 @@ export default function AccountDialog({ isOpen, setIsOpen }: Props) {
             </div>
           </Tab>
           <Tab title="History">
-            <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
-              <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
-              <span className="text-secondary-text">All transaction will be displayed here.</span>
-            </div>
+            {_transactions.length ? (
+              <div className="min-h-[324px] flex flex-col gap-1">
+                {_transactions.map((transaction) => {
+                  return <RecentTransaction transaction={transaction} key={transaction.hash} />;
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
+                <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
+                <span className="text-secondary-text">All transaction will be displayed here.</span>
+              </div>
+            )}
           </Tab>
         </Tabs>
       </div>

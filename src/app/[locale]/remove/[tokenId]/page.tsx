@@ -25,6 +25,7 @@ import {
 } from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
 import { Percent } from "@/sdk/entities/fractions/percent";
+import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 export default function DecreaseLiquidityPage({
   params,
 }: {
@@ -32,6 +33,8 @@ export default function DecreaseLiquidityPage({
     tokenId: string;
   };
 }) {
+  useRecentTransactionTracking();
+
   const router = useRouter();
   const { position: positionInfo, loading } = usePositionFromTokenId(BigInt(params.tokenId));
   const position = usePositionFromPositionInfo(positionInfo);

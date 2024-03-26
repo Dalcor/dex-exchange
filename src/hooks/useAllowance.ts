@@ -1,16 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 // import { isNativeToken } from "@/other/isNativeToken";
-import { Abi, Address, formatUnits } from "viem";
+import { Abi, Address, formatUnits, getAbiItem, parseUnits } from "viem";
 import {
   useAccount,
   useBlockNumber,
-  useChainId,
   usePublicClient,
   useReadContract,
-  useSimulateContract,
-  useWaitForTransactionReceipt,
   useWalletClient,
-  useWriteContract,
 } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
@@ -18,6 +14,11 @@ import { ERC20_ABI } from "@/config/abis/erc20";
 // import { useAwaitingDialogStore } from "@/stores/useAwaitingDialogStore";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import addToast from "@/other/toast";
+import {
+  GasFeeModel,
+  RecentTransactionTitleTemplate,
+  useRecentTransactionsStore,
+} from "@/stores/useRecentTransactionsStore";
 
 export default function useAllowance({
   token,
@@ -28,13 +29,14 @@ export default function useAllowance({
   contractAddress: Address | undefined;
   amountToCheck: bigint | null;
 }) {
-  const { address } = useAccount();
+  const { address, chainId } = useAccount();
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   // const {addTransaction} = useRecentTransactionsStore();
-  const { chainId } = useAccount();
   // const {setOpened, setSubmitted, setClose} = useAwaitingDialogStore();
+
+  const { addRecentTransaction } = useRecentTransactionsStore();
 
   const currentAllowance = useReadContract({
     abi: ERC20_ABI,
@@ -140,6 +142,44 @@ export default function useAllowance({
         gas: estimatedGas + BigInt(30000),
       });
       const hash = await walletClient.writeContract(request);
+
+      console.log("TRANSACTION METADATA TO SAVE");
+
+      // console.log("ABI PART:", getAbiItem({ name: "approve", abi: ERC20_ABI }));
+      // console.log("Args:", [contractAddress!, amountToCheck!]);
+      // console.log("Label info:", { symbol: token.symbol });
+      // console.log("functionName", "approve");
+
+      const nonce = await publicClient.getTransactionCount({
+        address,
+        blockTag: "pending",
+      });
+
+      addRecentTransaction(
+        {
+          hash,
+          nonce,
+          chainId,
+          gas: {
+            model: GasFeeModel.EIP1559,
+            gas: estimatedGas + BigInt(30000),
+            maxFeePerGas: undefined,
+            maxPriorityFeePerGas: undefined,
+          },
+          params: {
+            ...params,
+            abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
+          },
+          title: {
+            symbol: token.symbol!,
+            template: RecentTransactionTitleTemplate.APPROVE,
+            amount: formatUnits(amountToCheck, token.decimals),
+            logoURI: token?.logoURI || "/tokens/placeholder.svg",
+          },
+        },
+        address,
+      );
+
       if (hash) {
         // addTransaction({
         //   account: address,
@@ -158,7 +198,16 @@ export default function useAllowance({
       setIsApproving(false);
       addToast("Unexpected error, please contact support", "error");
     }
-  }, [address, amountToCheck, chainId, contractAddress, token, publicClient, walletClient]);
+  }, [
+    amountToCheck,
+    contractAddress,
+    token,
+    walletClient,
+    address,
+    chainId,
+    publicClient,
+    addRecentTransaction,
+  ]);
 
   return {
     isAllowed,

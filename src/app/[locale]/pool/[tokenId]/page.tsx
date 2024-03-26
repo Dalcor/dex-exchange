@@ -26,6 +26,7 @@ import {
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
+import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 
 export default function PoolPage({
   params,
@@ -34,6 +35,8 @@ export default function PoolPage({
     tokenId: string;
   };
 }) {
+  useRecentTransactionTracking();
+
   const router = useRouter();
 
   //TODO: make centralize function instead of boolean useState value to control invert

@@ -127,8 +127,8 @@ export default function IncreaseLiquidityPage({
                 className={clsx(
                   "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
                   showFirst
-                    ? "bg-active-bg border-green text-primary-text"
-                    : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
+                    ? "bg-green-bg border-green text-primary-text"
+                    : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
                 )}
               >
                 {tokenA?.symbol}
@@ -138,8 +138,8 @@ export default function IncreaseLiquidityPage({
                 className={clsx(
                   "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
                   !showFirst
-                    ? "bg-active-bg border-green text-primary-text"
-                    : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
+                    ? "bg-green-bg border-green text-primary-text"
+                    : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
                 )}
               >
                 {tokenB?.symbol}

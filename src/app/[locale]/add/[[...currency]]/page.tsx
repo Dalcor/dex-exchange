@@ -402,8 +402,8 @@ export default function AddPoolPage({
                           className={clsx(
                             "text-12 h-7 rounded-2 min-w-[60px] px-3 border duration-200",
                             isSorted
-                              ? "bg-active-bg border-green text-primary-text"
-                              : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
+                              ? "bg-green-bg border-green text-primary-text"
+                              : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
                           )}
                         >
                           {isSorted ? tokenA?.symbol : tokenB?.symbol}
@@ -421,8 +421,8 @@ export default function AddPoolPage({
                           className={clsx(
                             "text-12 h-7 rounded-2 min-w-[60px] px-3 border duration-200",
                             !isSorted
-                              ? "bg-active-bg border-green text-primary-text"
-                              : "hover:bg-active-bg bg-primary-bg border-transparent text-secondary-text",
+                              ? "bg-green-bg border-green text-primary-text"
+                              : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
                           )}
                         >
                           {isSorted ? tokenB?.symbol : tokenA?.symbol}

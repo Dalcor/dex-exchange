@@ -16,6 +16,7 @@ import { toHex } from "@/sdk/utils/calldata";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
+  stringifyObject,
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
@@ -110,12 +111,12 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
             chainId,
             gas: {
               model: GasFeeModel.EIP1559,
-              gas: estimatedGas + BigInt(30000),
+              gas: (estimatedGas + BigInt(30000)).toString(),
               maxFeePerGas: undefined,
               maxPriorityFeePerGas: undefined,
             },
             params: {
-              ...params,
+              ...stringifyObject(params),
               abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
             },
             title: {

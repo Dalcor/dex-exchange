@@ -12,6 +12,7 @@ const config: Config = {
         tooltip: "0 0 32px 24px rgba(20, 19, 22, 0.50)",
         select: "0 0 10px 0 #8EFFCB99",
         checkbox: "0 0 8px 0 #B3FFE2CC",
+        popup: "0 4px 42px 30px #000000CC",
       },
       backgroundImage: {
         "account-card-pattern": "url('/account-bg.svg')",
@@ -50,16 +51,16 @@ const config: Config = {
 
       green: "#70C59E", // changed
       green_opacity_20: "#70C59E33", // changed
-      red: "#DC4141", // changed
+      red: "#FF8F8F", // changed
       orange: "#D9A251", // changed
       blue: "#64B2EA", // changed
       black: "#000000", // changed
       white: "#FFFFFF", // changed
       purple: "#A380DC", // changed
 
-      "green-bg": "#1A2B23", // changed
-      "red-bg": "#2B1717", // changed
-      "orange-bg": "#292115", // changed
+      "green-bg": "#3C4C4A", // changed
+      "red-bg": "#443535", // changed
+      "orange-bg": "#4A4237", // changed
       "blue-bg": "#14222B", // changed
 
       "global-bg": "#121312", // changed

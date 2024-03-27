@@ -1,4 +1,6 @@
-import { Address, getAbiItem } from "viem";
+import { Address } from "viem";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export enum RecentTransactionStatus {
   PENDING,
@@ -33,12 +35,12 @@ type CommonRecentTransaction = {
 type RecentTransactionGasLimit =
   | {
       model: GasFeeModel.EIP1559;
-      maxFeePerGas: number | undefined;
-      maxPriorityFeePerGas: number | undefined;
+      maxFeePerGas: string | undefined;
+      maxPriorityFeePerGas: string | undefined;
     }
   | {
       model: GasFeeModel.LEGACY;
-      gasPrice: bigint;
+      gasPrice: string;
     };
 
 type SingleTokenTransactionTitle = {
@@ -93,19 +95,13 @@ export type IRecentTransaction = {
   hash: Address;
   nonce: number;
   chainId: number;
-  gas: { gas: bigint } & RecentTransactionGasLimit;
+  gas: { gas: string } & RecentTransactionGasLimit;
   params: IncreaseLiquidityParams | SwapParams | RemoveLiquidityParams | ApproveTokenParams;
   title: IRecentTransactionTitle;
 };
-// | SwapRecentTransaction
-// | RemoveLiquidityRecentTransaction
-// | ApproveTokenRecentTransaction;
 
-import { create } from "zustand";
-
-import { ERC20_ABI } from "@/config/abis/erc20";
-
-interface ManageTokensDialogStore {
+const localStorageKey = "d223_recent_transactions_v1";
+interface RecentTransactions {
   transactions: {
     [key: string]: IRecentTransaction[];
   };
@@ -118,105 +114,120 @@ interface ManageTokensDialogStore {
   clearTransactions: () => void;
 }
 
-export const useRecentTransactionsStore = create<ManageTokensDialogStore>((set, get) => ({
-  transactions: {},
-  addRecentTransaction: (transaction, accountAddress) =>
-    set((state) => {
-      const pendingTransactions = state.transactions[accountAddress]?.find(
-        (t) => t.status === RecentTransactionStatus.PENDING,
-      );
-      const updatedTransactions = { ...state.transactions };
-
-      const currentAccountTransactions = updatedTransactions[accountAddress];
-
-      if (!currentAccountTransactions) {
-        updatedTransactions[accountAddress] = [];
-      }
-
-      // use initial transaction hash as unique ID. Hash field
-      // could be rewrited with speed up or cancel functionality,
-      // so we need one more field to avoid losing transaction reference
-      const uid = transaction.hash;
-
-      if (!pendingTransactions) {
-        updatedTransactions[accountAddress] = [
-          {
-            ...transaction,
-            status: RecentTransactionStatus.PENDING,
-            id: uid,
-          },
-          ...updatedTransactions[accountAddress],
-        ];
-        return { transactions: updatedTransactions, isViewed: false };
-      } else {
-        updatedTransactions[accountAddress] = [
-          {
-            ...transaction,
-            status: RecentTransactionStatus.QUEUED,
-            id: uid,
-          },
-          ...updatedTransactions[accountAddress],
-        ];
-        return { transactions: updatedTransactions, isViewed: false };
-      }
-    }),
-  updateTransactionStatus: (id, status, account) =>
-    set((state) => {
-      const transactionIndex = state.transactions[account].findIndex((_transaction) => {
-        return _transaction.id === id;
-      });
-
-      if (transactionIndex !== -1) {
-        const updatedTransactions = { ...state.transactions };
-        const queuedTransactions = state.transactions[account].filter((t) => {
-          return t.status === RecentTransactionStatus.QUEUED;
-        });
-
-        if (queuedTransactions.length) {
-          const nextQueuedTransaction = queuedTransactions.reduce((prev, curr) => {
-            return prev.nonce < curr.nonce ? prev : curr;
-          });
-          const nextQueuedTransactionIndex = updatedTransactions[account].findIndex(
-            (t) => t.hash === nextQueuedTransaction.hash,
+export function stringifyObject(object: { [key: string]: any }) {
+  return JSON.parse(
+    JSON.stringify(
+      object,
+      (key, value) => (typeof value === "bigint" ? value.toString() : value), // return everything else unchanged
+    ),
+  );
+}
+export const useRecentTransactionsStore = create<RecentTransactions>()(
+  persist(
+    (set) => ({
+      transactions: {},
+      addRecentTransaction: (transaction, accountAddress) =>
+        set((state) => {
+          const pendingTransactions = state.transactions[accountAddress]?.find(
+            (t) => t.status === RecentTransactionStatus.PENDING,
           );
+          const updatedTransactions = { ...state.transactions };
 
-          updatedTransactions[account][nextQueuedTransactionIndex] = {
-            ...state.transactions[account][nextQueuedTransactionIndex],
-            status: RecentTransactionStatus.PENDING,
-          };
-        }
+          const currentAccountTransactions = updatedTransactions[accountAddress];
 
-        updatedTransactions[account][transactionIndex] = {
-          ...state.transactions[account][transactionIndex],
-          status,
-        };
+          if (!currentAccountTransactions) {
+            updatedTransactions[accountAddress] = [];
+          }
 
-        return { transactions: updatedTransactions };
-      }
+          // use initial transaction hash as unique ID. Hash field
+          // could be rewrited with speed up or cancel functionality,
+          // so we need one more field to avoid losing transaction reference
+          const uid = transaction.hash;
 
-      return {};
+          if (!pendingTransactions) {
+            updatedTransactions[accountAddress] = [
+              {
+                ...transaction,
+                status: RecentTransactionStatus.PENDING,
+                id: uid,
+              },
+              ...updatedTransactions[accountAddress],
+            ];
+            return { transactions: updatedTransactions, isViewed: false };
+          } else {
+            updatedTransactions[accountAddress] = [
+              {
+                ...transaction,
+                status: RecentTransactionStatus.QUEUED,
+                id: uid,
+              },
+              ...updatedTransactions[accountAddress],
+            ];
+            return { transactions: updatedTransactions, isViewed: false };
+          }
+        }),
+      updateTransactionStatus: (id, status, account) =>
+        set((state) => {
+          const transactionIndex = state.transactions[account].findIndex((_transaction) => {
+            return _transaction.id === id;
+          });
+
+          if (transactionIndex !== -1) {
+            const updatedTransactions = { ...state.transactions };
+            const queuedTransactions = state.transactions[account].filter((t) => {
+              return t.status === RecentTransactionStatus.QUEUED;
+            });
+
+            if (queuedTransactions.length) {
+              const nextQueuedTransaction = queuedTransactions.reduce((prev, curr) => {
+                return prev.nonce < curr.nonce ? prev : curr;
+              });
+              const nextQueuedTransactionIndex = updatedTransactions[account].findIndex(
+                (t) => t.hash === nextQueuedTransaction.hash,
+              );
+
+              updatedTransactions[account][nextQueuedTransactionIndex] = {
+                ...state.transactions[account][nextQueuedTransactionIndex],
+                status: RecentTransactionStatus.PENDING,
+              };
+            }
+
+            updatedTransactions[account][transactionIndex] = {
+              ...state.transactions[account][transactionIndex],
+              status,
+            };
+
+            return { transactions: updatedTransactions };
+          }
+
+          return {};
+        }),
+      updateTransactionHash: (id, newHash, account) =>
+        set((state) => {
+          const transactionIndex = state.transactions[account].findIndex((_transaction) => {
+            return _transaction.id === id;
+          });
+
+          if (transactionIndex !== -1) {
+            const updatedTransactions = { ...state.transactions };
+
+            updatedTransactions[account][transactionIndex] = {
+              ...state.transactions[account][transactionIndex],
+              hash: newHash,
+            };
+
+            return { transactions: updatedTransactions };
+          }
+
+          return {};
+        }),
+      clearTransactions: () =>
+        set(() => {
+          return { transactions: {} };
+        }),
     }),
-  updateTransactionHash: (id, newHash, account) =>
-    set((state) => {
-      const transactionIndex = state.transactions[account].findIndex((_transaction) => {
-        return _transaction.id === id;
-      });
-
-      if (transactionIndex !== -1) {
-        const updatedTransactions = { ...state.transactions };
-
-        updatedTransactions[account][transactionIndex] = {
-          ...state.transactions[account][transactionIndex],
-          hash: newHash,
-        };
-
-        return { transactions: updatedTransactions };
-      }
-
-      return {};
-    }),
-  clearTransactions: () =>
-    set(() => {
-      return { transactions: {} };
-    }),
-}));
+    {
+      name: localStorageKey,
+    },
+  ),
+);

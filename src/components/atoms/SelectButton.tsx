@@ -32,9 +32,9 @@ export const SelectButton = forwardRef(
           "flex items-center gap-2 duration-[600ms] text-base text-primary-text",
           variant === "rectangle-primary" && "rounded-1 bg-primary-bg hover:bg-tertiary-hover",
           variant === "rounded-primary" &&
-            "rounded-[80px] border border-transparent bg-primary-bg hover:bg-active-bg hover:shadow-select hover:border-green",
+            "rounded-[80px] border border-transparent bg-primary-bg hover:bg-green-bg hover:shadow-select hover:border-green",
           variant === "rounded-secondary" &&
-            "rounded-[80px] border border-transparent bg-secondary-bg hover:bg-active-bg hover:shadow-select hover:border-green",
+            "rounded-[80px] border border-transparent bg-secondary-bg hover:bg-green-bg hover:shadow-select hover:border-green",
           !withArrow && "px-2",
           withArrow && size === "regular" && "pl-5 pr-2",
           withArrow && size === "large" && "px-5",

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Address, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
@@ -10,6 +10,7 @@ import { FeeAmount } from "@/sdk";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
+  stringifyObject,
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
@@ -65,13 +66,14 @@ export default function useSwap() {
       ] as any,
     };
 
-    const estimatedGas = await publicClient.estimateContractGas(params);
+    const estimatedGas = await publicClient.estimateContractGas({ ...params, account: address });
 
     const { request } = await publicClient.simulateContract({
       ...params,
+      account: address,
       gas: estimatedGas + BigInt(30000),
     });
-    const hash = await walletClient.writeContract(params);
+    const hash = await walletClient.writeContract(request);
 
     const nonce = await publicClient.getTransactionCount({
       address,
@@ -86,12 +88,12 @@ export default function useSwap() {
           chainId,
           gas: {
             model: GasFeeModel.EIP1559,
-            gas: BigInt(30000),
+            gas: (estimatedGas + BigInt(30000)).toString(),
             maxFeePerGas: undefined,
             maxPriorityFeePerGas: undefined,
           },
           params: {
-            ...params,
+            ...stringifyObject(params),
             abi: [getAbiItem({ name: "exactInputSingle", abi: ROUTER_ABI })],
           },
           title: {

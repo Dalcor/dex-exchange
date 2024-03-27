@@ -22,8 +22,8 @@ function FeeAmountOption({ feeAmount, active = false, ...props }: FeeAmountOptio
       className={clsx(
         "flex justify-between items-center px-5 py-2 rounded-1 border cursor-pointer  duration-200",
         active
-          ? "bg-active-bg shadow-select border-green pointer-events-none"
-          : "border-transparent bg-primary-bg hover:bg-active-bg",
+          ? "bg-green-bg shadow-select border-green pointer-events-none"
+          : "border-transparent bg-primary-bg hover:bg-green-bg",
       )}
     >
       <div className="flex items-center gap-2">
@@ -51,7 +51,7 @@ export default function FeeAmountSettings() {
         onClick={() => setIsFeeOpened(!isFeeOpened)}
         className={clsx(
           "flex justify-between items-center pb-[18px] pt-5 px-5 rounded-3 duration-200",
-          !isFeeOpened && "hover:bg-active-bg",
+          !isFeeOpened && "hover:bg-green-bg",
         )}
       >
         <div className="flex items-center gap-2">

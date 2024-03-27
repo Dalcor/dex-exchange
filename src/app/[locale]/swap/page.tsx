@@ -1,16 +1,10 @@
 "use client";
+import clsx from "clsx";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, formatUnits, getAbiItem, parseUnits } from "viem";
-import {
-  useAccount,
-  useBalance,
-  useBlockNumber,
-  useChainId,
-  usePublicClient,
-  useWalletClient,
-} from "wagmi";
+import { Address, parseUnits } from "viem";
+import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
 import { tryParseCurrencyAmount } from "@/app/[locale]/add/[[...currency]]/components/DepositAmount";
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
@@ -28,19 +22,12 @@ import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/u
 import RecentTransaction from "@/components/others/RecentTransaction";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokenInput from "@/components/others/TokenInput";
-import { ERC20_ABI } from "@/config/abis/erc20";
-import { ROUTER_ABI } from "@/config/abis/router";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
-import { FeeAmount } from "@/sdk";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
-import {
-  GasFeeModel,
-  RecentTransactionTitleTemplate,
-  useRecentTransactionsStore,
-} from "@/stores/useRecentTransactionsStore";
+import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
 import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
@@ -109,6 +96,8 @@ export default function SwapPage() {
   useRecentTransactionTracking();
 
   const t = useTranslations("Trade");
+
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
 
   const [isOpenedFee, setIsOpenedFee] = useState(false);
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
@@ -205,31 +194,41 @@ export default function SwapPage() {
   return (
     <>
       <Container>
-        <div className="grid grid-cols-2 py-[80px]">
-          <div className="px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
-            <div className="flex justify-between items-center mb-2.5">
-              <h3 className="font-bold text-20">Transactions</h3>
-              <div className="flex items-center">
-                <SystemIconButton iconSize={24} iconName="close" onClick={() => setIsOpen(true)} />
+        <div className={clsx("grid py-[80px]", showRecentTransactions ? "grid-cols-2" : "")}>
+          {showRecentTransactions && (
+            <div>
+              <div className="px-10 pt-2.5 bg-primary-bg rounded-5">
+                <div className="flex justify-between items-center mb-2.5">
+                  <h3 className="font-bold text-20">Transactions</h3>
+                  <div className="flex items-center">
+                    <SystemIconButton
+                      iconSize={24}
+                      iconName="close"
+                      onClick={() => setShowRecentTransactions(false)}
+                    />
+                  </div>
+                </div>
+                <div>
+                  {_transactions.length ? (
+                    <div className="pb-10 flex flex-col gap-1">
+                      {_transactions.map((transaction) => {
+                        return (
+                          <RecentTransaction transaction={transaction} key={transaction.hash} />
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
+                      <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
+                      <span className="text-secondary-text">
+                        All transaction will be displayed here.
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-            <div>
-              {_transactions.length ? (
-                <div className="min-h-[324px] flex flex-col gap-1">
-                  {_transactions.map((transaction) => {
-                    return <RecentTransaction transaction={transaction} key={transaction.hash} />;
-                  })}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
-                  <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
-                  <span className="text-secondary-text">
-                    All transaction will be displayed here.
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
           <div className="flex justify-center">
             <div className="grid gap-5 w-[600px]">
               <div className="px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
@@ -239,7 +238,7 @@ export default function SwapPage() {
                     <SystemIconButton
                       iconSize={24}
                       iconName="recent-transactions"
-                      onClick={() => setIsOpen(true)}
+                      onClick={() => setShowRecentTransactions(!showRecentTransactions)}
                     />
                     <SystemIconButton
                       iconSize={24}
@@ -265,6 +264,12 @@ export default function SwapPage() {
                   <button
                     onClick={() => {
                       setEffect(true);
+                      setTokenB(tokenA);
+                      setTokenA(tokenB);
+                      setTypedValue({
+                        typedValue: dependentAmount?.toSignificant() || "",
+                        field: Field.CURRENCY_A,
+                      });
                     }}
                     className="border-[3px] text-green border-tertiary-bg outline outline-tertiary-bg  w-10 h-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary-bg rounded-full flex items-center justify-center duration-200 hover:outline-green hover:shadow-checkbox"
                   >

@@ -30,6 +30,7 @@ import { toHex } from "@/sdk/utils/calldata";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
+  stringifyObject,
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 
@@ -276,12 +277,12 @@ export function usePositionFees(
         chainId,
         gas: {
           model: GasFeeModel.EIP1559,
-          gas: estimatedGas + BigInt(30000),
+          gas: (estimatedGas + BigInt(30000)).toString(),
           maxFeePerGas: undefined,
           maxPriorityFeePerGas: undefined,
         },
         params: {
-          ...params,
+          ...stringifyObject(params),
           abi: [getAbiItem({ name: "collect", abi: NONFUNGIBLE_POSITION_MANAGER_ABI })],
         },
         title: {

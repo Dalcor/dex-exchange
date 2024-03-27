@@ -17,6 +17,7 @@ import addToast from "@/other/toast";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
+  stringifyObject,
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 
@@ -162,12 +163,12 @@ export default function useAllowance({
           chainId,
           gas: {
             model: GasFeeModel.EIP1559,
-            gas: estimatedGas + BigInt(30000),
+            gas: (estimatedGas + BigInt(30000)).toString(),
             maxFeePerGas: undefined,
             maxPriorityFeePerGas: undefined,
           },
           params: {
-            ...params,
+            ...stringifyObject(params),
             abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
           },
           title: {

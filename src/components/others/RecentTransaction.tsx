@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { ButtonHTMLAttributes, PropsWithChildren } from "react";
 
 import Button from "@/components/atoms/Button";
-import Preloader from "@/components/atoms/Preloader";
+import Preloader, { CircularProgress } from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
 import {
@@ -28,7 +28,7 @@ function RecentTransactionActionButton({
       className={clsx(
         "h-8 rounded-5 border px-6 disabled:border-secondary-border disabled:text-placeholder-text duration-300 ease-in-out disabled:pointer-events-none",
         color === "primary"
-          ? "border-green text-primary-text hover:bg-active-bg hover:border-green-hover"
+          ? "border-green text-primary-text hover:bg-green-bg hover:border-green-hover"
           : "border-primary-border text-secondary-text hover:border-primary-text hover:text-primary-text hover:bg-red-bg",
       )}
     >

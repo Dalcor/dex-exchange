@@ -134,3 +134,41 @@ input[type="range"]:focus::-moz-range-thumb {
   outline: 12px solid theme("colors.green_opacity_20");
 }
 
+.MuiCircularProgressIndeterminate {
+  display: inline-block;
+  animation-duration: 1.4s;
+  animation-timing-function: linear;
+  animation-delay: 0s;
+  animation-iteration-count: infinite;
+  animation-direction: normal;
+  animation-fill-mode: none;
+  animation-play-state: running;
+  animation-name: MuiCircularProgress-keyframes-circular-rotate;
+}
+
+.MuiCircularProgressCircleIndeterminate {
+  animation: MuiCircularProgress-keyframes-circular-dash 1.4s ease-in-out infinite;
+  stroke-dasharray: 80px, 200px;
+  stroke-dashoffset: 0;
+}
+
+@keyframes MuiCircularProgress-keyframes-circular-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes MuiCircularProgress-keyframes-circular-dash {
+  0% {
+    stroke-dasharray: 1px, 200px;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 100px, 200px;
+    stroke-dashoffset: -15px;
+  }
+  100% {
+    stroke-dasharray: 100px, 200px;
+    stroke-dashoffset: -125px;
+  }
+}

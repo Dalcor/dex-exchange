@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Address, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useChainId, useWalletClient } from "wagmi";
 
-import { tryParseCurrencyAmount } from "@/app/[locale]/add/[[...currency]]/components/DepositAmount";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
@@ -19,6 +18,7 @@ import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/u
 import TokenInput from "@/components/others/TokenInput";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { WrappedToken } from "@/config/types/WrappedToken";
+import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { FeeAmount } from "@/sdk";

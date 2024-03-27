@@ -6,8 +6,8 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Address } from "viem";
 
-import PositionLiquidityCard from "@/app/[locale]/add/[[...currency]]/components/PositionLiquidityCard";
-import PositionPriceRangeCard from "@/app/[locale]/add/[[...currency]]/components/PositionPriceRangeCard";
+import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
+import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";

@@ -1,0 +1,173 @@
+import Image from "next/image";
+import { ChangeEvent, useState } from "react";
+import { Address, formatUnits } from "viem";
+import { useAccount, useBalance } from "wagmi";
+
+import Checkbox from "@/components/atoms/Checkbox";
+import Tooltip from "@/components/atoms/Tooltip";
+import Badge from "@/components/badges/Badge";
+import { WrappedToken } from "@/config/types/WrappedToken";
+
+const InputRange = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+  return (
+    <div className="relative h-6">
+      <input
+        value={value}
+        max={100}
+        step={1}
+        min={0}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(+e.target.value)}
+        className="w-full accent-green absolute top-2 left-0 right-0 duration-200 !bg-purple"
+        type="range"
+      />
+      <div
+        className="pointer-events-none absolute bg-green h-2 rounded-1 left-0 top-2"
+        style={{ width: value === 1 ? 0 : `calc(${value}% - 2px)` }}
+      />
+      {/* <div
+        className="pointer-events-none absolute bg-purple h-2 rounded-1 right-0 top-2"
+        style={{ width: value === 1 ? 0 : `calc(${100 - value}% - 2px)` }}
+      /> */}
+    </div>
+  );
+};
+function InputTotalAmount({
+  token,
+  value,
+  onChange,
+}: {
+  token: WrappedToken;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const { address } = useAccount();
+
+  const { data: tokenBalance } = useBalance({
+    address: address,
+    token: token.address as Address,
+  });
+
+  return (
+    <div>
+      <div className="bg-primary-bg px-5 pt-5 pb-4">
+        <div className="mb-1 flex justify-between items-center">
+          <input
+            className="text-20 bg-transparent flex-grow outline-0"
+            placeholder="0"
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          <div className="bg-secondary-bg rounded-5 py-1 pl-1 pr-3 flex items-center gap-2">
+            <Image src={token?.logoURI || ""} alt="" width={24} height={24} />
+            <span>{token.symbol}</span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center text-14">
+          <span className="text-secondary-text">—</span>
+          <span>{`Balance: ${tokenBalance ? formatUnits(tokenBalance.value, tokenBalance.decimals) : 0} ${token.symbol}`}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InputStandardAmount({
+  standard,
+  value,
+  onChange,
+  currentAllowance,
+  currentDeposit,
+  token,
+}: {
+  standard: "ERC-20" | "ERC-223";
+  value?: number;
+  onChange?: (value: number) => void;
+  currentAllowance?: bigint;
+  currentDeposit?: bigint;
+  token: WrappedToken;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        <span>Standard</span>
+        <Badge color={standard === "ERC-20" ? "purple" : "green"} text={standard} />
+      </div>
+      <div className="bg-primary-bg px-5 pt-5 pb-4 w-full rounded-2">
+        <div className="mb-1 flex justify-between items-center">
+          <input
+            className="bg-transparent outline-0 text-20 w-full"
+            placeholder="0"
+            type="text"
+            value={value}
+            // onChange={(e) => onChange(e.target.value)}
+          />
+        </div>
+        <div className="flex justify-end items-center text-14">
+          <span>Balance: ?</span>
+        </div>
+      </div>
+      <div>
+        <span className="text-14 text-secondary-text">
+          {/* TODO decimals */}
+          {standard === "ERC-20"
+            ? `Approved: ${formatUnits(currentAllowance || BigInt(0), token.decimals)} ${token.symbol}`
+            : `Deposited: ${formatUnits(currentDeposit || BigInt(0), token.decimals)} ${token.symbol}`}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function TokenDepositCard({
+  token,
+  value,
+  onChange,
+  currentAllowance,
+  currentDeposit,
+}: {
+  token: WrappedToken;
+  value: string;
+  onChange: (value: string) => void;
+  currentAllowance?: bigint;
+  currentDeposit?: bigint;
+}) {
+  const [rangeValue, setRangeValue] = useState(50);
+
+  // TODO BigInt
+  const ERC223Value =
+    typeof value !== "undefined" && value !== ""
+      ? (parseFloat(value) / 100) * rangeValue
+      : undefined;
+  const ERC20Value =
+    typeof value !== "undefined" && value !== "" && typeof ERC223Value !== "undefined"
+      ? parseFloat(value) - ERC223Value
+      : undefined;
+  return (
+    <div className="rounded-3 bg-secondary-bg p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Image width={24} height={24} src={token?.logoURI || ""} alt="" />
+        <h3 className="text-16 font-bold">{token.symbol} deposit amounts</h3>
+      </div>
+      <div className="text-secondary-text text-14 mb-3">Total balance: ???</div>
+      <div className="flex flex-col gap-5">
+        <InputTotalAmount token={token} value={value} onChange={onChange} />
+        <InputRange value={rangeValue} onChange={setRangeValue} />
+        <div className="flex justify-between gap-3 w-full">
+          <InputStandardAmount
+            standard="ERC-20"
+            value={ERC20Value}
+            currentAllowance={currentAllowance}
+            token={token}
+          />
+          <InputStandardAmount
+            standard="ERC-223"
+            value={ERC223Value}
+            token={token}
+            currentDeposit={currentDeposit}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -23,7 +23,6 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
 
   const handleRemoveLiquidity = useCallback(
     async (tokenA: WrappedToken | null, tokenB: WrappedToken | null, position?: Position) => {
-      console.log("🚀 ~ position:", position);
       if (!position || !publicClient || !walletClient || !accountAddress || !tokenA || !tokenB) {
         return;
       }
@@ -62,7 +61,6 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
           args: [decreaseParams as any],
         });
 
-        console.log("🚀 ~ handleAddLiquidity ~ params:", decreaseParams);
         const hash = await walletClient.writeContract({
           account: accountAddress,
           abi: NONFUNGIBLE_POSITION_MANAGER_ABI,

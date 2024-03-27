@@ -309,6 +309,30 @@ export const ERC223_ABI = [
     ],
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_value",
+        type: "uint256",
+      },
+    ],
+    name: "transfer",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "success",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     type: "function",
     stateMutability: "nonpayable",
     outputs: [{ type: "bool", name: "", internalType: "bool" }],

@@ -3,8 +3,8 @@ import { useCallback } from "react";
 import { Address, encodeFunctionData, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
-import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
+import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
@@ -69,7 +69,6 @@ export default function useAddLiquidity() {
 
   const handleAddLiquidity = useCallback(
     async (position?: Position, increase?: boolean) => {
-      console.log("🚀 ~ position:", position);
       if (!position || !publicClient || !walletClient || !accountAddress || !tokenA || !tokenB) {
         return;
       }
@@ -111,7 +110,6 @@ export default function useAddLiquidity() {
             args: [increaseParams as any],
           });
 
-          console.log("🚀 ~ handleAddLiquidity ~ params:", increaseParams);
           const hash = await walletClient.writeContract({
             account: accountAddress,
             abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
@@ -140,7 +138,6 @@ export default function useAddLiquidity() {
             args: [params as any],
           });
 
-          console.log("🚀 ~ handleAddLiquidity ~ params:", params);
           const hash = await walletClient.writeContract({
             account: accountAddress,
             abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
@@ -148,7 +145,6 @@ export default function useAddLiquidity() {
             address: nonFungiblePositionManagerAddress as Address,
             args: [params as any],
           });
-          console.log("🚀 ~ hash:", hash);
         }
 
         // const hash = await walletClient.writeContract({

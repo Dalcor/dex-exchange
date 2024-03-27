@@ -54,6 +54,7 @@ const config: Config = {
       "red-bg": "#2B1717", // changed
       "orange-bg": "#292115", // changed
       "blue-bg": "#14222B", // changed
+      "purple-bg": "#3E3851", // changed
 
       "global-bg": "#121312", // changed
 

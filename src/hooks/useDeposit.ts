@@ -1,25 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 // import { isNativeToken } from "@/other/isNativeToken";
-import { Abi, Address, formatUnits } from "viem";
+import { Address } from "viem";
 import {
   useAccount,
   useBlockNumber,
-  useChainId,
   usePublicClient,
   useReadContract,
-  useSimulateContract,
-  useWaitForTransactionReceipt,
   useWalletClient,
-  useWriteContract,
 } from "wagmi";
 
-import { ERC20_ABI } from "@/config/abis/erc20";
+import { ERC223_ABI } from "@/config/abis/erc223";
+import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 // import { useRecentTransactionsStore } from "@/stores/useRecentTransactions";
 // import { useAwaitingDialogStore } from "@/stores/useAwaitingDialogStore";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import addToast from "@/other/toast";
 
-export default function useAllowance({
+export default function useDeposit({
   token,
   contractAddress,
   amountToCheck,
@@ -36,32 +34,24 @@ export default function useAllowance({
   const { chainId } = useAccount();
   // const {setOpened, setSubmitted, setClose} = useAwaitingDialogStore();
 
-  const currentAllowance = useReadContract({
-    abi: ERC20_ABI,
-    address: token?.address as Address,
-    functionName: "allowance",
-    args: [
-      //set ! to avoid ts errors, make sure it is not undefined with "enable" option
-      address!,
-      contractAddress!,
-    ],
+  const currentDeposit = useReadContract({
+    address: nonFungiblePositionManagerAddress,
+    abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+    functionName: "depositedTokens",
+    args: address && token && [address, token.address as Address],
     query: {
-      //make sure hook don't run when there is no addresses
-      enabled: Boolean(token?.address) && Boolean(address) && Boolean(contractAddress),
+      enabled: Boolean(address) && Boolean(token?.address),
     },
-    // cacheTime: 0,
-    // watch: true,
   });
-
-  // console.log(currentAllowance, "Allowance ", token?.symbol);
+  console.log(`🚀 ~ useDeposit balance ${token?.symbol}:`, currentDeposit.data);
 
   const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {
-    currentAllowance.refetch();
-  }, [currentAllowance, blockNumber]);
+    currentDeposit.refetch();
+  }, [currentDeposit, blockNumber]);
 
-  const isAllowed = useMemo(() => {
+  const isDeposited = useMemo(() => {
     if (!token) {
       return false;
     }
@@ -70,12 +60,12 @@ export default function useAllowance({
     //   return true;
     // }
 
-    if (currentAllowance?.data && amountToCheck) {
-      return currentAllowance.data >= amountToCheck;
+    if (currentDeposit?.data && amountToCheck) {
+      return currentDeposit.data >= amountToCheck;
     }
 
     return false;
-  }, [amountToCheck, currentAllowance?.data, token]);
+  }, [amountToCheck, currentDeposit?.data, token]);
 
   // const { data: simulateData } = useSimulateContract({
   //   address: tokenAddress,
@@ -96,9 +86,9 @@ export default function useAllowance({
   //   writeContract: writeTokenApprove
   // } = useWriteContract();
 
-  const [isApproving, setIsApproving] = useState(false);
+  const [isDepositing, setIsDepositing] = useState(false);
 
-  const writeTokenApprove = useCallback(async () => {
+  const writeTokenDeposit = useCallback(async () => {
     if (
       !amountToCheck ||
       !contractAddress ||
@@ -111,31 +101,27 @@ export default function useAllowance({
       return;
     }
 
-    setIsApproving(true);
+    setIsDepositing(true);
     // setOpened(`Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`)
 
-    const params: {
-      address: Address;
-      account: Address;
-      abi: Abi;
-      functionName: "approve";
-      args: [Address, bigint];
-    } = {
-      address: token.address as Address,
-      account: address,
-      abi: ERC20_ABI,
-      functionName: "approve",
-      args: [contractAddress!, amountToCheck!],
-    };
-
+    if (!token) return;
     try {
-      const estimatedGas = await publicClient.estimateContractGas(params);
+      // const estimatedGas = await publicClient.estimateContractGas(params);
 
-      const { request } = await publicClient.simulateContract({
-        ...params,
-        gas: estimatedGas + BigInt(30000),
+      // const { request } = await publicClient.simulateContract({
+      //   ...params,
+      //   gas: estimatedGas + BigInt(30000),
+      // });
+      // const hash = await walletClient.writeContract(request);
+
+      const hash = await walletClient.writeContract({
+        account: address,
+        abi: ERC223_ABI,
+        functionName: "transfer",
+        address: token.address as Address,
+        args: [contractAddress, amountToCheck],
       });
-      const hash = await walletClient.writeContract(request);
+
       if (hash) {
         // addTransaction({
         //   account: address,
@@ -146,20 +132,20 @@ export default function useAllowance({
         // setSubmitted(hash, chainId as any);
 
         await publicClient.waitForTransactionReceipt({ hash });
-        setIsApproving(false);
+        setIsDepositing(false);
       }
     } catch (e) {
       console.log(e);
       // setClose();
-      setIsApproving(false);
+      setIsDepositing(false);
       addToast("Unexpected error, please contact support", "error");
     }
   }, [address, amountToCheck, chainId, contractAddress, token, publicClient, walletClient]);
 
   return {
-    isAllowed,
-    isApproving,
-    writeTokenApprove,
-    currentAllowance: currentAllowance.data,
+    isDeposited,
+    isDepositing,
+    writeTokenDeposit,
+    currentDeposit: currentDeposit.data,
   };
 }

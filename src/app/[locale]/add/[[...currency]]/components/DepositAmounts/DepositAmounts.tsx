@@ -1,20 +1,18 @@
 import JSBI from "jsbi";
-import Image from "next/image";
 import { useMemo } from "react";
-import { parseUnits } from "viem";
 
-import TokenDepositCard from "@/app/[locale]/add/[[...currency]]/components/TokenDepositCard";
+import TokenDepositCard from "@/app/[locale]/add/[[...currency]]/components/DepositAmounts/TokenDepositCard";
 import useAddLiquidity from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
-import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
 import {
   Field,
   useLiquidityAmountsStore,
 } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityAmountsStore";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityPriceRangeStore";
+import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
 import Button from "@/components/atoms/Button";
 import Tooltip from "@/components/atoms/Tooltip";
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import { usePool } from "@/hooks/usePools";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
@@ -23,73 +21,17 @@ import { Position } from "@/sdk/entities/position";
 // TODO
 const BIG_INT_ZERO = JSBI.BigInt(0);
 
-function truncateValue(value: string, decimals: number): string {
-  const parts = value.split(/[.,]/);
-  const symbol = value.includes(".") ? "." : ",";
-  if (parts.length > 1 && parts[1].length > decimals) {
-    return parts[0] + symbol + parts[1].slice(0, decimals);
-  }
-  return value;
-}
-
-/**
- * Parses a CurrencyAmount from the passed string.
- * Returns the CurrencyAmount, or undefined if parsing fails.
- */
-export function tryParseCurrencyAmount<T extends Currency>(
-  value?: string,
-  currency?: T,
-): CurrencyAmount<T> | undefined {
-  if (!value || !currency) {
-    return undefined;
-  }
-  try {
-    const typedValueParsed = parseUnits(
-      truncateValue(value, currency.decimals),
-      currency.decimals,
-    ).toString();
-    if (typedValueParsed !== "0") {
-      return CurrencyAmount.fromRawAmount(currency, JSBI.BigInt(typedValueParsed));
-    }
-  } catch (error) {
-    // fails if the user specifies too many decimal places of precision (or maybe exceed max uint?)
-    console.debug(`Failed to parse input amount: "${value}"`, error);
-  }
-  return undefined;
-}
-
-function DepositCard({
-  value,
-  onChange,
-  token,
+export const DepositAmounts = ({
+  currentAllowanceA,
+  currentAllowanceB,
+  currentDepositA,
+  currentDepositB,
 }: {
-  value: any;
-  onChange: (value: string) => void;
-  token?: WrappedToken;
-}) {
-  return (
-    <div className="bg-secondary-bg border border-secondary-border rounded-1 p-5">
-      <div className="flex items-center justify-between mb-1">
-        <input
-          className="font-medium text-16 bg-transparent border-0 outline-0 min-w-0"
-          type="text"
-          value={value}
-          onChange={(data) => onChange(data.target.value)}
-        />
-        <div className="pr-3 py-1 pl-1 bg-primary-bg rounded-5 flex items-center gap-2 flex-shrink-0">
-          <Image src="/tokens/ETH.svg" alt="Ethereum" width={24} height={24} />
-          {token?.name || "-"}
-        </div>
-      </div>
-      <div className="flex justify-between items-center text-12">
-        <span>—</span>
-        <span>Balance: 23.245 ETH</span>
-      </div>
-    </div>
-  );
-}
-
-export default function DepositAmount() {
+  currentAllowanceA?: bigint;
+  currentAllowanceB?: bigint;
+  currentDepositA?: bigint;
+  currentDepositB?: bigint;
+}) => {
   const { ticks } = useLiquidityPriceRangeStore();
   const { LOWER: tickLower, UPPER: tickUpper } = ticks;
 
@@ -245,12 +187,14 @@ export default function DepositAmount() {
   const { handleAddLiquidity } = useAddLiquidity();
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       {currencies[Field.CURRENCY_A] && (
         <TokenDepositCard
           value={formattedAmounts[Field.CURRENCY_A]}
           onChange={(value) => setTypedValue({ field: Field.CURRENCY_A, typedValue: value })}
           token={currencies[Field.CURRENCY_A]}
+          currentAllowance={currentAllowanceA}
+          currentDeposit={currentDepositA}
         />
       )}
       <div className="px-5 py-2 flex justify-between bg-tertiary-bg rounded-3">
@@ -280,11 +224,16 @@ export default function DepositAmount() {
           value={formattedAmounts[Field.CURRENCY_B]}
           onChange={(value) => setTypedValue({ field: Field.CURRENCY_B, typedValue: value })}
           token={currencies[Field.CURRENCY_B]}
+          currentAllowance={currentAllowanceB}
+          currentDeposit={currentDepositB}
         />
       )}
       <Button onClick={() => handleAddLiquidity(position, true)} fullWidth>
         Add liquidity
       </Button>
-    </>
+      <Button onClick={() => handleAddLiquidity(position, false)} fullWidth>
+        Mint liquidity
+      </Button>
+    </div>
   );
-}
+};

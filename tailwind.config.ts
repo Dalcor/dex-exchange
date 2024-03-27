@@ -47,7 +47,6 @@ const config: Config = {
       "secondary-bg": "#0F0F0F", // changed
       "tertiary-bg": "#272727", // changed
       "quaternary-bg": "#2E2F2F", // changed
-      "active-bg": "#3C4C4A", // changed
 
       green: "#70C59E", // changed
       green_opacity_20: "#70C59E33", // changed
@@ -62,6 +61,7 @@ const config: Config = {
       "red-bg": "#443535", // changed
       "orange-bg": "#4A4237", // changed
       "blue-bg": "#14222B", // changed
+      "purple-bg": "#3E3851", // changed
 
       "global-bg": "#121312", // changed
 

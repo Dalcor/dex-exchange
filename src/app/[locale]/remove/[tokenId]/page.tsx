@@ -4,7 +4,7 @@ import JSBI from "jsbi";
 import Image from "next/image";
 import { ChangeEvent, useMemo, useState } from "react";
 
-import PositionLiquidityCard from "@/app/[locale]/add/[[...currency]]/components/PositionLiquidityCard";
+import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
 import useRemoveLiquidity from "@/app/[locale]/remove/[tokenId]/hooks/useRemoveLiquidity";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";

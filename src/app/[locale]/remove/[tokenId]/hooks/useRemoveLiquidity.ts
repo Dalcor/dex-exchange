@@ -34,7 +34,6 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
 
   const handleRemoveLiquidity = useCallback(
     async (tokenA: WrappedToken | null, tokenB: WrappedToken | null, position?: Position) => {
-      console.log("🚀 ~ position:", position);
       if (
         !position ||
         !publicClient ||

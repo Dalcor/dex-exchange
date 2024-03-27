@@ -3,13 +3,13 @@
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 
-import PositionLiquidityCard from "@/app/[locale]/add/[[...currency]]/components/PositionLiquidityCard";
-import PositionPriceRangeCard from "@/app/[locale]/add/[[...currency]]/components/PositionPriceRangeCard";
 import { Bound } from "@/app/[locale]/add/[[...currency]]/components/PriceRange/LiquidityChartRangeInput/types";
 import useAddLiquidity from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
-import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/hooks/useLiquidityTierStore";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityPriceRangeStore";
+import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
+import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
+import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
@@ -26,7 +26,7 @@ import {
 } from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
 
-import DepositAmount from "../../add/[[...currency]]/components/DepositAmount";
+import { DepositAmounts } from "../../add/[[...currency]]/components/DepositAmounts/DepositAmounts";
 
 export default function IncreaseLiquidityPage({
   params,
@@ -179,7 +179,7 @@ export default function IncreaseLiquidityPage({
           </div>
 
           <div className="mb-5">
-            <DepositAmount />
+            <DepositAmounts />
           </div>
 
           <Button

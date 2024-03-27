@@ -73,10 +73,6 @@ export default function useAllowance({
     //   return true;
     // }
 
-    console.log("CHECKS");
-    console.log(amountToCheck);
-    console.log(currentAllowance.data);
-
     if (currentAllowance?.data && amountToCheck) {
       return currentAllowance.data >= amountToCheck;
     }
@@ -214,5 +210,6 @@ export default function useAllowance({
     isAllowed,
     isApproving,
     writeTokenApprove,
+    currentAllowance: currentAllowance.data,
   };
 }

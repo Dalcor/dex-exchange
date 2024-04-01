@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo } from "react";
 
-import { getTickToPrice, tryParseTick } from "@/functions/tryParseTick";
+import Svg from "@/components/atoms/Svg";
+import { WrappedToken } from "@/config/types/WrappedToken";
+import { getTickToPrice, tryParseCurrencyAmount, tryParseTick } from "@/functions/tryParseTick";
 import { usePool } from "@/hooks/usePools";
 import { TICK_SPACINGS } from "@/sdk";
 import { Price } from "@/sdk/entities/fractions/price";
@@ -8,6 +10,7 @@ import { Token } from "@/sdk/entities/token";
 import { nearestUsableTick } from "@/sdk/utils/nearestUsableTick";
 import { TickMath } from "@/sdk/utils/tickMath";
 
+import { usePriceRange } from "../../hooks/usePrice";
 import { useRangeHopCallbacks } from "../../hooks/useRangeHopCallbacks";
 import { useAddLiquidityTokensStore } from "../../stores/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "../../stores/useLiquidityPriceRangeStore";
@@ -18,86 +21,62 @@ import { Bound } from "./LiquidityChartRangeInput/types";
 import { PriceRangeHeader } from "./PriceRangeHeader";
 import PriceRangeInput from "./PriceRangeInput";
 
-export const PriceRange = () => {
+export const PriceRange = ({
+  noLiquidity,
+  formattedPrice,
+  invertPrice,
+  isFullRange,
+  isSorted,
+  leftPrice,
+  price,
+  pricesAtTicks,
+  rightPrice,
+  tickSpaceLimits,
+  ticksAtLimit,
+  token0,
+  token1,
+}: {
+  noLiquidity: boolean;
+  price: Price<Token, Token> | undefined;
+  formattedPrice: string | number;
+  invertPrice: boolean;
+  pricesAtTicks: {
+    LOWER: Price<Token, Token> | undefined;
+    UPPER: Price<Token, Token> | undefined;
+  };
+  ticksAtLimit: {
+    LOWER: boolean;
+    UPPER: boolean;
+  };
+  isSorted: boolean | undefined;
+  isFullRange: boolean;
+  leftPrice: Price<Token, Token> | undefined;
+  rightPrice: Price<Token, Token> | undefined;
+  token0: WrappedToken | undefined;
+  token1: WrappedToken | undefined;
+  tickSpaceLimits: {
+    LOWER: number | undefined;
+    UPPER: number | undefined;
+  };
+}) => {
   const { tokenA, tokenB, setBothTokens } = useAddLiquidityTokensStore();
-  const [token0, token1] = useMemo(
-    () =>
-      tokenA && tokenB
-        ? tokenA.sortsBefore(tokenB)
-          ? [tokenA, tokenB]
-          : [tokenB, tokenA]
-        : [undefined, undefined],
-    [tokenA, tokenB],
-  );
-
   const {
     ticks,
     leftRangeTypedValue,
     rightRangeTypedValue,
+    startPriceTypedValue,
     clearPriceRange,
     setFullRange,
     setLeftRangeTypedValue,
     setRightRangeTypedValue,
+    setStartPriceTypedValue,
     resetPriceRangeValue,
     setTicks,
   } = useLiquidityPriceRangeStore();
   const { tier } = useLiquidityTierStore();
   const [, pool] = usePool(tokenA, tokenB, tier);
 
-  // always returns the price with 0 as base token
-  const pricesAtTicks = useMemo(() => {
-    return {
-      [Bound.LOWER]: getTickToPrice(token0, token1, ticks[Bound.LOWER]),
-      [Bound.UPPER]: getTickToPrice(token0, token1, ticks[Bound.UPPER]),
-    };
-  }, [token0, token1, ticks]);
-
-  const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks || {};
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks;
-
-  const invertPrice = Boolean(tokenA && token0 && !tokenA.equals(token0));
-  const isSorted = tokenA && tokenB && tokenA.sortsBefore(tokenB);
-  const isFullRange =
-    typeof leftRangeTypedValue === "boolean" && typeof rightRangeTypedValue === "boolean";
-  const leftPrice = isSorted ? priceLower : priceUpper?.invert();
-  const rightPrice = isSorted ? priceUpper : priceLower?.invert();
-
-  // always returns the price with 0 as base token
-  const price: Price<Token, Token> | undefined = useMemo(() => {
-    // TODO — if no liquidity use typed value
-    // if no liquidity use typed value
-    // if (noLiquidity) {
-    //   const parsedQuoteAmount = tryParseCurrencyAmount(startPriceTypedValue, invertPrice ? token0 : token1)
-    //   if (parsedQuoteAmount && token0 && token1) {
-    //     const baseAmount = tryParseCurrencyAmount('1', invertPrice ? token1 : token0)
-    //     const price =
-    //       baseAmount && parsedQuoteAmount
-    //         ? new Price(
-    //             baseAmount.currency,
-    //             parsedQuoteAmount.currency,
-    //             baseAmount.quotient,
-    //             parsedQuoteAmount.quotient
-    //           )
-    //         : undefined
-    //     return (invertPrice ? price?.invert() : price) ?? undefined
-    //   }
-    //   return undefined
-    // } else {
-    // get the amount of quote currency
-    return pool && token0 ? pool.priceOf(token0) : undefined;
-    // }
-  }, [
-    // noLiquidity,
-    // startPriceTypedValue,
-    // invertPrice,
-    // token1,
-    token0,
-    pool,
-  ]);
-
-  const formattedPrice = price
-    ? parseFloat((invertPrice ? price?.invert() : price).toSignificant())
-    : "-";
 
   const handleSetFullRange = useCallback(() => {
     const currentPrice = price
@@ -113,24 +92,6 @@ export const PriceRange = () => {
       });
     }
   }, [setFullRange, isFullRange, resetPriceRangeValue, price, invertPrice, tier]);
-
-  // lower and upper limits in the tick space for `feeAmoun<Trans>
-  const tickSpaceLimits = useMemo(
-    () => ({
-      [Bound.LOWER]: tier ? nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[tier]) : undefined,
-      [Bound.UPPER]: tier ? nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[tier]) : undefined,
-    }),
-    [tier],
-  );
-
-  // specifies whether the lower and upper ticks is at the exteme bounds
-  const ticksAtLimit = useMemo(
-    () => ({
-      [Bound.LOWER]: tier && tickLower === tickSpaceLimits.LOWER,
-      [Bound.UPPER]: tier && tickUpper === tickSpaceLimits.UPPER,
-    }),
-    [tickSpaceLimits, tickLower, tickUpper, tier],
-  );
 
   const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper } =
     useRangeHopCallbacks(
@@ -181,7 +142,7 @@ export const PriceRange = () => {
   ]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 bg-secondary-bg px-5 py-6 rounded-3">
       <PriceRangeHeader
         isSorted={!!isSorted}
         isFullRange={isFullRange}
@@ -230,25 +191,56 @@ export const PriceRange = () => {
         increment={isSorted ? getIncrementUpper : getDecrementLower}
       />
 
-      <CurrentPrice
-        price={formattedPrice}
-        description={tokenA ? `${tokenB?.name} per ${tokenA?.name}` : ""}
-      />
-      <LiquidityChartRangeInput
-        currencyA={tokenA ?? undefined}
-        currencyB={tokenB ?? undefined}
-        feeAmount={tier}
-        ticksAtLimit={ticksAtLimit}
-        price={
-          price ? parseFloat((invertPrice ? price.invert() : price).toSignificant(8)) : undefined
-        }
-        priceLower={priceLower}
-        priceUpper={priceUpper}
-        // interactive={!hasExistingPosition}
-        onLeftRangeInput={setLeftRangeTypedValue}
-        onRightRangeInput={setRightRangeTypedValue}
-        interactive={true}
-      />
+      {noLiquidity ? (
+        <>
+          <div className="flex px-5 py-3 bg-blue-bg border-blue border rounded-3 gap-2">
+            <Svg iconName="info" className="min-w-[24px] text-blue" />
+            <span className="text-16">
+              This pool must be initialized before you can add liquidity. To initialize, select a
+              starting price for the pool. Then, enter your liquidity price range and deposit
+              amount. Gas fees will be higher than usual due to the initialization transaction.
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="font-bold text-16">Starting price</span>
+            <input
+              className="outline-0 text-16 w-full rounded-3 bg-primary-bg px-5 py-3"
+              placeholder="0"
+              type="text"
+              value={startPriceTypedValue}
+              onChange={(e) => setStartPriceTypedValue(e.target.value)}
+            />
+            <div className="flex justify-between text-14 text-secondary-text mt-2">
+              <span>{`Starting ${tokenA?.symbol} price:`}</span>
+              <span>{`${formattedPrice} ${tokenA ? `${tokenB?.symbol} per ${tokenA?.symbol}` : ""}`}</span>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <CurrentPrice
+            price={formattedPrice}
+            description={tokenA ? `${tokenB?.symbol} per ${tokenA?.symbol}` : ""}
+          />
+          <LiquidityChartRangeInput
+            currencyA={tokenA ?? undefined}
+            currencyB={tokenB ?? undefined}
+            feeAmount={tier}
+            ticksAtLimit={ticksAtLimit}
+            price={
+              price
+                ? parseFloat((invertPrice ? price.invert() : price).toSignificant(8))
+                : undefined
+            }
+            priceLower={priceLower}
+            priceUpper={priceUpper}
+            // interactive={!hasExistingPosition}
+            onLeftRangeInput={setLeftRangeTypedValue}
+            onRightRangeInput={setRightRangeTypedValue}
+            interactive={true}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -23,6 +23,9 @@ import { useRouter } from "@/navigation";
 
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
 import { PriceRange } from "./components/PriceRange/PriceRange";
+import { useAddLiquidity, useV3DerivedMintInfo } from "./hooks/useAddLiquidity";
+import { usePriceRange } from "./hooks/usePrice";
+import { Field } from "./stores/useAddLiquidityAmountsStore";
 
 export default function AddPoolPage({
   params,
@@ -37,11 +40,10 @@ export default function AddPoolPage({
   const currency = params.currency;
 
   const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
-  const { setTier } = useLiquidityTierStore();
+  const { tier, setTier } = useLiquidityTierStore();
+  const { setIsOpen } = useTransactionSettingsDialogStore();
 
   const tokens = useTokens();
-
-  const { setIsOpen } = useTransactionSettingsDialogStore();
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
@@ -82,6 +84,31 @@ export default function AddPoolPage({
     }
   }, [currency, setTier, setTokenA, setTokenB, tokens]);
 
+  // PRICE RANGE HOOK START
+  const {
+    formattedPrice,
+    invertPrice,
+    price,
+    pricesAtTicks,
+    ticksAtLimit,
+    isFullRange,
+    isSorted,
+    leftPrice,
+    rightPrice,
+    token0,
+    token1,
+    tickSpaceLimits,
+  } = usePriceRange();
+  // PRICE RANGE HOOK END
+
+  // Deposit Amounts START
+  const { parsedAmounts, position, currencies, noLiquidity } = useV3DerivedMintInfo({
+    tokenA,
+    tokenB,
+    tier,
+    price,
+  });
+
   const {
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
@@ -90,7 +117,11 @@ export default function AddPoolPage({
   } = useAllowance({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
-    amountToCheck: parseUnits("2", tokenA?.decimals || 18),
+    // TODO: mb better way to convert CurrencyAmount to bigint
+    amountToCheck: parseUnits(
+      parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
+      tokenA?.decimals || 18,
+    ),
   });
 
   const {
@@ -101,7 +132,11 @@ export default function AddPoolPage({
   } = useAllowance({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
-    amountToCheck: parseUnits("2", tokenB?.decimals || 18),
+    // TODO: mb better way to convert CurrencyAmount to bigint
+    amountToCheck: parseUnits(
+      parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
+      tokenB?.decimals || 18,
+    ),
   });
 
   const {
@@ -112,7 +147,11 @@ export default function AddPoolPage({
   } = useDeposit({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
-    amountToCheck: parseUnits("2", tokenA?.decimals || 18),
+    // TODO: mb better way to convert CurrencyAmount to bigint
+    amountToCheck: parseUnits(
+      parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
+      tokenA?.decimals || 18,
+    ),
   });
   const {
     isDeposited: isDepositedB,
@@ -122,8 +161,16 @@ export default function AddPoolPage({
   } = useDeposit({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
-    amountToCheck: parseUnits("50", tokenB?.decimals || 18),
+    // TODO: mb better way to convert CurrencyAmount to bigint
+    amountToCheck: parseUnits(
+      parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
+      tokenB?.decimals || 18,
+    ),
   });
+
+  // Deposit Amounts END
+
+  const { handleAddLiquidity } = useAddLiquidity();
 
   return (
     <Container>
@@ -202,12 +249,29 @@ export default function AddPoolPage({
           <FeeAmountSettings />
           <div className="grid gap-5 grid-cols-2">
             <DepositAmounts
+              parsedAmounts={parsedAmounts}
+              position={position}
+              currencies={currencies}
               currentAllowanceA={currentAllowanceA}
               currentAllowanceB={currentAllowanceB}
               currentDepositA={currentDepositA}
               currentDepositB={currentDepositB}
             />
-            <PriceRange />
+            <PriceRange
+              noLiquidity={noLiquidity}
+              formattedPrice={formattedPrice}
+              invertPrice={invertPrice}
+              isFullRange={isFullRange}
+              isSorted={isSorted}
+              leftPrice={leftPrice}
+              price={price}
+              pricesAtTicks={pricesAtTicks}
+              rightPrice={rightPrice}
+              tickSpaceLimits={tickSpaceLimits}
+              ticksAtLimit={ticksAtLimit}
+              token0={token0}
+              token1={token1}
+            />
           </div>
 
           <div className="grid gap-2 mb-5 grid-cols-2">
@@ -234,10 +298,18 @@ export default function AddPoolPage({
               </Button>
             )}
           </div>
-
-          {/* <Button onClick={handleAddLiquidity} fullWidth>
-            Add liquidity
-          </Button> */}
+          {noLiquidity ? (
+            <Button
+              onClick={() => handleAddLiquidity({ position, increase: false, createPool: true })}
+              fullWidth
+            >
+              Create Poll & Mint liquidity
+            </Button>
+          ) : (
+            <Button onClick={() => handleAddLiquidity({ position, increase: false })} fullWidth>
+              Mint liquidity
+            </Button>
+          )}
         </div>
         <PickTokenDialog
           handlePick={handlePick}

@@ -2,9 +2,13 @@
 
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
+import { parseUnits } from "viem";
 
 import { Bound } from "@/app/[locale]/add/[[...currency]]/components/PriceRange/LiquidityChartRangeInput/types";
-import useAddLiquidity from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
+import {
+  useAddLiquidity,
+  useV3DerivedMintInfo,
+} from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityPriceRangeStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
@@ -18,6 +22,9 @@ import SystemIconButton from "@/components/buttons/SystemIconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
+import { nonFungiblePositionManagerAddress } from "@/config/contracts";
+import useAllowance from "@/hooks/useAllowance";
+import useDeposit from "@/hooks/useDeposit";
 import {
   usePositionFromPositionInfo,
   usePositionFromTokenId,
@@ -27,6 +34,8 @@ import {
 import { useRouter } from "@/navigation";
 
 import { DepositAmounts } from "../../add/[[...currency]]/components/DepositAmounts/DepositAmounts";
+import { usePriceRange } from "../../add/[[...currency]]/hooks/usePrice";
+import { Field } from "../../swap/stores/useSwapAmountsStore";
 
 export default function IncreaseLiquidityPage({
   params,
@@ -62,7 +71,7 @@ export default function IncreaseLiquidityPage({
   const [initialized, setInitialized] = useState(false);
 
   const { setBothTokens } = useAddLiquidityTokensStore();
-  const { setTier } = useLiquidityTierStore();
+  const { tier, setTier } = useLiquidityTierStore();
 
   useEffect(() => {
     if (tokenA && tokenB && position && !initialized) {
@@ -75,6 +84,92 @@ export default function IncreaseLiquidityPage({
       setInitialized(true);
     }
   }, [initialized, position, setBothTokens, setTicks, setTier, tokenA, tokenB]);
+
+  // PRICE RANGE HOOK START
+  const {
+    formattedPrice,
+    invertPrice,
+    price,
+    pricesAtTicks,
+    ticksAtLimit,
+    isFullRange,
+    isSorted,
+    leftPrice,
+    rightPrice,
+    token0,
+    token1,
+    tickSpaceLimits,
+  } = usePriceRange();
+  // PRICE RANGE HOOK END
+
+  // Deposit Amounts START
+  const { parsedAmounts, currencies, noLiquidity } = useV3DerivedMintInfo({
+    tokenA,
+    tokenB,
+    tier,
+    price,
+  });
+
+  const {
+    isAllowed: isAllowedA,
+    writeTokenApprove: approveA,
+    isApproving: isApprovingA,
+    currentAllowance: currentAllowanceA,
+  } = useAllowance({
+    token: tokenA,
+    contractAddress: nonFungiblePositionManagerAddress,
+    // TODO: mb better way to convert CurrencyAmount to bigint
+    amountToCheck: parseUnits(
+      parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
+      tokenA?.decimals || 18,
+    ),
+  });
+
+  const {
+    isAllowed: isAllowedB,
+    writeTokenApprove: approveB,
+    isApproving: isApprovingB,
+    currentAllowance: currentAllowanceB,
+  } = useAllowance({
+    token: tokenB,
+    contractAddress: nonFungiblePositionManagerAddress,
+    // TODO: mb better way to convert CurrencyAmount to bigint
+    amountToCheck: parseUnits(
+      parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
+      tokenB?.decimals || 18,
+    ),
+  });
+
+  const {
+    isDeposited: isDepositedA,
+    writeTokenDeposit: depositA,
+    isDepositing: isDepositingA,
+    currentDeposit: currentDepositA,
+  } = useDeposit({
+    token: tokenA,
+    contractAddress: nonFungiblePositionManagerAddress,
+    // TODO: mb better way to convert CurrencyAmount to bigint
+    amountToCheck: parseUnits(
+      parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
+      tokenA?.decimals || 18,
+    ),
+  });
+  const {
+    isDeposited: isDepositedB,
+    writeTokenDeposit: depositB,
+    isDepositing: isDepositingB,
+    currentDeposit: currentDepositB,
+  } = useDeposit({
+    token: tokenB,
+    contractAddress: nonFungiblePositionManagerAddress,
+    // TODO: mb better way to convert CurrencyAmount to bigint
+    amountToCheck: parseUnits(
+      parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
+      tokenB?.decimals || 18,
+    ),
+  });
+
+  // Deposit Amounts END
 
   return (
     <Container>
@@ -179,13 +274,21 @@ export default function IncreaseLiquidityPage({
           </div>
 
           <div className="mb-5">
-            <DepositAmounts />
+            <DepositAmounts
+              parsedAmounts={parsedAmounts}
+              position={position}
+              currencies={currencies}
+              currentAllowanceA={currentAllowanceA}
+              currentAllowanceB={currentAllowanceB}
+              currentDepositA={currentDepositA}
+              currentDepositB={currentDepositB}
+            />
           </div>
 
           <Button
             onClick={() => {
               if (position) {
-                handleAddLiquidity(position, true);
+                handleAddLiquidity({ position, increase: true });
               }
             }}
             fullWidth

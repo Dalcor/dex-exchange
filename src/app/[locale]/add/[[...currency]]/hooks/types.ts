@@ -1,12 +1,5 @@
 import { FeeAmount } from "@/sdk";
 
-export enum PoolState {
-  LOADING,
-  NOT_EXISTS,
-  EXISTS,
-  INVALID,
-}
-
 export interface ZoomLevels {
   initialMin: number;
   initialMax: number;

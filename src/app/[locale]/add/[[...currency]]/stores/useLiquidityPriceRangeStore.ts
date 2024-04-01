@@ -13,9 +13,11 @@ type Ticks = {
 interface LiquidityPriceRangeStore {
   leftRangeTypedValue: string | FullRange;
   rightRangeTypedValue: string | FullRange;
+  startPriceTypedValue: string;
   ticks: Ticks;
   setLeftRangeTypedValue: (leftRangeTypedValue: string | FullRange) => void;
   setRightRangeTypedValue: (rightRangeTypedValue: string | FullRange) => void;
+  setStartPriceTypedValue: (startPriceTypedValue: string) => void;
   resetPriceRangeValue: ({ price, feeAmount }: { price?: number; feeAmount: FeeAmount }) => void;
   setFullRange: () => void;
   clearPriceRange: () => void;
@@ -25,6 +27,7 @@ interface LiquidityPriceRangeStore {
 export const useLiquidityPriceRangeStore = create<LiquidityPriceRangeStore>((set, get) => ({
   leftRangeTypedValue: "",
   rightRangeTypedValue: "",
+  startPriceTypedValue: "",
   ticks: {
     [Bound.LOWER]: undefined,
     [Bound.UPPER]: undefined,
@@ -32,6 +35,7 @@ export const useLiquidityPriceRangeStore = create<LiquidityPriceRangeStore>((set
 
   setLeftRangeTypedValue: (leftRangeTypedValue) => set({ leftRangeTypedValue }),
   setRightRangeTypedValue: (rightRangeTypedValue) => set({ rightRangeTypedValue }),
+  setStartPriceTypedValue: (startPriceTypedValue) => set({ startPriceTypedValue }),
 
   resetPriceRangeValue: ({ price, feeAmount }) => {
     if (price) {

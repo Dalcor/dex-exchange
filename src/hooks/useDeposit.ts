@@ -43,7 +43,6 @@ export default function useDeposit({
       enabled: Boolean(address) && Boolean(token?.address),
     },
   });
-  console.log(`🚀 ~ useDeposit balance ${token?.symbol}:`, currentDeposit.data);
 
   const { data: blockNumber } = useBlockNumber({ watch: true });
 
@@ -55,7 +54,6 @@ export default function useDeposit({
     if (!token) {
       return false;
     }
-
     // if (isNativeToken(token.address)) {
     //   return true;
     // }

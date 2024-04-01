@@ -68,7 +68,7 @@ export default function PriceRangeInput({
 
   return (
     <div
-      className="bg-secondary-bg rounded-1 p-5 flex justify-between items-center"
+      className="bg-primary-bg rounded-3 p-5 flex justify-between items-center"
       onFocus={handleOnFocus}
       onBlur={handleOnBlur}
     >

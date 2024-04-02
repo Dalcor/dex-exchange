@@ -173,8 +173,8 @@ export default function IncreaseLiquidityPage({
 
   return (
     <Container>
-      <div className="w-[600px] bg-primary-bg mx-auto my-[80px]">
-        <div className="flex justify-between items-center rounded-t-2 border py-2.5 px-6 border-secondary-border">
+      <div className="w-[1200px] bg-primary-bg mx-auto my-[80px]">
+        <div className="flex justify-between items-center rounded-t-2 py-2.5 px-6">
           <SystemIconButton
             onClick={() => router.push(`/pool/${params.tokenId}`)}
             size="large"
@@ -189,91 +189,13 @@ export default function IncreaseLiquidityPage({
             iconSize={32}
           />
         </div>
-        <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">
-          <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col px-10 pb-10">
+          <div className="flex items-start mb-5 gap-2">
             <TokensPair tokenA={tokenA} tokenB={tokenB} />
             <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
           </div>
 
-          <div className="border border-secondary-border rounded-1 bg-secondary-bg mb-5">
-            <div className="grid gap-3 px-5 py-3 border-b border-secondary-border">
-              <PositionLiquidityCard
-                token={tokenA}
-                amount={position?.amount0.toSignificant() || "Loading..."}
-                percentage={ratio ? (showFirst ? ratio : 100 - ratio) : "Loading..."}
-              />
-              <PositionLiquidityCard
-                token={tokenB}
-                amount={position?.amount1.toSignificant() || "Loading..."}
-                percentage={ratio ? (!showFirst ? ratio : 100 - ratio) : "Loading..."}
-              />
-            </div>
-            <div className="flex items-center justify-between px-5 py-3">
-              <span className="font-bold">Fee tier</span>
-              <span>{position ? FEE_AMOUNT_DETAIL[position?.pool.fee].label : "Loading..."}%</span>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center mb-3">
-            <span className="bold text-secondary-text">Selected range</span>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setShowFirst(true)}
-                className={clsx(
-                  "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
-                  showFirst
-                    ? "bg-green-bg border-green text-primary-text"
-                    : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
-                )}
-              >
-                {tokenA?.symbol}
-              </button>
-              <button
-                onClick={() => setShowFirst(false)}
-                className={clsx(
-                  "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
-                  !showFirst
-                    ? "bg-green-bg border-green text-primary-text"
-                    : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
-                )}
-              >
-                {tokenB?.symbol}
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-[1fr_20px_1fr] mb-5">
-            <PositionPriceRangeCard
-              showFirst={showFirst}
-              token0={tokenA}
-              token1={tokenB}
-              price={minPriceString}
-            />
-            <div className="relative">
-              <div className="bg-primary-bg border border-secondary-border w-12 h-12 rounded-1 text-placeholder-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-                <Svg iconName="double-arrow" />
-              </div>
-            </div>
-            <PositionPriceRangeCard
-              showFirst={showFirst}
-              token0={tokenA}
-              token1={tokenB}
-              price={maxPriceString}
-              isMax
-            />
-          </div>
-
-          <div className="bg-secondary-bg flex items-center justify-center flex-col py-3 border rounded-1 border-secondary-border mb-5">
-            <div className="text-14 text-secondary-text">Current price</div>
-            <div className="text-18">{currentPriceString}</div>
-            <div className="text-14 text-secondary-text">
-              {showFirst
-                ? `${tokenA?.symbol} per ${tokenB?.symbol}`
-                : `${tokenB?.symbol} per ${tokenA?.symbol}`}
-            </div>
-          </div>
-
-          <div className="mb-5">
+          <div className="grid gap-5 grid-cols-2 mb-5">
             <DepositAmounts
               parsedAmounts={parsedAmounts}
               position={position}
@@ -283,6 +205,113 @@ export default function IncreaseLiquidityPage({
               currentDepositA={currentDepositA}
               currentDepositB={currentDepositB}
             />
+            <div className="rounded-3 p-5 bg-tertiary-bg h-min">
+              <div className="rounded-3 bg-quaternary-bg mb-4">
+                <div className="grid gap-3 px-5 py-3 border-b border-secondary-border">
+                  <PositionLiquidityCard
+                    token={tokenA}
+                    amount={position?.amount0.toSignificant() || "Loading..."}
+                    percentage={ratio ? (showFirst ? ratio : 100 - ratio) : "Loading..."}
+                    standards={["ERC-20", "ERC-223"]} // TODO
+                  />
+                  <PositionLiquidityCard
+                    token={tokenB}
+                    amount={position?.amount1.toSignificant() || "Loading..."}
+                    percentage={ratio ? (!showFirst ? ratio : 100 - ratio) : "Loading..."}
+                    standards={["ERC-20", "ERC-223"]} // TODO
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between mb-5">
+                <span className="font-bold">Fee tier</span>
+                <span>
+                  {position ? FEE_AMOUNT_DETAIL[position?.pool.fee].label : "Loading..."}%
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center mb-3">
+                <span className="font-bold text-secondary-text">Selected range</span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setShowFirst(true)}
+                    className={clsx(
+                      "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
+                      showFirst
+                        ? "bg-green-bg border-green text-primary-text"
+                        : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
+                    )}
+                  >
+                    {tokenA?.symbol}
+                  </button>
+                  <button
+                    onClick={() => setShowFirst(false)}
+                    className={clsx(
+                      "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
+                      !showFirst
+                        ? "bg-green-bg border-green text-primary-text"
+                        : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
+                    )}
+                  >
+                    {tokenB?.symbol}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-[1fr_12px_1fr] mb-3">
+                <PositionPriceRangeCard
+                  showFirst={showFirst}
+                  token0={tokenA}
+                  token1={tokenB}
+                  price={minPriceString}
+                />
+                <div className="relative">
+                  <div className="bg-primary-bg w-12 h-12 rounded-full text-placeholder-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+                    <Svg iconName="double-arrow" />
+                  </div>
+                </div>
+                <PositionPriceRangeCard
+                  showFirst={showFirst}
+                  token0={tokenA}
+                  token1={tokenB}
+                  price={maxPriceString}
+                  isMax
+                />
+              </div>
+
+              <div className="bg-quaternary-bg flex items-center justify-center flex-col py-3 px-5 rounded-3">
+                <div className="text-14 text-secondary-text">Current price</div>
+                <div className="text-18">{currentPriceString}</div>
+                <div className="text-14 text-secondary-text">
+                  {showFirst
+                    ? `${tokenA?.symbol} per ${tokenB?.symbol}`
+                    : `${tokenB?.symbol} per ${tokenA?.symbol}`}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-2 mb-5 grid-cols-2">
+            {!isAllowedA && (
+              <Button variant="outline" fullWidth onClick={() => approveA()}>
+                {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
+              </Button>
+            )}
+            {!isAllowedB && (
+              <Button variant="outline" fullWidth onClick={() => approveB()}>
+                {isApprovingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}
+              </Button>
+            )}
+          </div>
+          <div className="grid gap-2 mb-5 grid-cols-2">
+            {!isDepositedA && (
+              <Button variant="outline" fullWidth onClick={() => depositA()}>
+                {isDepositingA ? "Loading..." : <span>Deposit {tokenA?.symbol}</span>}
+              </Button>
+            )}
+            {!isDepositedB && (
+              <Button variant="outline" fullWidth onClick={() => depositB()}>
+                {isDepositingB ? "Loading..." : <span>Deposit {tokenB?.symbol}</span>}
+              </Button>
+            )}
           </div>
 
           <Button

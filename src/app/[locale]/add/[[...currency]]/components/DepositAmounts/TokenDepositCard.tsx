@@ -79,6 +79,8 @@ function InputStandardAmount({
   currentAllowance,
   currentDeposit,
   token,
+  onRevoke,
+  onWithdraw,
 }: {
   standard: "ERC-20" | "ERC-223";
   value?: number;
@@ -86,6 +88,8 @@ function InputStandardAmount({
   currentAllowance?: bigint;
   currentDeposit?: bigint;
   token: WrappedToken;
+  onRevoke: () => void;
+  onWithdraw: () => void;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -107,13 +111,27 @@ function InputStandardAmount({
           <span>Balance: ?</span>
         </div>
       </div>
-      <div>
+      <div className="flex justify-between">
         <span className="text-14 text-secondary-text">
           {/* TODO decimals */}
           {standard === "ERC-20"
             ? `Approved: ${formatUnits(currentAllowance || BigInt(0), token.decimals)} ${token.symbol}`
             : `Deposited: ${formatUnits(currentDeposit || BigInt(0), token.decimals)} ${token.symbol}`}
         </span>
+        {!!currentAllowance || !!currentDeposit ? (
+          <span
+            className="text-12 px-4 pt-[1px] pb-[2px] border border-green rounded-3 h-min cursor-pointer hover:text-green duration-200"
+            onClick={() => {
+              if (standard === "ERC-20") {
+                onRevoke();
+              } else {
+                onWithdraw();
+              }
+            }}
+          >
+            {standard === "ERC-20" ? "Revoke" : "Withdraw"}
+          </span>
+        ) : null}
       </div>
     </div>
   );
@@ -125,12 +143,18 @@ export default function TokenDepositCard({
   onChange,
   currentAllowance,
   currentDeposit,
+  revokeHandler,
+  withdrawHandler,
+  isDisabled,
 }: {
   token: WrappedToken;
   value: string;
   onChange: (value: string) => void;
   currentAllowance?: bigint;
   currentDeposit?: bigint;
+  revokeHandler: () => void;
+  withdrawHandler: () => void;
+  isDisabled: boolean;
 }) {
   const [rangeValue, setRangeValue] = useState(50);
 
@@ -143,6 +167,16 @@ export default function TokenDepositCard({
     typeof value !== "undefined" && value !== "" && typeof ERC223Value !== "undefined"
       ? parseFloat(value) - ERC223Value
       : undefined;
+
+  if (isDisabled) {
+    return (
+      <div className="flex justify-center items-center rounded-3 bg-tertiary-bg p-5 min-h-[320px]">
+        <span className="text-center text-secondary-text">
+          The market price is outside your specified price range. Single-asset deposit only.
+        </span>
+      </div>
+    );
+  }
   return (
     <div className="rounded-3 bg-secondary-bg p-5">
       <div className="flex items-center gap-2 mb-3">
@@ -159,12 +193,16 @@ export default function TokenDepositCard({
             value={ERC20Value}
             currentAllowance={currentAllowance}
             token={token}
+            onRevoke={revokeHandler}
+            onWithdraw={withdrawHandler}
           />
           <InputStandardAmount
             standard="ERC-223"
             value={ERC223Value}
             token={token}
             currentDeposit={currentDeposit}
+            onRevoke={revokeHandler}
+            onWithdraw={withdrawHandler}
           />
         </div>
       </div>

@@ -102,7 +102,15 @@ export default function AddPoolPage({
   // PRICE RANGE HOOK END
 
   // Deposit Amounts START
-  const { parsedAmounts, position, currencies, noLiquidity } = useV3DerivedMintInfo({
+  const {
+    parsedAmounts,
+    position,
+    currencies,
+    noLiquidity,
+    outOfRange,
+    depositADisabled,
+    depositBDisabled,
+  } = useV3DerivedMintInfo({
     tokenA,
     tokenB,
     tier,
@@ -112,6 +120,7 @@ export default function AddPoolPage({
   const {
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
+    writeTokenRevoke: revokeA,
     isApproving: isApprovingA,
     currentAllowance: currentAllowanceA,
   } = useAllowance({
@@ -127,6 +136,7 @@ export default function AddPoolPage({
   const {
     isAllowed: isAllowedB,
     writeTokenApprove: approveB,
+    writeTokenRevoke: revokeB,
     isApproving: isApprovingB,
     currentAllowance: currentAllowanceB,
   } = useAllowance({
@@ -142,6 +152,7 @@ export default function AddPoolPage({
   const {
     isDeposited: isDepositedA,
     writeTokenDeposit: depositA,
+    writeTokenWithdraw: withdrawA,
     isDepositing: isDepositingA,
     currentDeposit: currentDepositA,
   } = useDeposit({
@@ -156,6 +167,7 @@ export default function AddPoolPage({
   const {
     isDeposited: isDepositedB,
     writeTokenDeposit: depositB,
+    writeTokenWithdraw: withdrawB,
     isDepositing: isDepositingB,
     currentDeposit: currentDepositB,
   } = useDeposit({
@@ -250,12 +262,17 @@ export default function AddPoolPage({
           <div className="grid gap-5 grid-cols-2">
             <DepositAmounts
               parsedAmounts={parsedAmounts}
-              position={position}
               currencies={currencies}
               currentAllowanceA={currentAllowanceA}
               currentAllowanceB={currentAllowanceB}
               currentDepositA={currentDepositA}
               currentDepositB={currentDepositB}
+              revokeA={revokeA}
+              revokeB={revokeB}
+              withdrawA={withdrawA}
+              withdrawB={withdrawB}
+              depositADisabled={depositADisabled}
+              depositBDisabled={depositBDisabled}
             />
             <PriceRange
               noLiquidity={noLiquidity}
@@ -271,6 +288,7 @@ export default function AddPoolPage({
               ticksAtLimit={ticksAtLimit}
               token0={token0}
               token1={token1}
+              outOfRange={outOfRange}
             />
           </div>
 
@@ -303,7 +321,7 @@ export default function AddPoolPage({
               onClick={() => handleAddLiquidity({ position, increase: false, createPool: true })}
               fullWidth
             >
-              Create Poll & Mint liquidity
+              Create Pool & Mint liquidity
             </Button>
           ) : (
             <Button onClick={() => handleAddLiquidity({ position, increase: false })} fullWidth>

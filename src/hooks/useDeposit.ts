@@ -11,7 +11,6 @@ import {
 
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 // import { useRecentTransactionsStore } from "@/stores/useRecentTransactions";
 // import { useAwaitingDialogStore } from "@/stores/useAwaitingDialogStore";
 import { WrappedToken } from "@/config/types/WrappedToken";
@@ -35,7 +34,7 @@ export default function useDeposit({
   // const {setOpened, setSubmitted, setClose} = useAwaitingDialogStore();
 
   const currentDeposit = useReadContract({
-    address: nonFungiblePositionManagerAddress,
+    address: contractAddress,
     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
     functionName: "depositedTokens",
     args: address && token && [address, token.address as Address],
@@ -121,14 +120,6 @@ export default function useDeposit({
       });
 
       if (hash) {
-        // addTransaction({
-        //   account: address,
-        //   hash,
-        //   chainId,
-        //   title: `Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`,
-        // }, address);
-        // setSubmitted(hash, chainId as any);
-
         await publicClient.waitForTransactionReceipt({ hash });
         setIsDepositing(false);
       }
@@ -140,10 +131,50 @@ export default function useDeposit({
     }
   }, [address, amountToCheck, chainId, contractAddress, token, publicClient, walletClient]);
 
+  const writeTokenWithdraw = useCallback(async () => {
+    if (
+      !currentDeposit?.data ||
+      !contractAddress ||
+      !token ||
+      !walletClient ||
+      !address ||
+      !chainId ||
+      !publicClient
+    ) {
+      return;
+    }
+    const amountToWithdraw = currentDeposit.data;
+
+    setIsDepositing(true);
+    // setOpened(`Approve ${formatUnits(amountToWithdraw, token.decimals)} ${token.symbol} tokens`)
+
+    if (!token) return;
+    try {
+      const hash = await walletClient.writeContract({
+        account: address,
+        abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+        functionName: "withdraw",
+        address: contractAddress,
+        args: [token.address as Address, address, amountToWithdraw],
+      });
+
+      if (hash) {
+        await publicClient.waitForTransactionReceipt({ hash });
+        setIsDepositing(false);
+      }
+    } catch (e) {
+      console.log(e);
+      // setClose();
+      setIsDepositing(false);
+      addToast("Unexpected error, please contact support", "error");
+    }
+  }, [address, currentDeposit, chainId, contractAddress, token, publicClient, walletClient]);
+
   return {
     isDeposited,
     isDepositing,
     writeTokenDeposit,
+    writeTokenWithdraw,
     currentDeposit: currentDeposit.data,
   };
 }

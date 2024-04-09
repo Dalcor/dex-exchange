@@ -1,5 +1,4 @@
 import TokenDepositCard from "@/app/[locale]/add/[[...currency]]/components/DepositAmounts/TokenDepositCard";
-import { useAddLiquidity } from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
 import {
   Field,
   useLiquidityAmountsStore,
@@ -9,27 +8,36 @@ import Tooltip from "@/components/atoms/Tooltip";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
-import { Position } from "@/sdk/entities/position";
 
 export const DepositAmounts = ({
   parsedAmounts,
-  position,
   currencies,
   currentAllowanceA,
   currentAllowanceB,
   currentDepositA,
   currentDepositB,
+  revokeA,
+  revokeB,
+  withdrawA,
+  withdrawB,
+  depositADisabled,
+  depositBDisabled,
 }: {
   currentAllowanceA?: bigint;
   currentAllowanceB?: bigint;
   currentDepositA?: bigint;
   currentDepositB?: bigint;
   parsedAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined };
-  position?: Position;
   currencies: {
     CURRENCY_A: WrappedToken | undefined;
     CURRENCY_B: WrappedToken | undefined;
   };
+  revokeA: () => void;
+  revokeB: () => void;
+  withdrawA: () => void;
+  withdrawB: () => void;
+  depositADisabled: boolean;
+  depositBDisabled: boolean;
 }) => {
   const { typedValue, independentField, dependentField, setTypedValue } =
     useLiquidityAmountsStore();
@@ -49,6 +57,9 @@ export const DepositAmounts = ({
           token={currencies[Field.CURRENCY_A]}
           currentAllowance={currentAllowanceA}
           currentDeposit={currentDepositA}
+          revokeHandler={revokeA}
+          withdrawHandler={withdrawA}
+          isDisabled={depositADisabled}
         />
       )}
       <div className="px-5 py-2 flex justify-between bg-tertiary-bg rounded-3">
@@ -80,6 +91,9 @@ export const DepositAmounts = ({
           token={currencies[Field.CURRENCY_B]}
           currentAllowance={currentAllowanceB}
           currentDeposit={currentDepositB}
+          revokeHandler={revokeB}
+          withdrawHandler={withdrawB}
+          isDisabled={depositBDisabled}
         />
       )}
     </div>

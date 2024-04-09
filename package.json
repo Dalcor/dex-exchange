@@ -9,6 +9,7 @@
     "lint": "eslint -c .eslintrc.json --ext .js,.jsx,.ts,.tsx src --quiet --fix"
   },
   "dependencies": {
+    "@apollo/client": "3.7.11",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/solidity": "^5.7.0",
@@ -22,6 +23,7 @@
     "clsx": "^2.0.0",
     "d3": "7.6.1",
     "decimal.js-light": "^2.5.1",
+    "graphql": "16.6.0",
     "ethereumjs-wallet": "^1.0.2",
     "invariant": "^2.2.4",
     "jsbi": "^3.2.5",

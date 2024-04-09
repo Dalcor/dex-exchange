@@ -1,12 +1,17 @@
 import JSBI from "jsbi";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAccount } from "wagmi";
 
+import { useAllV3TicksQuery } from "@/graphql/thegraph/__generated__/types-and-hooks";
+import { TickData, Ticks } from "@/graphql/thegraph/AllV3TicksQuery";
+import { chainToApolloClient } from "@/graphql/thegraph/apollo";
 import { PoolState, usePool } from "@/hooks/usePools";
 import { FeeAmount, TICK_SPACINGS } from "@/sdk";
+import { V3_CORE_FACTORY_ADDRESSES } from "@/sdk/addresses";
 import { ChainId } from "@/sdk/chains";
 import { Currency } from "@/sdk/entities/currency";
 import { Price } from "@/sdk/entities/fractions/price";
-import { TickDataProvider } from "@/sdk/entities/tickDataProvider";
+import { Pool } from "@/sdk/entities/pool";
 import { Token } from "@/sdk/entities/token";
 import { tickToPrice } from "@/sdk/utils/priceTickConversions";
 
@@ -86,32 +91,33 @@ const getActiveTick = (tickCurrent: number | undefined, feeAmount: FeeAmount | u
     ? Math.floor(tickCurrent / TICK_SPACINGS[feeAmount]) * TICK_SPACINGS[feeAmount]
     : undefined;
 
-// function useTicksFromSubgraph(
-//   currencyA: Currency | undefined,
-//   currencyB: Currency | undefined,
-//   feeAmount: FeeAmount | undefined,
-//   skip = 0,
-//   chainId: ChainId,
-// ) {
-//   const apolloClient = chainToApolloClient[chainId];
-//   const poolAddress =
-//     currencyA && currencyB && feeAmount
-//       ? Pool.getAddress(
-//           currencyA?.wrapped,
-//           currencyB?.wrapped,
-//           feeAmount,
-//           undefined,
-//           chainId ? V3_CORE_FACTORY_ADDRESSES[chainId] : undefined,
-//         )
-//       : undefined;
+function useTicksFromSubgraph(
+  currencyA: Currency | undefined,
+  currencyB: Currency | undefined,
+  feeAmount: FeeAmount | undefined,
+  skip = 0,
+  chainId: ChainId,
+) {
+  const apolloClient = chainToApolloClient[chainId];
+  const poolAddress =
+    currencyA && currencyB && feeAmount
+      ? Pool.getAddress(
+          currencyA?.wrapped,
+          currencyB?.wrapped,
+          feeAmount,
+          undefined,
+          chainId ? V3_CORE_FACTORY_ADDRESSES[chainId] : undefined,
+        )
+      : undefined;
 
-//   return useAllV3TicksQuery({
-//     variables: { poolAddress: poolAddress?.toLowerCase(), skip },
-//     skip: !poolAddress,
-//     pollInterval: ms(`30s`),
-//     client: apolloClient,
-//   });
-// }
+  return useAllV3TicksQuery({
+    variables: { poolAddress: poolAddress?.toLowerCase(), skip },
+    skip: !poolAddress,
+    // pollInterval: ms(`30s`),
+    pollInterval: 30000,
+    client: apolloClient,
+  });
+}
 
 const MAX_THE_GRAPH_TICK_FETCH_VALUE = 1000;
 // Fetches all ticks for a given pool
@@ -123,34 +129,29 @@ function useAllV3Ticks(
 ): {
   isLoading: boolean;
   error: unknown;
-  ticks?: TickDataProvider[];
+  ticks?: TickData[];
 } {
-  // const [skipNumber, setSkipNumber] = useState(0);
-  // const [subgraphTickData, setSubgraphTickData] = useState<Ticks>([]);
-  // const {
-  //   data,
-  //   error,
-  //   loading: isLoading,
-  // } = useTicksFromSubgraph(currencyA, currencyB, feeAmount, skipNumber, chainId);
+  const [skipNumber, setSkipNumber] = useState(0);
+  const [subgraphTickData, setSubgraphTickData] = useState<Ticks>([]);
+  const {
+    data,
+    error,
+    loading: isLoading,
+  } = useTicksFromSubgraph(currencyA, currencyB, feeAmount, skipNumber, chainId);
 
-  // useEffect(() => {
-  //   if (data?.ticks.length) {
-  //     setSubgraphTickData((tickData) => [...tickData, ...data.ticks]);
-  //     if (data.ticks.length === MAX_THE_GRAPH_TICK_FETCH_VALUE) {
-  //       setSkipNumber((skipNumber) => skipNumber + MAX_THE_GRAPH_TICK_FETCH_VALUE);
-  //     }
-  //   }
-  // }, [data?.ticks]);
+  useEffect(() => {
+    if (data?.ticks.length) {
+      setSubgraphTickData((tickData) => [...tickData, ...data.ticks]);
+      if (data.ticks.length === MAX_THE_GRAPH_TICK_FETCH_VALUE) {
+        setSkipNumber((skipNumber) => skipNumber + MAX_THE_GRAPH_TICK_FETCH_VALUE);
+      }
+    }
+  }, [data?.ticks]);
 
-  // return {
-  //   isLoading: isLoading || data?.ticks.length === MAX_THE_GRAPH_TICK_FETCH_VALUE,
-  //   error,
-  //   ticks: subgraphTickData,
-  // };
   return {
-    isLoading: false,
-    error: undefined,
-    ticks: [] as any[],
+    isLoading: isLoading || data?.ticks.length === MAX_THE_GRAPH_TICK_FETCH_VALUE,
+    error,
+    ticks: subgraphTickData,
   };
 }
 
@@ -170,8 +171,8 @@ export function usePoolActiveLiquidity(
   sqrtPriceX96?: JSBI;
   data?: TickProcessed[];
 } {
-  const defaultChainId = 1;
-  // const defaultChainId = useWeb3React().chainId ?? ChainId.MAINNET;
+  const { chainId: accountChainId } = useAccount();
+  const defaultChainId = accountChainId ?? ChainId.MAINNET;
   const pool = usePool(
     currencyA?.wrapped,
     currencyB?.wrapped,
@@ -322,8 +323,8 @@ export function useDensityChartData({
     return {
       isLoading,
       error,
-      // formattedData: !isLoading ? formatData() : undefined,
-      formattedData: MockData,
+      formattedData: !isLoading ? formatData() : undefined,
+      // formattedData: MockData,
     };
   }, [isLoading, error, formatData]);
 }

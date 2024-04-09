@@ -86,10 +86,12 @@ export const useAddLiquidity = () => {
       position,
       increase,
       createPool,
+      tokenId,
     }: {
       position?: Position;
       increase?: boolean;
       createPool?: boolean;
+      tokenId?: string;
     }) => {
       if (!position || !publicClient || !walletClient || !accountAddress || !tokenA || !tokenB) {
         return;
@@ -123,12 +125,6 @@ export const useAddLiquidity = () => {
             toHex(position.pool.sqrtRatioX96) as any,
           ] as [Address, Address, FeeAmount, bigint];
 
-          const encodedCreateParams = encodeFunctionData({
-            abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-            functionName: "createAndInitializePoolIfNecessary",
-            args: createParams,
-          });
-
           const mintParams = {
             token0: position.pool.token0.address as Address,
             token1: position.pool.token1.address as Address,
@@ -142,6 +138,47 @@ export const useAddLiquidity = () => {
             recipient: accountAddress,
             deadline,
           };
+
+          // Without multicall start
+          // const hash1 = await walletClient.writeContract({
+          //   account: accountAddress,
+          //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+          //   functionName: "createAndInitializePoolIfNecessary" as const,
+          //   address: nonFungiblePositionManagerAddress as Address,
+          //   args: createParams,
+          // });
+
+          // const hash2 = await walletClient.writeContract({
+          //   account: accountAddress,
+          //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+          //   functionName: "mint" as const,
+          //   address: nonFungiblePositionManagerAddress as Address,
+          //   args: [mintParams],
+          // });
+
+          // const params2 = {
+          //   account: accountAddress,
+          //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+          //   functionName: "mint" as const,
+          //   address: nonFungiblePositionManagerAddress as Address,
+          //   args: [mintParams] as any,
+          // };
+
+          // const estimatedGas = await publicClient.estimateContractGas(params2);
+
+          // const { request } = await publicClient.simulateContract({
+          //   ...params2,
+          //   gas: estimatedGas + BigInt(30000),
+          // });
+          // console.log("🚀 ~ useAddLiquidity ~ request:", request);
+
+          // Without multicall end
+
+          const encodedCreateParams = encodeFunctionData({
+            abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+            functionName: "createAndInitializePoolIfNecessary",
+            args: createParams,
+          });
 
           const encodedMintParams = encodeFunctionData({
             abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
@@ -157,29 +194,25 @@ export const useAddLiquidity = () => {
             args: [[encodedCreateParams, encodedMintParams]],
           });
         } else if (increase) {
-          const increaseParams = {
-            tokenId: toHex(JSBI.BigInt(5)),
-            amount0Desired: toHex(amount0Desired),
-            amount1Desired: toHex(amount1Desired),
-            amount0Min,
-            amount1Min,
-            recipient: accountAddress,
-            deadline,
-          };
+          if (tokenId) {
+            const increaseParams = {
+              tokenId: toHex(tokenId) as any,
+              amount0Desired: toHex(amount0Desired) as any,
+              amount1Desired: toHex(amount1Desired) as any,
+              amount0Min: amount0Min as any,
+              amount1Min: amount1Min as any,
+              recipient: accountAddress,
+              deadline,
+            };
 
-          const encodedIncreaseParams = encodeFunctionData({
-            abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-            functionName: "increaseLiquidity",
-            args: [increaseParams as any],
-          });
-
-          const hash = await walletClient.writeContract({
-            account: accountAddress,
-            abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-            functionName: "multicall" as const,
-            address: nonFungiblePositionManagerAddress as Address,
-            args: [[encodedIncreaseParams]],
-          });
+            const hash = await walletClient.writeContract({
+              account: accountAddress,
+              abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+              functionName: "increaseLiquidity" as const,
+              address: nonFungiblePositionManagerAddress as Address,
+              args: [increaseParams],
+            });
+          }
         } else {
           const params = {
             token0: position.pool.token0.address as Address,
@@ -203,28 +236,6 @@ export const useAddLiquidity = () => {
             args: [params as any],
           });
         }
-
-        // const hash = await walletClient.writeContract({
-        //   account: accountAddress,
-        //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-        //   functionName: "mint" as const,
-        //   address: nonFungiblePositionManagerAddress as Address,
-        //   args: [
-        //     {
-        //       token0: tokenB.address as Address, // correct
-        //       token1: tokenA.address as Address, // correct
-        //       fee: tier,
-        //       tickLower: TickMath.MIN_TICK,
-        //       tickUpper: TickMath.MAX_TICK,
-        //       amount0Desired: BigInt(1),
-        //       amount1Desired: BigInt(1) / BigInt("75999999999781595658"),
-        //       amount0Min: BigInt(0),
-        //       amount1Min: BigInt(0),
-        //       recipient: accountAddress,
-        //       deadline: deadline,
-        //     },
-        //   ],
-        // });
       } catch (e) {
         console.log(e);
       }
@@ -257,8 +268,6 @@ export const useV3DerivedMintInfo = ({
   const { ticks } = useLiquidityPriceRangeStore();
   const { LOWER: tickLower, UPPER: tickUpper } = ticks;
 
-  // TODO
-  const outOfRange = false;
   // mark invalid range
   const invalidRange = Boolean(
     typeof tickLower === "number" && typeof tickUpper === "number" && tickLower >= tickUpper,
@@ -276,6 +285,13 @@ export const useV3DerivedMintInfo = ({
     [Field.CURRENCY_A]: tokenA,
     [Field.CURRENCY_B]: tokenB,
   };
+
+  // check if price is within range
+  const outOfRange: boolean =
+    pool && typeof tickLower === "number" && typeof tickUpper === "number"
+      ? pool.tickCurrent < tickLower || pool.tickCurrent >= tickUpper
+      : false;
+  console.log("🚀 ~ outOfRange:", outOfRange);
 
   // check for invalid price input (converts to invalid ratio)
   const invalidPrice = useMemo(() => {
@@ -374,9 +390,27 @@ export const useV3DerivedMintInfo = ({
     };
   }, [dependentAmount, independentAmount, independentField]);
 
-  // TODO
-  const deposit0Disabled = false;
-  const deposit1Disabled = false;
+  // single deposit only if price is out of range
+  const deposit0Disabled = Boolean(
+    typeof tickUpper === "number" && poolForPosition && poolForPosition.tickCurrent >= tickUpper,
+  );
+  const deposit1Disabled = Boolean(
+    typeof tickLower === "number" && poolForPosition && poolForPosition.tickCurrent <= tickLower,
+  );
+
+  // sorted for token order
+  const depositADisabled =
+    invalidRange ||
+    Boolean(
+      (deposit0Disabled && poolForPosition && tokenA && poolForPosition.token0.equals(tokenA)) ||
+        (deposit1Disabled && poolForPosition && tokenA && poolForPosition.token1.equals(tokenA)),
+    );
+  const depositBDisabled =
+    invalidRange ||
+    Boolean(
+      (deposit0Disabled && poolForPosition && tokenB && poolForPosition.token0.equals(tokenB)) ||
+        (deposit1Disabled && poolForPosition && tokenB && poolForPosition.token1.equals(tokenB)),
+    );
 
   // create position entity based on users selection
   const position: Position | undefined = useMemo(() => {
@@ -430,5 +464,8 @@ export const useV3DerivedMintInfo = ({
     position,
     currencies,
     noLiquidity,
+    outOfRange,
+    depositADisabled,
+    depositBDisabled,
   };
 };

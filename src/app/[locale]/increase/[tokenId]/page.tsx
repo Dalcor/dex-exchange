@@ -54,17 +54,17 @@ export default function IncreaseLiquidityPage({
   const [showFirst, setShowFirst] = useState(true);
 
   const { position: positionInfo, loading } = usePositionFromTokenId(BigInt(params.tokenId));
-  const position = usePositionFromPositionInfo(positionInfo);
+  const existedPosition = usePositionFromPositionInfo(positionInfo);
 
   const [tokenA, tokenB, fee] = useMemo(() => {
-    return position?.pool.token0 && position?.pool.token1 && position?.pool.fee
-      ? [position.pool.token0, position.pool.token1, position.pool.fee]
+    return existedPosition?.pool.token0 && existedPosition?.pool.token1 && existedPosition?.pool.fee
+      ? [existedPosition.pool.token0, existedPosition.pool.token1, existedPosition.pool.fee]
       : [undefined, undefined];
-  }, [position?.pool.fee, position?.pool.token0, position?.pool.token1]);
+  }, [existedPosition?.pool.fee, existedPosition?.pool.token0, existedPosition?.pool.token1]);
 
-  const { inRange, removed } = usePositionRangeStatus({ position });
+  const { inRange, removed } = usePositionRangeStatus({ position: existedPosition });
   const { minPriceString, maxPriceString, currentPriceString, ratio } = usePositionPrices({
-    position,
+    position: existedPosition,
     showFirst,
   });
 
@@ -74,16 +74,16 @@ export default function IncreaseLiquidityPage({
   const { tier, setTier } = useLiquidityTierStore();
 
   useEffect(() => {
-    if (tokenA && tokenB && position && !initialized) {
+    if (tokenA && tokenB && existedPosition && !initialized) {
       setBothTokens({ tokenA, tokenB });
-      setTier(position.pool.fee);
+      setTier(existedPosition.pool.fee);
       setTicks({
-        [Bound.LOWER]: position.tickLower,
-        [Bound.UPPER]: position.tickUpper,
+        [Bound.LOWER]: existedPosition.tickLower,
+        [Bound.UPPER]: existedPosition.tickUpper,
       });
       setInitialized(true);
     }
-  }, [initialized, position, setBothTokens, setTicks, setTier, tokenA, tokenB]);
+  }, [initialized, existedPosition, setBothTokens, setTicks, setTier, tokenA, tokenB]);
 
   // PRICE RANGE HOOK START
   const {
@@ -103,7 +103,15 @@ export default function IncreaseLiquidityPage({
   // PRICE RANGE HOOK END
 
   // Deposit Amounts START
-  const { parsedAmounts, currencies, noLiquidity } = useV3DerivedMintInfo({
+  const {
+    parsedAmounts,
+    position,
+    currencies,
+    noLiquidity,
+    outOfRange,
+    depositADisabled,
+    depositBDisabled,
+  } = useV3DerivedMintInfo({
     tokenA,
     tokenB,
     tier,
@@ -115,6 +123,7 @@ export default function IncreaseLiquidityPage({
     writeTokenApprove: approveA,
     isApproving: isApprovingA,
     currentAllowance: currentAllowanceA,
+    writeTokenRevoke: revokeA,
   } = useAllowance({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -128,6 +137,7 @@ export default function IncreaseLiquidityPage({
   const {
     isAllowed: isAllowedB,
     writeTokenApprove: approveB,
+    writeTokenRevoke: revokeB,
     isApproving: isApprovingB,
     currentAllowance: currentAllowanceB,
   } = useAllowance({
@@ -143,6 +153,7 @@ export default function IncreaseLiquidityPage({
   const {
     isDeposited: isDepositedA,
     writeTokenDeposit: depositA,
+    writeTokenWithdraw: withdrawA,
     isDepositing: isDepositingA,
     currentDeposit: currentDepositA,
   } = useDeposit({
@@ -157,6 +168,7 @@ export default function IncreaseLiquidityPage({
   const {
     isDeposited: isDepositedB,
     writeTokenDeposit: depositB,
+    writeTokenWithdraw: withdrawB,
     isDepositing: isDepositingB,
     currentDeposit: currentDepositB,
   } = useDeposit({
@@ -198,25 +210,30 @@ export default function IncreaseLiquidityPage({
           <div className="grid gap-5 grid-cols-2 mb-5">
             <DepositAmounts
               parsedAmounts={parsedAmounts}
-              position={position}
               currencies={currencies}
               currentAllowanceA={currentAllowanceA}
               currentAllowanceB={currentAllowanceB}
               currentDepositA={currentDepositA}
               currentDepositB={currentDepositB}
+              revokeA={revokeA}
+              revokeB={revokeB}
+              withdrawA={withdrawA}
+              withdrawB={withdrawB}
+              depositADisabled={depositADisabled}
+              depositBDisabled={depositBDisabled}
             />
             <div className="rounded-3 p-5 bg-tertiary-bg h-min">
               <div className="rounded-3 bg-quaternary-bg mb-4">
                 <div className="grid gap-3 px-5 py-3 border-b border-secondary-border">
                   <PositionLiquidityCard
                     token={tokenA}
-                    amount={position?.amount0.toSignificant() || "Loading..."}
+                    amount={existedPosition?.amount0.toSignificant() || "Loading..."}
                     percentage={ratio ? (showFirst ? ratio : 100 - ratio) : "Loading..."}
                     standards={["ERC-20", "ERC-223"]} // TODO
                   />
                   <PositionLiquidityCard
                     token={tokenB}
-                    amount={position?.amount1.toSignificant() || "Loading..."}
+                    amount={existedPosition?.amount1.toSignificant() || "Loading..."}
                     percentage={ratio ? (!showFirst ? ratio : 100 - ratio) : "Loading..."}
                     standards={["ERC-20", "ERC-223"]} // TODO
                   />
@@ -225,7 +242,10 @@ export default function IncreaseLiquidityPage({
               <div className="flex items-center justify-between mb-5">
                 <span className="font-bold">Fee tier</span>
                 <span>
-                  {position ? FEE_AMOUNT_DETAIL[position?.pool.fee].label : "Loading..."}%
+                  {existedPosition
+                    ? FEE_AMOUNT_DETAIL[existedPosition?.pool.fee].label
+                    : "Loading..."}
+                  %
                 </span>
               </div>
 
@@ -317,7 +337,7 @@ export default function IncreaseLiquidityPage({
           <Button
             onClick={() => {
               if (position) {
-                handleAddLiquidity({ position, increase: true });
+                handleAddLiquidity({ position, increase: true, tokenId: params.tokenId });
               }
             }}
             fullWidth

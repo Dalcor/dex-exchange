@@ -35,6 +35,7 @@ export const PriceRange = ({
   ticksAtLimit,
   token0,
   token1,
+  outOfRange,
 }: {
   noLiquidity: boolean;
   price: Price<Token, Token> | undefined;
@@ -58,6 +59,7 @@ export const PriceRange = ({
     LOWER: number | undefined;
     UPPER: number | undefined;
   };
+  outOfRange: boolean;
 }) => {
   const { tokenA, tokenB, setBothTokens } = useAddLiquidityTokensStore();
   const {
@@ -74,7 +76,7 @@ export const PriceRange = ({
     setTicks,
   } = useLiquidityPriceRangeStore();
   const { tier } = useLiquidityTierStore();
-  const [, pool] = usePool(tokenA, tokenB, tier);
+  const [poolState, pool] = usePool(tokenA, tokenB, tier);
 
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks;
 
@@ -190,6 +192,12 @@ export const PriceRange = ({
         decrement={isSorted ? getDecrementUpper : getIncrementLower}
         increment={isSorted ? getIncrementUpper : getDecrementLower}
       />
+      {outOfRange ? (
+        <span className="text-14 border border-orange rounded-3 px-4 py-2 bg-orange-bg">
+          Your position will not earn fees or be used in trades until the market price moves into
+          your range.
+        </span>
+      ) : null}
 
       {noLiquidity ? (
         <>

@@ -8,6 +8,7 @@ import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsSt
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
+import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { FeeAmount } from "@/sdk";
 import { ROUTER_ADDRESS } from "@/sdk/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk/chains";
@@ -31,6 +32,7 @@ export default function useSwap() {
   const { gasPrice } = useSwapGas();
 
   const { slippage, deadline: _deadline } = useTransactionSettingsStore();
+  const deadline = useTransactionDeadline(_deadline);
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
 
@@ -62,21 +64,20 @@ export default function useSwap() {
     return {
       address: ROUTER_ADDRESS[chainId as DexChainId],
       abi: ROUTER_ABI,
-      functionName: "exactInputSingle" as "exactInputSingle",
+      functionName: "exactInputSingle1" as "exactInputSingle1",
       args: [
-        {
-          tokenIn: tokenA.address as Address,
-          tokenOut: tokenB.address as Address,
-          fee: FeeAmount.MEDIUM,
-          recipient: address as Address,
-          amountIn: parseUnits(typedValue, 18),
-          amountOutMinimum: BigInt(0),
-          sqrtPriceLimitX96: BigInt(0),
-        },
+        tokenA.address as Address,
+        tokenB.address as Address,
+        FeeAmount.MEDIUM,
+        address as Address,
+        deadline,
+        parseUnits(typedValue, tokenA.decimals),
+        BigInt(0),
+        BigInt(0),
       ] as any,
-      ...gasPriceFormatted,
+      // ...gasPriceFormatted,
     };
-  }, [address, chainId, gasPriceFormatted, tokenA, tokenB, typedValue]);
+  }, [address, chainId, deadline, tokenA, tokenB, typedValue]);
 
   // useEffect(() => {
   //   if (!publicClient || !swapParams) {
@@ -93,10 +94,6 @@ export default function useSwap() {
   // }, [publicClient, swapParams, address]);
 
   const handleSwap = useCallback(async () => {
-    if (!trade) {
-      handleManualEstimate();
-    }
-
     if (
       !walletClient ||
       !address ||
@@ -113,6 +110,8 @@ export default function useSwap() {
       console.log("NONONO");
       return;
     }
+
+    console.log(swapParams);
 
     // const { request } = await publicClient.simulateContract({
     //   ...swapParams,
@@ -138,7 +137,7 @@ export default function useSwap() {
           },
           params: {
             ...stringifyObject(swapParams),
-            abi: [getAbiItem({ name: "exactInputSingle", abi: ROUTER_ABI })],
+            abi: [getAbiItem({ name: "exactInputSingle1", abi: ROUTER_ABI })],
           },
           title: {
             symbol0: tokenA.symbol!,

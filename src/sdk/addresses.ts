@@ -257,7 +257,7 @@ export const FACTORY_ADDRESS: Record<DexChainId, Address> = {
 
 export const ROUTER_ADDRESS: Record<DexChainId, Address> = {
   [DexChainId.CALLISTO]: "0xd71B50caF51f39657BA358759c54777FA44357Fb",
-  [DexChainId.SEPOLIA]: "0x7835f9f26e9b9Ec41671eCc0BCb508D067b3c5Ab",
+  [DexChainId.SEPOLIA]: "0xd71B50caF51f39657BA358759c54777FA44357Fb",
 };
 
 export const QUOTER_ADDRESS: Record<DexChainId, Address> = {

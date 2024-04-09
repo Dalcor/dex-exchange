@@ -156,7 +156,9 @@ export abstract class SwapRouter {
             };
 
             calldatas.push(
-              SwapRouter.INTERFACE.encodeFunctionData("exactInputSingle", [exactInputSingleParams]),
+              SwapRouter.INTERFACE.encodeFunctionData("exactInputSingle1", [
+                exactInputSingleParams,
+              ]),
             );
           } else {
             const exactOutputSingleParams = {

@@ -25,7 +25,7 @@ export const PriceRangeHeader = ({
       <div className="flex gap-3 items-center">
         <div className="flex items-center gap-2">
           <span className="text-primary-text text-12">Full range</span>
-          <Switch checked={isFullRange} setChecked={handleSetFullRange} />
+          <Switch checked={isFullRange} handleChange={handleSetFullRange} />
         </div>
 
         <div className="flex p-0.5 gap-0.5 rounded-2 bg-secondary-bg">

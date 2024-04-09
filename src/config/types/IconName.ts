@@ -107,9 +107,17 @@ export const svgIconsNames = [
   "medium-trust",
   "low-trust",
   "high-trust",
+  "telegram",
+  "x",
+  "discord",
+  "gas-edit",
+  "cheap-gas",
+  "custom-gas",
+  "fast-gas",
+  "auto-increase",
 ] as const;
 
-export const socialIconNames = ["twitter"] as const;
+export const socialIconNames = [""] as const;
 
 export const emptyIconNames = ["wallet", "search", "pool", "list", "assets"] as const;
 

@@ -66,7 +66,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
             }}
           />
 
-          <Switch checked={isSwitchOn} setChecked={() => setSwitchOn(!isSwitchOn)} />
+          <Switch checked={isSwitchOn} handleChange={() => setSwitchOn(!isSwitchOn)} />
         </div>
       </div>
 

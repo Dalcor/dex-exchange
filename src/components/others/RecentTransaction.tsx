@@ -6,6 +6,7 @@ import Button from "@/components/atoms/Button";
 import Preloader, { CircularProgress } from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
+import { useTransactionSpeedUpDialogStore } from "@/components/dialogs/stores/useTransactionSpeedUpDialogStore";
 import {
   IRecentTransaction,
   IRecentTransactionTitle,
@@ -158,7 +159,15 @@ function RecentTransactionStatusIcon({ status }: { status: RecentTransactionStat
   }
 }
 
-export default function RecentTransaction({ transaction }: { transaction: IRecentTransaction }) {
+export default function RecentTransaction({
+  transaction,
+  showSpeedUp = true,
+}: {
+  transaction: IRecentTransaction;
+  showSpeedUp?: boolean;
+}) {
+  const { handleSpeedUp } = useTransactionSpeedUpDialogStore();
+
   return (
     <div
       key={transaction.hash}
@@ -173,10 +182,13 @@ export default function RecentTransaction({ transaction }: { transaction: IRecen
       </div>
 
       <div className="flex items-center gap-3">
-        {transaction.status === RecentTransactionStatus.PENDING && (
+        {/*{transaction.status === RecentTransactionStatus.PENDING &&*/}
+        {showSpeedUp && (
           <>
             <RecentTransactionActionButton color="secondary">Cancel</RecentTransactionActionButton>
-            <RecentTransactionActionButton>Speed up</RecentTransactionActionButton>
+            <RecentTransactionActionButton onClick={() => handleSpeedUp(transaction)}>
+              Speed up
+            </RecentTransactionActionButton>
           </>
         )}
         {transaction.status === RecentTransactionStatus.QUEUED && (
@@ -193,7 +205,9 @@ export default function RecentTransaction({ transaction }: { transaction: IRecen
         >
           <Svg iconName="forward" />
         </a>
-        <RecentTransactionStatusIcon status={transaction.status} />
+        <span className="flex-shrink-0">
+          <RecentTransactionStatusIcon status={transaction.status} />
+        </span>
       </div>
     </div>
   );

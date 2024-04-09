@@ -136,7 +136,7 @@ export default function DecreaseLiquidityPage({
           </div>
           <div className="mb-5 flex items-center justify-between">
             Collect as WMATIC
-            <Switch checked={false} setChecked={null} />
+            <Switch checked={false} handleChange={() => null} />
           </div>
           {position && tokenA && tokenB && (
             <Button onClick={() => handleRemoveLiquidity(tokenA, tokenB, position)} fullWidth>

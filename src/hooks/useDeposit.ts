@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-// import { isNativeToken } from "@/other/isNativeToken";
-import { Address } from "viem";
+import { Address, formatUnits, getAbiItem } from "viem";
 import {
   useAccount,
   useBlockNumber,
@@ -12,10 +11,14 @@ import {
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
-// import { useRecentTransactionsStore } from "@/stores/useRecentTransactions";
-// import { useAwaitingDialogStore } from "@/stores/useAwaitingDialogStore";
 import { WrappedToken } from "@/config/types/WrappedToken";
 import addToast from "@/other/toast";
+import {
+  GasFeeModel,
+  RecentTransactionTitleTemplate,
+  stringifyObject,
+  useRecentTransactionsStore,
+} from "@/stores/useRecentTransactionsStore";
 
 export default function useDeposit({
   token,
@@ -30,9 +33,10 @@ export default function useDeposit({
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  // const {addTransaction} = useRecentTransactionsStore();
   const { chainId } = useAccount();
   // const {setOpened, setSubmitted, setClose} = useAwaitingDialogStore();
+
+  const { addRecentTransaction } = useRecentTransactionsStore();
 
   const currentDeposit = useReadContract({
     address: nonFungiblePositionManagerAddress,
@@ -67,25 +71,6 @@ export default function useDeposit({
     return false;
   }, [amountToCheck, currentDeposit?.data, token]);
 
-  // const { data: simulateData } = useSimulateContract({
-  //   address: tokenAddress,
-  //   abi: ERC20_ABI,
-  //   functionName: "approve",
-  //   args: [
-  //     contractAddress!,
-  //     amountToCheck!
-  //   ],
-  //   query: {
-  //     enabled: Boolean(amountToCheck) && Boolean(contractAddress)
-  //   }
-  //   // cacheTime: 0,
-  // });
-
-  // const {
-  //   data: approvingData,
-  //   writeContract: writeTokenApprove
-  // } = useWriteContract();
-
   const [isDepositing, setIsDepositing] = useState(false);
 
   const writeTokenDeposit = useCallback(async () => {
@@ -98,39 +83,62 @@ export default function useDeposit({
       !chainId ||
       !publicClient
     ) {
+      console.log("WRONG0");
       return;
     }
 
     setIsDepositing(true);
     // setOpened(`Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`)
 
-    if (!token) return;
     try {
-      // const estimatedGas = await publicClient.estimateContractGas(params);
-
-      // const { request } = await publicClient.simulateContract({
-      //   ...params,
-      //   gas: estimatedGas + BigInt(30000),
-      // });
-      // const hash = await walletClient.writeContract(request);
-
-      const hash = await walletClient.writeContract({
-        account: address,
+      const params = {
+        account: address as Address,
         abi: ERC223_ABI,
-        functionName: "transfer",
+        functionName: "transfer" as "transfer",
         address: token.address as Address,
-        args: [contractAddress, amountToCheck],
+        args: [contractAddress, amountToCheck] as any,
+      };
+
+      console.log(1);
+      const estimatedGas = await publicClient.estimateContractGas(params);
+
+      const { request } = await publicClient.simulateContract({
+        ...params,
+        gas: estimatedGas + BigInt(30000),
+      });
+      const hash = await walletClient.writeContract(request);
+
+      const nonce = await publicClient.getTransactionCount({
+        address,
+        blockTag: "pending",
       });
 
-      if (hash) {
-        // addTransaction({
-        //   account: address,
-        //   hash,
-        //   chainId,
-        //   title: `Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`,
-        // }, address);
-        // setSubmitted(hash, chainId as any);
+      addRecentTransaction(
+        {
+          hash,
+          nonce,
+          chainId,
+          gas: {
+            model: GasFeeModel.EIP1559,
+            gas: (estimatedGas + BigInt(30000)).toString(),
+            maxFeePerGas: undefined,
+            maxPriorityFeePerGas: undefined,
+          },
+          params: {
+            ...stringifyObject(params),
+            abi: [getAbiItem({ name: "transfer", abi: ERC223_ABI })],
+          },
+          title: {
+            symbol: token.symbol!,
+            template: RecentTransactionTitleTemplate.DEPOSIT,
+            amount: formatUnits(amountToCheck, token.decimals),
+            logoURI: token?.logoURI || "/tokens/placeholder.svg",
+          },
+        },
+        address,
+      );
 
+      if (hash) {
         await publicClient.waitForTransactionReceipt({ hash });
         setIsDepositing(false);
       }
@@ -140,7 +148,16 @@ export default function useDeposit({
       setIsDepositing(false);
       addToast("Unexpected error, please contact support", "error");
     }
-  }, [address, amountToCheck, chainId, contractAddress, token, publicClient, walletClient]);
+  }, [
+    amountToCheck,
+    contractAddress,
+    token,
+    walletClient,
+    address,
+    chainId,
+    publicClient,
+    addRecentTransaction,
+  ]);
 
   return {
     isDeposited,

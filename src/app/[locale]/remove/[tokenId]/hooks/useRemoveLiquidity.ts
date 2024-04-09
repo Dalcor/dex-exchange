@@ -95,7 +95,6 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
           gas: estimatedGas + BigInt(30000),
         });
 
-        console.log("🚀 ~ handleRemoveLiquidity ~ params:", decreaseParams);
         const hash = await walletClient.writeContract(request);
 
         const nonce = await publicClient.getTransactionCount({

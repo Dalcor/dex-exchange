@@ -113,8 +113,6 @@ export default function usePools(
   const poolAddresses: (Address | undefined)[] = useMemo(() => {
     const v3CoreFactoryAddress = chainId && FACTORY_ADDRESS[chainId as DexChainId];
 
-    console.log("FACTORY ADDRESS");
-    console.log(v3CoreFactoryAddress);
     if (!v3CoreFactoryAddress)
       return Array.apply(undefined, Array(poolTokens.length)) as undefined[];
 
@@ -173,16 +171,18 @@ export default function usePools(
       if (!tokens) return [PoolState.INVALID, null];
       const [token0, token1, fee] = tokens;
 
-      if (!slot0Data || slot0Data[index].error) return [PoolState.INVALID, null];
-      if (!liquidityData || liquidityData[index].error) return [PoolState.INVALID, null];
+      if (slot0Loading || liquidityLoading) return [PoolState.LOADING, null];
 
-      if (!slot0Data[index]) return [PoolState.INVALID, null];
-      if (!liquidityData[index]) return [PoolState.INVALID, null];
+      // TODO change to PoolState.INVALID
+      if (!slot0Data || slot0Data[index].error) return [PoolState.NOT_EXISTS, null];
+      if (!liquidityData || liquidityData[index].error) return [PoolState.NOT_EXISTS, null];
+
+      if (!slot0Data[index]) return [PoolState.NOT_EXISTS, null];
+      if (!liquidityData[index]) return [PoolState.NOT_EXISTS, null];
 
       const [sqrtPriceX96, tick] = slot0Data[index].result as [bigint, number];
       const liquidity = liquidityData[index].result as bigint;
 
-      if (slot0Loading || liquidityLoading) return [PoolState.LOADING, null];
       if (!sqrtPriceX96 || sqrtPriceX96 === BigInt(0)) return [PoolState.NOT_EXISTS, null];
 
       try {

@@ -125,11 +125,17 @@ const ARBITRUM_SEPOLIA_ADDRESSES: ChainAddresses = {
 
 // sepolia v3 addresses
 const SEPOLIA_ADDRESSES: ChainAddresses = {
-  v3CoreFactoryAddress: "0x0227628f3F023bb0B980b67D528571c95c6DaC1c",
+  // 0x0227628f3F023bb0B980b67D528571c95c6DaC1c - default uniswap?
+  // 0x41368e68e2eb0a74cba9d4f6b418b487b7df5e58 — dex factory 03.04.2024
+  v3CoreFactoryAddress: "0x41368e68e2eb0a74cba9d4f6b418b487b7df5e58",
   multicallAddress: "0xD7F33bCdb21b359c8ee6F0251d30E94832baAd07",
   quoterAddress: "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3",
   v3MigratorAddress: "0x729004182cF005CEC8Bd85df140094b6aCbe8b15",
-  nonfungiblePositionManagerAddress: "0x1238536071E1c677A632429e3655c799b22cDA52",
+  // uniswap: 0x1238536071E1c677A632429e3655c799b22cDA52
+  // 0x03bBd7ecb38EF839683Ba50319a31Bb7dee78dA4
+  // 26.03.24: 0xd1d33877abad475d4cb134a3bf87570291cdc305
+  // 03.04.24: 0xc70b2f2db899b8d0e73ee53dbc4b40a12d0e2be5
+  nonfungiblePositionManagerAddress: "0xc70b2f2db899b8d0e73ee53dbc4b40a12d0e2be5",
   tickLensAddress: "0xd7f33bcdb21b359c8ee6f0251d30e94832baad07",
   swapRouter02Address: "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E",
 };

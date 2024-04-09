@@ -17,7 +17,7 @@ interface LiquidityAmountsStore {
 export const useLiquidityAmountsStore = create<LiquidityAmountsStore>((set, get) => ({
   independentField: Field.CURRENCY_A,
   dependentField: Field.CURRENCY_B,
-  typedValue: "2",
+  typedValue: "1",
   setTypedValue: ({ field, typedValue }) => {
     set({
       independentField: field,

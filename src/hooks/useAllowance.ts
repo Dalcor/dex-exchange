@@ -197,10 +197,100 @@ export default function useAllowance({
     addRecentTransaction,
   ]);
 
+  const writeTokenRevoke = useCallback(async () => {
+    const amountToRevoke = BigInt(0);
+    if (!contractAddress || !token || !walletClient || !address || !chainId || !publicClient) {
+      return;
+    }
+
+    setIsApproving(true);
+    // setOpened(`Approve ${formatUnits(amountToRevoke, token.decimals)} ${token.symbol} tokens`)
+
+    const params: {
+      address: Address;
+      account: Address;
+      abi: Abi;
+      functionName: "approve";
+      args: [Address, bigint];
+    } = {
+      address: token.address as Address,
+      account: address,
+      abi: ERC20_ABI,
+      functionName: "approve",
+      args: [contractAddress!, amountToRevoke!],
+    };
+
+    try {
+      const estimatedGas = await publicClient.estimateContractGas(params);
+
+      const { request } = await publicClient.simulateContract({
+        ...params,
+        gas: estimatedGas + BigInt(30000),
+      });
+      const hash = await walletClient.writeContract(request);
+
+      console.log("TRANSACTION METADATA TO SAVE");
+
+      // console.log("ABI PART:", getAbiItem({ name: "approve", abi: ERC20_ABI }));
+      // console.log("Args:", [contractAddress!, amountToRevoke!]);
+      // console.log("Label info:", { symbol: token.symbol });
+      // console.log("functionName", "approve");
+
+      const nonce = await publicClient.getTransactionCount({
+        address,
+        blockTag: "pending",
+      });
+
+      addRecentTransaction(
+        {
+          hash,
+          nonce,
+          chainId,
+          gas: {
+            model: GasFeeModel.EIP1559,
+            gas: (estimatedGas + BigInt(30000)).toString(),
+            maxFeePerGas: undefined,
+            maxPriorityFeePerGas: undefined,
+          },
+          params: {
+            ...stringifyObject(params),
+            abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
+          },
+          title: {
+            symbol: token.symbol!,
+            template: RecentTransactionTitleTemplate.APPROVE,
+            amount: formatUnits(amountToRevoke, token.decimals),
+            logoURI: token?.logoURI || "/tokens/placeholder.svg",
+          },
+        },
+        address,
+      );
+
+      if (hash) {
+        // addTransaction({
+        //   account: address,
+        //   hash,
+        //   chainId,
+        //   title: `Approve ${formatUnits(amountToRevoke, token.decimals)} ${token.symbol} tokens`,
+        // }, address);
+        // setSubmitted(hash, chainId as any);
+
+        await publicClient.waitForTransactionReceipt({ hash });
+        setIsApproving(false);
+      }
+    } catch (e) {
+      console.log(e);
+      // setClose();
+      setIsApproving(false);
+      addToast("Unexpected error, please contact support", "error");
+    }
+  }, [contractAddress, token, walletClient, address, chainId, publicClient, addRecentTransaction]);
+
   return {
     isAllowed,
     isApproving,
     writeTokenApprove,
+    writeTokenRevoke,
     currentAllowance: currentAllowance.data,
   };
 }

@@ -18,14 +18,14 @@ export default function PositionLiquidityCard({
     <div className="flex justify-between items-center">
       <div className="flex items-center gap-2">
         <Image src={token?.logoURI || ""} alt={token?.symbol || ""} width={24} height={24} />
-        {token?.symbol}
+        <span className="text-secondary-text">{token?.symbol}</span>
         {standards?.map((standard) => {
           return <Badge key={standard} color="green" text={standard} />;
         })}
       </div>
       <div className="flex items-center gap-1">
         <span>{amount}</span>
-        {percentage && <span>({percentage}%)</span>}
+        {/* {percentage && <span>({percentage}%)</span>} */}
       </div>
     </div>
   );

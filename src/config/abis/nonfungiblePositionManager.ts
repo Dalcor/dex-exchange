@@ -11,11 +11,6 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
         name: "_WETH9",
         type: "address",
       },
-      {
-        internalType: "address",
-        name: "_tokenDescriptor_",
-        type: "address",
-      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
@@ -130,6 +125,62 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
       },
     ],
     name: "DecreaseLiquidity",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "depositor",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "quantity",
+        type: "uint256",
+      },
+    ],
+    name: "ERC223Deposit",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "quantity",
+        type: "uint256",
+      },
+    ],
+    name: "ERC223Withdrawal",
     type: "event",
   },
   {
@@ -254,30 +305,6 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
       },
     ],
     name: "balanceOf",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "depositedTokens",
     outputs: [
       {
         internalType: "uint256",
@@ -443,6 +470,30 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
       },
     ],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_user",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+    ],
+    name: "depositedTokens",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -1145,6 +1196,35 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "_from",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_value",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes",
+        name: "_data",
+        type: "bytes",
+      },
+    ],
+    name: "tokenReceived",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "tokenId",
         type: "uint256",
@@ -1236,6 +1316,29 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
     name: "unwrapWETH9",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_recipient",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_quantity",
+        type: "uint256",
+      },
+    ],
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

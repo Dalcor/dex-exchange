@@ -7,7 +7,6 @@ import { Address, formatGwei, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
-import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import {

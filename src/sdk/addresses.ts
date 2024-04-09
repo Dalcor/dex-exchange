@@ -262,7 +262,7 @@ export const ROUTER_ADDRESS: Record<DexChainId, Address> = {
 
 export const QUOTER_ADDRESS: Record<DexChainId, Address> = {
   [DexChainId.CALLISTO]: "0x004a3d620aBE9d91F7196006713c01C9E4146B41",
-  [DexChainId.SEPOLIA]: "0x688b5919167faea22f9816e0461945ae316c8c14",
+  [DexChainId.SEPOLIA]: "0x9a20d5299ffd32053b7642ca57fc2305b2c3d671",
 };
 
 export const NONFUNGIBLE_POSITION_MANAGER_ADDRESS: Record<DexChainId, Address> = {

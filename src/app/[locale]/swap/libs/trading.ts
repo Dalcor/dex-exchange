@@ -12,6 +12,7 @@ import {
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { QUOTER_ABI } from "@/config/abis/quoter";
+import { QOUTERV0_ABI } from "@/config/abis/quoter_v0";
 import { usePool } from "@/hooks/usePools";
 import { FeeAmount, TradeType } from "@/sdk";
 import { QUOTER_ADDRESS } from "@/sdk/addresses";

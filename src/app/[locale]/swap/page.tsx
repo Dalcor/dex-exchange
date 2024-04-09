@@ -127,7 +127,7 @@ const gasOptionTitle: Record<GasOption, string> = {
   [GasOption.CUSTOM]: "Custom",
 };
 
-const PAGE_SIZE = 1;
+const PAGE_SIZE = 10;
 export default function SwapPage() {
   useRecentTransactionTracking();
 

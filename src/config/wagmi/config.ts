@@ -1,20 +1,11 @@
 import { http } from "viem";
 import { cookieStorage, createConfig, createStorage } from "wagmi";
-import {
-  arbitrum,
-  avalanche,
-  base,
-  bsc,
-  celo,
-  classic,
-  optimism,
-  polygon,
-  sepolia,
-} from "wagmi/chains";
+import { arbitrum, avalanche, base, bsc, celo, classic, optimism, polygon } from "wagmi/chains";
 import { coinbaseWallet, walletConnect } from "wagmi/connectors";
 
 import { callisto } from "@/config/chains/callisto";
 import { mainnet } from "@/config/chains/mainnet";
+import { sepolia } from "@/config/chains/sepolia";
 
 export const config = createConfig({
   chains: [

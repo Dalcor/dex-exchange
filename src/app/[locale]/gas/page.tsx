@@ -44,8 +44,6 @@ export default function GasPage() {
 
   const [averages, setAverages] = useState([0, 0, 0, 0]);
 
-  console.log(formatGwei(BigInt(10000000)));
-
   useEffect(() => {
     IIFE(async () => {
       if (!publicClient) {
@@ -117,13 +115,13 @@ export default function GasPage() {
         </div>
         <div className="p-5 rounded-2 flex justify-between bg-tertiary-bg">
           <span>Base fee-s history:</span>
+          {/*<span className="flex flex-col gap-2">*/}
+          {/*  {feeHistory?.baseFeePerGas.map((v) => <span>{formatGweiIfExist(v)}</span>)}*/}
+          {/*</span>*/}
           <span className="flex flex-col gap-2">
-            {feeHistory?.baseFeePerGas.map((v) => <span>{formatGweiIfExist(v)}</span>)}
-          </span>
-          <span className="flex flex-col gap-2">
-            {feeHistory?.baseFeePerGas.map((v) => (
-              <span>{formatGweiIfExist(v ? (v * BigInt(12)) / BigInt(10) : null)}</span>
-            ))}
+            {/*{feeHistory?.baseFeePerGas.map((v) => (*/}
+            {/*  <span>{formatGweiIfExist(v ? (v * BigInt(12)) / BigInt(10) : null)}</span>*/}
+            {/*))}*/}
           </span>
         </div>
         {/*<div className="p-5 rounded-2 flex justify-between bg-tertiary-bg">*/}
@@ -149,9 +147,9 @@ export default function GasPage() {
                 <>
                   <span>{formatGweiIfExist(feeHistory?.baseFeePerGas[index])}</span>
                   <span>{feeHistory?.gasUsedRatio[index]}</span>
-                  {v.map((_v) => (
-                    <span>{formatGweiIfExist(_v)}</span>
-                  ))}
+                  {/*{v.map((_v) => (*/}
+                  {/*  <span>{formatGweiIfExist(_v)}</span>*/}
+                  {/*))}*/}
                 </>
               ))}
             </span>

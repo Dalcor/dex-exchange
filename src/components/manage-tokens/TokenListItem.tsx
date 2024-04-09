@@ -80,7 +80,7 @@ export default function TokenListItem({
             </a>
           )}
           <SystemIconButton onClick={() => setOpen(!open)} iconName="details" />
-          <Switch checked={tokenList.enabled} setChecked={() => toggle(tokenList.id)} />
+          <Switch checked={tokenList.enabled} handleChange={() => toggle(tokenList.id)} />
         </div>
       </div>
     </div>

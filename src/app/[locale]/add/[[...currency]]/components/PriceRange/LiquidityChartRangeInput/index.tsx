@@ -160,7 +160,7 @@ export default function LiquidityChartRangeInput({
       ) : (
         <ChartWrapper>
           <Chart
-            data={{ series: formattedData, current: price }}
+            data={{ series: formattedData!, current: price }}
             // data={{ series: [], current: price }}
             dimensions={{ width: 560, height: 200 }}
             margins={{ top: 10, right: 2, bottom: 20, left: 0 }}

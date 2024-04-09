@@ -182,8 +182,7 @@ export default function RecentTransaction({
       </div>
 
       <div className="flex items-center gap-3">
-        {/*{transaction.status === RecentTransactionStatus.PENDING &&*/}
-        {showSpeedUp && (
+        {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && (
           <>
             <RecentTransactionActionButton color="secondary">Cancel</RecentTransactionActionButton>
             <RecentTransactionActionButton onClick={() => handleSpeedUp(transaction)}>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Address, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
@@ -8,8 +8,9 @@ import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsSt
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
-import { IIFE } from "@/functions/iife";
 import { FeeAmount } from "@/sdk";
+import { ROUTER_ADDRESS } from "@/sdk/addresses";
+import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk/chains";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -18,11 +19,10 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
-const swapAddress = "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E";
 export default function useSwap() {
   const { data: walletClient } = useWalletClient();
   const { tokenA, tokenB, setTokenA, setTokenB } = useSwapTokensStore();
-  const trade = useTrade();
+  const { trade, handleManualEstimate } = useTrade();
   const { address, chainId } = useAccount();
   const publicClient = usePublicClient();
 
@@ -55,19 +55,19 @@ export default function useSwap() {
   }, [slippage, trade]);
 
   const swapParams = useMemo(() => {
-    if (!tokenA || !tokenB) {
+    if (!tokenA || !tokenB || !chainId || !DEX_SUPPORTED_CHAINS.includes(chainId)) {
       return null;
     }
 
     return {
-      address: swapAddress as Address,
+      address: ROUTER_ADDRESS[chainId as DexChainId],
       abi: ROUTER_ABI,
       functionName: "exactInputSingle" as "exactInputSingle",
       args: [
         {
           tokenIn: tokenA.address as Address,
           tokenOut: tokenB.address as Address,
-          fee: FeeAmount.LOW,
+          fee: FeeAmount.MEDIUM,
           recipient: address as Address,
           amountIn: parseUnits(typedValue, 18),
           amountOutMinimum: BigInt(0),
@@ -76,7 +76,7 @@ export default function useSwap() {
       ] as any,
       ...gasPriceFormatted,
     };
-  }, [address, gasPriceFormatted, tokenA, tokenB, typedValue]);
+  }, [address, chainId, gasPriceFormatted, tokenA, tokenB, typedValue]);
 
   // useEffect(() => {
   //   if (!publicClient || !swapParams) {
@@ -93,6 +93,10 @@ export default function useSwap() {
   // }, [publicClient, swapParams, address]);
 
   const handleSwap = useCallback(async () => {
+    if (!trade) {
+      handleManualEstimate();
+    }
+
     if (
       !walletClient ||
       !address ||
@@ -105,6 +109,7 @@ export default function useSwap() {
       !swapParams
       // !estimatedGas
     ) {
+      console.log(trade);
       console.log("NONONO");
       return;
     }

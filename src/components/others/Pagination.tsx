@@ -26,9 +26,6 @@ export default function Pagination({
     pageSize,
   });
 
-  console.log("PAGINATION RANGE");
-  console.log(paginationRange);
-
   // If there are less than 2 times in pagination range we shall not render the component
   if (!paginationRange || currentPage === 0 || paginationRange.length < 2) {
     return null;

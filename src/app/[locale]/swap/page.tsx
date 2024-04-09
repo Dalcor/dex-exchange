@@ -33,6 +33,8 @@ import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
+import { ROUTER_ADDRESS } from "@/sdk/addresses";
+import { DexChainId } from "@/sdk/chains";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk/entities/fractions/percent";
@@ -52,14 +54,12 @@ import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStor
 // WETH: 0xfff9976782d46cc05630d1f6ebab18b2324d6b14
 // USD: 0x6f14C02Fc1F78322cFd7d707aB90f18baD3B54f5
 
-const quoterAddress = "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3";
-const swapAddress = "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E";
-
 function SwapActionButton() {
   const { tokenA, tokenB } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
 
   const { handleSwap } = useSwap();
+  const { chainId } = useAccount();
 
   const {
     isAllowed: isAllowedA,
@@ -67,7 +67,7 @@ function SwapActionButton() {
     isApproving: isApprovingA,
   } = useAllowance({
     token: tokenA,
-    contractAddress: swapAddress,
+    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
@@ -169,7 +169,7 @@ export default function SwapPage() {
     [currentlyPicking, setTokenA, setTokenB],
   );
 
-  const trade = useTrade();
+  const { trade } = useTrade();
 
   const { setTypedValue, independentField, dependentField, typedValue } = useSwapAmountsStore();
 

@@ -23,6 +23,14 @@ export enum ChainId {
   ROOTSTOCK = 30,
 }
 
+export enum DexChainId {
+  // MAINNET = 1,
+  SEPOLIA = 11155111,
+  CALLISTO = 820,
+}
+
+export const DEX_SUPPORTED_CHAINS = [DexChainId.SEPOLIA, DexChainId.CALLISTO];
+
 export const SUPPORTED_CHAINS = [
   ChainId.MAINNET,
   ChainId.OPTIMISM,

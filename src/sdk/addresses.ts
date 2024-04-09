@@ -1,4 +1,6 @@
-import { ChainId, SUPPORTED_CHAINS, SupportedChainsType } from "./chains";
+import { Address } from "viem";
+
+import { ChainId, DexChainId, SUPPORTED_CHAINS, SupportedChainsType } from "./chains";
 
 type AddressMap = { [chainId: number]: string };
 
@@ -32,39 +34,6 @@ export const UNI_ADDRESSES: AddressMap = constructSameAddressMap(
     ChainId.SEPOLIA,
   ],
 );
-
-export const UNISWAP_NFT_AIRDROP_CLAIM_ADDRESS = "0x8B799381ac40b838BBA4131ffB26197C432AFe78";
-
-/**
- * @deprecated use V2_FACTORY_ADDRESSES instead
- */
-export const V2_FACTORY_ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
-export const V2_FACTORY_ADDRESSES: AddressMap = {
-  [ChainId.MAINNET]: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
-  [ChainId.GOERLI]: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
-  [ChainId.SEPOLIA]: "0xB7f907f7A9eBC822a80BD25E224be42Ce0A698A0",
-  [ChainId.OPTIMISM]: "0x0c3c1c532F1e39EdF36BE9Fe0bE1410313E074Bf",
-  [ChainId.ARBITRUM_ONE]: "0xf1D7CC64Fb4452F05c498126312eBE29f30Fbcf9",
-  [ChainId.AVALANCHE]: "0x9e5A52f57b3038F1B8EeE45F28b3C1967e22799C",
-  [ChainId.BASE]: "0x8909dc15e40173ff4699343b6eb8132c65e18ec6",
-  [ChainId.BNB]: "0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6",
-  [ChainId.POLYGON]: "0x9e5A52f57b3038F1B8EeE45F28b3C1967e22799C",
-  [ChainId.CELO]: "0x79a530c8e2fA8748B7B40dd3629C0520c2cCf03f",
-};
-/**
- * @deprecated use V2_ROUTER_ADDRESSES instead
- */
-export const V2_ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-export const V2_ROUTER_ADDRESSES: AddressMap = {
-  [ChainId.MAINNET]: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-  [ChainId.GOERLI]: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-  [ChainId.ARBITRUM_ONE]: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
-  [ChainId.OPTIMISM]: "0x4a7b5da61326a6379179b40d00f57e5bbdc962c2",
-  [ChainId.BASE]: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
-  [ChainId.AVALANCHE]: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
-  [ChainId.BNB]: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
-  [ChainId.POLYGON]: "0xedf6066a2b290c185783862c7f4776a2c8077ad1",
-};
 
 // Networks that share most of the same addresses i.e. Mainnet, Goerli, Optimism, Arbitrum, Polygon
 const DEFAULT_ADDRESSES: ChainAddresses = {
@@ -257,54 +226,6 @@ export const V3_CORE_FACTORY_ADDRESSES: AddressMap = {
   }, {}),
 };
 
-export const V3_MIGRATOR_ADDRESSES: AddressMap = {
-  ...SUPPORTED_CHAINS.reduce<AddressMap>((memo, chainId) => {
-    const v3MigratorAddress = CHAIN_TO_ADDRESSES_MAP[chainId].v3MigratorAddress;
-    if (v3MigratorAddress) {
-      memo[chainId] = v3MigratorAddress;
-    }
-    return memo;
-  }, {}),
-};
-
-export const MULTICALL_ADDRESSES: AddressMap = {
-  ...SUPPORTED_CHAINS.reduce<AddressMap>((memo, chainId) => {
-    memo[chainId] = CHAIN_TO_ADDRESSES_MAP[chainId].multicallAddress;
-    return memo;
-  }, {}),
-};
-
-/**
- * The oldest V0 governance address
- */
-export const GOVERNANCE_ALPHA_V0_ADDRESSES: AddressMap = constructSameAddressMap(
-  "0x5e4be8Bc9637f0EAA1A755019e06A68ce081D58F",
-);
-/**
- * The older V1 governance address
- */
-export const GOVERNANCE_ALPHA_V1_ADDRESSES: AddressMap = {
-  [ChainId.MAINNET]: "0xC4e172459f1E7939D522503B81AFAaC1014CE6F6",
-};
-/**
- * The latest governor bravo that is currently admin of timelock
- */
-export const GOVERNANCE_BRAVO_ADDRESSES: AddressMap = {
-  [ChainId.MAINNET]: "0x408ED6354d4973f66138C91495F2f2FCbd8724C3",
-};
-
-export const TIMELOCK_ADDRESSES: AddressMap = constructSameAddressMap(
-  "0x1a9C8182C09F50C8318d769245beA52c32BE35BC",
-);
-
-export const MERKLE_DISTRIBUTOR_ADDRESS: AddressMap = {
-  [ChainId.MAINNET]: "0x090D4613473dEE047c3f2706764f49E0821D256e",
-};
-
-export const ARGENT_WALLET_DETECTOR_ADDRESS: AddressMap = {
-  [ChainId.MAINNET]: "0xeca4B0bDBf7c55E9b7925919d03CbF8Dc82537E8",
-};
-
 export const QUOTER_ADDRESSES: AddressMap = {
   ...SUPPORTED_CHAINS.reduce<AddressMap>((memo, chainId) => {
     memo[chainId] = CHAIN_TO_ADDRESSES_MAP[chainId].quoterAddress;
@@ -323,41 +244,22 @@ export const NONFUNGIBLE_POSITION_MANAGER_ADDRESSES: AddressMap = {
   }, {}),
 };
 
-export const ENS_REGISTRAR_ADDRESSES: AddressMap = {
-  ...constructSameAddressMap("0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
+export const FACTORY_ADDRESS: Record<DexChainId, Address> = {
+  [DexChainId.CALLISTO]: "0xEAc1aF2e4472219b88e56dC009F4824547830AC0",
+  [DexChainId.SEPOLIA]: "0x41368e68E2EB0A74CBa9d4f6B418B487b7df5e58",
 };
 
-export const SOCKS_CONTROLLER_ADDRESSES: AddressMap = {
-  [ChainId.MAINNET]: "0x65770b5283117639760beA3F867b69b3697a91dd",
+export const ROUTER_ADDRESS: Record<DexChainId, Address> = {
+  [DexChainId.CALLISTO]: "0xd71B50caF51f39657BA358759c54777FA44357Fb",
+  [DexChainId.SEPOLIA]: "0x7835f9f26e9b9Ec41671eCc0BCb508D067b3c5Ab",
 };
 
-export const TICK_LENS_ADDRESSES: AddressMap = {
-  ...SUPPORTED_CHAINS.reduce<AddressMap>((memo, chainId) => {
-    const tickLensAddress = CHAIN_TO_ADDRESSES_MAP[chainId].tickLensAddress;
-    if (tickLensAddress) {
-      memo[chainId] = tickLensAddress;
-    }
-    return memo;
-  }, {}),
+export const QUOTER_ADDRESS: Record<DexChainId, Address> = {
+  [DexChainId.CALLISTO]: "0x004a3d620aBE9d91F7196006713c01C9E4146B41",
+  [DexChainId.SEPOLIA]: "0x688b5919167faea22f9816e0461945ae316c8c14",
 };
 
-export const MIXED_ROUTE_QUOTER_V1_ADDRESSES: AddressMap = SUPPORTED_CHAINS.reduce<AddressMap>(
-  (memo, chainId) => {
-    const v1MixedRouteQuoterAddress = CHAIN_TO_ADDRESSES_MAP[chainId].v1MixedRouteQuoterAddress;
-    if (v1MixedRouteQuoterAddress) {
-      memo[chainId] = v1MixedRouteQuoterAddress;
-    }
-    return memo;
-  },
-  {},
-);
-
-export const SWAP_ROUTER_02_ADDRESSES = (chainId: number) => {
-  if (SUPPORTED_CHAINS.includes(chainId)) {
-    const id = chainId as SupportedChainsType;
-    return (
-      CHAIN_TO_ADDRESSES_MAP[id].swapRouter02Address ?? "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
-    );
-  }
-  return "";
+export const NONFUNGIBLE_POSITION_MANAGER_ADDRESS: Record<DexChainId, Address> = {
+  [DexChainId.CALLISTO]: "0xeAAfD389039229BB850F8F3a9CA5e5E1d53f3BeE",
+  [DexChainId.SEPOLIA]: "0xc70b2f2Db899B8d0E73EE53Dbc4b40a12d0E2be5",
 };

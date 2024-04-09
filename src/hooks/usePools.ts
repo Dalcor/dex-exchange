@@ -5,7 +5,8 @@ import { useAccount, useReadContracts } from "wagmi";
 
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
 import { BigintIsh, FeeAmount } from "@/sdk";
-import { V3_CORE_FACTORY_ADDRESSES } from "@/sdk/addresses";
+import { FACTORY_ADDRESS } from "@/sdk/addresses";
+import { DexChainId } from "@/sdk/chains";
 import { Currency } from "@/sdk/entities/currency";
 import { Pool } from "@/sdk/entities/pool";
 import { Token } from "@/sdk/entities/token";
@@ -110,24 +111,35 @@ export default function usePools(
   }, [chainId, poolKeys]);
 
   const poolAddresses: (Address | undefined)[] = useMemo(() => {
-    const v3CoreFactoryAddress = chainId && V3_CORE_FACTORY_ADDRESSES[chainId];
+    const v3CoreFactoryAddress = chainId && FACTORY_ADDRESS[chainId as DexChainId];
 
+    console.log("FACTORY ADDRESS");
+    console.log(v3CoreFactoryAddress);
     if (!v3CoreFactoryAddress)
       return Array.apply(undefined, Array(poolTokens.length)) as undefined[];
 
-    return poolTokens.map(
-      (value) =>
+    return poolTokens.map((value) => {
+      console.log("VALUEEE");
+      console.log(value);
+      return (
         value &&
         (computePoolAddress({
           factoryAddress: v3CoreFactoryAddress,
           tokenA: value[0],
           tokenB: value[1],
           fee: value[2],
-        }) as Address),
-    );
+          initCodeHashManualOverride:
+            chainId === DexChainId.CALLISTO
+              ? "0xeb2af1344b4aa73e15e4ec4d5110b0358721463fa322ae01294d16e65a9966a3"
+              : "0xb7112e06e4c5b0e55a0560f43cfd041a98b718a5554606cfe637eb31021cc257",
+        }) as Address)
+      );
+    });
   }, [chainId, poolTokens]);
 
   const slot0Contracts = useMemo(() => {
+    console.log("POOL ADDRESSES");
+    console.log(poolAddresses);
     return poolAddresses.map((address) => {
       return {
         abi: POOL_STATE_ABI,

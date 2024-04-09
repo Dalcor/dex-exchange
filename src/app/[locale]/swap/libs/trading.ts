@@ -1,13 +1,21 @@
 import JSBI from "jsbi";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Address, parseUnits } from "viem";
-import { useSimulateContract } from "wagmi";
+import {
+  useAccount,
+  useChainId,
+  useSimulateContract,
+  useWalletClient,
+  useWriteContract,
+} from "wagmi";
 
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { QUOTER_ABI } from "@/config/abis/quoter";
 import { usePool } from "@/hooks/usePools";
 import { FeeAmount, TradeType } from "@/sdk";
+import { QUOTER_ADDRESS } from "@/sdk/addresses";
+import { DexChainId } from "@/sdk/chains";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
 import { Route } from "@/sdk/entities/route";
@@ -15,15 +23,12 @@ import { Trade } from "@/sdk/entities/trade";
 
 export type TokenTrade = Trade<Currency, Currency, TradeType>;
 
-// Trading Functions
-const quoterAddress = "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3";
-
-export function useTrade(): TokenTrade | null {
+export function useTrade(): { trade: TokenTrade | null; handleManualEstimate: () => void } {
   const { tokenA, tokenB, setTokenA, setTokenB } = useSwapTokensStore();
   // const { typedValue, independentField, dependentField, setTypedValue } = useSwapAmountsStore();
-
+  const { chainId } = useAccount();
   const { typedValue } = useSwapAmountsStore();
-  const [, pool] = usePool(tokenA, tokenB, FeeAmount.LOW);
+  const [, pool] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
 
   const swapRoute = useMemo(() => {
     if (pool && tokenA && tokenB) {
@@ -33,21 +38,66 @@ export function useTrade(): TokenTrade | null {
     return null;
   }, [pool, tokenA, tokenB]);
 
+  console.log(pool);
+
   const amountOutData = useSimulateContract({
-    address: quoterAddress,
+    address: QUOTER_ADDRESS[chainId as DexChainId],
     abi: QUOTER_ABI,
     functionName: "quoteExactInputSingle",
     args: [
       {
         tokenIn: tokenA?.address as Address,
         tokenOut: tokenB?.address as Address,
-        fee: FeeAmount.LOW,
-        amountIn: parseUnits(typedValue, 18),
+        fee: FeeAmount.MEDIUM, //3000
+        amountIn: parseUnits(typedValue, tokenA?.decimals || 18),
         sqrtPriceLimitX96: BigInt(0),
       },
     ],
     query: { enabled: Boolean(tokenA) && Boolean(tokenB) },
   });
+  const { data: walletClient } = useWalletClient();
+
+  const handleManualEstimate = useCallback(async () => {
+    console.log("Trying to run function...");
+    console.log({
+      address: QUOTER_ADDRESS[chainId as DexChainId],
+      abi: QUOTER_ABI,
+      functionName: "quoteExactInputSingle",
+      args: [
+        {
+          tokenIn: tokenA?.address as Address,
+          tokenOut: tokenB?.address as Address,
+          fee: FeeAmount.MEDIUM, //3000
+          amountIn: parseUnits(typedValue, tokenA?.decimals || 18),
+          sqrtPriceLimitX96: BigInt(0),
+        },
+      ],
+    });
+    try {
+      if (!walletClient) {
+        return console.log("No client");
+      }
+      walletClient.writeContract({
+        address: QUOTER_ADDRESS[chainId as DexChainId],
+        abi: QUOTER_ABI,
+        functionName: "quoteExactInputSingle",
+        args: [
+          {
+            tokenIn: tokenA?.address as Address,
+            tokenOut: tokenB?.address as Address,
+            fee: FeeAmount.MEDIUM, //3000
+            amountIn: parseUnits(typedValue, tokenA?.decimals || 18),
+            sqrtPriceLimitX96: BigInt(0),
+          },
+        ],
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }, [chainId, tokenA, tokenB, typedValue, walletClient]);
+
+  console.log("DARA");
+  console.log(amountOutData);
 
   const amountOut = useMemo(() => {
     if (amountOutData.data) {
@@ -60,7 +110,10 @@ export function useTrade(): TokenTrade | null {
     return;
   }, [amountOutData.data]);
 
-  return useMemo(() => {
+  const trade = useMemo(() => {
+    console.log("TRADDEE");
+    console.log(amountOut);
+    console.log(swapRoute);
     if (!swapRoute || !tokenA || !tokenB || !amountOut) {
       return null;
     }
@@ -75,4 +128,8 @@ export function useTrade(): TokenTrade | null {
       tradeType: TradeType.EXACT_INPUT,
     });
   }, [amountOut, swapRoute, tokenA, tokenB, typedValue]);
+  return {
+    trade,
+    handleManualEstimate,
+  };
 }

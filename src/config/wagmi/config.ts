@@ -1,5 +1,4 @@
 import { http } from "viem";
-import { mainnet } from "viem/chains";
 import { cookieStorage, createConfig, createStorage } from "wagmi";
 import {
   arbitrum,
@@ -15,6 +14,7 @@ import {
 import { coinbaseWallet, walletConnect } from "wagmi/connectors";
 
 import { callisto } from "@/config/chains/callisto";
+import { mainnet } from "@/config/chains/mainnet";
 
 export const config = createConfig({
   chains: [

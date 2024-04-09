@@ -56,8 +56,6 @@ export default function useAllowance({
     // watch: true,
   });
 
-  // console.log(currentAllowance, "Allowance ", token?.symbol);
-
   const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {
@@ -139,13 +137,6 @@ export default function useAllowance({
         gas: estimatedGas + BigInt(30000),
       });
       const hash = await walletClient.writeContract(request);
-
-      console.log("TRANSACTION METADATA TO SAVE");
-
-      // console.log("ABI PART:", getAbiItem({ name: "approve", abi: ERC20_ABI }));
-      // console.log("Args:", [contractAddress!, amountToCheck!]);
-      // console.log("Label info:", { symbol: token.symbol });
-      // console.log("functionName", "approve");
 
       const nonce = await publicClient.getTransactionCount({
         address,

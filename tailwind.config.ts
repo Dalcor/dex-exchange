@@ -19,6 +19,10 @@ const config: Config = {
         "drag-and-drop-dashed-pattern":
           "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='8' ry='8' stroke='%2370C59EFF' stroke-width='1' stroke-dasharray='8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e\")",
         "standard-gradient": "linear-gradient(90deg, #3C4C4A 0%, #0F0F0F 100%)",
+        "footer-border":
+          "linear-gradient(90deg, rgba(56, 59, 58, 0.2) 0%, #383B3A 50%, rgba(56, 59, 58, 0.2) 100%)",
+        "swap-radio-right": "linear-gradient(90deg, #0F0F0F 0%, #1D1E1E 100%)",
+        "swap-radio-left": "linear-gradient(270deg, #0F0F0F 0%, #1D1E1E 100%)",
       },
       keyframes: {
         orbit: {
@@ -113,6 +117,8 @@ const config: Config = {
       full: "50%",
     },
     fontSize: {
+      8: ["8px", "12px"],
+      10: ["10px", "14px"],
       12: ["12px", "16px"],
       14: ["14px", "20px"],
       16: ["16px", "24px"],

@@ -1,20 +1,21 @@
 import clsx from "clsx";
+import { ChangeEvent } from "react";
 
 interface Props {
   checked: boolean;
-  setChecked: any;
+  handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   small?: boolean;
   disabled?: boolean;
 }
 
-export default function Switch({ checked, setChecked, small = false, disabled = false }: Props) {
+export default function Switch({ checked, handleChange, small = false, disabled = false }: Props) {
   return (
     <label className={clsx("relative inline-block w-12 h-6")}>
       <input
         className="peer appearance-none"
         disabled={disabled}
         checked={checked}
-        onChange={setChecked}
+        onChange={handleChange}
         type="checkbox"
       />
       <span

@@ -1,13 +1,13 @@
 import { create } from "zustand";
 
-interface TransactionSettingsStore {
+interface SwapSettingsStore {
   slippage: number;
   deadline: number;
   setSlippage: (slippage: number) => void;
   setDeadline: (deadline: number) => void;
 }
 
-export const useTransactionSettingsStore = create<TransactionSettingsStore>((set, get) => ({
+export const useSwapSettingsStore = create<SwapSettingsStore>((set, get) => ({
   slippage: 0.5,
   deadline: 20,
 

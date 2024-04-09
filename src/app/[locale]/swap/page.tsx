@@ -3,14 +3,20 @@ import clsx from "clsx";
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, parseUnits } from "viem";
-import { useAccount, useBalance, useBlockNumber } from "wagmi";
+import { Address, formatGwei, parseUnits } from "viem";
+import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
+import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
+import {
+  GasOption,
+  useSwapGasSettingsStore,
+} from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import Button from "@/components/atoms/Button";
+import Collapse from "@/components/atoms/Collapse";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
@@ -18,16 +24,19 @@ import SystemIconButton from "@/components/buttons/SystemIconButton";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import Pagination from "@/components/others/Pagination";
 import RecentTransaction from "@/components/others/RecentTransaction";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokenInput from "@/components/others/TokenInput";
 import { WrappedToken } from "@/config/types/WrappedToken";
+import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { Currency } from "@/sdk/entities/currency";
 import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
-import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
+import { Percent } from "@/sdk/entities/fractions/percent";
+import { GasFeeModel, useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
 import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
@@ -92,6 +101,34 @@ function SwapActionButton() {
     </Button>
   );
 }
+
+function SwapDetailsRow({
+  title,
+  value,
+  tooltipText,
+}: {
+  title: string;
+  value: string;
+  tooltipText: string;
+}) {
+  return (
+    <div className="flex justify-between items-center">
+      <div className="flex gap-2 items-center text-secondary-text">
+        <Tooltip iconSize={20} text={tooltipText} />
+        {title}
+      </div>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+const gasOptionTitle: Record<GasOption, string> = {
+  [GasOption.CHEAP]: "Cheap",
+  [GasOption.FAST]: "Fast",
+  [GasOption.CUSTOM]: "Custom",
+};
+
+const PAGE_SIZE = 1;
 export default function SwapPage() {
   useRecentTransactionTracking();
 
@@ -110,6 +147,8 @@ export default function SwapPage() {
   const { address } = useAccount();
 
   const lang = useLocale();
+
+  const { estimatedGas } = useSwap();
 
   const { tokenA, tokenB, setTokenA, setTokenB } = useSwapTokensStore();
 
@@ -149,9 +188,6 @@ export default function SwapPage() {
     return trade?.outputAmount;
   }, [trade?.outputAmount]);
 
-  console.log("Trade");
-  console.log(trade);
-
   const { data: blockNumber } = useBlockNumber({ watch: true });
   const { data: tokenABalance, refetch: refetchBalanceA } = useBalance({
     address: tokenA ? address : undefined,
@@ -176,9 +212,6 @@ export default function SwapPage() {
     return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
   }, [slippage, trade]);
 
-  console.log("output");
-  console.log(output);
-
   const { transactions } = useRecentTransactionsStore();
 
   const _transactions = useMemo(() => {
@@ -190,6 +223,37 @@ export default function SwapPage() {
   }, [address, transactions]);
 
   const [effect, setEffect] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
+  const { data: baseFee } = useGasPrice();
+
+  const computedGasSpending = useMemo(() => {
+    if (gasPrice.model === GasFeeModel.LEGACY && gasPrice.gasPrice) {
+      return formatFloat(formatGwei(gasPrice.gasPrice));
+    }
+
+    if (
+      gasPrice.model === GasFeeModel.EIP1559 &&
+      gasPrice.maxFeePerGas &&
+      gasPrice.maxPriorityFeePerGas &&
+      baseFee
+    ) {
+      const lowerFeePerGas = gasPrice.maxFeePerGas > baseFee ? baseFee : gasPrice.maxFeePerGas;
+
+      return formatFloat(formatGwei(lowerFeePerGas + gasPrice.maxPriorityFeePerGas));
+    }
+
+    return "Loading...";
+  }, [baseFee, gasPrice]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const currentTableData = useMemo(() => {
+    const firstPageIndex = (currentPage - 1) * PAGE_SIZE;
+    const lastPageIndex = firstPageIndex + PAGE_SIZE;
+    return _transactions.slice(firstPageIndex, lastPageIndex);
+  }, [_transactions, currentPage]);
 
   return (
     <>
@@ -209,14 +273,23 @@ export default function SwapPage() {
                   </div>
                 </div>
                 <div>
-                  {_transactions.length ? (
-                    <div className="pb-10 flex flex-col gap-1">
-                      {_transactions.map((transaction) => {
-                        return (
-                          <RecentTransaction transaction={transaction} key={transaction.hash} />
-                        );
-                      })}
-                    </div>
+                  {currentTableData.length ? (
+                    <>
+                      <div className="pb-10 flex flex-col gap-1">
+                        {currentTableData.map((transaction) => {
+                          return (
+                            <RecentTransaction transaction={transaction} key={transaction.hash} />
+                          );
+                        })}
+                      </div>
+                      <Pagination
+                        className="pagination-bar"
+                        currentPage={currentPage}
+                        totalCount={_transactions.length}
+                        pageSize={PAGE_SIZE}
+                        onPageChange={(page) => setCurrentPage(page as number)}
+                      />
+                    </>
                   ) : (
                     <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
                       <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
@@ -230,7 +303,7 @@ export default function SwapPage() {
             </div>
           )}
           <div className="flex justify-center">
-            <div className="grid gap-5 w-[600px]">
+            <div className="grid gap-5 w-[640px]">
               <div className="px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
                 <div className="flex justify-between items-center mb-2.5">
                   <h3 className="font-bold text-20">Swap</h3>
@@ -239,6 +312,11 @@ export default function SwapPage() {
                       iconSize={24}
                       iconName="recent-transactions"
                       onClick={() => setShowRecentTransactions(!showRecentTransactions)}
+                    />
+                    <SystemIconButton
+                      iconSize={24}
+                      iconName="gas-edit"
+                      onClick={() => setIsOpenedFee(true)}
                     />
                     <SystemIconButton
                       iconSize={24}
@@ -257,7 +335,7 @@ export default function SwapPage() {
                     setIsOpenedTokenPick(true);
                   }}
                   token={tokenA}
-                  balance={tokenABalance?.formatted}
+                  balance={tokenABalance ? formatFloat(tokenABalance.formatted) : "0.0"}
                   label="You pay"
                 />
                 <div className="relative h-3 z-10">
@@ -288,30 +366,127 @@ export default function SwapPage() {
                     setIsOpenedTokenPick(true);
                   }}
                   token={tokenB}
-                  balance={tokenBBalance?.formatted}
+                  balance={tokenBBalance ? formatFloat(tokenBBalance.formatted) : "0.0"}
                   label="You receive"
                 />
 
-                <div className="my-3 py-3 px-5 border border-primary-border flex justify-between">
+                <div
+                  className={clsx(
+                    "rounded-3 h-12 flex justify-between duration-200 px-5 bg-tertiary-bg my-5 items-center",
+                  )}
+                  role="button"
+                >
                   <div className="flex items-center gap-1">
-                    <Tooltip text="Network fee" />
-                    Network fee
+                    <Tooltip text="Tooltip" />
+                    <div className="text-secondary-text text-14 flex items-center">Network fee</div>
                   </div>
-                  <div className="flex gap-1">
-                    <span className="text-secondary-text">
-                      <Svg iconName="gas" />
+
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center px-2 text-14 rounded-20 font-500 text-secondary-text bg-quaternary-bg">
+                      {gasOptionTitle[gasOption]}
                     </span>
-                    <span className="mr-1">$1.95</span>
+                    <div>
+                      <span className="text-secondary-text mr-1 text-14">
+                        {computedGasSpending} GWEI
+                      </span>{" "}
+                      <span className="mr-1 text-14">~$0.00</span>
+                    </div>
                     <button
-                      className="duration-200 text-green hover:text-green-hover"
-                      onClick={() => setIsOpenedFee(true)}
+                      className="border border-green flex px-4 rounded-5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsOpenedFee(true);
+                      }}
                     >
-                      EDIT
+                      Edit
                     </button>
-                    <NetworkFeeConfigDialog isOpen={isOpenedFee} setIsOpen={setIsOpenedFee} />
                   </div>
                 </div>
+
                 <SwapActionButton />
+
+                <div
+                  className={clsx("mt-5 bg-tertiary-bg", !expanded ? "rounded-3" : "rounded-t-3")}
+                >
+                  <div
+                    className={clsx(
+                      "h-12 flex justify-between duration-200 px-5 items-center",
+                      !expanded ? "hover:bg-green-bg rounded-3" : "rounded-t-3",
+                    )}
+                    role="button"
+                    onClick={() => setExpanded(!expanded)}
+                  >
+                    <div className="text-secondary-text text-14 flex items-center">
+                      Swap details
+                    </div>
+                    <span className="text-secondary-text">
+                      <Svg
+                        className={clsx("duration-200", expanded && "-rotate-180")}
+                        iconName="small-expand-arrow"
+                      />
+                    </span>
+                  </div>
+                </div>
+                <Collapse open={expanded}>
+                  <div className="flex flex-col gap-2 pb-4 px-5 bg-tertiary-bg rounded-b-3 text-14">
+                    <SwapDetailsRow
+                      title={`${tokenA?.symbol} Price`}
+                      value={
+                        trade
+                          ? `${trade.executionPrice.toSignificant()} ${tokenB?.symbol}`
+                          : "Loading..."
+                      }
+                      tooltipText="Minimum received tooltip"
+                    />
+                    <SwapDetailsRow
+                      title={`${tokenB?.symbol} Price`}
+                      value={
+                        trade
+                          ? `${trade.executionPrice.invert().toSignificant()} ${tokenA?.symbol}`
+                          : "Loading..."
+                      }
+                      tooltipText="Minimum received tooltip"
+                    />
+                    <SwapDetailsRow
+                      title="Min. received"
+                      value={
+                        trade
+                          ?.minimumAmountOut(new Percent(slippage * 100, 10000), dependentAmount)
+                          .toSignificant() || "Loading..."
+                      }
+                      tooltipText="Minimum received tooltip"
+                    />
+                    <SwapDetailsRow
+                      title="Price impact"
+                      value={
+                        trade ? `${formatFloat(trade.priceImpact.toSignificant())}%` : "Loading..."
+                      }
+                      tooltipText="Minimum received tooltip"
+                    />
+                    <SwapDetailsRow
+                      title="Trading fee"
+                      value="Loading..."
+                      tooltipText="Minimum received tooltip"
+                    />
+                    <SwapDetailsRow
+                      title="Order routing"
+                      value="Loading..."
+                      tooltipText="Minimum received tooltip"
+                    />
+                    <SwapDetailsRow
+                      title="Max. slippage"
+                      value={`${slippage}%`}
+                      tooltipText="Minimum received tooltip"
+                    />
+                    <SwapDetailsRow
+                      title="Gas limit"
+                      value={estimatedGas?.toString() || "Loading..."}
+                      tooltipText="Minimum received tooltip"
+                    />
+                  </div>
+                </Collapse>
+
+                <NetworkFeeConfigDialog isOpen={isOpenedFee} setIsOpen={setIsOpenedFee} />
               </div>
               <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
             </div>

@@ -33,24 +33,16 @@ function StandardOption({
       role="button"
       onClick={() => setIsActive(standard)}
       className={clsx(
-        "*:z-10 flex items-center justify-between px-2 py-1 rounded-2 before:absolute before:rounded-3 before:w-full before:h-full before:left-0 before:top-0 before:duration-200 relative before:bg-standard-gradient hover:cursor-pointer text-12 group",
+        "*:z-10 flex flex-col gap-1 px-3 py-2.5  rounded-2 before:absolute before:rounded-3 before:w-full before:h-full before:left-0 before:top-0 before:duration-200 relative before:bg-standard-gradient hover:cursor-pointer text-12 group",
         isActive ? "before:opacity-100" : "before:opacity-0 hover:before:opacity-100",
+        standard === Standard.ERC223 && "before:rotate-180 items-end bg-swap-radio-right",
+        standard === Standard.ERC20 && "bg-swap-radio-left",
       )}
     >
-      <div className="flex items-center gap-2">
-        <div
-          className={clsx(
-            "rounded-full w-3 h-3 border bg-transparent flex justify-center items-center duration-200",
-            isActive
-              ? "border-green"
-              : "border-secondary-border bg-primary-bg group-hover:border-green",
-          )}
-        >
-          <div className={clsx("w-2 h-2 rounded-full", isActive ? "bg-green" : "bg-transparent")} />
-        </div>
-        <span>Standard</span>
-        <Badge color="green" text={Standard.ERC223} />
-        <Tooltip text={`${standard} Tooltip`} />
+      <div className="flex items-center gap-1">
+        <span className="text-12">Standard</span>
+        <Badge size="x-small" color="green" text={standard} />
+        <Tooltip iconSize={16} text={`${standard} Tooltip`} />
       </div>
       <span className="block text-secondary-text">
         Balance: {balance || "0.0"} {symbol}
@@ -107,7 +99,7 @@ export default function TokenInput({
           )}
         </SelectButton>
       </div>
-      <div className="grid gap-1">
+      <div className="grid grid-cols-2 gap-3 relative">
         <StandardOption
           setIsActive={setActive}
           active={active}
@@ -115,6 +107,22 @@ export default function TokenInput({
           symbol={token?.symbol}
           balance={balance}
         />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-10 h-[28px] rounded-20 border-green border p-1 flex gap-1 items-center">
+          {[Standard.ERC20, Standard.ERC223].map((st) => {
+            return (
+              <button
+                key={st}
+                className={clsx(
+                  "h-5 rounded-3 duration-200 px-2 min-w-[58px]",
+                  active === st ? "bg-green text-black shadow-checkbox" : "hover:bg-green-bg",
+                )}
+                onClick={() => setActive(st)}
+              >
+                {st}
+              </button>
+            );
+          })}
+        </div>
         <StandardOption
           setIsActive={setActive}
           active={active}

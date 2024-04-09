@@ -52,12 +52,22 @@ export function useRecentTransactionTracking() {
         return;
       }
 
-      const transaction = await publicClient.waitForTransactionReceipt({ hash });
-      if (transaction.status === "success") {
-        updateTransactionStatus(id, RecentTransactionStatus.SUCCESS, address);
-      }
+      try {
+        const transaction = await publicClient.waitForTransactionReceipt({
+          hash,
+          onReplaced: (replacement) => {
+            console.log("REPLACED");
+            console.log(replacement);
+          },
+        });
+        if (transaction.status === "success") {
+          updateTransactionStatus(id, RecentTransactionStatus.SUCCESS, address);
+        }
 
-      if (transaction.status === "reverted") {
+        if (transaction.status === "reverted") {
+          updateTransactionStatus(id, RecentTransactionStatus.ERROR, address);
+        }
+      } catch (e) {
         updateTransactionStatus(id, RecentTransactionStatus.ERROR, address);
       }
 

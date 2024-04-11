@@ -9,9 +9,9 @@ import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStor
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
-import { FeeAmount } from "@/sdk";
-import { ROUTER_ADDRESS } from "@/sdk/addresses";
-import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk/chains";
+import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -22,8 +22,8 @@ import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStor
 
 export default function useSwap() {
   const { data: walletClient } = useWalletClient();
-  const { tokenA, tokenB, setTokenA, setTokenB } = useSwapTokensStore();
-  const { trade, handleManualEstimate } = useTrade();
+  const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
+  const { trade } = useTrade();
   const { address, chainId } = useAccount();
   const publicClient = usePublicClient();
 
@@ -57,7 +57,14 @@ export default function useSwap() {
   }, [slippage, trade]);
 
   const swapParams = useMemo(() => {
-    if (!tokenA || !tokenB || !chainId || !DEX_SUPPORTED_CHAINS.includes(chainId)) {
+    if (
+      !tokenA ||
+      !tokenB ||
+      !chainId ||
+      !DEX_SUPPORTED_CHAINS.includes(chainId) ||
+      !tokenAAddress ||
+      !tokenBAddress
+    ) {
       return null;
     }
 
@@ -66,8 +73,8 @@ export default function useSwap() {
       abi: ROUTER_ABI,
       functionName: "exactInputSingle1" as "exactInputSingle1",
       args: [
-        tokenA.address as Address,
-        tokenB.address as Address,
+        tokenAAddress,
+        tokenBAddress,
         FeeAmount.MEDIUM,
         address as Address,
         deadline,
@@ -77,7 +84,7 @@ export default function useSwap() {
       ] as any,
       // ...gasPriceFormatted,
     };
-  }, [address, chainId, deadline, tokenA, tokenB, typedValue]);
+  }, [address, chainId, deadline, tokenA, tokenAAddress, tokenB, tokenBAddress, typedValue]);
 
   // useEffect(() => {
   //   if (!publicClient || !swapParams) {

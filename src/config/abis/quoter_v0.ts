@@ -1,4 +1,4 @@
-export const QOUTERV0_ABI = [
+export const QUOTER_ABI_V0 = [
   {
     inputs: [
       {

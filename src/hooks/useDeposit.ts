@@ -10,8 +10,8 @@ import {
 
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import addToast from "@/other/toast";
+import { Token } from "@/sdk_hybrid/entities/token";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -24,7 +24,7 @@ export default function useDeposit({
   contractAddress,
   amountToCheck,
 }: {
-  token: WrappedToken | undefined;
+  token: Token | undefined;
   contractAddress: Address | undefined;
   amountToCheck: bigint | null;
 }) {
@@ -41,9 +41,9 @@ export default function useDeposit({
     address: contractAddress,
     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
     functionName: "depositedTokens",
-    args: address && token && [address, token.address as Address],
+    args: address && token && [address, token.address1 as Address],
     query: {
-      enabled: Boolean(address) && Boolean(token?.address),
+      enabled: Boolean(address) && Boolean(token?.address1),
     },
   });
 
@@ -92,7 +92,7 @@ export default function useDeposit({
         account: address as Address,
         abi: ERC223_ABI,
         functionName: "transfer" as "transfer",
-        address: token.address as Address,
+        address: token.address1 as Address,
         args: [contractAddress, amountToCheck] as any,
       };
 
@@ -175,15 +175,55 @@ export default function useDeposit({
 
     if (!token) return;
     try {
-      const hash = await walletClient.writeContract({
-        account: address,
+      const params = {
+        account: address as Address,
         abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-        functionName: "withdraw",
+        functionName: "withdraw" as "withdraw",
         address: contractAddress,
-        args: [token.address as Address, address, amountToWithdraw],
+        args: [token.address1 as Address, address as Address, amountToWithdraw] as [
+          Address,
+          Address,
+          bigint,
+        ],
+      };
+
+      const estimatedGas = await publicClient.estimateContractGas(params);
+
+      const { request } = await publicClient.simulateContract({
+        ...params,
+        gas: estimatedGas + BigInt(30000),
+      });
+      const hash = await walletClient.writeContract(request);
+
+      const nonce = await publicClient.getTransactionCount({
+        address,
+        blockTag: "pending",
       });
 
-      // TODO add addRecentTransaction
+      addRecentTransaction(
+        {
+          hash,
+          nonce,
+          chainId,
+          gas: {
+            model: GasFeeModel.EIP1559,
+            gas: (estimatedGas + BigInt(30000)).toString(),
+            maxFeePerGas: undefined,
+            maxPriorityFeePerGas: undefined,
+          },
+          params: {
+            ...stringifyObject(params),
+            abi: [getAbiItem({ name: "withdraw", abi: NONFUNGIBLE_POSITION_MANAGER_ABI })],
+          },
+          title: {
+            symbol: token.symbol!,
+            template: RecentTransactionTitleTemplate.WITHDRAW,
+            amount: formatUnits(amountToWithdraw, token.decimals),
+            logoURI: token?.logoURI || "/tokens/placeholder.svg",
+          },
+        },
+        address,
+      );
 
       if (hash) {
         await publicClient.waitForTransactionReceipt({ hash });
@@ -195,7 +235,16 @@ export default function useDeposit({
       setIsDepositing(false);
       addToast("Unexpected error, please contact support", "error");
     }
-  }, [address, currentDeposit, chainId, contractAddress, token, publicClient, walletClient]);
+  }, [
+    currentDeposit.data,
+    contractAddress,
+    token,
+    walletClient,
+    address,
+    chainId,
+    publicClient,
+    addRecentTransaction,
+  ]);
 
   return {
     isDeposited,

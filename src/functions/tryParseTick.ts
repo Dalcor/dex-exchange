@@ -1,15 +1,15 @@
 import JSBI from "jsbi";
 import { parseUnits } from "viem";
 
-import { FeeAmount, TICK_SPACINGS } from "@/sdk";
-import { Currency } from "@/sdk/entities/currency";
-import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
-import { Price } from "@/sdk/entities/fractions/price";
-import { Token } from "@/sdk/entities/token";
-import { encodeSqrtRatioX96 } from "@/sdk/utils/encodeSqrtRatioX96";
-import { nearestUsableTick } from "@/sdk/utils/nearestUsableTick";
-import { priceToClosestTick, tickToPrice } from "@/sdk/utils/priceTickConversions";
-import { TickMath } from "@/sdk/utils/tickMath";
+import { FeeAmount, TICK_SPACINGS } from "@/sdk_hybrid/constants";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
+import { Price } from "@/sdk_hybrid/entities/fractions/price";
+import { Token } from "@/sdk_hybrid/entities/token";
+import { encodeSqrtRatioX96 } from "@/sdk_hybrid/utils/encodeSqrtRatioX96";
+import { nearestUsableTick } from "@/sdk_hybrid/utils/nearestUsableTick";
+import { priceToClosestTick, tickToPrice } from "@/sdk_hybrid/utils/priceTickConversions";
+import { TickMath } from "@/sdk_hybrid/utils/tickMath";
 
 function tryParsePrice(baseToken?: Token, quoteToken?: Token, value?: string) {
   if (!baseToken || !quoteToken || !value) {

@@ -4,22 +4,16 @@ import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import { useTokens } from "@/hooks/useTokenLists";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 interface Props {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  handlePick: (token: WrappedToken) => void;
+  handlePick: (token: Token) => void;
 }
 
-function TokenRow({
-  token,
-  handlePick,
-}: {
-  token: WrappedToken;
-  handlePick: (token: WrappedToken) => void;
-}) {
+function TokenRow({ token, handlePick }: { token: Token; handlePick: (token: Token) => void }) {
   return (
     <div
       role="button"
@@ -70,7 +64,7 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
         </div>
         <div className="h-[420px] overflow-scroll">
           {tokens.map((token) => (
-            <TokenRow handlePick={handlePick} key={token.address} token={token} />
+            <TokenRow handlePick={handlePick} key={token.address0} token={token} />
           ))}
         </div>
       </div>

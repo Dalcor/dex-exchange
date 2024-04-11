@@ -7,7 +7,7 @@ import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores
 import Collapse from "@/components/atoms/Collapse";
 import Svg from "@/components/atoms/Svg";
 import { FEE_AMOUNT_DETAIL, FEE_TIERS } from "@/config/constants/liquidityFee";
-import { FeeAmount } from "@/sdk";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 
 import { useLiquidityPriceRangeStore } from "../stores/useLiquidityPriceRangeStore";
 
@@ -79,7 +79,7 @@ export default function FeeAmountSettings() {
                 window.history.replaceState(
                   null,
                   "",
-                  `/${locale}/add/${tokenA?.address}/${tokenB?.address}/${_feeAmount}`,
+                  `/${locale}/add/${tokenA?.address0}/${tokenB?.address0}/${_feeAmount}`,
                 );
               }}
             />

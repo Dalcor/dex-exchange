@@ -9,12 +9,12 @@ import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
 import RadioButton from "@/components/buttons/RadioButton";
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { TokenList } from "@/config/types/TokenList";
 import { IIFE } from "@/functions/iife";
 import { fetchTokenList } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { useTokenListsStore } from "@/stores/useTokenListsStore";
 
 interface Props {
@@ -78,7 +78,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                 enabled: true,
                 list: parsedJson,
               },
-              chainId as AvailableChains,
+              chainId as DexChainId,
             );
           }
         } catch (e) {
@@ -199,7 +199,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                           enabled: true,
                           url: tokenListAddressToImport,
                         },
-                        chainId as AvailableChains,
+                        chainId as DexChainId,
                       );
                       setContent("default");
                       addToast("List imported");

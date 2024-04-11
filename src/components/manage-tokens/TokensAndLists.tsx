@@ -27,9 +27,7 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
   const [onlyCustom, setOnlyCustom] = useState(false);
 
   const filteredTokens = useMemo(() => {
-    const tokensAfterCustomCheck = onlyCustom
-      ? tokens.filter((t) => t.lists?.includes("custom"))
-      : tokens;
+    const tokensAfterCustomCheck = onlyCustom ? tokens.filter((t) => true) : tokens;
 
     return value
       ? tokensAfterCustomCheck.filter((t) => t.name && t.name.toLowerCase().startsWith(value))

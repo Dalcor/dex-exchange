@@ -7,22 +7,21 @@ import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/s
 import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import { PoolState, usePool } from "@/hooks/usePools";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
-import { FeeAmount } from "@/sdk";
-import { Currency } from "@/sdk/entities/currency";
-import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
-import { Percent } from "@/sdk/entities/fractions/percent";
-import { Price } from "@/sdk/entities/fractions/price";
-import { Pool } from "@/sdk/entities/pool";
-import { Position } from "@/sdk/entities/position";
-import { Token } from "@/sdk/entities/token";
-import { toHex } from "@/sdk/utils/calldata";
-import { encodeSqrtRatioX96 } from "@/sdk/utils/encodeSqrtRatioX96";
-import { priceToClosestTick } from "@/sdk/utils/priceTickConversions";
-import { TickMath } from "@/sdk/utils/tickMath";
+import { FeeAmount } from "@/sdk_hybrid/constants";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
+import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
+import { Price } from "@/sdk_hybrid/entities/fractions/price";
+import { Pool } from "@/sdk_hybrid/entities/pool";
+import { Position } from "@/sdk_hybrid/entities/position";
+import { Token } from "@/sdk_hybrid/entities/token";
+import { toHex } from "@/sdk_hybrid/utils/calldata";
+import { encodeSqrtRatioX96 } from "@/sdk_hybrid/utils/encodeSqrtRatioX96";
+import { priceToClosestTick } from "@/sdk_hybrid/utils/priceTickConversions";
+import { TickMath } from "@/sdk_hybrid/utils/tickMath";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 import { Field, useLiquidityAmountsStore } from "../stores/useAddLiquidityAmountsStore";
@@ -58,8 +57,8 @@ export const useAddLiquidity = () => {
         functionName: "createAndInitializePoolIfNecessary" as const,
         address: nonFungiblePositionManagerAddress as Address,
         args: [
-          tokenB.address as Address,
-          tokenA.address as Address,
+          tokenB.address0 as Address,
+          tokenA.address0 as Address,
           FeeAmount.LOW,
           BigInt("79228162514264337593543950336"),
         ] as [Address, Address, FeeAmount, bigint],
@@ -119,15 +118,15 @@ export const useAddLiquidity = () => {
 
         if (createPool) {
           const createParams = [
-            position.pool.token0.address as Address,
-            position.pool.token1.address as Address,
+            position.pool.token0.address0 as Address,
+            position.pool.token1.address0 as Address,
             position.pool.fee,
             toHex(position.pool.sqrtRatioX96) as any,
           ] as [Address, Address, FeeAmount, bigint];
 
           const mintParams = {
-            token0: position.pool.token0.address as Address,
-            token1: position.pool.token1.address as Address,
+            token0: position.pool.token0.address0 as Address,
+            token1: position.pool.token1.address0 as Address,
             fee: position.pool.fee,
             tickLower: position.tickLower,
             tickUpper: position.tickUpper,
@@ -215,8 +214,8 @@ export const useAddLiquidity = () => {
           }
         } else {
           const params = {
-            token0: position.pool.token0.address as Address,
-            token1: position.pool.token1.address as Address,
+            token0: position.pool.token0.address0 as Address,
+            token1: position.pool.token1.address0 as Address,
             fee: position.pool.fee,
             tickLower: position.tickLower,
             tickUpper: position.tickUpper,
@@ -260,8 +259,8 @@ export const useV3DerivedMintInfo = ({
   tier,
   price,
 }: {
-  tokenA?: WrappedToken;
-  tokenB?: WrappedToken;
+  tokenA?: Token;
+  tokenB?: Token;
   tier: FeeAmount;
   price: Price<Token, Token> | undefined;
 }) => {

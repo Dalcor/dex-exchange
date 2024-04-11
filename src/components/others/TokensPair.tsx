@@ -1,13 +1,13 @@
 import Image from "next/image";
 
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 export default function TokensPair({
   tokenA,
   tokenB,
 }: {
-  tokenA?: WrappedToken | undefined;
-  tokenB?: WrappedToken | undefined;
+  tokenA?: Token | undefined;
+  tokenB?: Token | undefined;
 }) {
   return (
     <div className="flex items-center gap-2.5">

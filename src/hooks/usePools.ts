@@ -4,13 +4,13 @@ import { Address } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
 
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
-import { BigintIsh, FeeAmount } from "@/sdk";
-import { FACTORY_ADDRESS } from "@/sdk/addresses";
-import { DexChainId } from "@/sdk/chains";
-import { Currency } from "@/sdk/entities/currency";
-import { Pool } from "@/sdk/entities/pool";
-import { Token } from "@/sdk/entities/token";
-import { computePoolAddress } from "@/sdk/utils/computePoolAddress";
+import { FACTORY_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
+import { BigintIsh, FeeAmount } from "@/sdk_hybrid/constants";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { Pool } from "@/sdk_hybrid/entities/pool";
+import { Token } from "@/sdk_hybrid/entities/token";
+import { computePoolAddress } from "@/sdk_hybrid/utils/computePoolAddress";
 import { usePoolsStore } from "@/stores/usePoolsStore";
 
 // Classes are expensive to instantiate, so this caches the recently instantiated pools.
@@ -33,8 +33,8 @@ class PoolCache {
       this.addresses = this.addresses.slice(0, this.MAX_ENTRIES / 2);
     }
 
-    const { address: addressA } = tokenA;
-    const { address: addressB } = tokenB;
+    const { address0: addressA } = tokenA;
+    const { address0: addressB } = tokenB;
     const key = `${factoryAddress}:${addressA}:${addressB}:${fee.toString()}`;
     const found = this.addresses.find((address) => address.key === key);
     if (found) return found.address;

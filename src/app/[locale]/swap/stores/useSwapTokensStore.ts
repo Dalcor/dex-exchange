@@ -1,18 +1,28 @@
+import { Address } from "viem";
 import { create } from "zustand";
 
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 interface SwapTokensStore {
-  tokenA: WrappedToken | undefined;
-  tokenB: WrappedToken | undefined;
-  setTokenA: (token: WrappedToken | undefined) => void;
-  setTokenB: (token: WrappedToken | undefined) => void;
+  tokenA: Token | undefined;
+  tokenB: Token | undefined;
+  setTokenA: (token: Token | undefined) => void;
+  setTokenB: (token: Token | undefined) => void;
+  tokenAAddress: Address | undefined;
+  tokenBAddress: Address | undefined;
+  setTokenAAddress: (address: Address | undefined) => void;
+  setTokenBAddress: (address: Address | undefined) => void;
 }
 
 export const useSwapTokensStore = create<SwapTokensStore>((set, get) => ({
   tokenA: undefined,
   tokenB: undefined,
+  tokenAAddress: undefined,
+  tokenBAddress: undefined,
 
   setTokenA: (tokenA) => set({ tokenA }),
   setTokenB: (tokenB) => set({ tokenB }),
+
+  setTokenAAddress: (tokenAAddress) => set({ tokenAAddress }),
+  setTokenBAddress: (tokenBAddress) => set({ tokenBAddress }),
 }));

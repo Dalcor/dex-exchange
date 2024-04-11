@@ -3,11 +3,11 @@ import { Address } from "viem";
 
 import Svg from "@/components/atoms/Svg";
 import TrustBadge from "@/components/badges/TrustBadge";
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 interface Props {
-  tokenA: WrappedToken | undefined;
-  tokenB: WrappedToken | undefined;
+  tokenA: Token | undefined;
+  tokenB: Token | undefined;
 }
 export default function SelectedTokensInfo({ tokenA, tokenB }: Props) {
   return (
@@ -36,19 +36,19 @@ function TokenAddress({
   );
 }
 
-function AddressPair({ token }: { token: WrappedToken | undefined }) {
+function AddressPair({ token }: { token: Token | undefined }) {
   return (
     <div className="flex gap-2 items-center">
-      <TokenAddress tokenAddress={token?.address as Address | undefined} standard="ERC-20" />
-      <TokenAddress tokenAddress={token?.address as Address | undefined} standard="ERC-223" />
+      <TokenAddress tokenAddress={token?.address0 as Address | undefined} standard="ERC-20" />
+      <TokenAddress tokenAddress={token?.address1 as Address | undefined} standard="ERC-223" />
     </div>
   );
 }
-function SelectedTokensInfoItem({ token }: { token: WrappedToken | undefined }) {
+function SelectedTokensInfoItem({ token }: { token: Token | undefined }) {
   return (
     <div className="bg-tertiary-bg rounded-3 py-2.5 px-5 flex flex-wrap justify-between items-center @container relative z-20">
       <div className="flex items-center gap-2">
-        <Image src={(token as WrappedToken)?.logoURI || ""} alt="Ethereum" width={32} height={32} />
+        <Image src={token?.logoURI || ""} alt="Ethereum" width={32} height={32} />
         <div className="flex flex-col">
           <div className="flex gap-2 items-center">
             {token?.name?.replace("Token ", "")}

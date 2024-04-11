@@ -8,23 +8,20 @@ import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/Posi
 import useRemoveLiquidity from "@/app/[locale]/remove/[tokenId]/hooks/useRemoveLiquidity";
 import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
-import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
-import Badge from "@/components/badges/Badge";
 import RangeBadge from "@/components/badges/RangeBadge";
 import InputButton from "@/components/buttons/InputButton";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import {
   usePositionFromPositionInfo,
   usePositionFromTokenId,
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
-import { Percent } from "@/sdk/entities/fractions/percent";
+import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 export default function DecreaseLiquidityPage({
   params,

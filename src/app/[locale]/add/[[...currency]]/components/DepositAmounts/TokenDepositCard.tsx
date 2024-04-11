@@ -3,10 +3,8 @@ import { ChangeEvent, useState } from "react";
 import { Address, formatUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
 
-import Checkbox from "@/components/atoms/Checkbox";
-import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 const InputRange = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
   return (
@@ -36,7 +34,7 @@ function InputTotalAmount({
   value,
   onChange,
 }: {
-  token: WrappedToken;
+  token: Token;
   value: string;
   onChange: (value: string) => void;
 }) {
@@ -44,7 +42,7 @@ function InputTotalAmount({
 
   const { data: tokenBalance } = useBalance({
     address: address,
-    token: token.address as Address,
+    token: token.address0 as Address,
   });
 
   return (
@@ -87,7 +85,7 @@ function InputStandardAmount({
   onChange?: (value: number) => void;
   currentAllowance?: bigint;
   currentDeposit?: bigint;
-  token: WrappedToken;
+  token: Token;
   onRevoke: () => void;
   onWithdraw: () => void;
 }) {
@@ -147,7 +145,7 @@ export default function TokenDepositCard({
   withdrawHandler,
   isDisabled,
 }: {
-  token: WrappedToken;
+  token: Token;
   value: string;
   onChange: (value: string) => void;
   currentAllowance?: bigint;

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { FeeAmount } from "@/sdk";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 
 import { Bound } from "../components/PriceRange/LiquidityChartRangeInput/types";
 import { ZOOM_LEVELS } from "../hooks/types";

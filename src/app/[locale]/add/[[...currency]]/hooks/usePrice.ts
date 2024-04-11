@@ -1,14 +1,12 @@
 import { useMemo } from "react";
 
-import { WrappedToken } from "@/config/types/WrappedToken";
 import { getTickToPrice, tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import { PoolState, usePool } from "@/hooks/usePools";
-import { TICK_SPACINGS } from "@/sdk";
-import { Price } from "@/sdk/entities/fractions/price";
-import { Pool } from "@/sdk/entities/pool";
-import { Token } from "@/sdk/entities/token";
-import { nearestUsableTick } from "@/sdk/utils/nearestUsableTick";
-import { TickMath } from "@/sdk/utils/tickMath";
+import { TICK_SPACINGS } from "@/sdk_hybrid/constants";
+import { Price } from "@/sdk_hybrid/entities/fractions/price";
+import { Token } from "@/sdk_hybrid/entities/token";
+import { nearestUsableTick } from "@/sdk_hybrid/utils/nearestUsableTick";
+import { TickMath } from "@/sdk_hybrid/utils/tickMath";
 
 import { Bound } from "../components/PriceRange/LiquidityChartRangeInput/types";
 import { useAddLiquidityTokensStore } from "../stores/useAddLiquidityTokensStore";

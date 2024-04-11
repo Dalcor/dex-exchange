@@ -17,7 +17,6 @@ import RangeBadge from "@/components/badges/RangeBadge";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import {
   usePositionFees,
   usePositionFromPositionInfo,

@@ -13,20 +13,17 @@ import {
   useWriteContract,
 } from "wagmi";
 
-import { ERC20_ABI } from "@/config/abis/erc20";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import { usePool } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
-import addToast from "@/other/toast";
-import { FeeAmount } from "@/sdk";
-import { Currency } from "@/sdk/entities/currency";
-import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
-import { Price } from "@/sdk/entities/fractions/price";
-import { Pool } from "@/sdk/entities/pool";
-import { Position } from "@/sdk/entities/position";
-import { toHex } from "@/sdk/utils/calldata";
+import { FeeAmount } from "@/sdk_hybrid/constants";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
+import { Price } from "@/sdk_hybrid/entities/fractions/price";
+import { Pool } from "@/sdk_hybrid/entities/pool";
+import { Position } from "@/sdk_hybrid/entities/position";
+import { Token } from "@/sdk_hybrid/entities/token";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -170,11 +167,11 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
   const tokens = useTokens();
 
   const tokenA = useMemo(() => {
-    return tokens.find((t) => t.address === positionDetails?.token0);
+    return tokens.find((t) => t.address0 === positionDetails?.token0);
   }, [positionDetails?.token0, tokens]);
 
   const tokenB = useMemo(() => {
-    return tokens.find((t) => t.address === positionDetails?.token1);
+    return tokens.find((t) => t.address0 === positionDetails?.token1);
   }, [positionDetails?.token1, tokens]);
   //
   const pool = usePool(tokenA, tokenB, positionDetails?.tier);
@@ -297,8 +294,8 @@ export function usePositionFees(
             pool.token1,
             collectResult.result[1].toString(),
           ).toSignificant(2),
-          logoURI0: (pool?.token0 as WrappedToken).logoURI!,
-          logoURI1: (pool?.token1 as WrappedToken).logoURI!,
+          logoURI0: (pool?.token0 as Token).logoURI!,
+          logoURI1: (pool?.token1 as Token).logoURI!,
         },
       },
       address,

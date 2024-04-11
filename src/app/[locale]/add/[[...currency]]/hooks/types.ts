@@ -1,4 +1,4 @@
-import { FeeAmount } from "@/sdk";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 
 export interface ZoomLevels {
   initialMin: number;

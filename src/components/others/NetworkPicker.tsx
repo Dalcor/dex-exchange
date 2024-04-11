@@ -1,25 +1,29 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { useChainId, useSwitchChain } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 
 import Popover from "@/components/atoms/Popover";
 import SelectButton from "@/components/atoms/SelectButton";
 import SelectOption from "@/components/atoms/SelectOption";
 import Svg from "@/components/atoms/Svg";
+import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import ClientOnly from "@/components/others/ClientOnly";
 import { networks } from "@/config/networks";
 
 export default function NetworkPicker() {
   const [isOpened, setIsOpened] = useState(false);
-  const chain = useChainId();
+  const { chainToConnect, setChainToConnect } = useConnectWalletStore();
+  const { chainId } = useAccount();
   const currentNetwork = useMemo(() => {
-    return networks.find((n) => n.chainId === chain);
-  }, [chain]);
+    if (chainId) {
+      return networks.find((n) => n.chainId === chainId);
+    }
+    return networks.find((n) => n.chainId === chainToConnect);
+  }, [chainId, chainToConnect]);
   const { switchChain } = useSwitchChain();
 
-  if (!chain) {
-    return null;
-  }
+  console.log(chainId);
+  console.log(currentNetwork);
 
   return (
     <ClientOnly>
@@ -38,17 +42,23 @@ export default function NetworkPicker() {
       >
         <div className="py-1 text-16 bg-primary-bg border border-primary-border rounded-1 min-w-[280px]">
           <div className="border-b-primary-border pb-1 border-b">
-            {networks.map(({ chainId, name, logo }) => {
+            {networks.map(({ chainId: _chainId, name, logo }) => {
               return (
                 <SelectOption
                   key={chainId}
                   onClick={async () => {
-                    if (switchChain) {
-                      switchChain({ chainId });
+                    if (!chainId) {
+                      console.log(chainId);
+                      console.log("Change chain to connect");
+                      setChainToConnect(_chainId);
                     }
+                    if (switchChain) {
+                      switchChain({ chainId: _chainId });
+                    }
+
                     setIsOpened(false);
                   }}
-                  isActive={chainId === chain}
+                  isActive={_chainId === currentNetwork?.chainId}
                 >
                   <Image src={logo} alt={name} width={24} height={24} />
                   {name}

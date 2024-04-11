@@ -15,11 +15,11 @@ import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { FEE_TIERS } from "@/config/constants/liquidityFee";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import useAllowance from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
 import { PriceRange } from "./components/PriceRange/PriceRange";
@@ -48,7 +48,7 @@ export default function AddPoolPage({
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
   const handlePick = useCallback(
-    (token: WrappedToken) => {
+    (token: Token) => {
       if (currentlyPicking === "tokenA") {
         setTokenA(token);
       }
@@ -64,14 +64,14 @@ export default function AddPoolPage({
 
   useEffect(() => {
     if (currency?.[0]) {
-      const token = tokens.find((t) => t.address === currency[0]);
+      const token = tokens.find((t) => t.address0 === currency[0]);
       if (token) {
         setTokenA(token);
       }
     }
 
     if (currency?.[1]) {
-      const token = tokens.find((t) => t.address === currency[1]);
+      const token = tokens.find((t) => t.address0 === currency[1]);
       if (token) {
         setTokenB(token);
       }

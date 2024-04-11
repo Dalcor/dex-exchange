@@ -7,12 +7,11 @@ import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/s
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
-import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
-import { Percent } from "@/sdk/entities/fractions/percent";
-import { Position } from "@/sdk/entities/position";
-import { toHex } from "@/sdk/utils/calldata";
+import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
+import { Position } from "@/sdk_hybrid/entities/position";
+import { Token } from "@/sdk_hybrid/entities/token";
+import { toHex } from "@/sdk_hybrid/utils/calldata";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -33,7 +32,7 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
   const { chainId } = useAccount();
 
   const handleRemoveLiquidity = useCallback(
-    async (tokenA: WrappedToken | null, tokenB: WrappedToken | null, position?: Position) => {
+    async (tokenA: Token | null, tokenB: Token | null, position?: Position) => {
       if (
         !position ||
         !publicClient ||

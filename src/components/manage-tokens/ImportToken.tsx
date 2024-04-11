@@ -8,10 +8,10 @@ import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { ERC20_ABI } from "@/config/abis/erc20";
 import addToast from "@/other/toast";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { useTokenListsStore } from "@/stores/useTokenListsStore";
 
 interface Props {
@@ -120,8 +120,9 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                 disabled={!checkedUnderstand}
                 onClick={() => {
                   if (chainId && tokenName && tokenDecimals && tokenSymbol) {
-                    addTokenToCustomTokenList(chainId as AvailableChains, {
-                      address: tokenAddressToImport as Address,
+                    addTokenToCustomTokenList(chainId as DexChainId, {
+                      address0: tokenAddressToImport as Address,
+                      address1: tokenAddressToImport as Address,
                       name: tokenName,
                       decimals: tokenDecimals,
                       symbol: tokenSymbol,

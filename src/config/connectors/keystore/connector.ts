@@ -2,7 +2,7 @@ import { ConnectorNotConnectedError, createConnector } from "@wagmi/core";
 import { Address, createWalletClient, fromHex, getAddress, http, WalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
+import { DexChainId } from "@/sdk_hybrid/chains";
 
 export type KeystoreConnectorParameters = {
   pk: Address;
@@ -21,7 +21,7 @@ export function keystore({ pk }: KeystoreConnectorParameters) {
     async setup() {
       connectedChainId = config.chains[0].id;
     },
-    async connect({ chainId }: { chainId: AvailableChains }) {
+    async connect({ chainId }: { chainId: DexChainId }) {
       const provider: WalletClient = await this.getProvider({ chainId });
 
       try {

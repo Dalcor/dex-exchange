@@ -1,22 +1,15 @@
-import { useCallback } from "react";
-import { useConnect } from "wagmi";
+import { useSwitchChain } from "wagmi";
 
-import Button from "@/components/atoms/Button";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import PickButton from "@/components/atoms/PickButton";
-import {
-  useConnectWalletDialogStateStore,
-  useConnectWalletStore,
-} from "@/components/dialogs/stores/useConnectWalletStore";
+import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import CoinbaseCard from "@/components/wallet-cards/CoinbaseCard";
 import KeystoreCard from "@/components/wallet-cards/KeystoreCard";
 import MetamaskCard from "@/components/wallet-cards/MetamaskCard";
 import TrustWalletCard from "@/components/wallet-cards/TrustWalletCard";
 import WalletConnectCard from "@/components/wallet-cards/WalletConnectCard";
 import { networks } from "@/config/networks";
-import { config } from "@/config/wagmi/config";
-import addToast from "@/other/toast";
 
 interface Props {
   isOpen: boolean;
@@ -36,6 +29,7 @@ function StepLabel({ step, label }: { step: string; label: string }) {
 
 export default function ConnectWalletDialog({ isOpen, setIsOpen }: Props) {
   const { chainToConnect, setChainToConnect } = useConnectWalletStore();
+  const { switchChain } = useSwitchChain();
 
   return (
     <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -51,6 +45,9 @@ export default function ConnectWalletDialog({ isOpen, setIsOpen }: Props) {
                   isActive={chainId === chainToConnect}
                   onClick={() => {
                     setChainToConnect(chainId);
+                    if (switchChain) {
+                      switchChain({ chainId });
+                    }
                   }}
                   image={logo}
                   label={name}

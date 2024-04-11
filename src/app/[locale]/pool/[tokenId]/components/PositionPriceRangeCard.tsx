@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 export default function PositionPriceRangeCard({
   price,
@@ -10,8 +10,8 @@ export default function PositionPriceRangeCard({
   isMax = false,
 }: {
   price?: string;
-  token0: WrappedToken | undefined;
-  token1: WrappedToken | undefined;
+  token0: Token | undefined;
+  token1: Token | undefined;
   showFirst: boolean;
   isMax?: boolean;
 }) {

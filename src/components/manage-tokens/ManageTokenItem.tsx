@@ -4,14 +4,11 @@ import { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
-import DialogHeader from "@/components/atoms/DialogHeader";
-import DeleteIconButton from "@/components/buttons/DeleteIconButton";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 import { useTokenListsStore } from "@/stores/useTokenListsStore";
 
-export default function ManageTokenItem({ token }: { token: WrappedToken }) {
+export default function ManageTokenItem({ token }: { token: Token }) {
   const [open, setOpen] = useState(false);
   const [deleteOpened, setDeleteOpened] = useState(false);
 
@@ -27,7 +24,7 @@ export default function ManageTokenItem({ token }: { token: WrappedToken }) {
           <div className="flex flex-col">
             <span>{token.name}</span>
             <div className="flex gap-1 items-center text-secondary-text">
-              Found in {token.lists?.length || 1} token-lists
+              Found in 1 token-lists
               {/*<Popover*/}
               {/*  placement="top-end"*/}
               {/*  isOpened={isPopoverOpened}*/}
@@ -52,29 +49,29 @@ export default function ManageTokenItem({ token }: { token: WrappedToken }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {token.lists?.includes("custom") && (
-            <>
-              <DeleteIconButton onClick={() => setDeleteOpened(true)} />
-              <Dialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>
-                <DialogHeader onClose={() => setDeleteOpened(false)} title="Remove token" />
-                Are you sure you want delete this token? It will be removed only from your custom
-                token list.
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => setDeleteOpened(false)}>Cancel</button>
-                  <button
-                    onClick={() => {
-                      if (chainId) {
-                        removeCustomToken(chainId as AvailableChains, token.address as Address);
-                        setDeleteOpened(false);
-                      }
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </Dialog>
-            </>
-          )}
+          {/*{token.lists?.includes("custom") && (*/}
+          {/*  <>*/}
+          {/*    <DeleteIconButton onClick={() => setDeleteOpened(true)} />*/}
+          {/*    <Dialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>*/}
+          {/*      <DialogHeader onClose={() => setDeleteOpened(false)} title="Remove token" />*/}
+          {/*      Are you sure you want delete this token? It will be removed only from your custom*/}
+          {/*      token list.*/}
+          {/*      <div className="grid grid-cols-2 gap-2">*/}
+          {/*        <button onClick={() => setDeleteOpened(false)}>Cancel</button>*/}
+          {/*        <button*/}
+          {/*          onClick={() => {*/}
+          {/*            if (chainId) {*/}
+          {/*              removeCustomToken(chainId as DexChainId, token.address as Address);*/}
+          {/*              setDeleteOpened(false);*/}
+          {/*            }*/}
+          {/*          }}*/}
+          {/*        >*/}
+          {/*          Remove*/}
+          {/*        </button>*/}
+          {/*      </div>*/}
+          {/*    </Dialog>*/}
+          {/*  </>*/}
+          {/*)}*/}
           <SystemIconButton onClick={() => setOpen(!open)} iconName="details" />
         </div>
       </div>
@@ -91,7 +88,7 @@ export default function ManageTokenItem({ token }: { token: WrappedToken }) {
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text">Address</span>
-              <span>{token.address}</span>
+              <span>{token.address0}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text">Decimals</span>
@@ -100,16 +97,16 @@ export default function ManageTokenItem({ token }: { token: WrappedToken }) {
           </div>
           <p className="pt-3 text-secondary-text">Found in these token-lists:</p>
           <div className="flex flex-col gap-3 py-3">
-            {token.lists?.map((listId) => {
-              return (
-                <div className="flex gap-3 items-center" key={listId}>
-                  <div className="px-2">
-                    <Image width={32} height={32} src="/token-lists/BNB.svg" alt="" />
-                  </div>
-                  {listId}
-                </div>
-              );
-            })}
+            {/*{token.lists?.map((listId) => {*/}
+            {/*  return (*/}
+            {/*    <div className="flex gap-3 items-center" key={listId}>*/}
+            {/*      <div className="px-2">*/}
+            {/*        <Image width={32} height={32} src="/token-lists/BNB.svg" alt="" />*/}
+            {/*      </div>*/}
+            {/*      {listId}*/}
+            {/*    </div>*/}
+            {/*  );*/}
+            {/*})}*/}
           </div>
         </div>
       </Dialog>

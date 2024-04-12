@@ -17,7 +17,7 @@ import usePositions, {
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
-import { FeeAmount } from "@/sdk";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 
 type PositionInfo = {
   nonce: bigint;

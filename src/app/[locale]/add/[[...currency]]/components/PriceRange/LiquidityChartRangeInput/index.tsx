@@ -1,9 +1,9 @@
 import { ReactNode, useCallback, useMemo } from "react";
 
-import { FeeAmount } from "@/sdk";
-import { Currency } from "@/sdk/entities/currency";
-import { Price } from "@/sdk/entities/fractions/price";
-import { Token } from "@/sdk/entities/token";
+import { FeeAmount } from "@/sdk_hybrid/constants";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { Price } from "@/sdk_hybrid/entities/fractions/price";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 import { ZOOM_LEVELS } from "../../../hooks/types";
 import { Chart } from "./Chart";

@@ -6,14 +6,14 @@ import { useAllV3TicksQuery } from "@/graphql/thegraph/__generated__/types-and-h
 import { TickData, Ticks } from "@/graphql/thegraph/AllV3TicksQuery";
 import { chainToApolloClient } from "@/graphql/thegraph/apollo";
 import { PoolState, usePool } from "@/hooks/usePools";
-import { FeeAmount, TICK_SPACINGS } from "@/sdk";
-import { V3_CORE_FACTORY_ADDRESSES } from "@/sdk/addresses";
-import { ChainId } from "@/sdk/chains";
-import { Currency } from "@/sdk/entities/currency";
-import { Price } from "@/sdk/entities/fractions/price";
-import { Pool } from "@/sdk/entities/pool";
-import { Token } from "@/sdk/entities/token";
-import { tickToPrice } from "@/sdk/utils/priceTickConversions";
+import { FACTORY_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
+import { FeeAmount, TICK_SPACINGS } from "@/sdk_hybrid/constants";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { Price } from "@/sdk_hybrid/entities/fractions/price";
+import { Pool } from "@/sdk_hybrid/entities/pool";
+import { Token } from "@/sdk_hybrid/entities/token";
+import { tickToPrice } from "@/sdk_hybrid/utils/priceTickConversions";
 
 import MockData from "./mockData.json";
 import { ChartEntry } from "./types";
@@ -96,7 +96,7 @@ function useTicksFromSubgraph(
   currencyB: Currency | undefined,
   feeAmount: FeeAmount | undefined,
   skip = 0,
-  chainId: ChainId,
+  chainId: DexChainId,
 ) {
   const apolloClient = chainToApolloClient[chainId];
   const poolAddress =
@@ -106,7 +106,7 @@ function useTicksFromSubgraph(
           currencyB?.wrapped,
           feeAmount,
           undefined,
-          chainId ? V3_CORE_FACTORY_ADDRESSES[chainId] : undefined,
+          chainId ? FACTORY_ADDRESS[chainId] : undefined,
         )
       : undefined;
 
@@ -125,7 +125,7 @@ function useAllV3Ticks(
   currencyA: Currency | undefined,
   currencyB: Currency | undefined,
   feeAmount: FeeAmount | undefined,
-  chainId: ChainId,
+  chainId: DexChainId,
 ): {
   isLoading: boolean;
   error: unknown;
@@ -161,7 +161,7 @@ export function usePoolActiveLiquidity(
   currencyA: Currency | undefined,
   currencyB: Currency | undefined,
   feeAmount: FeeAmount | undefined,
-  chainId?: ChainId,
+  chainId?: DexChainId,
 ): {
   isLoading: boolean;
   error: any;
@@ -172,7 +172,7 @@ export function usePoolActiveLiquidity(
   data?: TickProcessed[];
 } {
   const { chainId: accountChainId } = useAccount();
-  const defaultChainId = accountChainId ?? ChainId.MAINNET;
+  const defaultChainId = accountChainId ?? DexChainId.SEPOLIA;
   const pool = usePool(
     currencyA?.wrapped,
     currencyB?.wrapped,

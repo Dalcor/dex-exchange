@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import Badge from "@/components/badges/Badge";
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 export default function PositionLiquidityCard({
   token,
@@ -9,7 +9,7 @@ export default function PositionLiquidityCard({
   percentage,
   standards,
 }: {
-  token: WrappedToken | undefined;
+  token: Token | undefined;
   amount: string;
   percentage?: number | string;
   standards?: string[];

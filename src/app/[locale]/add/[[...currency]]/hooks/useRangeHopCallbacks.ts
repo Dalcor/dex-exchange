@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from "react";
 
-import { FeeAmount, Rounding, TICK_SPACINGS } from "@/sdk";
-import { Currency } from "@/sdk/entities/currency";
-import { Pool } from "@/sdk/entities/pool";
-import { tickToPrice } from "@/sdk/utils/priceTickConversions";
+import { FeeAmount, Rounding, TICK_SPACINGS } from "@/sdk_hybrid/constants";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { Pool } from "@/sdk_hybrid/entities/pool";
+import { tickToPrice } from "@/sdk_hybrid/utils/priceTickConversions";
 
 export function useRangeHopCallbacks(
   baseCurrency: Currency | undefined,

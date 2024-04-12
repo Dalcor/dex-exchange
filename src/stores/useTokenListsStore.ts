@@ -1,14 +1,16 @@
 import { Address } from "viem";
 import { create } from "zustand";
 
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
+import { DexChainId } from "@/sdk_hybrid/chains";
 
 type TokenInfo = {
-  address: Address;
+  address0: Address;
+  address1: Address;
   chainId: number;
   name: string;
   symbol: string;
   decimals: number;
+  logoURI?: string;
 };
 
 export type LocalTokenList = {
@@ -35,60 +37,20 @@ export type ExternalTokenList = {
 
 export type SavedTokenList = LocalTokenList | ExternalTokenList;
 
-type TokenLists = Record<AvailableChains, SavedTokenList[]>;
+type TokenLists = Record<DexChainId, SavedTokenList[]>;
 
 interface TokenListsStore {
   tokenLists: TokenLists;
   addTokenList: (
     tokenList: Omit<LocalTokenList, "id"> | Omit<ExternalTokenList, "id">,
-    chainId: AvailableChains,
+    chainId: DexChainId,
   ) => void;
-  toggleTokenList: (tokenListId: string, chainId: AvailableChains) => void;
-  addTokenToCustomTokenList: (chainId: AvailableChains, token: TokenInfo) => void;
-  removeCustomToken: (chainId: AvailableChains, tokenAddress: Address) => void;
+  toggleTokenList: (tokenListId: string, chainId: DexChainId) => void;
+  addTokenToCustomTokenList: (chainId: DexChainId, token: TokenInfo) => void;
+  removeCustomToken: (chainId: DexChainId, tokenAddress: Address) => void;
 }
 
-const defaultTokenLists = {
-  1: [
-    {
-      id: "coingecko_ethereum",
-      name: "Coingecko Ethereum",
-      url: "https://tokens.coingecko.com/ethereum/all.json",
-      enabled: true,
-    },
-    {
-      id: "optimism-main",
-      name: "Main Optimism",
-      url: "https://static.optimism.io/optimism.tokenlist.json",
-      enabled: true,
-    },
-    {
-      id: "uniswap-main",
-      name: "Uniswap Labs Default",
-      url: "https://tokens.uniswap.org/",
-      enabled: true,
-    },
-    {
-      id: "1inch",
-      name: "1NCH",
-      url: "https://wispy-bird-88a7.uniswap.workers.dev/?url=https://tokens.1inch.eth.link",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom Ethereum List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom Ethereum List",
-        tokens: [],
-      },
-      enabled: true,
-    },
-  ],
+const defaultTokenLists: Record<DexChainId, SavedTokenList[]> = {
   820: [
     {
       id: "coingecko_callisto",
@@ -108,7 +70,11 @@ const defaultTokenLists = {
         name: "Сustom Callisto List",
         tokens: [
           {
-            address: "0x98b925eCc32cE2B8b7458ff4bd489052E58e3Cd9" as Address,
+            // address0: "0x98b925eCc32cE2B8b7458ff4bd489052E58e3Cd9" as Address, // ERC-223
+            // address1: "0x40769999A285730B1541DD501406168309DDa65c" as Address, // ERC-20
+
+            address0: "0x40769999A285730B1541DD501406168309DDa65c" as Address, // ERC-20
+            address1: "0x98b925eCc32cE2B8b7458ff4bd489052E58e3Cd9" as Address, // ERC-223
             name: "TestA",
             logoURI: "/tokens/placeholder.svg",
             chainId: 820,
@@ -116,7 +82,11 @@ const defaultTokenLists = {
             symbol: "ccDTA",
           },
           {
-            address: "0x0684F8A7cC01aD4a253Df7d55340688F8173d520" as Address,
+            // address0: "0x0684F8A7cC01aD4a253Df7d55340688F8173d520" as Address, // ERC-223
+            // address1: "0xb3746e05813d7dcbbB6DFb0437095e5f70Dbb393" as Address, // ERC-20
+
+            address0: "0xb3746e05813d7dcbbB6DFb0437095e5f70Dbb393" as Address, // ERC-20
+            address1: "0x0684F8A7cC01aD4a253Df7d55340688F8173d520" as Address, // ERC-223
             name: "TestB",
             logoURI: "/tokens/placeholder.svg",
             chainId: 820,
@@ -124,194 +94,6 @@ const defaultTokenLists = {
             symbol: "ccDTB",
           },
         ],
-      },
-      enabled: true,
-    },
-  ],
-  42161: [
-    {
-      id: "coingecko_arbitrum_one",
-      name: "Coingecko Arbitrum",
-      url: "https://tokens.coingecko.com/arbitrum-one/all.json",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom Arbitrum List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom Arbitrum List",
-        tokens: [],
-      },
-      enabled: true,
-    },
-  ],
-  56: [
-    {
-      id: "coingecko_bsc",
-      name: "Coingecko BSC",
-      url: "https://tokens.coingecko.com/binance-smart-chain/all.json",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom BSC List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom BSC List",
-        tokens: [],
-      },
-      enabled: true,
-    },
-  ],
-  61: [
-    {
-      id: "coingecko_ethereum_classic",
-      name: "Coingecko ETC",
-      url: "https://tokens.coingecko.com/ethereum-classic/all.json",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom ETC List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom ETC List",
-        tokens: [],
-      },
-      enabled: true,
-    },
-  ],
-  10: [
-    {
-      id: "coingecko_optimistic-ethereum",
-      name: "Coingecko Optimism",
-      url: "https://tokens.coingecko.com/optimistic-ethereum/all.json",
-      enabled: true,
-    },
-    {
-      id: "optimism-main",
-      name: "Main Optimism",
-      url: "https://static.optimism.io/optimism.tokenlist.json",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom Optimism List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom Optimism List",
-        tokens: [],
-      },
-      enabled: true,
-    },
-  ],
-  137: [
-    {
-      id: "coingecko_polygon-pos",
-      name: "Coingecko Polygon",
-      url: "https://tokens.coingecko.com/polygon-pos/all.json",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom Polygon List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom Polygon List",
-        tokens: [],
-      },
-      enabled: true,
-    },
-  ],
-  42220: [
-    {
-      id: "coingecko_celo",
-      name: "Coingecko Celo",
-      url: "https://tokens.coingecko.com/celo/all.json",
-      enabled: true,
-    },
-    {
-      id: "celo_main",
-      name: "Celo Token List",
-      url: "https://celo-org.github.io/celo-token-list/celo.tokenlist.json",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom Celo List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom Celo List",
-        tokens: [],
-      },
-      enabled: true,
-    },
-  ],
-  43114: [
-    {
-      id: "coingecko_avalanche",
-      name: "Coingecko Avalanche",
-      url: "https://tokens.coingecko.com/avalanche/all.json",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom Avalanche List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom Avalanche List",
-        tokens: [],
-      },
-      enabled: true,
-    },
-  ],
-  8453: [
-    {
-      id: "coingecko_base",
-      name: "Coingecko Base",
-      url: "https://tokens.coingecko.com/base/all.json",
-      enabled: true,
-    },
-    {
-      id: "custom",
-      name: "Сustom Base List",
-      list: {
-        version: {
-          major: 1,
-          minor: 0,
-          patch: 0,
-        },
-        name: "Сustom Base List",
-        tokens: [],
       },
       enabled: true,
     },
@@ -329,65 +111,19 @@ const defaultTokenLists = {
         name: "Сustom Sepolia List",
         tokens: [
           {
-            address: "0xBC88C16D3adAacCC1f52503C4C972bA9C151F853" as Address,
-            name: "Token A",
-            logoURI: "/tokens/placeholder.svg",
-            chainId: 11155111,
-            decimals: 6,
-            symbol: "DTA",
-          },
-          {
-            address: "0xb32F7065949Ea3826d6E5936B07E5F1567707588" as Address,
-            name: "Token B",
-            logoURI: "/tokens/placeholder.svg",
-            chainId: 11155111,
-            decimals: 6,
-            symbol: "DTB",
-          },
-          {
-            address: "0xA6de6C90f2FFd30B54b830359a9f17Ed44dd63Ac" as Address,
-            name: "USDT",
-            logoURI: "/tokens/placeholder.svg",
-            chainId: 11155111,
-            decimals: 6,
-            symbol: "USDT",
-          },
-          {
-            address: "0x7fc21ceb0c5003576ab5e101eb240c2b822c95d2" as Address,
-            name: "USDC",
-            logoURI: "/tokens/placeholder.svg",
-            chainId: 11155111,
-            decimals: 6,
-            symbol: "USDC",
-          },
-          {
-            address: "0x723FE0A6415A25ec74cF0C4cf33F600F001D1aEc" as Address,
-            name: "Dex223 Token B",
+            address0: "0x723FE0A6415A25ec74cF0C4cf33F600F001D1aEc" as Address,
+            address1: "0x1d796072232c797CD07892FffAb79170af07E5d7" as Address,
+            name: "TESTB",
             symbol: "TB",
             logoURI: "/tokens/placeholder.svg",
             chainId: 11155111,
             decimals: 18,
           },
           {
-            address: "0x1d796072232c797CD07892FffAb79170af07E5d7" as Address,
-            name: "Dex223 Token B",
-            symbol: "TB223",
-            logoURI: "/tokens/placeholder.svg",
-            chainId: 11155111,
-            decimals: 18,
-          },
-          {
-            address: "0xFd5493FC83CE4FE44c951AA244946Bd652AC0361" as Address,
-            name: "Dex223 Token C",
+            address0: "0xFd5493FC83CE4FE44c951AA244946Bd652AC0361" as Address,
+            address1: "0x3Cd18a6F06f1daF91456347E9e3972b8C532d123" as Address,
+            name: "TESTC",
             symbol: "TC",
-            logoURI: "/tokens/placeholder.svg",
-            chainId: 11155111,
-            decimals: 18,
-          },
-          {
-            address: "0x3Cd18a6F06f1daF91456347E9e3972b8C532d123" as Address,
-            name: "Dex223 Token C",
-            symbol: "TC223",
             logoURI: "/tokens/placeholder.svg",
             chainId: 11155111,
             decimals: 18,
@@ -435,7 +171,7 @@ export const useTokenListsStore = create<TokenListsStore>()((set, get) => ({
       });
     }
   },
-  addTokenToCustomTokenList: (chainId: AvailableChains, token: TokenInfo) => {
+  addTokenToCustomTokenList: (chainId: DexChainId, token: TokenInfo) => {
     const tokenListIndex = get().tokenLists[chainId].findIndex((list) => list.id === "custom");
     const newTokenList = [...get().tokenLists[chainId]];
 
@@ -461,14 +197,16 @@ export const useTokenListsStore = create<TokenListsStore>()((set, get) => ({
       }
     }
   },
-  removeCustomToken: (chainId: AvailableChains, tokenAddress: Address) => {
+  removeCustomToken: (chainId: DexChainId, tokenAddress: Address) => {
     const tokenListIndex = get().tokenLists[chainId].findIndex((list) => list.id === "custom");
     const newTokenList = [...get().tokenLists[chainId]];
 
     if (tokenListIndex !== -1) {
       const customList = newTokenList[tokenListIndex];
       if ("list" in customList) {
-        const newCustomTokenList = customList.list.tokens.filter((t) => t.address !== tokenAddress);
+        const newCustomTokenList = customList.list.tokens.filter(
+          (t) => t.address0 !== tokenAddress,
+        );
 
         newTokenList[tokenListIndex] = {
           ...newTokenList[tokenListIndex],

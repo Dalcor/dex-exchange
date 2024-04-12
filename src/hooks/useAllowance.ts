@@ -12,8 +12,8 @@ import {
 import { ERC20_ABI } from "@/config/abis/erc20";
 // import { useRecentTransactionsStore } from "@/stores/useRecentTransactions";
 // import { useAwaitingDialogStore } from "@/stores/useAwaitingDialogStore";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import addToast from "@/other/toast";
+import { Token } from "@/sdk_hybrid/entities/token";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -26,7 +26,7 @@ export default function useAllowance({
   contractAddress,
   amountToCheck,
 }: {
-  token: WrappedToken | undefined;
+  token: Token | undefined;
   contractAddress: Address | undefined;
   amountToCheck: bigint | null;
 }) {
@@ -41,7 +41,7 @@ export default function useAllowance({
 
   const currentAllowance = useReadContract({
     abi: ERC20_ABI,
-    address: token?.address as Address,
+    address: token?.address0 as Address,
     functionName: "allowance",
     args: [
       //set ! to avoid ts errors, make sure it is not undefined with "enable" option
@@ -50,7 +50,7 @@ export default function useAllowance({
     ],
     query: {
       //make sure hook don't run when there is no addresses
-      enabled: Boolean(token?.address) && Boolean(address) && Boolean(contractAddress),
+      enabled: Boolean(token?.address0) && Boolean(address) && Boolean(contractAddress),
     },
     // cacheTime: 0,
     // watch: true,
@@ -122,7 +122,7 @@ export default function useAllowance({
       functionName: "approve";
       args: [Address, bigint];
     } = {
-      address: token.address as Address,
+      address: token.address0 as Address,
       account: address,
       abi: ERC20_ABI,
       functionName: "approve",
@@ -215,7 +215,7 @@ export default function useAllowance({
       functionName: "approve";
       args: [Address, bigint];
     } = {
-      address: token.address as Address,
+      address: token.address0 as Address,
       account: address,
       abi: ERC20_ABI,
       functionName: "approve",

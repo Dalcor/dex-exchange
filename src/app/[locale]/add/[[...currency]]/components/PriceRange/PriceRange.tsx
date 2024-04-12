@@ -1,16 +1,11 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 
 import Svg from "@/components/atoms/Svg";
-import { WrappedToken } from "@/config/types/WrappedToken";
-import { getTickToPrice, tryParseCurrencyAmount, tryParseTick } from "@/functions/tryParseTick";
+import { tryParseTick } from "@/functions/tryParseTick";
 import { usePool } from "@/hooks/usePools";
-import { TICK_SPACINGS } from "@/sdk";
-import { Price } from "@/sdk/entities/fractions/price";
-import { Token } from "@/sdk/entities/token";
-import { nearestUsableTick } from "@/sdk/utils/nearestUsableTick";
-import { TickMath } from "@/sdk/utils/tickMath";
+import { Price } from "@/sdk_hybrid/entities/fractions/price";
+import { Token } from "@/sdk_hybrid/entities/token";
 
-import { usePriceRange } from "../../hooks/usePrice";
 import { useRangeHopCallbacks } from "../../hooks/useRangeHopCallbacks";
 import { useAddLiquidityTokensStore } from "../../stores/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "../../stores/useLiquidityPriceRangeStore";
@@ -53,8 +48,8 @@ export const PriceRange = ({
   isFullRange: boolean;
   leftPrice: Price<Token, Token> | undefined;
   rightPrice: Price<Token, Token> | undefined;
-  token0: WrappedToken | undefined;
-  token1: WrappedToken | undefined;
+  token0: Token | undefined;
+  token1: Token | undefined;
   tickSpaceLimits: {
     LOWER: number | undefined;
     UPPER: number | undefined;

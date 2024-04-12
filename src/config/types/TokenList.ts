@@ -1,11 +1,11 @@
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 export class TokenList {
   id: string;
   name: string;
   logoURI: string;
   chainId: number;
-  tokens: WrappedToken[];
+  tokens: Token[];
   enabled: boolean;
 
   constructor(
@@ -13,7 +13,7 @@ export class TokenList {
     name: string,
     logoURI: string,
     chainId: number,
-    tokens: WrappedToken[],
+    tokens: Token[],
     enabled: boolean,
   ) {
     this.id = id;

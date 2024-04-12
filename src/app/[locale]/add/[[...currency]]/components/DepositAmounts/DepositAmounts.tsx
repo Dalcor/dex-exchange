@@ -5,9 +5,9 @@ import {
 } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityAmountsStore";
 import Button from "@/components/atoms/Button";
 import Tooltip from "@/components/atoms/Tooltip";
-import { WrappedToken } from "@/config/types/WrappedToken";
-import { Currency } from "@/sdk/entities/currency";
-import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 export const DepositAmounts = ({
   parsedAmounts,
@@ -33,8 +33,8 @@ export const DepositAmounts = ({
   currentDepositB?: bigint;
   parsedAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined };
   currencies: {
-    CURRENCY_A: WrappedToken | undefined;
-    CURRENCY_B: WrappedToken | undefined;
+    CURRENCY_A: Token | undefined;
+    CURRENCY_B: Token | undefined;
   };
   revokeA: () => void;
   revokeB: () => void;

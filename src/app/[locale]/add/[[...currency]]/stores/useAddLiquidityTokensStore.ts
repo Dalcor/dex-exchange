@@ -1,18 +1,18 @@
 import { create } from "zustand";
 
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 interface AddLiquidityTokensStore {
-  tokenA: WrappedToken | undefined;
-  tokenB: WrappedToken | undefined;
-  setTokenA: (token: WrappedToken | undefined) => void;
-  setTokenB: (token: WrappedToken | undefined) => void;
+  tokenA: Token | undefined;
+  tokenB: Token | undefined;
+  setTokenA: (token: Token | undefined) => void;
+  setTokenB: (token: Token | undefined) => void;
   setBothTokens: ({
     tokenA,
     tokenB,
   }: {
-    tokenA: WrappedToken | undefined;
-    tokenB: WrappedToken | undefined;
+    tokenA: Token | undefined;
+    tokenB: Token | undefined;
   }) => void;
 }
 
@@ -23,7 +23,7 @@ export const useAddLiquidityTokensStore = create<AddLiquidityTokensStore>((set, 
   setTokenA: (token) =>
     set((state) => {
       const newToken = state.tokenB && token?.equals(state.tokenB) ? undefined : token;
-      const newPath = `/en/add/${newToken?.address}/${state.tokenB?.address}`;
+      const newPath = `/en/add/${newToken?.address0}/${state.tokenB?.address0}`;
       window.history.replaceState(null, "", newPath);
       return {
         tokenA: newToken,

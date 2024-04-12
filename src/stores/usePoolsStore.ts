@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { Pool } from "@/sdk/entities/pool";
+import { Pool } from "@/sdk_hybrid/entities/pool";
 
 interface ManageTokensDialogStore {
   pools: Pool[];

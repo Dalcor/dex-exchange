@@ -27,20 +27,24 @@ import Pagination from "@/components/others/Pagination";
 import RecentTransaction from "@/components/others/RecentTransaction";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokenInput from "@/components/others/TokenInput";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
-import { ROUTER_ADDRESS } from "@/sdk/addresses";
-import { DexChainId } from "@/sdk/chains";
-import { Currency } from "@/sdk/entities/currency";
-import { CurrencyAmount } from "@/sdk/entities/fractions/currencyAmount";
-import { Percent } from "@/sdk/entities/fractions/percent";
+import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
+import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
+import { Token } from "@/sdk_hybrid/entities/token";
 import { GasFeeModel, useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
 import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
+enum Standard {
+  ERC20 = "ERC-20",
+  ERC223 = "ERC-223",
+}
 //sepolia v3 addresses I found
 // UniversalRouter: 0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD
 // swap router: 0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E
@@ -149,23 +153,34 @@ export default function SwapPage() {
 
   const { estimatedGas } = useSwap();
 
-  const { tokenA, tokenB, setTokenA, setTokenB } = useSwapTokensStore();
+  const {
+    tokenA,
+    tokenB,
+    setTokenA,
+    setTokenB,
+    tokenAAddress,
+    tokenBAddress,
+    setTokenAAddress,
+    setTokenBAddress,
+  } = useSwapTokensStore();
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
   const handlePick = useCallback(
-    (token: WrappedToken) => {
+    (token: Token) => {
       if (currentlyPicking === "tokenA") {
         setTokenA(token);
+        setTokenAAddress(token.address0);
       }
 
       if (currentlyPicking === "tokenB") {
         setTokenB(token);
+        setTokenBAddress(token.address0);
       }
 
       setIsOpenedTokenPick(false);
     },
-    [currentlyPicking, setTokenA, setTokenB],
+    [currentlyPicking, setTokenA, setTokenAAddress, setTokenB, setTokenBAddress],
   );
 
   const { trade } = useTrade();
@@ -188,20 +203,30 @@ export default function SwapPage() {
   }, [trade?.outputAmount]);
 
   const { data: blockNumber } = useBlockNumber({ watch: true });
-  const { data: tokenABalance, refetch: refetchBalanceA } = useBalance({
+  const { data: tokenA0Balance, refetch: refetchBalanceA0 } = useBalance({
     address: tokenA ? address : undefined,
-    token: tokenA ? (tokenA.address as Address) : undefined,
+    token: tokenA ? (tokenA.address0 as Address) : undefined,
+  });
+  const { data: tokenA1Balance, refetch: refetchBalanceA1 } = useBalance({
+    address: tokenA ? address : undefined,
+    token: tokenA ? (tokenA.address1 as Address) : undefined,
   });
 
-  const { data: tokenBBalance, refetch: refetchBalanceB } = useBalance({
+  const { data: tokenB0Balance, refetch: refetchBalanceB0 } = useBalance({
     address: tokenB ? address : undefined,
-    token: tokenB ? (tokenB.address as Address) : undefined,
+    token: tokenB ? (tokenB.address0 as Address) : undefined,
+  });
+  const { data: tokenB1Balance, refetch: refetchBalanceB1 } = useBalance({
+    address: tokenB ? address : undefined,
+    token: tokenB ? (tokenB.address1 as Address) : undefined,
   });
 
   useEffect(() => {
-    refetchBalanceA();
-    refetchBalanceB();
-  }, [blockNumber, refetchBalanceA, refetchBalanceB]);
+    refetchBalanceA0();
+    refetchBalanceA1();
+    refetchBalanceB0();
+    refetchBalanceB1();
+  }, [blockNumber, refetchBalanceA0, refetchBalanceB0, refetchBalanceA1, refetchBalanceB1]);
 
   const output = useMemo(() => {
     if (!trade) {
@@ -334,8 +359,22 @@ export default function SwapPage() {
                     setIsOpenedTokenPick(true);
                   }}
                   token={tokenA}
-                  balance={tokenABalance ? formatFloat(tokenABalance.formatted) : "0.0"}
+                  balance0={tokenA0Balance ? formatFloat(tokenA0Balance.formatted) : "0.0"}
+                  balance1={tokenA1Balance ? formatFloat(tokenA1Balance.formatted) : "0.0"}
                   label="You pay"
+                  standard={
+                    Boolean(tokenAAddress) && tokenAAddress === tokenA?.address1
+                      ? Standard.ERC223
+                      : Standard.ERC20
+                  }
+                  setStandard={(standard) => {
+                    if (standard === Standard.ERC20) {
+                      setTokenAAddress(tokenA?.address0);
+                    }
+                    if (standard === Standard.ERC223) {
+                      setTokenAAddress(tokenA?.address1);
+                    }
+                  }}
                 />
                 <div className="relative h-3 z-10">
                   <button
@@ -365,8 +404,22 @@ export default function SwapPage() {
                     setIsOpenedTokenPick(true);
                   }}
                   token={tokenB}
-                  balance={tokenBBalance ? formatFloat(tokenBBalance.formatted) : "0.0"}
+                  balance0={tokenB0Balance ? formatFloat(tokenB0Balance.formatted) : "0.0"}
+                  balance1={tokenB1Balance ? formatFloat(tokenB1Balance.formatted) : "0.0"}
                   label="You receive"
+                  standard={
+                    Boolean(tokenBAddress) && tokenBAddress === tokenB?.address1
+                      ? Standard.ERC223
+                      : Standard.ERC20
+                  }
+                  setStandard={(standard) => {
+                    if (standard === Standard.ERC20) {
+                      setTokenBAddress(tokenB?.address0);
+                    }
+                    if (standard === Standard.ERC223) {
+                      setTokenBAddress(tokenB?.address1);
+                    }
+                  }}
                 />
 
                 <div

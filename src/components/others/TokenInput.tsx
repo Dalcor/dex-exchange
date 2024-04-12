@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import SelectButton from "@/components/atoms/SelectButton";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 enum Standard {
   ERC20 = "ERC-20",
@@ -55,18 +55,22 @@ export default function TokenInput({
   token,
   value,
   onInputChange,
-  balance,
+  balance0,
+  balance1,
   label,
+  setStandard,
+  standard,
 }: {
   handleClick: () => void;
-  token: WrappedToken | undefined;
+  token: Token | undefined;
   value: string;
   onInputChange: (value: string) => void;
-  balance: string | undefined;
+  balance0: string | undefined;
+  balance1: string | undefined;
   label: string;
+  standard: Standard;
+  setStandard: (standard: Standard) => void;
 }) {
-  const [active, setActive] = useState<Standard>(Standard.ERC20);
-
   return (
     <div className="p-5 bg-secondary-bg rounded-3 relative">
       <span className="text-14 block mb-2 text-secondary-text">{label}</span>
@@ -101,11 +105,11 @@ export default function TokenInput({
       </div>
       <div className="grid grid-cols-2 gap-3 relative">
         <StandardOption
-          setIsActive={setActive}
-          active={active}
+          setIsActive={setStandard}
+          active={standard}
           standard={Standard.ERC20}
           symbol={token?.symbol}
-          balance={balance}
+          balance={balance0}
         />
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-10 h-[28px] rounded-20 border-green border p-1 flex gap-1 items-center">
           {[Standard.ERC20, Standard.ERC223].map((st) => {
@@ -114,9 +118,9 @@ export default function TokenInput({
                 key={st}
                 className={clsx(
                   "h-5 rounded-3 duration-200 px-2 min-w-[58px]",
-                  active === st ? "bg-green text-black shadow-checkbox" : "hover:bg-green-bg",
+                  standard === st ? "bg-green text-black shadow-checkbox" : "hover:bg-green-bg",
                 )}
-                onClick={() => setActive(st)}
+                onClick={() => setStandard(st)}
               >
                 {st}
               </button>
@@ -124,11 +128,11 @@ export default function TokenInput({
           })}
         </div>
         <StandardOption
-          setIsActive={setActive}
-          active={active}
+          setIsActive={setStandard}
+          active={standard}
           standard={Standard.ERC223}
           symbol={token?.symbol}
-          balance={balance}
+          balance={balance1}
         />
       </div>
     </div>

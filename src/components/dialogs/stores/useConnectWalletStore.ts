@@ -1,23 +1,14 @@
 import { create } from "zustand";
 
+import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
+
 export type WalletName = "metamask" | "wc" | "coinbase" | "trustWallet" | "keystore" | "safe";
-export type AvailableChains =
-  | 820
-  | 61
-  | 1
-  | 56
-  | 137
-  | 10
-  | 42161
-  | 42220
-  | 43114
-  | 8453
-  | 11155111;
+
 interface ConnectWalletStore {
   walletName: WalletName;
   setName: (walletName: WalletName) => void;
-  chainToConnect: AvailableChains;
-  setChainToConnect: (chain: AvailableChains) => void;
+  chainToConnect: DexChainId;
+  setChainToConnect: (chain: DexChainId) => void;
 
   wcChainsToConnect: number[]; //for simultaneous connection via walletConnect
   addChainToConnect: (chain: number) => void;
@@ -28,10 +19,10 @@ export const useConnectWalletStore = create<ConnectWalletStore>((set, get) => ({
   walletName: "metamask",
   setName: (walletName) => set({ walletName }),
 
-  chainToConnect: 820,
+  chainToConnect: DexChainId.CALLISTO,
   setChainToConnect: (chainToConnect) => set({ chainToConnect }),
 
-  wcChainsToConnect: [820, 199, 61],
+  wcChainsToConnect: DEX_SUPPORTED_CHAINS,
   addChainToConnect: (chain) => {
     const newChainsSet = [...get().wcChainsToConnect, chain];
     return set({ wcChainsToConnect: newChainsSet });

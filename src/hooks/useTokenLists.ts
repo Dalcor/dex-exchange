@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
 
-import { AvailableChains } from "@/components/dialogs/stores/useConnectWalletStore";
 import { TokenList } from "@/config/types/TokenList";
-import { WrappedToken } from "@/config/types/WrappedToken";
 import { IIFE } from "@/functions/iife";
+import { DexChainId } from "@/sdk_hybrid/chains";
+import { Token } from "@/sdk_hybrid/entities/token";
 import {
   ExternalTokenList,
   LocalTokenList,
@@ -35,7 +35,7 @@ export function useTokenLists() {
     if (!chainId) {
       return;
     }
-    const tokenListsFromStorage = savedLists[chainId as AvailableChains];
+    const tokenListsFromStorage = savedLists[chainId as DexChainId];
 
     const externalLists = tokenListsFromStorage.filter(isExternal);
     const localLists = tokenListsFromStorage.filter(isLocal);
@@ -51,7 +51,8 @@ export function useTokenLists() {
       results.forEach((result, index) => {
         const tokenListTokens = (
           result.tokens as {
-            address: Address;
+            address0: Address;
+            address1: Address;
             name: string;
             symbol: string;
             decimals: string;
@@ -60,8 +61,8 @@ export function useTokenLists() {
           }[]
         )
           .filter((t) => +t.chainId === chainId)
-          .map(({ address, name, symbol, decimals, chainId, logoURI }) => {
-            return new WrappedToken(address, name, symbol, +decimals, logoURI, +chainId, []);
+          .map(({ address0, address1, name, symbol, decimals, chainId, logoURI }) => {
+            return new Token(+chainId, address0, address1, +decimals, symbol, name, logoURI);
           });
 
         const geckoList = new TokenList(
@@ -82,14 +83,14 @@ export function useTokenLists() {
 
         const wrappedTokens = tokens.map(
           (token) =>
-            new WrappedToken(
-              token.address,
+            new Token(
+              +token.chainId,
+              token.address0,
+              token.address1,
+              +token.decimals,
               token.name,
               token.symbol,
-              +token.decimals,
               "/tokens/placeholder.svg",
-              +token.chainId,
-              [],
             ),
         );
 
@@ -111,7 +112,7 @@ export function useTokenLists() {
 
   return {
     lists,
-    toggleTokenList: (id: string) => toggleTokenList(id, chainId as AvailableChains),
+    toggleTokenList: (id: string) => toggleTokenList(id, chainId as DexChainId),
     loading: !lists.length,
   };
 }
@@ -123,37 +124,39 @@ export function useTokens() {
     if (tokenLists.lists.length > 1) {
       const inspect = (...arrays: TokenList[]) => {
         // const duplicates = [];
-        const map = new Map<Address, WrappedToken>();
+        const map = new Map<Address, Token>();
 
-        const fill = (array: WrappedToken[], id: string) =>
+        const fill = (array: Token[], id: string) =>
           array.forEach((item) => {
-            const lowercaseAddress = item.address.toLowerCase() as Address;
+            const lowercaseAddress = item.address0.toLowerCase() as Address;
 
             if (map.has(lowercaseAddress)) {
               // duplicates.push(item);
               map.set(
                 lowercaseAddress,
-                new WrappedToken(
-                  item.address,
-                  item.name || "Unknown",
-                  item.symbol || "Unknown",
-                  item.decimals,
-                  item?.logoURI || "",
+                new Token(
                   item.chainId,
-                  Array.from(new Set([...(map.get(lowercaseAddress)?.lists || []), id])),
+                  item.address0,
+                  item.address1,
+                  item.decimals,
+                  item.symbol || "Unknown",
+                  item.name || "Unknown",
+                  item?.logoURI || "/tokens/placeholder.svg",
+                  // Array.from(new Set([...(map.get(lowercaseAddress)?.lists || []), id])),
                 ),
               );
             } else {
               map.set(
                 lowercaseAddress,
-                new WrappedToken(
-                  item.address,
+                new Token(
+                  item.chainId,
+                  item.address0,
+                  item.address1,
+                  item.decimals,
                   item.name || "Unknown",
                   item.symbol || "Unknown",
-                  item.decimals,
-                  item?.logoURI || "",
-                  item.chainId,
-                  [id],
+                  item?.logoURI || "/tokens/placeholder.svg",
+                  // [id],
                 ),
               );
             }
@@ -164,9 +167,9 @@ export function useTokens() {
         // console.log(duplicates);
         console.log();
         return [...map.values()].sort(function (a, b) {
-          if (a.lists && b.lists) {
-            return b.lists.length - a.lists.length;
-          }
+          // if (a.lists && b.lists) {
+          //   return b.lists.length - a.lists.length;
+          // }
 
           return 0;
         });

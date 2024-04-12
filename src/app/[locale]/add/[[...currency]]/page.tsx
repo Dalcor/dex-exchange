@@ -123,6 +123,7 @@ export default function AddPoolPage({
     writeTokenRevoke: revokeA,
     isApproving: isApprovingA,
     currentAllowance: currentAllowanceA,
+    isRevoking: isRevokingA,
   } = useAllowance({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -139,6 +140,7 @@ export default function AddPoolPage({
     writeTokenRevoke: revokeB,
     isApproving: isApprovingB,
     currentAllowance: currentAllowanceB,
+    isRevoking: isRevokingB,
   } = useAllowance({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -155,6 +157,7 @@ export default function AddPoolPage({
     writeTokenWithdraw: withdrawA,
     isDepositing: isDepositingA,
     currentDeposit: currentDepositA,
+    isWithdrawing: isWithdrawingA,
   } = useDeposit({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -170,6 +173,7 @@ export default function AddPoolPage({
     writeTokenWithdraw: withdrawB,
     isDepositing: isDepositingB,
     currentDeposit: currentDepositB,
+    isWithdrawing: isWithdrawingB,
   } = useDeposit({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -273,6 +277,10 @@ export default function AddPoolPage({
               withdrawB={withdrawB}
               depositADisabled={depositADisabled}
               depositBDisabled={depositBDisabled}
+              isRevokingA={isRevokingA}
+              isRevokingB={isRevokingB}
+              isWithdrawingA={isWithdrawingA}
+              isWithdrawingB={isWithdrawingB}
             />
             <PriceRange
               noLiquidity={noLiquidity}

@@ -1,11 +1,10 @@
 import Image from "next/image";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 import { Address, formatUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
 
-import Checkbox from "@/components/atoms/Checkbox";
-import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
+import { RevokeDialog } from "@/components/dialogs/RevokeDialog";
 import { WrappedToken } from "@/config/types/WrappedToken";
 
 const InputRange = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
@@ -77,20 +76,24 @@ function InputStandardAmount({
   value,
   onChange,
   currentAllowance,
-  currentDeposit,
   token,
   onRevoke,
-  onWithdraw,
+  isRevoking,
 }: {
   standard: "ERC-20" | "ERC-223";
   value?: number;
   onChange?: (value: number) => void;
-  currentAllowance?: bigint;
-  currentDeposit?: bigint;
+  currentAllowance: bigint; // currentAllowance or currentDeposit
   token: WrappedToken;
-  onRevoke: () => void;
-  onWithdraw: () => void;
+  onRevoke: () => void; // onWithdraw or onWithdraw
+  isRevoking: boolean; // isRevoking or isWithdrawing
 }) {
+  const [isOpenedRevokeDialog, setIsOpenedRevokeDialog] = useState(false);
+
+  const revokeHandler = useCallback(() => {
+    onRevoke();
+  }, [onRevoke]);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
@@ -116,23 +119,26 @@ function InputStandardAmount({
           {/* TODO decimals */}
           {standard === "ERC-20"
             ? `Approved: ${formatUnits(currentAllowance || BigInt(0), token.decimals)} ${token.symbol}`
-            : `Deposited: ${formatUnits(currentDeposit || BigInt(0), token.decimals)} ${token.symbol}`}
+            : `Deposited: ${formatUnits(currentAllowance || BigInt(0), token.decimals)} ${token.symbol}`}
         </span>
-        {!!currentAllowance || !!currentDeposit ? (
+        {!!currentAllowance ? (
           <span
             className="text-12 px-4 pt-[1px] pb-[2px] border border-green rounded-3 h-min cursor-pointer hover:text-green duration-200"
-            onClick={() => {
-              if (standard === "ERC-20") {
-                onRevoke();
-              } else {
-                onWithdraw();
-              }
-            }}
+            onClick={() => setIsOpenedRevokeDialog(true)}
           >
             {standard === "ERC-20" ? "Revoke" : "Withdraw"}
           </span>
         ) : null}
       </div>
+      <RevokeDialog
+        standard={standard}
+        amount={currentAllowance}
+        token={token}
+        revokeHandler={revokeHandler}
+        isOpen={isOpenedRevokeDialog}
+        setIsOpen={setIsOpenedRevokeDialog}
+        isRevoking={isRevoking}
+      />
     </div>
   );
 }
@@ -146,6 +152,8 @@ export default function TokenDepositCard({
   revokeHandler,
   withdrawHandler,
   isDisabled,
+  isRevoking,
+  isWithdrawing,
 }: {
   token: WrappedToken;
   value: string;
@@ -155,6 +163,8 @@ export default function TokenDepositCard({
   revokeHandler: () => void;
   withdrawHandler: () => void;
   isDisabled: boolean;
+  isWithdrawing: boolean;
+  isRevoking: boolean;
 }) {
   const [rangeValue, setRangeValue] = useState(50);
 
@@ -191,18 +201,18 @@ export default function TokenDepositCard({
           <InputStandardAmount
             standard="ERC-20"
             value={ERC20Value}
-            currentAllowance={currentAllowance}
+            currentAllowance={currentAllowance || BigInt(0)}
             token={token}
             onRevoke={revokeHandler}
-            onWithdraw={withdrawHandler}
+            isRevoking={isRevoking}
           />
           <InputStandardAmount
             standard="ERC-223"
             value={ERC223Value}
             token={token}
-            currentDeposit={currentDeposit}
-            onRevoke={revokeHandler}
-            onWithdraw={withdrawHandler}
+            currentAllowance={currentDeposit || BigInt(0)}
+            onRevoke={withdrawHandler}
+            isRevoking={isWithdrawing}
           />
         </div>
       </div>

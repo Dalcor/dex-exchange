@@ -197,13 +197,15 @@ export default function useAllowance({
     addRecentTransaction,
   ]);
 
+  const [isRevoking, setIsRevoking] = useState(false);
+
   const writeTokenRevoke = useCallback(async () => {
     const amountToRevoke = BigInt(0);
     if (!contractAddress || !token || !walletClient || !address || !chainId || !publicClient) {
       return;
     }
 
-    setIsApproving(true);
+    setIsRevoking(true);
     // setOpened(`Approve ${formatUnits(amountToRevoke, token.decimals)} ${token.symbol} tokens`)
 
     const params: {
@@ -276,12 +278,12 @@ export default function useAllowance({
         // setSubmitted(hash, chainId as any);
 
         await publicClient.waitForTransactionReceipt({ hash });
-        setIsApproving(false);
+        setIsRevoking(false);
       }
     } catch (e) {
       console.log(e);
       // setClose();
-      setIsApproving(false);
+      setIsRevoking(false);
       addToast("Unexpected error, please contact support", "error");
     }
   }, [contractAddress, token, walletClient, address, chainId, publicClient, addRecentTransaction]);
@@ -289,6 +291,7 @@ export default function useAllowance({
   return {
     isAllowed,
     isApproving,
+    isRevoking,
     writeTokenApprove,
     writeTokenRevoke,
     currentAllowance: currentAllowance.data,

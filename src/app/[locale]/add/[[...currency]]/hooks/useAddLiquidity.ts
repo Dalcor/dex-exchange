@@ -291,7 +291,6 @@ export const useV3DerivedMintInfo = ({
     pool && typeof tickLower === "number" && typeof tickUpper === "number"
       ? pool.tickCurrent < tickLower || pool.tickCurrent >= tickUpper
       : false;
-  console.log("🚀 ~ outOfRange:", outOfRange);
 
   // check for invalid price input (converts to invalid ratio)
   const invalidPrice = useMemo(() => {

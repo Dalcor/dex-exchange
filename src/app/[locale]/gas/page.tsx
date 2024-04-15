@@ -57,9 +57,6 @@ export default function GasPage() {
 
       const __feeHistory = await publicClient.estimateMaxPriorityFeePerGas();
 
-      console.log(_feeHistory);
-      console.log(__feeHistory);
-
       const firstPercentileArr: number[] = [];
       const secondPercentileArr: number[] = [];
       const thirdPercentileArr: number[] = [];

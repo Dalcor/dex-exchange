@@ -111,8 +111,6 @@ export default function useSwap() {
     }
   }, [address, chainId, deadline, tokenA, tokenAAddress, tokenB, tokenBAddress, typedValue]);
 
-  console.log("SWAP PARAMS");
-  console.log(swapParams);
   // useEffect(() => {
   //   if (!publicClient || !swapParams) {
   //     return;
@@ -144,8 +142,6 @@ export default function useSwap() {
       console.log("NONONO");
       return;
     }
-
-    console.log(swapParams);
 
     // const { request } = await publicClient.simulateContract({
     //   ...swapParams,

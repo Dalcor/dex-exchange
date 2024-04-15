@@ -56,7 +56,6 @@ export function useRecentTransactionTracking() {
         const transaction = await publicClient.waitForTransactionReceipt({
           hash,
           onReplaced: (replacement) => {
-            console.log("REPLACED");
             console.log(replacement);
           },
         });

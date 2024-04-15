@@ -22,9 +22,6 @@ export default function NetworkPicker() {
   }, [chainId, chainToConnect]);
   const { switchChain } = useSwitchChain();
 
-  console.log(chainId);
-  console.log(currentNetwork);
-
   return (
     <ClientOnly>
       <Popover

@@ -117,8 +117,6 @@ export default function usePools(
       return Array.apply(undefined, Array(poolTokens.length)) as undefined[];
 
     return poolTokens.map((value) => {
-      console.log("VALUEEE");
-      console.log(value);
       return (
         value &&
         (computePoolAddress({
@@ -136,8 +134,6 @@ export default function usePools(
   }, [chainId, poolTokens]);
 
   const slot0Contracts = useMemo(() => {
-    console.log("POOL ADDRESSES");
-    console.log(poolAddresses);
     return poolAddresses.map((address) => {
       return {
         abi: POOL_STATE_ABI,

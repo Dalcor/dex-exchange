@@ -145,7 +145,6 @@ export default function SwapPage() {
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
   const { slippage, deadline: _deadline } = useTransactionSettingsStore();
-  const deadline = useTransactionDeadline(_deadline);
 
   const { address } = useAccount();
 

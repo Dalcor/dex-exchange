@@ -43,15 +43,13 @@ export default async function RootLayout({
     <html lang={locale}>
       <body className={clsx(golos_text.className)}>
         <Providers initialState={initialState} messages={messages} locale={locale}>
-          <NextIntlClientProvider messages={messages}>
-            <DialogsProvider>
-              <div className="grid h-[100vh] grid-rows-layout">
-                <Header />
-                <div>{children}</div>
-                <Footer />
-              </div>
-            </DialogsProvider>
-          </NextIntlClientProvider>
+          <DialogsProvider>
+            <div className="grid h-[100vh] grid-rows-layout">
+              <Header />
+              <div>{children}</div>
+              <Footer />
+            </div>
+          </DialogsProvider>
         </Providers>
       </body>
     </html>

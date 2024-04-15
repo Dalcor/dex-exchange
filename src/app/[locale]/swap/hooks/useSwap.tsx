@@ -1,11 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
-import { Address, getAbiItem, parseUnits } from "viem";
+import { Address, encodeFunctionData, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
+import { ERC223_ABI } from "@/config/abis/erc223";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
@@ -68,24 +69,50 @@ export default function useSwap() {
       return null;
     }
 
-    return {
-      address: ROUTER_ADDRESS[chainId as DexChainId],
-      abi: ROUTER_ABI,
-      functionName: "exactInputSingle1" as "exactInputSingle1",
-      args: [
-        tokenAAddress,
-        tokenBAddress,
-        FeeAmount.MEDIUM,
-        address as Address,
-        deadline,
-        parseUnits(typedValue, tokenA.decimals),
-        BigInt(0),
-        BigInt(0),
-      ] as any,
-      // ...gasPriceFormatted,
-    };
+    if (tokenAAddress === tokenA.address0) {
+      // mean we are sending ERC-20 token with approve + funcName
+      return {
+        address: ROUTER_ADDRESS[chainId as DexChainId],
+        abi: ROUTER_ABI,
+        functionName: "exactInputSingle1" as "exactInputSingle1",
+        args: [
+          tokenAAddress,
+          tokenBAddress,
+          FeeAmount.MEDIUM,
+          address as Address,
+          deadline,
+          parseUnits(typedValue, tokenA.decimals),
+          BigInt(0),
+          BigInt(0),
+        ] as any,
+        // ...gasPriceFormatted,
+      };
+    }
+
+    if (tokenAAddress === tokenA.address1) {
+      return {
+        to: ROUTER_ADDRESS[chainId as DexChainId],
+        value: 0,
+        data: encodeFunctionData({
+          abi: ROUTER_ABI,
+          functionName: "exactInputSingle1",
+          args: [
+            tokenAAddress,
+            tokenBAddress,
+            FeeAmount.MEDIUM,
+            address as Address,
+            deadline,
+            parseUnits(typedValue, tokenA.decimals),
+            BigInt(0),
+            BigInt(0),
+          ],
+        }),
+      };
+    }
   }, [address, chainId, deadline, tokenA, tokenAAddress, tokenB, tokenBAddress, typedValue]);
 
+  console.log("SWAP PARAMS");
+  console.log(swapParams);
   // useEffect(() => {
   //   if (!publicClient || !swapParams) {
   //     return;
@@ -125,7 +152,16 @@ export default function useSwap() {
     //   account: address,
     //   gas: estimatedGas + BigInt(30000),
     // });
-    const hash = await walletClient.writeContract(swapParams);
+    // const hash = await walletClient.writeContract(swapParams);
+    let hash;
+
+    if (tokenAAddress === tokenA.address0) {
+      hash = await walletClient.writeContract(swapParams);
+    }
+
+    if (tokenAAddress === tokenA.address1) {
+      hash = await walletClient.sendTransaction(swapParams);
+    }
 
     const nonce = await publicClient.getTransactionCount({
       address,
@@ -169,6 +205,7 @@ export default function useSwap() {
     publicClient,
     swapParams,
     tokenA,
+    tokenAAddress,
     tokenB,
     trade,
     typedValue,

@@ -6,6 +6,7 @@ import { checkValidAddress, validateAndParseAddress } from "../utils/validateAnd
 import { BaseCurrency } from "./baseCurrency";
 import { Currency } from "./currency";
 
+export type TokenStandard = "ERC-20" | "ERC-223";
 /**
  * Represents an ERC20 token with a unique address and some metadata.
  */

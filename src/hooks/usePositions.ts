@@ -23,7 +23,7 @@ import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Price } from "@/sdk_hybrid/entities/fractions/price";
 import { Pool } from "@/sdk_hybrid/entities/pool";
 import { Position } from "@/sdk_hybrid/entities/position";
-import { Token } from "@/sdk_hybrid/entities/token";
+import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -167,14 +167,40 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
   const tokens = useTokens();
 
   const tokenA = useMemo(() => {
-    return tokens.find((t) => t.address0 === positionDetails?.token0);
+    let tokenStandard: TokenStandard | undefined = undefined;
+    const token = tokens.find((t) => {
+      if (t.address0 === positionDetails?.token0) {
+        tokenStandard = "ERC-20";
+        return true;
+      } else if (t.address1 === positionDetails?.token0) {
+        tokenStandard = "ERC-223";
+        return true;
+      }
+    });
+    if (token && tokenStandard) return { token, tokenStandard };
   }, [positionDetails?.token0, tokens]);
 
   const tokenB = useMemo(() => {
-    return tokens.find((t) => t.address0 === positionDetails?.token1);
+    let tokenStandard: TokenStandard | undefined = undefined;
+    const token = tokens.find((t) => {
+      if (t.address0 === positionDetails?.token1) {
+        tokenStandard = "ERC-20";
+        return true;
+      } else if (t.address1 === positionDetails?.token1) {
+        tokenStandard = "ERC-223";
+        return true;
+      }
+    });
+    if (token && tokenStandard) return { token, tokenStandard };
   }, [positionDetails?.token1, tokens]);
-  //
-  const pool = usePool(tokenA, tokenB, positionDetails?.tier);
+
+  const pool = usePool(
+    tokenA?.token,
+    tokenB?.token,
+    positionDetails?.tier,
+    tokenA?.tokenStandard,
+    tokenB?.tokenStandard,
+  );
 
   return useMemo(() => {
     if (pool[1] && positionDetails) {

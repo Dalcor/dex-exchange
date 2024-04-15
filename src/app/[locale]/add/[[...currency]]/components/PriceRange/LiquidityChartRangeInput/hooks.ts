@@ -12,9 +12,10 @@ import { FeeAmount, TICK_SPACINGS } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Price } from "@/sdk_hybrid/entities/fractions/price";
 import { Pool } from "@/sdk_hybrid/entities/pool";
-import { Token } from "@/sdk_hybrid/entities/token";
+import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 import { tickToPrice } from "@/sdk_hybrid/utils/priceTickConversions";
 
+import { useTokensStandards } from "../../../stores/useAddLiquidityAmountsStore";
 import MockData from "./mockData.json";
 import { ChartEntry } from "./types";
 
@@ -97,6 +98,8 @@ function useTicksFromSubgraph(
   feeAmount: FeeAmount | undefined,
   skip = 0,
   chainId: DexChainId,
+  tokenAStandard: TokenStandard,
+  tokenBStandard: TokenStandard,
 ) {
   const apolloClient = chainToApolloClient[chainId];
   const poolAddress =
@@ -105,6 +108,8 @@ function useTicksFromSubgraph(
           currencyA?.wrapped,
           currencyB?.wrapped,
           feeAmount,
+          tokenAStandard,
+          tokenBStandard,
           undefined,
           chainId ? FACTORY_ADDRESS[chainId] : undefined,
         )
@@ -126,6 +131,8 @@ function useAllV3Ticks(
   currencyB: Currency | undefined,
   feeAmount: FeeAmount | undefined,
   chainId: DexChainId,
+  tokenAStandard: TokenStandard,
+  tokenBStandard: TokenStandard,
 ): {
   isLoading: boolean;
   error: unknown;
@@ -137,7 +144,15 @@ function useAllV3Ticks(
     data,
     error,
     loading: isLoading,
-  } = useTicksFromSubgraph(currencyA, currencyB, feeAmount, skipNumber, chainId);
+  } = useTicksFromSubgraph(
+    currencyA,
+    currencyB,
+    feeAmount,
+    skipNumber,
+    chainId,
+    tokenAStandard,
+    tokenBStandard,
+  );
 
   useEffect(() => {
     if (data?.ticks.length) {
@@ -173,12 +188,17 @@ export function usePoolActiveLiquidity(
 } {
   const { chainId: accountChainId } = useAccount();
   const defaultChainId = accountChainId ?? DexChainId.SEPOLIA;
+  const { tokenAStandard, tokenBStandard } = useTokensStandards();
+
   const pool = usePool(
     currencyA?.wrapped,
     currencyB?.wrapped,
     feeAmount,
+    tokenAStandard,
+    tokenBStandard,
     // chainId ?? defaultChainId,
   );
+
   const liquidity = pool[1]?.liquidity;
   const sqrtPriceX96 = pool[1]?.sqrtRatioX96;
 
@@ -191,6 +211,8 @@ export function usePoolActiveLiquidity(
     currencyB,
     feeAmount,
     chainId ?? defaultChainId,
+    tokenAStandard,
+    tokenBStandard,
   );
 
   return useMemo(() => {

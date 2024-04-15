@@ -1,21 +1,22 @@
 import Image from "next/image";
-import { ChangeEvent, useCallback, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Address, formatUnits } from "viem";
-import { useAccount, useBalance } from "wagmi";
+import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
 import Badge from "@/components/badges/Badge";
 import { RevokeDialog } from "@/components/dialogs/RevokeDialog";
-import { Token } from "@/sdk_hybrid/entities/token";
+import { formatFloat } from "@/functions/formatFloat";
+import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
-const InputRange = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+const InputRange = ({ value, onChange }: { value: number; onChange: (value: 0 | 100) => void }) => {
   return (
     <div className="relative h-6">
       <input
         value={value}
         max={100}
-        step={1}
+        step={100}
         min={0}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(+e.target.value)}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(+e.target.value as 0 | 100)}
         className="w-full accent-green absolute top-2 left-0 right-0 duration-200 !bg-purple"
         type="range"
       />
@@ -41,14 +42,26 @@ function InputTotalAmount({
 }) {
   const { address } = useAccount();
 
-  const { data: tokenBalance } = useBalance({
-    address: address,
-    token: token.address0 as Address,
+  const { data: blockNumber } = useBlockNumber({ watch: true });
+  const { data: token0Balance, refetch: refetchBalance0 } = useBalance({
+    address: token ? address : undefined,
+    token: token ? (token.address0 as Address) : undefined,
   });
+  const { data: token1Balance, refetch: refetchBalance1 } = useBalance({
+    address: token ? address : undefined,
+    token: token ? (token.address1 as Address) : undefined,
+  });
+
+  useEffect(() => {
+    refetchBalance0();
+    refetchBalance1();
+  }, [blockNumber, refetchBalance0, refetchBalance1]);
+
+  const totalBalance = (token0Balance?.value || BigInt(0)) + (token1Balance?.value || BigInt(0));
 
   return (
     <div>
-      <div className="bg-primary-bg px-5 pt-5 pb-4">
+      <div className="bg-primary-bg px-5 pt-5 pb-4 rounded-3">
         <div className="mb-1 flex justify-between items-center">
           <input
             className="text-20 bg-transparent flex-grow outline-0"
@@ -64,7 +77,7 @@ function InputTotalAmount({
         </div>
         <div className="flex justify-between items-center text-14">
           <span className="text-secondary-text">—</span>
-          <span>{`Balance: ${tokenBalance ? formatUnits(tokenBalance.value, tokenBalance.decimals) : 0} ${token.symbol}`}</span>
+          <span>{`Balance: ${formatFloat(formatUnits(totalBalance, token.decimals))} ${token.symbol}`}</span>
         </div>
       </div>
     </div>
@@ -80,7 +93,7 @@ function InputStandardAmount({
   onRevoke,
   isRevoking,
 }: {
-  standard: "ERC-20" | "ERC-223";
+  standard: TokenStandard;
   value?: number;
   onChange?: (value: number) => void;
   currentAllowance: bigint; // currentAllowance or currentDeposit
@@ -88,8 +101,19 @@ function InputStandardAmount({
   onRevoke: () => void; // onWithdraw or onWithdraw
   isRevoking: boolean; // isRevoking or isWithdrawing
 }) {
-  const [isOpenedRevokeDialog, setIsOpenedRevokeDialog] = useState(false);
+  const { address } = useAccount();
+  const { data: blockNumber } = useBlockNumber({ watch: true });
+  const tokenAddress = standard === "ERC-20" ? token.address0 : token.address1;
+  const { data: tokenBalance, refetch: refetchBalance } = useBalance({
+    address: token ? address : undefined,
+    token: token ? (tokenAddress as Address) : undefined,
+  });
 
+  useEffect(() => {
+    refetchBalance();
+  }, [blockNumber, refetchBalance]);
+
+  const [isOpenedRevokeDialog, setIsOpenedRevokeDialog] = useState(false);
   const revokeHandler = useCallback(() => {
     onRevoke();
   }, [onRevoke]);
@@ -111,15 +135,14 @@ function InputStandardAmount({
           />
         </div>
         <div className="flex justify-end items-center text-14">
-          <span>Balance: ?</span>
+          <span>{`Balance: ${formatFloat(formatUnits(tokenBalance?.value || BigInt(0), token.decimals))} ${token.symbol}`}</span>
         </div>
       </div>
-      <div className="flex justify-between">
-        <span className="text-14 text-secondary-text">
-          {/* TODO decimals */}
+      <div className="flex justify-between items-center">
+        <span className="text-12 text-secondary-text">
           {standard === "ERC-20"
-            ? `Approved: ${formatUnits(currentAllowance || BigInt(0), token.decimals)} ${token.symbol}`
-            : `Deposited: ${formatUnits(currentAllowance || BigInt(0), token.decimals)} ${token.symbol}`}
+            ? `Approved: ${formatFloat(formatUnits(currentAllowance || BigInt(0), token.decimals))} ${token.symbol}`
+            : `Deposited: ${formatFloat(formatUnits(currentAllowance || BigInt(0), token.decimals))} ${token.symbol}`}
         </span>
         {!!currentAllowance ? (
           <span
@@ -154,6 +177,8 @@ export default function TokenDepositCard({
   isDisabled,
   isRevoking,
   isWithdrawing,
+  tokenStandardRatio,
+  setTokenStandardRatio,
 }: {
   token: Token;
   value: string;
@@ -165,13 +190,13 @@ export default function TokenDepositCard({
   isDisabled: boolean;
   isWithdrawing: boolean;
   isRevoking: boolean;
+  tokenStandardRatio: 0 | 100;
+  setTokenStandardRatio: (ratio: 0 | 100) => void;
 }) {
-  const [rangeValue, setRangeValue] = useState(50);
-
   // TODO BigInt
   const ERC223Value =
     typeof value !== "undefined" && value !== ""
-      ? (parseFloat(value) / 100) * rangeValue
+      ? (parseFloat(value) / 100) * tokenStandardRatio
       : undefined;
   const ERC20Value =
     typeof value !== "undefined" && value !== "" && typeof ERC223Value !== "undefined"
@@ -193,10 +218,9 @@ export default function TokenDepositCard({
         <Image width={24} height={24} src={token?.logoURI || ""} alt="" />
         <h3 className="text-16 font-bold">{token.symbol} deposit amounts</h3>
       </div>
-      <div className="text-secondary-text text-14 mb-3">Total balance: ???</div>
       <div className="flex flex-col gap-5">
         <InputTotalAmount token={token} value={value} onChange={onChange} />
-        <InputRange value={rangeValue} onChange={setRangeValue} />
+        <InputRange value={tokenStandardRatio} onChange={setTokenStandardRatio} />
         <div className="flex justify-between gap-3 w-full">
           <InputStandardAmount
             standard="ERC-20"

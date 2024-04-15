@@ -47,8 +47,16 @@ export const DepositAmounts = ({
   isRevokingA: boolean;
   isRevokingB: boolean;
 }) => {
-  const { typedValue, independentField, dependentField, setTypedValue } =
-    useLiquidityAmountsStore();
+  const {
+    typedValue,
+    independentField,
+    dependentField,
+    setTypedValue,
+    tokenAStandardRatio,
+    tokenBStandardRatio,
+    setTokenAStandardRatio,
+    setTokenBStandardRatio,
+  } = useLiquidityAmountsStore();
 
   // get formatted amounts
   const formattedAmounts = {
@@ -70,6 +78,8 @@ export const DepositAmounts = ({
           isDisabled={depositADisabled}
           isRevoking={isRevokingA}
           isWithdrawing={isWithdrawingA}
+          tokenStandardRatio={tokenAStandardRatio}
+          setTokenStandardRatio={setTokenAStandardRatio}
         />
       )}
       <div className="px-5 py-2 flex justify-between bg-tertiary-bg rounded-3">
@@ -106,6 +116,8 @@ export const DepositAmounts = ({
           isDisabled={depositBDisabled}
           isRevoking={isRevokingB}
           isWithdrawing={isWithdrawingB}
+          tokenStandardRatio={tokenBStandardRatio}
+          setTokenStandardRatio={setTokenBStandardRatio}
         />
       )}
     </div>

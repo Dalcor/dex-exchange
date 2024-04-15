@@ -24,7 +24,11 @@ import { priceToClosestTick } from "@/sdk_hybrid/utils/priceTickConversions";
 import { TickMath } from "@/sdk_hybrid/utils/tickMath";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
-import { Field, useLiquidityAmountsStore } from "../stores/useAddLiquidityAmountsStore";
+import {
+  Field,
+  useLiquidityAmountsStore,
+  useTokensStandards,
+} from "../stores/useAddLiquidityAmountsStore";
 import { useLiquidityPriceRangeStore } from "../stores/useLiquidityPriceRangeStore";
 
 export const useAddLiquidity = () => {
@@ -37,6 +41,17 @@ export const useAddLiquidity = () => {
   const { data: walletClient } = useWalletClient();
   const { tier, setTier } = useLiquidityTierStore();
 
+  const { tokenAStandard, tokenBStandard } = useTokensStandards();
+  const [token0Standard, token1Standard] = useMemo(
+    () =>
+      tokenA && tokenB
+        ? tokenA.sortsBefore(tokenB)
+          ? [tokenAStandard, tokenBStandard]
+          : [tokenBStandard, tokenAStandard]
+        : [undefined, undefined],
+    [tokenA, tokenB, tokenAStandard, tokenBStandard],
+  );
+
   const handleTokenAChange = useCallback(() => {}, []);
 
   const handleTokenBChange = useCallback(() => {}, []);
@@ -44,41 +59,6 @@ export const useAddLiquidity = () => {
   const handleAmountAChange = useCallback(() => {}, []);
 
   const handleAmountBChange = useCallback(() => {}, []);
-
-  const createPool = useCallback(
-    async (position?: Position) => {
-      if (!position || !publicClient || !walletClient || !accountAddress || !tokenA || !tokenB) {
-        return;
-      }
-
-      const initializeParams = {
-        account: accountAddress,
-        abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-        functionName: "createAndInitializePoolIfNecessary" as const,
-        address: nonFungiblePositionManagerAddress as Address,
-        args: [
-          tokenB.address0 as Address,
-          tokenA.address0 as Address,
-          FeeAmount.LOW,
-          BigInt("79228162514264337593543950336"),
-        ] as [Address, Address, FeeAmount, bigint],
-        gas: BigInt(10_000_000),
-      };
-
-      try {
-        const estimatedGas = await publicClient.estimateContractGas(initializeParams as any);
-
-        const { request } = await publicClient.simulateContract({
-          ...(initializeParams as any),
-          gas: estimatedGas + BigInt(30000),
-        });
-        const hash = await walletClient.writeContract(request);
-      } catch (e) {
-        console.log(e);
-      }
-    },
-    [accountAddress, publicClient, tokenA, tokenB, walletClient],
-  );
 
   const handleAddLiquidity = useCallback(
     async ({
@@ -116,17 +96,26 @@ export const useAddLiquidity = () => {
         const amount0Min = toHex(minimumAmounts.amount0);
         const amount1Min = toHex(minimumAmounts.amount1);
 
+        const token0Address =
+          token0Standard === "ERC-20"
+            ? (position.pool.token0.address0 as Address)
+            : (position.pool.token0.address1 as Address);
+        const token1Address =
+          token1Standard === "ERC-20"
+            ? (position.pool.token1.address0 as Address)
+            : (position.pool.token1.address1 as Address);
+
         if (createPool) {
           const createParams = [
-            position.pool.token0.address0 as Address,
-            position.pool.token1.address0 as Address,
+            token0Address,
+            token1Address,
             position.pool.fee,
             toHex(position.pool.sqrtRatioX96) as any,
           ] as [Address, Address, FeeAmount, bigint];
 
           const mintParams = {
-            token0: position.pool.token0.address0 as Address,
-            token1: position.pool.token1.address0 as Address,
+            token0: token0Address,
+            token1: token1Address,
             fee: position.pool.fee,
             tickLower: position.tickLower,
             tickUpper: position.tickUpper,
@@ -169,7 +158,6 @@ export const useAddLiquidity = () => {
           //   ...params2,
           //   gas: estimatedGas + BigInt(30000),
           // });
-          // console.log("🚀 ~ useAddLiquidity ~ request:", request);
 
           // Without multicall end
 
@@ -214,8 +202,8 @@ export const useAddLiquidity = () => {
           }
         } else {
           const params = {
-            token0: position.pool.token0.address0 as Address,
-            token1: position.pool.token1.address0 as Address,
+            token0: token0Address,
+            token1: token1Address,
             fee: position.pool.fee,
             tickLower: position.tickLower,
             tickUpper: position.tickUpper,
@@ -239,7 +227,16 @@ export const useAddLiquidity = () => {
         console.log(e);
       }
     },
-    [accountAddress, deadline, publicClient, tokenA, tokenB, walletClient],
+    [
+      accountAddress,
+      deadline,
+      publicClient,
+      tokenA,
+      tokenB,
+      walletClient,
+      token0Standard,
+      token1Standard,
+    ],
   );
 
   return {
@@ -274,7 +271,9 @@ export const useV3DerivedMintInfo = ({
   const { typedValue, independentField, dependentField, setTypedValue } =
     useLiquidityAmountsStore();
 
-  const [poolState, pool] = usePool(tokenA, tokenB, tier);
+  const { tokenAStandard, tokenBStandard } = useTokensStandards();
+
+  const [poolState, pool] = usePool(tokenA, tokenB, tier, tokenAStandard, tokenBStandard);
   const noLiquidity = poolState === PoolState.NOT_EXISTS;
 
   const currencyA = tokenA;

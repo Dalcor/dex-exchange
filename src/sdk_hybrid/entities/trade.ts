@@ -476,7 +476,15 @@ export class Trade<
     const poolAddressSet = new Set<string>();
     for (const { route } of routes) {
       for (const pool of route.pools) {
-        poolAddressSet.add(Pool.getAddress(pool.token0, pool.token1, pool.fee));
+        poolAddressSet.add(
+          Pool.getAddress(
+            pool.token0,
+            pool.token1,
+            pool.fee,
+            "ERC-20", // TODO
+            "ERC-20", // TODO
+          ),
+        );
       }
     }
 

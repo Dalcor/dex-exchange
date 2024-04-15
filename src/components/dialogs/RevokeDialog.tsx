@@ -2,7 +2,7 @@ import { formatUnits } from "viem";
 
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
-import { WrappedToken } from "@/config/types/WrappedToken";
+import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
 import Button from "../atoms/Button";
 import Badge from "../badges/Badge";
@@ -10,10 +10,10 @@ import Badge from "../badges/Badge";
 interface Props {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  standard: "ERC-20" | "ERC-223";
+  standard: TokenStandard;
   amount?: bigint;
   revokeHandler: () => void;
-  token: WrappedToken;
+  token: Token;
   isRevoking: boolean; // isRevoking or isWithdrawing
 }
 

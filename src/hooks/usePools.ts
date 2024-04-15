@@ -9,7 +9,7 @@ import { DexChainId } from "@/sdk_hybrid/chains";
 import { BigintIsh, FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Pool } from "@/sdk_hybrid/entities/pool";
-import { Token } from "@/sdk_hybrid/entities/token";
+import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 import { computePoolAddress } from "@/sdk_hybrid/utils/computePoolAddress";
 import { usePoolsStore } from "@/stores/usePoolsStore";
 
@@ -46,6 +46,8 @@ class PoolCache {
         tokenA,
         tokenB,
         fee,
+        standardA: "ERC-20",
+        standardB: "ERC-20",
       }),
     };
     this.addresses.unshift(address);
@@ -88,27 +90,34 @@ export enum PoolState {
   INVALID,
 }
 export default function usePools(
-  poolKeys: [Currency | undefined, Currency | undefined, FeeAmount | undefined][],
+  poolKeys: [
+    Currency | undefined,
+    Currency | undefined,
+    FeeAmount | undefined,
+    TokenStandard,
+    TokenStandard,
+  ][],
 ): [PoolState, Pool | null][] {
   const { chainId } = useAccount();
   const { pools, addPool } = usePoolsStore();
 
-  const poolTokens: ([Token, Token, FeeAmount] | undefined)[] = useMemo(() => {
-    if (!chainId) return new Array(poolKeys.length);
+  const poolTokens: ([Token, Token, FeeAmount, TokenStandard, TokenStandard] | undefined)[] =
+    useMemo(() => {
+      if (!chainId) return new Array(poolKeys.length);
 
-    return poolKeys.map(([currencyA, currencyB, feeAmount]) => {
-      if (currencyA && currencyB && feeAmount) {
-        const tokenA = currencyA.wrapped;
-        const tokenB = currencyB.wrapped;
-        if (tokenA.equals(tokenB)) return undefined;
+      return poolKeys.map(([currencyA, currencyB, feeAmount, standardA, standardB]) => {
+        if (currencyA && currencyB && feeAmount) {
+          const tokenA = currencyA.wrapped;
+          const tokenB = currencyB.wrapped;
+          if (tokenA.equals(tokenB)) return undefined;
 
-        return tokenA.sortsBefore(tokenB)
-          ? [tokenA, tokenB, feeAmount]
-          : [tokenB, tokenA, feeAmount];
-      }
-      return undefined;
-    });
-  }, [chainId, poolKeys]);
+          return tokenA.sortsBefore(tokenB)
+            ? [tokenA, tokenB, feeAmount, standardA, standardB]
+            : [tokenB, tokenA, feeAmount, standardA, standardB];
+        }
+        return undefined;
+      });
+    }, [chainId, poolKeys]);
 
   const poolAddresses: (Address | undefined)[] = useMemo(() => {
     const v3CoreFactoryAddress = chainId && FACTORY_ADDRESS[chainId as DexChainId];
@@ -128,6 +137,8 @@ export default function usePools(
             chainId === DexChainId.CALLISTO
               ? "0xeb2af1344b4aa73e15e4ec4d5110b0358721463fa322ae01294d16e65a9966a3"
               : "0xb7112e06e4c5b0e55a0560f43cfd041a98b718a5554606cfe637eb31021cc257",
+          standardA: value[3],
+          standardB: value[4],
         }) as Address)
       );
     });
@@ -227,10 +238,18 @@ export function usePool(
   currencyA: Currency | undefined,
   currencyB: Currency | undefined,
   feeAmount: FeeAmount | undefined,
+  standardA: TokenStandard | undefined = "ERC-20", // TODO: temp param, remove after supporting pool with 4 tokens
+  standardB: TokenStandard | undefined = "ERC-20", // TODO: temp param, remove after supporting pool with 4 tokens
 ): [PoolState, Pool | null] {
-  const poolKeys: [Currency | undefined, Currency | undefined, FeeAmount | undefined][] = useMemo(
-    () => [[currencyA, currencyB, feeAmount]],
-    [currencyA, currencyB, feeAmount],
+  const poolKeys: [
+    Currency | undefined,
+    Currency | undefined,
+    FeeAmount | undefined,
+    TokenStandard,
+    TokenStandard,
+  ][] = useMemo(
+    () => [[currencyA, currencyB, feeAmount, standardA, standardB]],
+    [currencyA, currencyB, feeAmount, standardA, standardB],
   );
 
   return usePools(poolKeys)[0];

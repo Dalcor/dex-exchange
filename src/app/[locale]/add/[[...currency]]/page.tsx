@@ -25,7 +25,7 @@ import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
 import { PriceRange } from "./components/PriceRange/PriceRange";
 import { useAddLiquidity, useV3DerivedMintInfo } from "./hooks/useAddLiquidity";
 import { usePriceRange } from "./hooks/usePrice";
-import { Field } from "./stores/useAddLiquidityAmountsStore";
+import { Field, useTokensStandards } from "./stores/useAddLiquidityAmountsStore";
 
 export default function AddPoolPage({
   params,
@@ -123,6 +123,7 @@ export default function AddPoolPage({
     writeTokenRevoke: revokeA,
     isApproving: isApprovingA,
     currentAllowance: currentAllowanceA,
+    isRevoking: isRevokingA,
   } = useAllowance({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -139,6 +140,7 @@ export default function AddPoolPage({
     writeTokenRevoke: revokeB,
     isApproving: isApprovingB,
     currentAllowance: currentAllowanceB,
+    isRevoking: isRevokingB,
   } = useAllowance({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -155,6 +157,7 @@ export default function AddPoolPage({
     writeTokenWithdraw: withdrawA,
     isDepositing: isDepositingA,
     currentDeposit: currentDepositA,
+    isWithdrawing: isWithdrawingA,
   } = useDeposit({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -170,6 +173,7 @@ export default function AddPoolPage({
     writeTokenWithdraw: withdrawB,
     isDepositing: isDepositingB,
     currentDeposit: currentDepositB,
+    isWithdrawing: isWithdrawingB,
   } = useDeposit({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -181,6 +185,8 @@ export default function AddPoolPage({
   });
 
   // Deposit Amounts END
+
+  const { tokenAStandard, tokenBStandard } = useTokensStandards();
 
   const { handleAddLiquidity } = useAddLiquidity();
 
@@ -273,6 +279,10 @@ export default function AddPoolPage({
               withdrawB={withdrawB}
               depositADisabled={depositADisabled}
               depositBDisabled={depositBDisabled}
+              isRevokingA={isRevokingA}
+              isRevokingB={isRevokingB}
+              isWithdrawingA={isWithdrawingA}
+              isWithdrawingB={isWithdrawingB}
             />
             <PriceRange
               noLiquidity={noLiquidity}
@@ -292,28 +302,40 @@ export default function AddPoolPage({
             />
           </div>
 
-          <div className="grid gap-2 mb-5 grid-cols-2">
-            {!isAllowedA && (
-              <Button variant="outline" fullWidth onClick={() => approveA()}>
-                {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
-              </Button>
+          <div className="grid gap-2 mb-5 grid-cols-2 mt-5">
+            {tokenAStandard === "ERC-20" ? (
+              <>
+                {!isAllowedA && (
+                  <Button variant="outline" fullWidth onClick={() => approveA()}>
+                    {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                {!isDepositedA && (
+                  <Button variant="outline" fullWidth onClick={() => depositA()}>
+                    {isDepositingA ? "Loading..." : <span>Deposit {tokenA?.symbol}</span>}
+                  </Button>
+                )}
+              </>
             )}
-            {!isAllowedB && (
-              <Button variant="outline" fullWidth onClick={() => approveB()}>
-                {isApprovingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}
-              </Button>
-            )}
-          </div>
-          <div className="grid gap-2 mb-5 grid-cols-2">
-            {!isDepositedA && (
-              <Button variant="outline" fullWidth onClick={() => depositA()}>
-                {isDepositingA ? "Loading..." : <span>Deposit {tokenA?.symbol}</span>}
-              </Button>
-            )}
-            {!isDepositedB && (
-              <Button variant="outline" fullWidth onClick={() => depositB()}>
-                {isDepositingB ? "Loading..." : <span>Deposit {tokenB?.symbol}</span>}
-              </Button>
+            {tokenBStandard === "ERC-20" ? (
+              <>
+                {!isAllowedB && (
+                  <Button variant="outline" fullWidth onClick={() => approveB()}>
+                    {isApprovingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                {!isDepositedB && (
+                  <Button variant="outline" fullWidth onClick={() => depositB()}>
+                    {isDepositingB ? "Loading..." : <span>Deposit {tokenB?.symbol}</span>}
+                  </Button>
+                )}
+              </>
             )}
           </div>
           {noLiquidity ? (

@@ -13,7 +13,7 @@ import { TickMath } from "../utils/tickMath";
 import { CurrencyAmount } from "./fractions/currencyAmount";
 import { Price } from "./fractions/price";
 import { Tick, TickConstructorArgs } from "./tick";
-import { Token } from "./token";
+import { Token, TokenStandard } from "./token";
 
 interface StepComputations {
   sqrtPriceStartX96: JSBI;
@@ -49,6 +49,8 @@ export class Pool {
     tokenA: Token,
     tokenB: Token,
     fee: FeeAmount,
+    standardA: TokenStandard,
+    standardB: TokenStandard,
     initCodeHashManualOverride?: string,
     factoryAddressOverride?: string,
   ): string {
@@ -58,6 +60,8 @@ export class Pool {
       tokenA,
       tokenB,
       initCodeHashManualOverride,
+      standardA,
+      standardB,
     });
   }
 

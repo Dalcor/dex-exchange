@@ -9,6 +9,7 @@ import { nearestUsableTick } from "@/sdk_hybrid/utils/nearestUsableTick";
 import { TickMath } from "@/sdk_hybrid/utils/tickMath";
 
 import { Bound } from "../components/PriceRange/LiquidityChartRangeInput/types";
+import { useTokensStandards } from "../stores/useAddLiquidityAmountsStore";
 import { useAddLiquidityTokensStore } from "../stores/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "../stores/useLiquidityPriceRangeStore";
 import { useLiquidityTierStore } from "../stores/useLiquidityTierStore";
@@ -90,7 +91,9 @@ export const usePriceRange = () =>
     const { tokenA, tokenB, setBothTokens } = useAddLiquidityTokensStore();
     const { tier } = useLiquidityTierStore();
 
-    const [poolState, pool] = usePool(tokenA, tokenB, tier);
+    const { tokenAStandard, tokenBStandard } = useTokensStandards();
+
+    const [poolState, pool] = usePool(tokenA, tokenB, tier, tokenAStandard, tokenBStandard);
     const noLiquidity = poolState === PoolState.NOT_EXISTS;
 
     const [token0, token1] = useMemo(

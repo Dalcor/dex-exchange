@@ -124,6 +124,7 @@ export default function IncreaseLiquidityPage({
     isApproving: isApprovingA,
     currentAllowance: currentAllowanceA,
     writeTokenRevoke: revokeA,
+    isRevoking: isRevokingA,
   } = useAllowance({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -140,6 +141,7 @@ export default function IncreaseLiquidityPage({
     writeTokenRevoke: revokeB,
     isApproving: isApprovingB,
     currentAllowance: currentAllowanceB,
+    isRevoking: isRevokingB,
   } = useAllowance({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -156,6 +158,7 @@ export default function IncreaseLiquidityPage({
     writeTokenWithdraw: withdrawA,
     isDepositing: isDepositingA,
     currentDeposit: currentDepositA,
+    isWithdrawing: isWithdrawingA,
   } = useDeposit({
     token: tokenA,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -171,6 +174,7 @@ export default function IncreaseLiquidityPage({
     writeTokenWithdraw: withdrawB,
     isDepositing: isDepositingB,
     currentDeposit: currentDepositB,
+    isWithdrawing: isWithdrawingB,
   } = useDeposit({
     token: tokenB,
     contractAddress: nonFungiblePositionManagerAddress,
@@ -221,6 +225,10 @@ export default function IncreaseLiquidityPage({
               withdrawB={withdrawB}
               depositADisabled={depositADisabled}
               depositBDisabled={depositBDisabled}
+              isRevokingA={isRevokingA}
+              isRevokingB={isRevokingB}
+              isWithdrawingA={isWithdrawingA}
+              isWithdrawingB={isWithdrawingB}
             />
             <div className="rounded-3 p-5 bg-tertiary-bg h-min">
               <div className="rounded-3 bg-quaternary-bg mb-4">

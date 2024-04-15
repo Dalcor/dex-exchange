@@ -3,7 +3,7 @@ import { Address } from "viem";
 
 import Svg from "@/components/atoms/Svg";
 import TrustBadge from "@/components/badges/TrustBadge";
-import { Token } from "@/sdk_hybrid/entities/token";
+import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
 interface Props {
   tokenA: Token | undefined;
@@ -23,7 +23,7 @@ function TokenAddress({
   standard,
 }: {
   tokenAddress: Address | undefined;
-  standard: "ERC-20" | "ERC-223";
+  standard: TokenStandard;
 }) {
   return (
     <div className="flex text-12 overflow-hidden rounded-20">

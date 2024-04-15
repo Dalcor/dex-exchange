@@ -156,6 +156,8 @@ export default function useDeposit({
     addRecentTransaction,
   ]);
 
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+
   const writeTokenWithdraw = useCallback(async () => {
     if (
       !currentDeposit?.data ||
@@ -170,7 +172,7 @@ export default function useDeposit({
     }
     const amountToWithdraw = currentDeposit.data;
 
-    setIsDepositing(true);
+    setIsWithdrawing(true);
     // setOpened(`Approve ${formatUnits(amountToWithdraw, token.decimals)} ${token.symbol} tokens`)
 
     if (!token) return;
@@ -227,12 +229,12 @@ export default function useDeposit({
 
       if (hash) {
         await publicClient.waitForTransactionReceipt({ hash });
-        setIsDepositing(false);
+        setIsWithdrawing(false);
       }
     } catch (e) {
       console.log(e);
       // setClose();
-      setIsDepositing(false);
+      setIsWithdrawing(false);
       addToast("Unexpected error, please contact support", "error");
     }
   }, [
@@ -249,6 +251,7 @@ export default function useDeposit({
   return {
     isDeposited,
     isDepositing,
+    isWithdrawing,
     writeTokenDeposit,
     writeTokenWithdraw,
     currentDeposit: currentDeposit.data,

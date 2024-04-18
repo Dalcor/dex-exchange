@@ -20,9 +20,9 @@ import {
   usePositionFromTokenId,
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
+import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useRouter } from "@/navigation";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
-import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 export default function DecreaseLiquidityPage({
   params,
 }: {

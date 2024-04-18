@@ -13,6 +13,7 @@ import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
+import { useConfirmInWalletDialogStore } from "@/stores/useConfirmInWalletDialogStore";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -36,6 +37,8 @@ export default function useSwap() {
   const deadline = useTransactionDeadline(_deadline);
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
+
+  const { openConfirmInWalletDialog } = useConfirmInWalletDialogStore();
 
   const gasPriceFormatted = useMemo(() => {
     switch (gasPrice.model) {
@@ -149,14 +152,15 @@ export default function useSwap() {
     //   gas: estimatedGas + BigInt(30000),
     // });
     // const hash = await walletClient.writeContract(swapParams);
+
     let hash;
 
     if (tokenAAddress === tokenA.address0) {
-      hash = await walletClient.writeContract(swapParams);
+      hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
     }
 
     if (tokenAAddress === tokenA.address1) {
-      hash = await walletClient.sendTransaction(swapParams);
+      hash = await walletClient.sendTransaction(swapParams as any); // TODO: remove any
     }
 
     const nonce = await publicClient.getTransactionCount({

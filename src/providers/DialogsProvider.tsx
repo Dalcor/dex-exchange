@@ -2,6 +2,7 @@
 import { PropsWithChildren } from "react";
 
 import SwapSettingsDialog from "@/app/[locale]/swap/components/SwapSettingsDialog";
+import ConfirmInWalletDialog from "@/components/dialogs/ConfirmInWalletDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import TransactionSpeedUpDialog from "@/components/dialogs/TransactionSpeedUpDialog";
 
@@ -13,6 +14,7 @@ export default function DialogsProvider({ children }: PropsWithChildren) {
       {children}
       <SwapSettingsDialog isOpen={isOpen} setIsOpen={() => setIsOpen(!isOpen)} />
       <TransactionSpeedUpDialog />
+      <ConfirmInWalletDialog />
     </>
   );
 }

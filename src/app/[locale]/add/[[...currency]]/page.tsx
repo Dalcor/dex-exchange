@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { parseUnits } from "viem";
 
 import FeeAmountSettings from "@/app/[locale]/add/[[...currency]]/components/FeeAmountSettings";
@@ -13,6 +13,7 @@ import SelectButton from "@/components/atoms/SelectButton";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import RecentTransactions from "@/components/others/RecentTransactions";
 import { FEE_TIERS } from "@/config/constants/liquidityFee";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import useAllowance from "@/hooks/useAllowance";
@@ -189,11 +190,12 @@ export default function AddPoolPage({
   const { tokenAStandard, tokenBStandard } = useTokensStandards();
 
   const { handleAddLiquidity } = useAddLiquidity();
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
 
   return (
     <Container>
-      <div className="w-[1200px] bg-primary-bg mx-auto my-[80px]">
-        <div className="flex justify-between items-center rounded-t-2 border py-2.5 px-6 border-secondary-border">
+      <div className="w-[1200px] mx-auto my-[80px]">
+        <div className="flex justify-between  bg-primary-bg items-center rounded-t-5 py-2.5 px-6">
           <SystemIconButton
             iconSize={32}
             iconName="back"
@@ -201,14 +203,21 @@ export default function AddPoolPage({
             onClick={() => router.push("/pools")}
           />
           <h2 className="text-20 font-bold">Add Liquidity</h2>
-          <SystemIconButton
-            iconSize={32}
-            size="large"
-            iconName="settings"
-            onClick={() => setIsOpen(true)}
-          />
+          <div className="flex items-center gap-2">
+            <SystemIconButton
+              iconSize={24}
+              iconName="recent-transactions"
+              onClick={() => setShowRecentTransactions(!showRecentTransactions)}
+            />
+            <SystemIconButton
+              iconSize={32}
+              size="large"
+              iconName="settings"
+              onClick={() => setIsOpen(true)}
+            />
+          </div>
         </div>
-        <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">
+        <div className="rounded-b-5 border-t-0 p-10 bg-primary-bg mb-5">
           <h3 className="text-16 font-bold mb-4">Select pair</h3>
           <div className="flex gap-3 mb-5">
             <SelectButton
@@ -351,12 +360,18 @@ export default function AddPoolPage({
             </Button>
           )}
         </div>
-        <PickTokenDialog
-          handlePick={handlePick}
-          isOpen={isOpenedTokenPick}
-          setIsOpen={setIsOpenedTokenPick}
+
+        <RecentTransactions
+          showRecentTransactions={showRecentTransactions}
+          handleClose={() => setShowRecentTransactions(false)}
         />
       </div>
+
+      <PickTokenDialog
+        handlePick={handlePick}
+        isOpen={isOpenedTokenPick}
+        setIsOpen={setIsOpenedTokenPick}
+      />
     </Container>
   );
 }

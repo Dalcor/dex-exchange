@@ -7,7 +7,7 @@ import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import { Token } from "@/sdk_hybrid/entities/token";
 
-enum Standard {
+export enum Standard {
   ERC20 = "ERC-20",
   ERC223 = "ERC-223",
 }

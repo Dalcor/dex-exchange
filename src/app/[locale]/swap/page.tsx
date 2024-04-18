@@ -20,16 +20,20 @@ import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
+import ConfirmSwapDialog from "@/components/dialogs/ConfirmSwapDialog";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
+import { useConfirmSwapDialogStore } from "@/components/dialogs/stores/useConfirmSwapDialogOpened";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import Pagination from "@/components/others/Pagination";
 import RecentTransaction from "@/components/others/RecentTransaction";
+import RecentTransactions from "@/components/others/RecentTransactions";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokenInput from "@/components/others/TokenInput";
 import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import useAllowance from "@/hooks/useAllowance";
+import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
@@ -38,7 +42,6 @@ import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { GasFeeModel, useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
-import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 enum Standard {
@@ -57,22 +60,10 @@ enum Standard {
 // WETH: 0xfff9976782d46cc05630d1f6ebab18b2324d6b14
 // USD: 0x6f14C02Fc1F78322cFd7d707aB90f18baD3B54f5
 
-function SwapActionButton() {
+function OpenConfirmDialogButton() {
   const { tokenA, tokenB } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
-
-  const { handleSwap } = useSwap();
-  const { chainId } = useAccount();
-
-  const {
-    isAllowed: isAllowedA,
-    writeTokenApprove: approveA,
-    isApproving: isApprovingA,
-  } = useAllowance({
-    token: tokenA,
-    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
-    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
-  });
+  const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
 
   if (!tokenA || !tokenB) {
     return (
@@ -90,21 +81,12 @@ function SwapActionButton() {
     );
   }
 
-  if (!isAllowedA) {
-    return (
-      <Button fullWidth variant="outline" onClick={() => approveA()}>
-        {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
-      </Button>
-    );
-  }
-
   return (
-    <Button onClick={handleSwap} fullWidth>
+    <Button onClick={() => setConfirmSwapDialogOpen(true)} fullWidth>
       Swap
     </Button>
   );
 }
-
 function SwapDetailsRow({
   title,
   value,
@@ -235,16 +217,6 @@ export default function SwapPage() {
     return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
   }, [slippage, trade]);
 
-  const { transactions } = useRecentTransactionsStore();
-
-  const _transactions = useMemo(() => {
-    if (address && transactions[address]) {
-      return transactions[address];
-    }
-
-    return [];
-  }, [address, transactions]);
-
   const [effect, setEffect] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -270,61 +242,14 @@ export default function SwapPage() {
     return "Loading...";
   }, [baseFee, gasPrice]);
 
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const currentTableData = useMemo(() => {
-    const firstPageIndex = (currentPage - 1) * PAGE_SIZE;
-    const lastPageIndex = firstPageIndex + PAGE_SIZE;
-    return _transactions.slice(firstPageIndex, lastPageIndex);
-  }, [_transactions, currentPage]);
-
   return (
     <>
       <Container>
         <div className={clsx("grid py-[80px]", showRecentTransactions ? "grid-cols-2" : "")}>
-          {showRecentTransactions && (
-            <div>
-              <div className="px-10 pt-2.5 bg-primary-bg rounded-5">
-                <div className="flex justify-between items-center mb-2.5">
-                  <h3 className="font-bold text-20">Transactions</h3>
-                  <div className="flex items-center">
-                    <SystemIconButton
-                      iconSize={24}
-                      iconName="close"
-                      onClick={() => setShowRecentTransactions(false)}
-                    />
-                  </div>
-                </div>
-                <div>
-                  {currentTableData.length ? (
-                    <>
-                      <div className="pb-10 flex flex-col gap-1">
-                        {currentTableData.map((transaction) => {
-                          return (
-                            <RecentTransaction transaction={transaction} key={transaction.hash} />
-                          );
-                        })}
-                      </div>
-                      <Pagination
-                        className="pagination-bar"
-                        currentPage={currentPage}
-                        totalCount={_transactions.length}
-                        pageSize={PAGE_SIZE}
-                        onPageChange={(page) => setCurrentPage(page as number)}
-                      />
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
-                      <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
-                      <span className="text-secondary-text">
-                        All transaction will be displayed here.
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+          <RecentTransactions
+            showRecentTransactions={showRecentTransactions}
+            handleClose={() => setShowRecentTransactions(false)}
+          />
           <div className="flex justify-center">
             <div className="grid gap-5 w-[640px]">
               <div className="px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
@@ -454,7 +379,7 @@ export default function SwapPage() {
                   </div>
                 </div>
 
-                <SwapActionButton />
+                <OpenConfirmDialogButton />
 
                 <div
                   className={clsx("mt-5 bg-tertiary-bg", !expanded ? "rounded-3" : "rounded-t-3")}
@@ -549,6 +474,7 @@ export default function SwapPage() {
           isOpen={isOpenedTokenPick}
           setIsOpen={setIsOpenedTokenPick}
         />
+        <ConfirmSwapDialog />
       </Container>
     </>
   );

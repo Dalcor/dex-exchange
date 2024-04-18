@@ -171,7 +171,7 @@ export default function RecentTransaction({
   return (
     <div
       key={transaction.hash}
-      className="flex justify-between w-full bg-tertiary-bg rounded-3 p-5 items-center"
+      className="flex justify-between w-full bg-tertiary-bg rounded-3 p-5 items-center @container flex-wrap"
     >
       <div className="flex gap-2 items-center">
         <RecentTransactionLogo title={transaction.title} />
@@ -182,21 +182,26 @@ export default function RecentTransaction({
       </div>
 
       <div className="flex items-center gap-3">
-        {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && (
-          <>
-            <RecentTransactionActionButton color="secondary">Cancel</RecentTransactionActionButton>
-            <RecentTransactionActionButton onClick={() => handleSpeedUp(transaction)}>
-              Speed up
-            </RecentTransactionActionButton>
-          </>
-        )}
-        {transaction.status === RecentTransactionStatus.QUEUED && (
-          <>
-            <RecentTransactionActionButton disabled color="secondary">
-              Queue
-            </RecentTransactionActionButton>
-          </>
-        )}
+        <div className="hidden items-center gap-3 @[620px]:flex">
+          {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && (
+            <>
+              <RecentTransactionActionButton color="secondary">
+                Cancel
+              </RecentTransactionActionButton>
+              <RecentTransactionActionButton onClick={() => handleSpeedUp(transaction)}>
+                Speed up
+              </RecentTransactionActionButton>
+            </>
+          )}
+          {transaction.status === RecentTransactionStatus.QUEUED && (
+            <>
+              <RecentTransactionActionButton disabled color="secondary">
+                Queue
+              </RecentTransactionActionButton>
+            </>
+          )}
+        </div>
+
         <a
           className="w-10 h-10 flex items-center justify-center"
           target="_blank"
@@ -208,6 +213,21 @@ export default function RecentTransaction({
           <RecentTransactionStatusIcon status={transaction.status} />
         </span>
       </div>
+      {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && (
+        <div className="@[620px]:hidden w-full grid grid-cols-2 gap-3 mt-3">
+          <RecentTransactionActionButton color="secondary">Cancel</RecentTransactionActionButton>
+          <RecentTransactionActionButton onClick={() => handleSpeedUp(transaction)}>
+            Speed up
+          </RecentTransactionActionButton>
+        </div>
+      )}
+      {transaction.status === RecentTransactionStatus.QUEUED && (
+        <div className="@[620px]:hidden w-full mt-3 grid grid-cols-1">
+          <RecentTransactionActionButton disabled color="secondary">
+            Queue
+          </RecentTransactionActionButton>
+        </div>
+      )}
     </div>
   );
 }

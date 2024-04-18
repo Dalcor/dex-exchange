@@ -24,8 +24,8 @@ import {
   usePositionPrices,
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
+import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useRouter } from "@/navigation";
-import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 
 export default function PoolPage({
   params,

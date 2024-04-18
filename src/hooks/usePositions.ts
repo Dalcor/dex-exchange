@@ -17,6 +17,8 @@ import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePosit
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import { usePool } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
@@ -115,10 +117,10 @@ export function usePositionsFromTokenIds(tokenIds: bigint[] | undefined) {
   }, [positionsData, positionsLoading, tokenIds]);
 }
 export default function usePositions() {
-  const { address: account } = useAccount();
+  const { address: account, chainId } = useAccount();
 
   const { data: balance, isLoading: balanceLoading } = useReadContract({
-    address: nonFungiblePositionManagerAddress,
+    address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
     functionName: "balanceOf",
     args: account && [account],
@@ -126,6 +128,8 @@ export default function usePositions() {
       enabled: Boolean(account),
     },
   });
+
+  console.log(balance);
 
   const tokenIdsArgs = useMemo(() => {
     if (balance && account) {
@@ -137,6 +141,8 @@ export default function usePositions() {
     }
     return [];
   }, [account, balance]);
+
+  console.log(tokenIdsArgs);
 
   const tokenIdsContracts = useMemo(() => {
     return tokenIdsArgs.map((tokenId) => ({
@@ -151,12 +157,15 @@ export default function usePositions() {
     contracts: tokenIdsContracts,
   });
 
+  console.log(tokenIdsData);
+
   const { positions, loading: positionsLoading } = usePositionsFromTokenIds(
     tokenIdsData
       ?.filter((value) => !!value.result && typeof value.result === "bigint")
       .map((value) => value.result as bigint),
   );
 
+  console.log(positions);
   return {
     positions,
     loading: positionsLoading || tokenIdsLoading || balanceLoading,

@@ -34,8 +34,12 @@ export default function Header() {
             <LocaleSwitcher />
             <TokenListsSettings />
             <NetworkPicker />
-            <WalletOrConnectButton openWallet={setOpenedWallet} openAccount={setIsOpenedAccount} />
-            <AccountDialog isOpen={isOpenedAccount} setIsOpen={setIsOpenedAccount} />
+
+            <AccountDialog
+              isOpen={isOpenedAccount}
+              setIsOpen={setIsOpenedAccount}
+              setOpenedWallet={setOpenedWallet}
+            />
             <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet} />
           </div>
         </div>

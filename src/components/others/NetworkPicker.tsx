@@ -9,6 +9,8 @@ import Svg from "@/components/atoms/Svg";
 import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import ClientOnly from "@/components/others/ClientOnly";
 import { networks } from "@/config/networks";
+import { formatFloat } from "@/functions/formatFloat";
+import { useConfirmInWalletDialogStore } from "@/stores/useConfirmInWalletDialogStore";
 
 export default function NetworkPicker() {
   const [isOpened, setIsOpened] = useState(false);
@@ -20,7 +22,8 @@ export default function NetworkPicker() {
     }
     return networks.find((n) => n.chainId === chainToConnect);
   }, [chainId, chainToConnect]);
-  const { switchChain } = useSwitchChain();
+  const { switchChainAsync } = useSwitchChain();
+  const { openConfirmInWalletDialog, closeConfirmInWalletDialog } = useConfirmInWalletDialogStore();
 
   return (
     <ClientOnly>
@@ -49,8 +52,15 @@ export default function NetworkPicker() {
                       console.log("Change chain to connect");
                       setChainToConnect(_chainId);
                     }
-                    if (switchChain) {
-                      switchChain({ chainId: _chainId });
+                    if (switchChainAsync) {
+                      try {
+                        openConfirmInWalletDialog(`Change network`);
+                        await switchChainAsync({ chainId: _chainId });
+                      } catch (e) {
+                        console.log(e);
+                      } finally {
+                        closeConfirmInWalletDialog();
+                      }
                     }
 
                     setIsOpened(false);

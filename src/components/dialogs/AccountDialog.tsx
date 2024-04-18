@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
-import React, { ButtonHTMLAttributes, PropsWithChildren, useMemo } from "react";
+import React, { ButtonHTMLAttributes, PropsWithChildren, useMemo, useState } from "react";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 
 import Button from "@/components/atoms/Button";
@@ -8,8 +8,12 @@ import ButtonWithIcon from "@/components/atoms/ButtonWithIcon";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
+import Popover from "@/components/atoms/Popover";
+import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
+import TabButton from "@/components/buttons/TabButton";
 import RecentTransaction from "@/components/others/RecentTransaction";
+import WalletOrConnectButton from "@/components/others/WalletOrConnectButton";
 import Tab from "@/components/tabs/Tab";
 import Tabs from "@/components/tabs/Tabs";
 import { wallets } from "@/config/wallets";
@@ -22,6 +26,7 @@ import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore"
 interface Props {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  setOpenedWallet: (isOpen: boolean) => void;
 }
 
 function IconButton({
@@ -31,7 +36,7 @@ function IconButton({
   return (
     <button
       className={clsx(
-        "w-10 h-10 flex justify-center items-center p-0 duration-200 text-primary-text rounded-full bg-transparent hover:bg-white-hover border-0 outline-0 cursor-pointer",
+        "w-10 h-10 flex justify-center items-center p-0 duration-200 text-primary-text rounded-full bg-transparent hover:bg-green-bg border-0 outline-0 cursor-pointer",
       )}
       {...props}
     >
@@ -40,13 +45,13 @@ function IconButton({
   );
 }
 
-export default function AccountDialog({ isOpen, setIsOpen }: Props) {
+export default function AccountDialog({ isOpen, setIsOpen, setOpenedWallet }: Props) {
   const { disconnect } = useDisconnect();
   const { address, connector } = useAccount();
 
   const { data } = useBalance({ address });
 
-  const { transactions } = useRecentTransactionsStore();
+  const { transactions, clearTransactions } = useRecentTransactionsStore();
 
   const _transactions = useMemo(() => {
     if (address && transactions[address]) {
@@ -72,79 +77,110 @@ export default function AccountDialog({ isOpen, setIsOpen }: Props) {
   //
   // }, [connector]);
 
+  const [activeTab, setActiveTab] = useState(0);
+
   return (
-    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
-      <DialogHeader onClose={() => setIsOpen(false)} title="Account" />
-      <div className="pt-10 pl-10 pr-10 min-w-[600px]">
-        <div className="relative bg-gradient-to-tr from-[#5937B7] from-45% to-100% to-[#9576EC] rounded-2">
-          <div className="absolute right-0 top-0 bottom-0 bg-account-card-pattern opacity-50 bg-no-repeat bg-right w-full h-full" />
-          <div className="relative mb-5 p-5 grid gap-3 z-10">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 py-2 px-3 rounded-1 bg-primary-bg">
-                  {address ? (
-                    <Image src={wallets.metamask.image} alt="" width={24} height={24} />
-                  ) : (
-                    <Svg iconName="wallet" />
-                  )}
-                  {address ? `${address.slice(0, 5)}...${address.slice(-3)}` : "Not connected"}
+    <div>
+      <Popover
+        isOpened={isOpen}
+        setIsOpened={setIsOpen}
+        placement={"bottom-start"}
+        trigger={<WalletOrConnectButton openWallet={setOpenedWallet} openAccount={setIsOpen} />}
+      >
+        <div className="bg-primary-bg rounded-5 border border-secondary-border shadow-popup">
+          <DialogHeader onClose={() => setIsOpen(false)} title="My wallet" />
+          <div className="pl-10 pr-10 min-w-[600px]">
+            <div className="flex justify-between items-center mb-5">
+              <div className="flex items-center gap-2">
+                <Image src={wallets.metamask.image} alt="" width={48} height={48} />
+                <div>
+                  {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Not connected"}
                 </div>
-                <IconButton onClick={() => copyToClipboard(address || "")}>
-                  <Svg iconName="copy" />
-                </IconButton>
-                <IconButton>
-                  <Svg iconName="etherscan" />
-                </IconButton>
+
+                <div className="flex gap-1">
+                  <IconButton onClick={() => copyToClipboard(address || "")}>
+                    <Svg iconName="copy" />
+                  </IconButton>
+                  <IconButton onClick={() => copyToClipboard(address || "")}>
+                    <Svg iconName="forward" />
+                  </IconButton>
+                </div>
               </div>
-              <div>
-                <IconButton onClick={() => disconnect()}>
-                  <Svg iconName="logout" />
-                </IconButton>
+              <button
+                onClick={() => disconnect()}
+                className="flex items-center gap-2 hover:text-green duration-200"
+              >
+                Disconnect
+                <Svg iconName="logout" />
+              </button>
+            </div>
+            <div className="relative bg-gradient-to-r from-[#3C4C4A] to-[#70C59E] rounded-2">
+              <div className="absolute right-0 top-0 bottom-0 bg-account-card-pattern mix-blend-screen bg-no-repeat bg-right w-full h-full" />
+              <div className="relative mb-5 px-5 pt-4 pb-3 grid gap-3 z-10">
+                <div>
+                  <div className="text-12 text-secondary-text">Total Balance</div>
+                  <div className="text-32 text-primary-text font-medium">$234.234</div>
+                </div>
               </div>
             </div>
-            <div>
-              <div className="text-16 text-secondary-text">Balance</div>
-              <div className="text-20 text-primary-text font-bold">
-                {data ? (
-                  <span>
-                    {(+data.formatted).toLocaleString("en-US", { maximumFractionDigits: 6 })}{" "}
-                    {data?.symbol}
-                  </span>
-                ) : (
-                  "0.00"
-                )}
-              </div>
+            <div className="grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3 mb-3">
+              {["Tokens", "Transactions"].map((title, index) => {
+                return (
+                  <TabButton
+                    key={title}
+                    inactiveBackground="bg-primary-bg"
+                    size={48}
+                    active={index === activeTab}
+                    onClick={() => setActiveTab(index)}
+                  >
+                    {title}
+                  </TabButton>
+                );
+              })}
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <ButtonWithIcon text="Buy" icon="wallet" />
-              <ButtonWithIcon text="Receive" icon="arrow-bottom" />
-              <ButtonWithIcon text="Send" icon="to-top" />
-            </div>
-          </div>
-        </div>
-        <Tabs>
-          <Tab title="Assets">
-            <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
-              <EmptyStateIcon iconName="assets" />
-              <span className="text-secondary-text">All assets will be displayed here.</span>
-            </div>
-          </Tab>
-          <Tab title="History">
-            {_transactions.length ? (
-              <div className="min-h-[324px] flex flex-col gap-1">
-                {_transactions.map((transaction) => {
-                  return <RecentTransaction transaction={transaction} key={transaction.hash} />;
-                })}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
-                <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
-                <span className="text-secondary-text">All transaction will be displayed here.</span>
+
+            {activeTab == 0 && (
+              <div className="flex flex-col items-center justify-center h-[408px] overflow-scroll gap-2">
+                <EmptyStateIcon iconName="assets" />
+                <span className="text-secondary-text">All assets will be displayed here.</span>
               </div>
             )}
-          </Tab>
-        </Tabs>
-      </div>
-    </Dialog>
+
+            {activeTab == 1 && (
+              <div className="h-[408px] overflow-scroll">
+                {_transactions.length ? (
+                  <>
+                    <div className="flex justify-between items-center mb-3">
+                      <span>Total transactions: {_transactions.length}</span>
+                      <button
+                        onClick={clearTransactions}
+                        className="border-primary-border flex items-center rounded-5 border text-14 py-1.5 pl-6 gap-2 pr-[18px] hover:bg-white/20 duration-200 hover:border-primary-text"
+                      >
+                        Clear all
+                        <Svg iconName="delete" />
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-1 pb-3">
+                      {_transactions.map((transaction) => {
+                        return (
+                          <RecentTransaction transaction={transaction} key={transaction.hash} />
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full gap-2">
+                    <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
+                    <span className="text-secondary-text">
+                      All transaction will be displayed here.
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </Popover>
+    </div>
   );
 }

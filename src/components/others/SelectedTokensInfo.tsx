@@ -11,7 +11,7 @@ interface Props {
 }
 export default function SelectedTokensInfo({ tokenA, tokenB }: Props) {
   return (
-    <div className="w-full bg-primary-bg p-10 grid gap-3">
+    <div className="w-full bg-primary-bg p-10 grid gap-3 rounded-5">
       <SelectedTokensInfoItem token={tokenA} />
       <SelectedTokensInfoItem token={tokenB} />
     </div>

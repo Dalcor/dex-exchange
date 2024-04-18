@@ -419,8 +419,8 @@ export const useAddLiquidity = () => {
             accountAddress,
           );
         }
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.error("useAddLiquidity ~ error:", error);
       }
     },
     [

@@ -1,13 +1,13 @@
 import JSBI from "jsbi";
 import { useCallback } from "react";
-import { Address, encodeFunctionData, formatUnits, getAbiItem } from "viem";
+import { encodeFunctionData, formatUnits, getAbiItem } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
-import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Position } from "@/sdk_hybrid/entities/position";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -83,7 +83,7 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
           account: accountAddress,
           abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
           functionName: "multicall" as const,
-          address: nonFungiblePositionManagerAddress as Address,
+          address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
           args: [[encodedDecreaseParams]] as any,
         };
 

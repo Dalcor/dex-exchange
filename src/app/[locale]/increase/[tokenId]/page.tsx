@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import { parseUnits } from "viem";
+import { useAccount } from "wagmi";
 
 import { Bound } from "@/app/[locale]/add/[[...currency]]/components/PriceRange/LiquidityChartRangeInput/types";
 import {
@@ -23,7 +24,6 @@ import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/u
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import useAllowance from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
 import {
@@ -33,6 +33,8 @@ import {
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 
 import { DepositAmounts } from "../../add/[[...currency]]/components/DepositAmounts/DepositAmounts";
@@ -49,6 +51,7 @@ export default function IncreaseLiquidityPage({
 }) {
   useRecentTransactionTracking();
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
+  const { chainId } = useAccount();
 
   const { setIsOpen } = useTransactionSettingsDialogStore();
   const { setTicks } = useLiquidityPriceRangeStore();
@@ -133,7 +136,7 @@ export default function IncreaseLiquidityPage({
     isRevoking: isRevokingA,
   } = useAllowance({
     token: tokenA,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
@@ -150,7 +153,7 @@ export default function IncreaseLiquidityPage({
     isRevoking: isRevokingB,
   } = useAllowance({
     token: tokenB,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
@@ -167,7 +170,7 @@ export default function IncreaseLiquidityPage({
     isWithdrawing: isWithdrawingA,
   } = useDeposit({
     token: tokenA,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
@@ -183,7 +186,7 @@ export default function IncreaseLiquidityPage({
     isWithdrawing: isWithdrawingB,
   } = useDeposit({
     token: tokenB,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",

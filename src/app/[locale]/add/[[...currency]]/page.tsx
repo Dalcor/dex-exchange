@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseUnits } from "viem";
+import { useAccount } from "wagmi";
 
 import FeeAmountSettings from "@/app/[locale]/add/[[...currency]]/components/FeeAmountSettings";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
@@ -15,11 +16,12 @@ import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import { FEE_TIERS } from "@/config/constants/liquidityFee";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import useAllowance from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 
@@ -40,6 +42,7 @@ export default function AddPoolPage({
   useRecentTransactionTracking();
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
+  const { chainId } = useAccount();
 
   const router = useRouter();
 
@@ -132,7 +135,7 @@ export default function AddPoolPage({
     isRevoking: isRevokingA,
   } = useAllowance({
     token: tokenA,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
@@ -149,7 +152,7 @@ export default function AddPoolPage({
     isRevoking: isRevokingB,
   } = useAllowance({
     token: tokenB,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
@@ -166,7 +169,7 @@ export default function AddPoolPage({
     isWithdrawing: isWithdrawingA,
   } = useDeposit({
     token: tokenA,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
@@ -182,7 +185,7 @@ export default function AddPoolPage({
     isWithdrawing: isWithdrawingB,
   } = useDeposit({
     token: tokenB,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",

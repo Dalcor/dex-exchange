@@ -6,10 +6,11 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import { PoolState, usePool } from "@/hooks/usePools";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
@@ -148,7 +149,7 @@ export const useAddLiquidity = () => {
           //   account: accountAddress,
           //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
           //   functionName: "createAndInitializePoolIfNecessary" as const,
-          //   address: nonFungiblePositionManagerAddress as Address,
+          //   address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
           //   args: createParams,
           // });
 
@@ -156,7 +157,7 @@ export const useAddLiquidity = () => {
           //   account: accountAddress,
           //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
           //   functionName: "mint" as const,
-          //   address: nonFungiblePositionManagerAddress as Address,
+          //   address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
           //   args: [mintParams],
           // });
 
@@ -164,7 +165,7 @@ export const useAddLiquidity = () => {
           //   account: accountAddress,
           //   abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
           //   functionName: "mint" as const,
-          //   address: nonFungiblePositionManagerAddress as Address,
+          //   address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
           //   args: [mintParams] as any,
           // };
 
@@ -196,7 +197,7 @@ export const useAddLiquidity = () => {
             functionName: "multicall";
             args: [`0x${string}`[]];
           } = {
-            address: nonFungiblePositionManagerAddress as Address,
+            address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
             account: accountAddress,
             abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
             functionName: "multicall" as const,
@@ -278,7 +279,7 @@ export const useAddLiquidity = () => {
                 },
               ];
             } = {
-              address: nonFungiblePositionManagerAddress as Address,
+              address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
               account: accountAddress,
               abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
               functionName: "increaseLiquidity" as const,
@@ -359,7 +360,7 @@ export const useAddLiquidity = () => {
             functionName: "mint";
             args: [any];
           } = {
-            address: nonFungiblePositionManagerAddress as Address,
+            address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
             account: accountAddress,
             abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
             functionName: "mint" as const,

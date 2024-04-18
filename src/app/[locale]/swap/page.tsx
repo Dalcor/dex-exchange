@@ -52,7 +52,6 @@ enum Standard {
 // multicallAddress: 0xD7F33bCdb21b359c8ee6F0251d30E94832baAd07
 // quoterAddress: 0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3
 // v3MigratorAddress: 0x729004182cF005CEC8Bd85df140094b6aCbe8b15
-// nonfungiblePositionManagerAddress: 0x1238536071E1c677A632429e3655c799b22cDA52
 // tickLensAddress: 0xd7f33bcdb21b359c8ee6f0251d30e94832baad07
 // WETH: 0xfff9976782d46cc05630d1f6ebab18b2324d6b14
 // USD: 0x6f14C02Fc1F78322cFd7d707aB90f18baD3B54f5

@@ -1,6 +1,6 @@
 import JSBI from "jsbi";
 import { useCallback, useMemo } from "react";
-import { Address, encodeFunctionData, parseUnits } from "viem";
+import { Abi, Address, encodeFunctionData, formatUnits, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
@@ -22,6 +22,12 @@ import { toHex } from "@/sdk_hybrid/utils/calldata";
 import { encodeSqrtRatioX96 } from "@/sdk_hybrid/utils/encodeSqrtRatioX96";
 import { priceToClosestTick } from "@/sdk_hybrid/utils/priceTickConversions";
 import { TickMath } from "@/sdk_hybrid/utils/tickMath";
+import {
+  GasFeeModel,
+  RecentTransactionTitleTemplate,
+  stringifyObject,
+  useRecentTransactionsStore,
+} from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 import {
@@ -35,7 +41,8 @@ export const useAddLiquidity = () => {
   const { slippage, deadline: _deadline } = useTransactionSettingsStore();
   const deadline = useTransactionDeadline(_deadline);
   const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
-  const { address: accountAddress } = useAccount();
+  const { address: accountAddress, chainId } = useAccount();
+  const { addRecentTransaction } = useRecentTransactionsStore();
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
@@ -72,10 +79,19 @@ export const useAddLiquidity = () => {
       createPool?: boolean;
       tokenId?: string;
     }) => {
-      if (!position || !publicClient || !walletClient || !accountAddress || !tokenA || !tokenB) {
+      console.log("handleAddLiquidity");
+      if (
+        !position ||
+        !publicClient ||
+        !walletClient ||
+        !accountAddress ||
+        !tokenA ||
+        !tokenB ||
+        !chainId
+      ) {
+        console.log("handleAddLiquidity: SOMESING UNDEFINED");
         return;
       }
-
       const callData = [];
 
       try {
@@ -173,13 +189,66 @@ export const useAddLiquidity = () => {
             args: [mintParams],
           });
 
-          const hash = await walletClient.writeContract({
+          const params: {
+            address: Address;
+            account: Address;
+            abi: Abi;
+            functionName: "multicall";
+            args: [`0x${string}`[]];
+          } = {
+            address: nonFungiblePositionManagerAddress as Address,
             account: accountAddress,
             abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
             functionName: "multicall" as const,
-            address: nonFungiblePositionManagerAddress as Address,
             args: [[encodedCreateParams, encodedMintParams]],
+          };
+
+          const estimatedGas = await publicClient.estimateContractGas(params);
+
+          const { request } = await publicClient.simulateContract({
+            ...params,
+            gas: estimatedGas + BigInt(30000),
           });
+          const hash = await walletClient.writeContract(request);
+
+          const nonce = await publicClient.getTransactionCount({
+            address: accountAddress,
+            blockTag: "pending",
+          });
+
+          addRecentTransaction(
+            {
+              hash,
+              nonce,
+              chainId,
+              gas: {
+                model: GasFeeModel.EIP1559,
+                gas: (estimatedGas + BigInt(30000)).toString(),
+                maxFeePerGas: undefined,
+                maxPriorityFeePerGas: undefined,
+              },
+              params: {
+                ...stringifyObject(params),
+                abi: [getAbiItem({ name: "multicall", abi: NONFUNGIBLE_POSITION_MANAGER_ABI })],
+              },
+              title: {
+                template: RecentTransactionTitleTemplate.ADD,
+                symbol0: position.pool.token0.symbol!,
+                symbol1: position.pool.token1.symbol!,
+                amount0: formatUnits(
+                  BigInt(JSBI.toNumber(amount0Desired)),
+                  position.pool.token0.decimals,
+                ),
+                amount1: formatUnits(
+                  BigInt(JSBI.toNumber(amount1Desired)),
+                  position.pool.token1.decimals,
+                ),
+                logoURI0: position.pool.token0?.logoURI || "/tokens/placeholder.svg",
+                logoURI1: position.pool.token1?.logoURI || "/tokens/placeholder.svg",
+              },
+            },
+            accountAddress,
+          );
         } else if (increase) {
           if (tokenId) {
             const increaseParams = {
@@ -192,16 +261,84 @@ export const useAddLiquidity = () => {
               deadline,
             };
 
-            const hash = await walletClient.writeContract({
+            const params: {
+              address: Address;
+              account: Address;
+              abi: Abi;
+              functionName: "increaseLiquidity";
+              args: [
+                {
+                  tokenId: any;
+                  amount0Desired: any;
+                  amount1Desired: any;
+                  amount0Min: any;
+                  amount1Min: any;
+                  recipient: `0x${string}`;
+                  deadline: bigint;
+                },
+              ];
+            } = {
+              address: nonFungiblePositionManagerAddress as Address,
               account: accountAddress,
               abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
               functionName: "increaseLiquidity" as const,
-              address: nonFungiblePositionManagerAddress as Address,
               args: [increaseParams],
+            };
+
+            const estimatedGas = await publicClient.estimateContractGas(params);
+
+            const { request } = await publicClient.simulateContract({
+              ...params,
+              gas: estimatedGas + BigInt(30000),
             });
+            const hash = await walletClient.writeContract(request);
+
+            const nonce = await publicClient.getTransactionCount({
+              address: accountAddress,
+              blockTag: "pending",
+            });
+
+            addRecentTransaction(
+              {
+                hash,
+                nonce,
+                chainId,
+                gas: {
+                  model: GasFeeModel.EIP1559,
+                  gas: (estimatedGas + BigInt(30000)).toString(),
+                  maxFeePerGas: undefined,
+                  maxPriorityFeePerGas: undefined,
+                },
+                params: {
+                  ...stringifyObject(params),
+                  abi: [
+                    getAbiItem({
+                      name: "increaseLiquidity",
+                      abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+                    }),
+                  ],
+                },
+                title: {
+                  template: RecentTransactionTitleTemplate.ADD,
+                  symbol0: position.pool.token0.symbol!,
+                  symbol1: position.pool.token1.symbol!,
+                  amount0: formatUnits(
+                    BigInt(JSBI.toNumber(amount0Desired)),
+                    position.pool.token0.decimals,
+                  ),
+                  amount1: formatUnits(
+                    BigInt(JSBI.toNumber(amount1Desired)),
+                    position.pool.token1.decimals,
+                  ),
+                  logoURI0: position.pool.token0?.logoURI || "/tokens/placeholder.svg",
+                  logoURI1: position.pool.token1?.logoURI || "/tokens/placeholder.svg",
+                },
+              },
+              accountAddress,
+            );
           }
         } else {
-          const params = {
+          const mintParams: any = {
             token0: token0Address,
             token1: token1Address,
             fee: position.pool.fee,
@@ -215,13 +352,71 @@ export const useAddLiquidity = () => {
             deadline,
           };
 
-          const hash = await walletClient.writeContract({
+          const params: {
+            address: Address;
+            account: Address;
+            abi: Abi;
+            functionName: "mint";
+            args: [any];
+          } = {
+            address: nonFungiblePositionManagerAddress as Address,
             account: accountAddress,
             abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
             functionName: "mint" as const,
-            address: nonFungiblePositionManagerAddress as Address,
-            args: [params as any],
+            args: [mintParams],
+          };
+
+          const estimatedGas = await publicClient.estimateContractGas(params);
+
+          const { request } = await publicClient.simulateContract({
+            ...params,
+            gas: estimatedGas + BigInt(30000),
           });
+          const hash = await walletClient.writeContract(request);
+
+          const nonce = await publicClient.getTransactionCount({
+            address: accountAddress,
+            blockTag: "pending",
+          });
+
+          addRecentTransaction(
+            {
+              hash,
+              nonce,
+              chainId,
+              gas: {
+                model: GasFeeModel.EIP1559,
+                gas: (estimatedGas + BigInt(30000)).toString(),
+                maxFeePerGas: undefined,
+                maxPriorityFeePerGas: undefined,
+              },
+              params: {
+                ...stringifyObject(params),
+                abi: [
+                  getAbiItem({
+                    name: "mint",
+                    abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+                  }),
+                ],
+              },
+              title: {
+                template: RecentTransactionTitleTemplate.ADD,
+                symbol0: position.pool.token0.symbol!,
+                symbol1: position.pool.token1.symbol!,
+                amount0: formatUnits(
+                  BigInt(JSBI.toNumber(amount0Desired)),
+                  position.pool.token0.decimals,
+                ),
+                amount1: formatUnits(
+                  BigInt(JSBI.toNumber(amount1Desired)),
+                  position.pool.token1.decimals,
+                ),
+                logoURI0: position.pool.token0?.logoURI || "/tokens/placeholder.svg",
+                logoURI1: position.pool.token1?.logoURI || "/tokens/placeholder.svg",
+              },
+            },
+            accountAddress,
+          );
         }
       } catch (e) {
         console.log(e);
@@ -236,6 +431,8 @@ export const useAddLiquidity = () => {
       walletClient,
       token0Standard,
       token1Standard,
+      chainId,
+      addRecentTransaction,
     ],
   );
 

@@ -20,6 +20,7 @@ import Svg from "@/components/atoms/Svg";
 import RangeBadge from "@/components/badges/RangeBadge";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
@@ -32,8 +33,10 @@ import {
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
+import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 
 import { DepositAmounts } from "../../add/[[...currency]]/components/DepositAmounts/DepositAmounts";
+import { PoolsRecentTransactions } from "../../add/[[...currency]]/components/PoolsRecentTransactions";
 import { usePriceRange } from "../../add/[[...currency]]/hooks/usePrice";
 import { Field } from "../../swap/stores/useSwapAmountsStore";
 
@@ -44,6 +47,9 @@ export default function IncreaseLiquidityPage({
     tokenId: string;
   };
 }) {
+  useRecentTransactionTracking();
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
+
   const { setIsOpen } = useTransactionSettingsDialogStore();
   const { setTicks } = useLiquidityPriceRangeStore();
 
@@ -189,8 +195,8 @@ export default function IncreaseLiquidityPage({
 
   return (
     <Container>
-      <div className="w-[1200px] bg-primary-bg mx-auto my-[80px]">
-        <div className="flex justify-between items-center rounded-t-2 py-2.5 px-6">
+      <div className="w-[1200px] mx-auto my-[80px]">
+        <div className="flex justify-between items-center bg-primary-bg rounded-t-3 py-2.5 px-6">
           <SystemIconButton
             onClick={() => router.push(`/pool/${params.tokenId}`)}
             size="large"
@@ -198,14 +204,22 @@ export default function IncreaseLiquidityPage({
             iconSize={32}
           />
           <h2 className="text-20 font-bold">Increase Liquidity</h2>
-          <SystemIconButton
-            onClick={() => setIsOpen(true)}
-            size="large"
-            iconName="settings"
-            iconSize={32}
-          />
+          <div className="flex">
+            <SystemIconButton
+              iconSize={24}
+              size="large"
+              iconName="recent-transactions"
+              onClick={() => setShowRecentTransactions(!showRecentTransactions)}
+            />
+            <SystemIconButton
+              iconSize={24}
+              size="large"
+              iconName="settings"
+              onClick={() => setIsOpen(true)}
+            />
+          </div>
         </div>
-        <div className="flex flex-col px-10 pb-10">
+        <div className="flex flex-col bg-primary-bg px-10 pb-10 mb-5 rounded-3 rounded-t-0">
           <div className="flex items-start mb-5 gap-2">
             <TokensPair tokenA={tokenA} tokenB={tokenB} />
             <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
@@ -353,6 +367,13 @@ export default function IncreaseLiquidityPage({
             Add liquidity
           </Button>
         </div>
+        <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
+        <PoolsRecentTransactions
+          isOpen={showRecentTransactions}
+          onClose={() => {
+            setShowRecentTransactions(false);
+          }}
+        />
       </div>
     </Container>
   );

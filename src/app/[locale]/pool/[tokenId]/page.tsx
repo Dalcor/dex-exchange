@@ -14,6 +14,7 @@ import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import RangeBadge from "@/components/badges/RangeBadge";
+import SystemIconButton from "@/components/buttons/SystemIconButton";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
@@ -27,6 +28,8 @@ import {
 import { useRouter } from "@/navigation";
 import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 
+import { PoolsRecentTransactions } from "../../add/[[...currency]]/components/PoolsRecentTransactions";
+
 export default function PoolPage({
   params,
 }: {
@@ -35,6 +38,7 @@ export default function PoolPage({
   };
 }) {
   useRecentTransactionTracking();
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
 
   const router = useRouter();
 
@@ -68,12 +72,12 @@ export default function PoolPage({
             <Svg iconName="back" />
           </button>
           <h2 className="text-20 font-bold">Position</h2>
-          <button
-            onClick={() => router.push("/pools")}
-            className="flex items-center w-12 h-12 justify-center"
-          >
-            <Svg iconName="recent-transactions" />
-          </button>
+          <SystemIconButton
+            iconSize={24}
+            size="large"
+            iconName="recent-transactions"
+            onClick={() => setShowRecentTransactions(!showRecentTransactions)}
+          />
         </div>
 
         <div className="w-full flex justify-between mb-5">
@@ -236,6 +240,12 @@ export default function PoolPage({
       </div>
       <div className="w-[800px] mx-auto mb-[80px]">
         <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
+        <PoolsRecentTransactions
+          isOpen={showRecentTransactions}
+          onClose={() => {
+            setShowRecentTransactions(false);
+          }}
+        />
       </div>
     </Container>
   );

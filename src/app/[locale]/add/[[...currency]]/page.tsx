@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseUnits } from "viem";
 
 import FeeAmountSettings from "@/app/[locale]/add/[[...currency]]/components/FeeAmountSettings";
@@ -13,6 +13,7 @@ import SelectButton from "@/components/atoms/SelectButton";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import { FEE_TIERS } from "@/config/constants/liquidityFee";
 import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import useAllowance from "@/hooks/useAllowance";
@@ -20,8 +21,10 @@ import useDeposit from "@/hooks/useDeposit";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { useRecentTransactionTracking } from "@/stores/useRecentTransactionTracking";
 
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
+import { PoolsRecentTransactions } from "./components/PoolsRecentTransactions";
 import { PriceRange } from "./components/PriceRange/PriceRange";
 import { useAddLiquidity, useV3DerivedMintInfo } from "./hooks/useAddLiquidity";
 import { usePriceRange } from "./hooks/usePrice";
@@ -34,7 +37,10 @@ export default function AddPoolPage({
     currency: [string, string, string];
   };
 }) {
+  useRecentTransactionTracking();
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
+
   const router = useRouter();
 
   const currency = params.currency;
@@ -192,7 +198,7 @@ export default function AddPoolPage({
 
   return (
     <Container>
-      <div className="w-[1200px] bg-primary-bg mx-auto my-[80px]">
+      <div className="w-[1200px] mx-auto my-[80px]">
         <div className="flex justify-between items-center rounded-t-2 border py-2.5 px-6 border-secondary-border">
           <SystemIconButton
             iconSize={32}
@@ -201,14 +207,22 @@ export default function AddPoolPage({
             onClick={() => router.push("/pools")}
           />
           <h2 className="text-20 font-bold">Add Liquidity</h2>
-          <SystemIconButton
-            iconSize={32}
-            size="large"
-            iconName="settings"
-            onClick={() => setIsOpen(true)}
-          />
+          <div className="flex">
+            <SystemIconButton
+              iconSize={24}
+              size="large"
+              iconName="recent-transactions"
+              onClick={() => setShowRecentTransactions(!showRecentTransactions)}
+            />
+            <SystemIconButton
+              iconSize={24}
+              size="large"
+              iconName="settings"
+              onClick={() => setIsOpen(true)}
+            />
+          </div>
         </div>
-        <div className="rounded-b-2 border border-secondary-border border-t-0 p-10 bg-primary-bg">
+        <div className="rounded-3 rounded-t-0 p-10 bg-primary-bg mb-5">
           <h3 className="text-16 font-bold mb-4">Select pair</h3>
           <div className="flex gap-3 mb-5">
             <SelectButton
@@ -355,6 +369,13 @@ export default function AddPoolPage({
           handlePick={handlePick}
           isOpen={isOpenedTokenPick}
           setIsOpen={setIsOpenedTokenPick}
+        />
+        <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
+        <PoolsRecentTransactions
+          isOpen={showRecentTransactions}
+          onClose={() => {
+            setShowRecentTransactions(false);
+          }}
         />
       </div>
     </Container>

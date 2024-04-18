@@ -14,7 +14,6 @@ import {
 } from "wagmi";
 
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import { usePool } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
@@ -60,6 +59,7 @@ export function usePositionFromTokenId(tokenId: bigint) {
   }, [loading, positions]);
 }
 export function usePositionsFromTokenIds(tokenIds: bigint[] | undefined) {
+  const { chainId } = useAccount();
   const positionsContracts = useMemo(() => {
     if (!tokenIds) {
       return [];
@@ -67,13 +67,13 @@ export function usePositionsFromTokenIds(tokenIds: bigint[] | undefined) {
 
     return tokenIds.map((tokenId) => {
       return {
-        address: nonFungiblePositionManagerAddress as Address,
+        address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
         abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
         functionName: "positions",
         args: [tokenId],
       };
     });
-  }, [tokenIds]);
+  }, [tokenIds, chainId]);
 
   const { data: positionsData, isLoading: positionsLoading } = useReadContracts({
     contracts: positionsContracts,
@@ -149,7 +149,7 @@ export default function usePositions() {
       abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
       functionName: "tokenOfOwnerByIndex",
       args: tokenId,
-      address: nonFungiblePositionManagerAddress as Address,
+      address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     }));
   }, [tokenIdsArgs]);
 
@@ -240,7 +240,7 @@ export function usePositionFees(
   const { addRecentTransaction } = useRecentTransactionsStore();
 
   const result = useReadContract({
-    address: nonFungiblePositionManagerAddress,
+    address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
     functionName: "ownerOf",
     args: [tokenId!],
@@ -252,7 +252,7 @@ export function usePositionFees(
   const latestBlockNumber = useBlockNumber();
 
   const { data: collectResult } = useSimulateContract({
-    address: nonFungiblePositionManagerAddress,
+    address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
     functionName: "collect",
     args: [
@@ -276,7 +276,7 @@ export function usePositionFees(
     }
 
     const params = {
-      address: nonFungiblePositionManagerAddress,
+      address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
       abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
       functionName: "collect" as "collect",
       args: [

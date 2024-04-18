@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useCallback, useEffect, useState } from "react";
 import { parseUnits } from "viem";
+import { useAccount } from "wagmi";
 
 import FeeAmountSettings from "@/app/[locale]/add/[[...currency]]/components/FeeAmountSettings";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
@@ -14,12 +15,15 @@ import SystemIconButton from "@/components/buttons/SystemIconButton";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import RecentTransactions from "@/components/others/RecentTransactions";
+import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import { FEE_TIERS } from "@/config/constants/liquidityFee";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import useAllowance from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
+import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
@@ -35,7 +39,11 @@ export default function AddPoolPage({
     currency: [string, string, string];
   };
 }) {
+  useRecentTransactionTracking();
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
+  const { chainId } = useAccount();
+
   const router = useRouter();
 
   const currency = params.currency;
@@ -127,7 +135,7 @@ export default function AddPoolPage({
     isRevoking: isRevokingA,
   } = useAllowance({
     token: tokenA,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
@@ -144,7 +152,7 @@ export default function AddPoolPage({
     isRevoking: isRevokingB,
   } = useAllowance({
     token: tokenB,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
@@ -161,7 +169,7 @@ export default function AddPoolPage({
     isWithdrawing: isWithdrawingA,
   } = useDeposit({
     token: tokenA,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
@@ -177,7 +185,7 @@ export default function AddPoolPage({
     isWithdrawing: isWithdrawingB,
   } = useDeposit({
     token: tokenB,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
@@ -190,7 +198,6 @@ export default function AddPoolPage({
   const { tokenAStandard, tokenBStandard } = useTokensStandards();
 
   const { handleAddLiquidity } = useAddLiquidity();
-  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
 
   return (
     <Container>
@@ -203,14 +210,15 @@ export default function AddPoolPage({
             onClick={() => router.push("/pools")}
           />
           <h2 className="text-20 font-bold">Add Liquidity</h2>
-          <div className="flex items-center gap-2">
+          <div className="flex">
             <SystemIconButton
               iconSize={24}
+              size="large"
               iconName="recent-transactions"
               onClick={() => setShowRecentTransactions(!showRecentTransactions)}
             />
             <SystemIconButton
-              iconSize={32}
+              iconSize={24}
               size="large"
               iconName="settings"
               onClick={() => setIsOpen(true)}
@@ -360,11 +368,14 @@ export default function AddPoolPage({
             </Button>
           )}
         </div>
-
-        <RecentTransactions
-          showRecentTransactions={showRecentTransactions}
-          handleClose={() => setShowRecentTransactions(false)}
-        />
+        <div className="flex flex-col gap-5">
+          <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
+          <RecentTransactions
+            showRecentTransactions={showRecentTransactions}
+            handleClose={() => setShowRecentTransactions(false)}
+            pageSize={5}
+          />
+        </div>
       </div>
 
       <PickTokenDialog

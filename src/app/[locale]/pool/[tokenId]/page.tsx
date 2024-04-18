@@ -14,6 +14,8 @@ import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import RangeBadge from "@/components/badges/RangeBadge";
+import SystemIconButton from "@/components/buttons/SystemIconButton";
+import RecentTransactions from "@/components/others/RecentTransactions";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
@@ -35,6 +37,7 @@ export default function PoolPage({
   };
 }) {
   useRecentTransactionTracking();
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
 
   const router = useRouter();
 
@@ -68,12 +71,12 @@ export default function PoolPage({
             <Svg iconName="back" />
           </button>
           <h2 className="text-20 font-bold">Position</h2>
-          <button
-            onClick={() => router.push("/pools")}
-            className="flex items-center w-12 h-12 justify-center"
-          >
-            <Svg iconName="recent-transactions" />
-          </button>
+          <SystemIconButton
+            iconSize={24}
+            size="large"
+            iconName="recent-transactions"
+            onClick={() => setShowRecentTransactions(!showRecentTransactions)}
+          />
         </div>
 
         <div className="w-full flex justify-between mb-5">
@@ -234,8 +237,13 @@ export default function PoolPage({
           </div>
         </div>
       </div>
-      <div className="w-[800px] mx-auto mb-[80px]">
+      <div className="w-[800px] mx-auto mb-[80px] gap-5 flex flex-col">
         <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
+        <RecentTransactions
+          showRecentTransactions={showRecentTransactions}
+          handleClose={() => setShowRecentTransactions(false)}
+          pageSize={5}
+        />
       </div>
     </Container>
   );

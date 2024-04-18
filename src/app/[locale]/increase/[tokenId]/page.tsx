@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import { parseUnits } from "viem";
+import { useAccount } from "wagmi";
 
 import { Bound } from "@/app/[locale]/add/[[...currency]]/components/PriceRange/LiquidityChartRangeInput/types";
 import {
@@ -20,9 +21,10 @@ import Svg from "@/components/atoms/Svg";
 import RangeBadge from "@/components/badges/RangeBadge";
 import SystemIconButton from "@/components/buttons/SystemIconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import RecentTransactions from "@/components/others/RecentTransactions";
+import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
-import { nonFungiblePositionManagerAddress } from "@/config/contracts";
 import useAllowance from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
 import {
@@ -31,7 +33,10 @@ import {
   usePositionPrices,
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
+import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useRouter } from "@/navigation";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 
 import { DepositAmounts } from "../../add/[[...currency]]/components/DepositAmounts/DepositAmounts";
 import { usePriceRange } from "../../add/[[...currency]]/hooks/usePrice";
@@ -44,6 +49,10 @@ export default function IncreaseLiquidityPage({
     tokenId: string;
   };
 }) {
+  useRecentTransactionTracking();
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
+  const { chainId } = useAccount();
+
   const { setIsOpen } = useTransactionSettingsDialogStore();
   const { setTicks } = useLiquidityPriceRangeStore();
 
@@ -127,7 +136,7 @@ export default function IncreaseLiquidityPage({
     isRevoking: isRevokingA,
   } = useAllowance({
     token: tokenA,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
@@ -144,7 +153,7 @@ export default function IncreaseLiquidityPage({
     isRevoking: isRevokingB,
   } = useAllowance({
     token: tokenB,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
@@ -161,7 +170,7 @@ export default function IncreaseLiquidityPage({
     isWithdrawing: isWithdrawingA,
   } = useDeposit({
     token: tokenA,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
@@ -177,7 +186,7 @@ export default function IncreaseLiquidityPage({
     isWithdrawing: isWithdrawingB,
   } = useDeposit({
     token: tokenB,
-    contractAddress: nonFungiblePositionManagerAddress,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: parseUnits(
       parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
@@ -189,8 +198,8 @@ export default function IncreaseLiquidityPage({
 
   return (
     <Container>
-      <div className="w-[1200px] bg-primary-bg mx-auto my-[80px]">
-        <div className="flex justify-between items-center rounded-t-2 py-2.5 px-6">
+      <div className="w-[1200px] mx-auto my-[80px]">
+        <div className="flex justify-between items-center bg-primary-bg rounded-t-3 py-2.5 px-6">
           <SystemIconButton
             onClick={() => router.push(`/pool/${params.tokenId}`)}
             size="large"
@@ -198,14 +207,22 @@ export default function IncreaseLiquidityPage({
             iconSize={32}
           />
           <h2 className="text-20 font-bold">Increase Liquidity</h2>
-          <SystemIconButton
-            onClick={() => setIsOpen(true)}
-            size="large"
-            iconName="settings"
-            iconSize={32}
-          />
+          <div className="flex">
+            <SystemIconButton
+              iconSize={24}
+              size="large"
+              iconName="recent-transactions"
+              onClick={() => setShowRecentTransactions(!showRecentTransactions)}
+            />
+            <SystemIconButton
+              iconSize={24}
+              size="large"
+              iconName="settings"
+              onClick={() => setIsOpen(true)}
+            />
+          </div>
         </div>
-        <div className="flex flex-col px-10 pb-10">
+        <div className="flex flex-col bg-primary-bg px-10 pb-10 mb-5 rounded-3 rounded-t-0">
           <div className="flex items-start mb-5 gap-2">
             <TokensPair tokenA={tokenA} tokenB={tokenB} />
             <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
@@ -352,6 +369,14 @@ export default function IncreaseLiquidityPage({
           >
             Add liquidity
           </Button>
+        </div>
+        <div className="flex flex-col gap-5">
+          <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
+          <RecentTransactions
+            showRecentTransactions={showRecentTransactions}
+            handleClose={() => setShowRecentTransactions(false)}
+            pageSize={5}
+          />
         </div>
       </div>
     </Container>

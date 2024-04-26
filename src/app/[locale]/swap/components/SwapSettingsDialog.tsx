@@ -8,11 +8,11 @@ import React, {
 } from "react";
 
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
-import Button from "@/components/atoms/Button";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import TextField from "@/components/atoms/TextField";
 import Tooltip from "@/components/atoms/Tooltip";
+import Button from "@/components/buttons/Button";
 import addToast from "@/other/toast";
 
 function SettingsButtons({ children }: PropsWithChildren) {

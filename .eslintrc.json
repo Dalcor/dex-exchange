@@ -1,9 +1,15 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:storybook/recommended"
+  ],
   "overrides": [
     {
       "files": "**/*.+(ts|tsx)",
-      "plugins": ["prettier", "simple-import-sort"],
+      "plugins": [
+        "prettier",
+        "simple-import-sort"
+      ],
       "rules": {
         "simple-import-sort/imports": "error",
         "simple-import-sort/exports": "error",

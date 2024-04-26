@@ -1,5 +1,6 @@
+import clsx from "clsx";
 import Image from "next/image";
-import React, { useMemo } from "react";
+import React, { PropsWithChildren, useMemo } from "react";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -7,43 +8,131 @@ import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
-import Button from "@/components/atoms/Button";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import Preloader from "@/components/atoms/Preloader";
+import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
+import Button from "@/components/buttons/Button";
 import { useConfirmSwapDialogStore } from "@/components/dialogs/stores/useConfirmSwapDialogOpened";
 import { Standard } from "@/components/others/TokenInput";
 import { formatFloat } from "@/functions/formatFloat";
-import useAllowance from "@/hooks/useAllowance";
-import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
-import { DexChainId } from "@/sdk_hybrid/chains";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
+function ApproveRow({
+  logoURI = "",
+  isPending = false,
+  isLoading = false,
+  isSuccess = false,
+}: {
+  logoURI: string | undefined;
+  isLoading?: boolean;
+  isPending?: boolean;
+  isSuccess?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
+      <Image
+        className={clsx(isSuccess && "", "rounded-full")}
+        src={logoURI}
+        alt=""
+        width={32}
+        height={32}
+      />
+      <div className="flex flex-col justify-center">
+        <span className={isSuccess ? "text-secondary-text text-14" : "text-14"}>
+          {isSuccess ? "Approved" : "Approve"}
+        </span>
+        {!isSuccess && (
+          <span className="text-green text-12">Why do I have to approve a token?</span>
+        )}
+      </div>
+      <div className="flex items-center gap-2 justify-end">
+        {isPending && (
+          <>
+            <Preloader type="linear" />
+            <span className="text-secondary-text text-14">Proceed in your wallet</span>
+          </>
+        )}
+        {isLoading && <Preloader size={20} />}
+        {isSuccess && <Svg className="text-green" iconName="done" size={20} />}
+      </div>
+    </div>
+  );
+}
+
+function SwapRow({
+  isPending = false,
+  isLoading = false,
+  isSuccess = false,
+  isDisabled = false,
+}: {
+  isLoading?: boolean;
+  isPending?: boolean;
+  isSuccess?: boolean;
+  isDisabled?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
+      <div className="flex items-center">
+        <div
+          className={clsx("p-1 rounded-full h-8 w-8", isDisabled ? "bg-tertiary-bg" : "bg-green")}
+        >
+          <Svg
+            className={clsx("rotate-90", isDisabled ? "text-tertiary-text" : "text-secondary-bg")}
+            iconName="swap"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col justify-center">
+        <span className={clsx("text-14", isDisabled ? "text-tertiary-text" : "text-primary-text")}>
+          {isPending ? "Confirm swap" : "Executing swap"}
+        </span>
+        {!isSuccess && <span className="text-green text-12">Learn more about swap</span>}
+      </div>
+      <div className="flex items-center gap-2 justify-end">
+        {isPending && (
+          <>
+            <Preloader type="linear" />
+            <span className="text-secondary-text text-14">Proceed in your wallet</span>
+          </>
+        )}
+        {isLoading && <Preloader size={20} />}
+        {isSuccess && <Svg className="text-green" iconName="done" size={20} />}
+      </div>
+    </div>
+  );
+}
+function Rows({ children }: PropsWithChildren<{}>) {
+  return <div className="flex flex-col gap-5">{children}</div>;
+}
+
 function SwapActionButton() {
   const { tokenA, tokenB, tokenAAddress } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
 
-  const { handleSwap } = useSwap();
-  const { chainId } = useAccount();
-
   const {
-    isAllowed: isAllowedA,
-    writeTokenApprove: approveA,
-    isApproving: isApprovingA,
-  } = useAllowance({
-    token: tokenA,
-    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
-    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
-  });
+    isAllowedA,
+    handleApprove,
+    isPendingApprove,
+    isLoadingApprove,
+
+    handleSwap,
+    isPendingSwap,
+    isLoadingSwap,
+    isSuccessSwap,
+  } = useSwap();
+  const { chainId } = useAccount();
 
   if (!tokenA || !tokenB) {
     return (
-      <Button variant="outline" fullWidth disabled>
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
         Select tokens
       </Button>
     );
@@ -51,23 +140,62 @@ function SwapActionButton() {
 
   if (!typedValue) {
     return (
-      <Button variant="outline" fullWidth disabled>
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
         Enter amount
       </Button>
     );
   }
 
-  if (!isAllowedA && tokenA.address1 !== tokenAAddress) {
+  if (tokenA.address1 !== tokenAAddress) {
+    if (isPendingApprove) {
+      return (
+        <Rows>
+          <ApproveRow isPending logoURI={tokenA.logoURI} />
+          <SwapRow isDisabled />
+        </Rows>
+      );
+    }
+
+    if (isLoadingApprove) {
+      return (
+        <Rows>
+          <ApproveRow isLoading logoURI={tokenA.logoURI} />
+          <SwapRow isDisabled />
+        </Rows>
+      );
+    }
+  }
+
+  if (isPendingSwap) {
     return (
-      <Button fullWidth variant="outline" onClick={() => approveA()}>
-        {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
-      </Button>
+      <Rows>
+        <ApproveRow isSuccess logoURI={tokenA.logoURI} />
+        <SwapRow isPending />
+      </Rows>
+    );
+  }
+
+  if (isLoadingSwap) {
+    return (
+      <Rows>
+        <ApproveRow isSuccess logoURI={tokenA.logoURI} />
+        <SwapRow isLoading />
+      </Rows>
+    );
+  }
+
+  if (isSuccessSwap) {
+    return (
+      <Rows>
+        <ApproveRow isSuccess logoURI={tokenA.logoURI} />
+        <SwapRow isSuccess />
+      </Rows>
     );
   }
 
   return (
     <Button onClick={handleSwap} fullWidth>
-      Swap
+      Confirm swap
     </Button>
   );
 }
@@ -215,7 +343,7 @@ export default function ConfirmSwapDialog() {
               tooltipText="Minimum received tooltip"
             />
           </div>
-          <Button fullWidth>Confirm swap</Button>
+          <SwapActionButton />
         </div>
       </div>
     </Dialog>

@@ -3,14 +3,13 @@ import Image from "next/image";
 import React, { ButtonHTMLAttributes, PropsWithChildren, useMemo, useState } from "react";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 
-import Button from "@/components/atoms/Button";
-import ButtonWithIcon from "@/components/atoms/ButtonWithIcon";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Popover from "@/components/atoms/Popover";
 import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
+import Button from "@/components/buttons/Button";
 import TabButton from "@/components/buttons/TabButton";
 import RecentTransaction from "@/components/others/RecentTransaction";
 import WalletOrConnectButton from "@/components/others/WalletOrConnectButton";

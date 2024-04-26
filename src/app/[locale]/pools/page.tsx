@@ -3,13 +3,13 @@
 import { useMemo } from "react";
 import { useAccount } from "wagmi";
 
-import AwaitingLoader from "@/components/atoms/AwaitingLoader";
-import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
+import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
-import RangeBadge from "@/components/badges/RangeBadge";
+import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
+import Button from "@/components/buttons/Button";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import usePositions, {
@@ -69,7 +69,15 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
             <Badge color="grey" text="loading..." />
           )}
         </div>
-        <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
+        <RangeBadge
+          status={
+            removed
+              ? PositionRangeStatus.CLOSED
+              : inRange
+                ? PositionRangeStatus.IN_RANGE
+                : PositionRangeStatus.OUT_OF_RANGE
+          }
+        />
       </div>
       <div className="flex gap-2 items-center">
         <span className="text-secondary-text">Min:</span> {minTokenAPerTokenB} {tokenA?.symbol} per{" "}
@@ -118,7 +126,7 @@ export default function PoolsPage() {
               </div>
               {loading ? (
                 <div className="py-10 flex justify-center items-center">
-                  <AwaitingLoader />
+                  <Preloader size={50} type="awaiting" />
                 </div>
               ) : (
                 <>

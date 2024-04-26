@@ -2,17 +2,15 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import AwaitingLoader from "@/components/atoms/AwaitingLoader";
-import Button from "@/components/atoms/Button";
 import Checkbox from "@/components/atoms/Checkbox";
 import Dialog from "@/components/atoms/Dialog";
+import Preloader from "@/components/atoms/Preloader";
 import Switch from "@/components/atoms/Switch";
 import TextField from "@/components/atoms/TextField";
-import Badge from "@/components/badges/Badge";
-import RangeBadge from "@/components/badges/RangeBadge";
-import IncrementDecrementIconButton from "@/components/buttons/IncrementDecrementIconButton";
-import SystemIconButton from "@/components/buttons/SystemIconButton";
-import ZoomButton from "@/components/buttons/ZoomButton";
+import Badge, { BadgeVariant } from "@/components/badges/Badge";
+import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
+import Button from "@/components/buttons/Button";
+import IconButton, { IconButtonVariant, IconSize } from "@/components/buttons/IconButton";
 import addToast from "@/other/toast";
 
 export default function Lib({ params: { locale } }: { params: { locale: string } }) {
@@ -29,21 +27,21 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
         <h2 className="mb-3 border-b border-primary-border pb-3">Buttons</h2>
         <div className="inline-flex gap-1">
           <Button>Just button</Button>
-          <Button onClick={() => setDialogOpened(true)} variant="outline">
+          <Button onClick={() => setDialogOpened(true)} variant={ButtonVariant.OUTLINED}>
             Open Dialog
           </Button>
         </div>
 
         <div className="inline-flex gap-1 ml-7">
           <Button size="regular">Regular contained button</Button>
-          <Button size="regular" variant="outline">
+          <Button size="regular" variant={ButtonVariant.OUTLINED}>
             Regular outline button
           </Button>
         </div>
 
         <div className="inline-flex gap-1 ml-7">
           <Button size="small">Small contained button</Button>
-          <Button size="small" variant="outline">
+          <Button size="small" variant={ButtonVariant.OUTLINED}>
             Small outline button
           </Button>
         </div>
@@ -89,22 +87,27 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
       <div className="p-3 border border-primary-border">
         <h2 className="mb-3 border-b border-primary-border pb-3">Awaiting loaders</h2>
         <div className="inline-flex gap-3 py-3">
-          <AwaitingLoader size={30} />
-          <AwaitingLoader />
-          <AwaitingLoader size={70} />
+          <Preloader type="awaiting" size={30} />
+          <Preloader type="awaiting" />
+          <Preloader type="awaiting" size={70} />
         </div>
       </div>
 
       <div className="p-3 border border-primary-border">
         <h2 className="mb-3 border-b border-primary-border pb-3">Icon Buttons</h2>
         <div className="inline-flex gap-3 py-3 items-center">
-          <SystemIconButton iconName="close" />
-
-          <IncrementDecrementIconButton icon="add" />
-          <IncrementDecrementIconButton icon="minus" />
-
-          <ZoomButton icon="zoom-in" />
-          <ZoomButton icon="zoom-out" />
+          <IconButton variant={IconButtonVariant.DEFAULT} iconName="add" />
+          <IconButton
+            variant={IconButtonVariant.CONTROL}
+            iconName="zoom-in"
+            iconSize={IconSize.SMALL}
+          />
+          <IconButton variant={IconButtonVariant.CLOSE} handleClose={() => null} />
+          <IconButton
+            variant={IconButtonVariant.DELETE}
+            handleDelete={() => null}
+            iconSize={IconSize.SMALL}
+          />
         </div>
       </div>
 
@@ -113,7 +116,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
         <div className="inline-flex gap-3 py-3 items-center">
           <Button
             size="small"
-            variant="outline"
+            variant={ButtonVariant.OUTLINED}
             onClick={() => {
               addToast("This is success Toast");
             }}
@@ -123,7 +126,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
 
           <Button
             size="small"
-            variant="outline"
+            variant={ButtonVariant.OUTLINED}
             onClick={() => {
               addToast("This is info Toast", "info");
             }}
@@ -133,7 +136,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
 
           <Button
             size="small"
-            variant="outline"
+            variant={ButtonVariant.OUTLINED}
             onClick={() => {
               addToast("This is warning Toast", "warning");
             }}
@@ -143,7 +146,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
 
           <Button
             size="small"
-            variant="outline"
+            variant={ButtonVariant.OUTLINED}
             onClick={() => {
               addToast("This is error Toast", "error");
             }}
@@ -156,14 +159,14 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
       <div className="p-3 border border-primary-border">
         <h2 className="mb-3 border-b border-primary-border pb-3">Pool labels</h2>
         <div className="inline-flex gap-3 py-3 items-center">
-          <RangeBadge status="in-range" />
-          <RangeBadge status="out-of-range" />
-          <RangeBadge status="closed" />
+          <RangeBadge status={PositionRangeStatus.IN_RANGE} />
+          <RangeBadge status={PositionRangeStatus.OUT_OF_RANGE} />
+          <RangeBadge status={PositionRangeStatus.CLOSED} />
           <span>|</span>
           <div className="flex gap-3 items-center">
             <Badge color="blue" text="Custom" />
             <Badge color="red" text="Risky" />
-            <Badge color="grey" text="67% select" />
+            <Badge variant={BadgeVariant.PERCENTAGE} percentage={67} />
           </div>
         </div>
       </div>

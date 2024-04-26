@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import IncrementDecrementIconButton from "@/components/buttons/IncrementDecrementIconButton";
+import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
 
 import { NumericalInput } from "./NumericalInput";
 
@@ -85,8 +85,12 @@ export default function PriceRangeInput({
         <span className="text-12 text-secondary-text">DAI per ETH</span>
       </div>
       <div className="flex flex-col gap-2">
-        <IncrementDecrementIconButton icon="add" onClick={handleIncrement} />
-        <IncrementDecrementIconButton icon="minus" onClick={handleDecrement} />
+        <IconButton variant={IconButtonVariant.CONTROL} iconName="add" onClick={handleIncrement} />
+        <IconButton
+          variant={IconButtonVariant.CONTROL}
+          iconName="minus"
+          onClick={handleDecrement}
+        />
       </div>
     </div>
   );

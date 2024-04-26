@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import PickButton from "@/components/atoms/PickButton";
+import PickButton from "@/components/buttons/PickButton";
 import KeystoreConnectDialog from "@/components/dialogs/KeystoreConnectDialog";
 import { wallets } from "@/config/wallets";
 

@@ -3,8 +3,8 @@ import {
   Field,
   useLiquidityAmountsStore,
 } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityAmountsStore";
-import Button from "@/components/atoms/Button";
 import Tooltip from "@/components/atoms/Tooltip";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -99,7 +99,7 @@ export const DepositAmounts = ({
           <div>2</div>
         </div>
         <div>
-          <Button size="x-small" variant="outline">
+          <Button size={ButtonSize.EXTRA_SMALL} variant={ButtonVariant.OUTLINED}>
             Details
           </Button>
         </div>

@@ -2,10 +2,10 @@ import clsx from "clsx";
 import Image from "next/image";
 import React, { ButtonHTMLAttributes, PropsWithChildren } from "react";
 
-import Button from "@/components/atoms/Button";
 import Preloader, { CircularProgress } from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
+import Button from "@/components/buttons/Button";
 import { useTransactionSpeedUpDialogStore } from "@/components/dialogs/stores/useTransactionSpeedUpDialogStore";
 import {
   IRecentTransaction,
@@ -27,7 +27,7 @@ function RecentTransactionActionButton({
     <button
       {...props}
       className={clsx(
-        "h-8 rounded-5 border px-6 disabled:border-secondary-border disabled:text-placeholder-text duration-300 ease-in-out disabled:pointer-events-none",
+        "h-8 rounded-5 border px-6 disabled:border-secondary-border disabled:text-tertiary-text duration-300 ease-in-out disabled:pointer-events-none",
         color === "primary"
           ? "border-green text-primary-text hover:bg-green-bg hover:border-green-hover"
           : "border-primary-border text-secondary-text hover:border-primary-text hover:text-primary-text hover:bg-red-bg",
@@ -130,6 +130,7 @@ function RecentTransactionLogo({ title }: { title: IRecentTransactionTitle }) {
     case RecentTransactionTitleTemplate.SWAP:
     case RecentTransactionTitleTemplate.REMOVE:
     case RecentTransactionTitleTemplate.COLLECT:
+    case RecentTransactionTitleTemplate.ADD:
       return (
         <div className="flex items-center relative w-12 h-12">
           <Image

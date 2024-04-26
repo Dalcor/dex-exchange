@@ -34,10 +34,28 @@ const config: Config = {
           "50%": { transform: "rotate(-90deg)" },
           "100%": { transform: "rotate(0deg)" },
         },
+        flicker1: {
+          "0%": { opacity: "0.3" },
+          "25%": { opacity: "1" },
+          "50%, 100%": { opacity: "0.3" },
+        },
+        flicker2: {
+          "0%, 25%": { opacity: "0.3" },
+          "50%": { opacity: "1" },
+          "75%, 100%": { opacity: "0.3" },
+        },
+        flicker3: {
+          "0%, 50%": { opacity: "0.3" },
+          "75%": { opacity: "1" },
+          "100%": { opacity: "0.3" },
+        },
       },
       animation: {
         orbit: "orbit ease-in-out 1.5s infinite",
         swap: "swap ease-in-out 0.5s",
+        flicker1: "flicker1 ease-in 1.5s infinite",
+        flicker2: "flicker2 ease-in 1.5s infinite",
+        flicker3: "flicker3 ease-in 1.5s infinite",
       },
       gridTemplateRows: {
         layout: "auto 1fr auto",
@@ -54,7 +72,7 @@ const config: Config = {
 
       green: "#70C59E", // changed
       green_opacity_20: "#70C59E33", // changed
-      red: "#FF8F8F", // changed
+      red: "#D24B4B", // changed
       orange: "#D9A251", // changed
       blue: "#64B2EA", // changed
       black: "#000000", // changed
@@ -64,13 +82,13 @@ const config: Config = {
       "green-bg": "#3C4C4A", // changed
       "red-bg": "#443535", // changed
       "orange-bg": "#4A4237", // changed
-      "blue-bg": "#14222B", // changed
+      "blue-bg": "#2A3A45", // changed
       "purple-bg": "#3E3851", // changed
 
       "global-bg": "#121312", // changed
 
       "green-hover": "#6FF8B8", // changed
-      "red-hover": "#E62A2A", // changed
+      "red-hover": "#E83737", // changed
       "purple-hover": "#7552D7", // changed
       "blue-hover": "#D27E1A", // changed
       "orange-hover": "#D27E1A", // changed
@@ -79,7 +97,7 @@ const config: Config = {
 
       "primary-text": "#F5FFF9", // changed
       "secondary-text": "#BCC3C2", // changed
-      "placeholder-text": "#798180", // changed
+      "tertiary-text": "#798180", // changed
 
       "primary-border": "#5A5A5A", // changed
       "secondary-border": "#383C3A", // changed
@@ -88,6 +106,7 @@ const config: Config = {
     },
     spacing: {
       "0": "0px",
+      px: "1px",
       "0.5": "2px",
       "1": "4px",
       "1.5": "6px",

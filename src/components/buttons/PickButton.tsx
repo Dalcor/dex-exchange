@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import { ButtonHTMLAttributes, PropsWithChildren } from "react";
 
-import AwaitingLoader from "@/components/atoms/AwaitingLoader";
+import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -23,16 +23,16 @@ export default function PickButton({
   return (
     <button
       className={clsx(
-        "flex flex-col gap-2 justify-center items-center py-4 border hover:border-green rounded-1 w-full duration-200",
+        "flex flex-col gap-2 justify-center items-center py-4 border rounded-3 w-full duration-200 px-2 hover:",
         isActive
-          ? "text-primary-text bg-green-bg border-green pointer-events-none"
-          : "text-secondary-text border-primary-border",
+          ? "text-primary-text bg-green-bg border-green shadow-checkbox"
+          : "text-secondary-text bg-secondary-bg border-transparent hover:bg-green-bg",
       )}
       {...props}
     >
       <div className="relative">
         {loading ? (
-          <AwaitingLoader size={32} />
+          <Preloader size={32} type="awaiting" />
         ) : (
           <Image src={image} alt={label} width={32} height={32} />
         )}

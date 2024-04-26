@@ -2,7 +2,7 @@ import { useSwitchChain } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
-import PickButton from "@/components/atoms/PickButton";
+import PickButton from "@/components/buttons/PickButton";
 import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import CoinbaseCard from "@/components/wallet-cards/CoinbaseCard";
 import KeystoreCard from "@/components/wallet-cards/KeystoreCard";

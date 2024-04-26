@@ -8,10 +8,14 @@ import { useAccount } from "wagmi";
 import FeeAmountSettings from "@/app/[locale]/add/[[...currency]]/components/FeeAmountSettings";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
-import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import SelectButton from "@/components/atoms/SelectButton";
-import SystemIconButton from "@/components/buttons/SystemIconButton";
+import Button, { ButtonVariant } from "@/components/buttons/Button";
+import IconButton, {
+  IconButtonSize,
+  IconButtonVariant,
+  IconSize,
+} from "@/components/buttons/IconButton";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import RecentTransactions from "@/components/others/RecentTransactions";
@@ -130,7 +134,8 @@ export default function AddPoolPage({
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
     writeTokenRevoke: revokeA,
-    isApproving: isApprovingA,
+    isPending: isPendingA,
+    isLoading: isLoadingA,
     currentAllowance: currentAllowanceA,
     isRevoking: isRevokingA,
   } = useAllowance({
@@ -147,7 +152,8 @@ export default function AddPoolPage({
     isAllowed: isAllowedB,
     writeTokenApprove: approveB,
     writeTokenRevoke: revokeB,
-    isApproving: isApprovingB,
+    isPending: isPendingB,
+    isLoading: isLoadingB,
     currentAllowance: currentAllowanceB,
     isRevoking: isRevokingB,
   } = useAllowance({
@@ -202,24 +208,25 @@ export default function AddPoolPage({
   return (
     <Container>
       <div className="w-[1200px] mx-auto my-[80px]">
-        <div className="flex justify-between  bg-primary-bg items-center rounded-t-5 py-2.5 px-6">
-          <SystemIconButton
-            iconSize={32}
+        <div className="grid grid-cols-3 bg-primary-bg rounded-t-5 py-2.5 px-6">
+          <IconButton
+            variant={IconButtonVariant.DEFAULT}
+            iconSize={IconSize.REGULAR}
             iconName="back"
-            size="large"
+            buttonSize={IconButtonSize.LARGE}
             onClick={() => router.push("/pools")}
           />
-          <h2 className="text-20 font-bold">Add Liquidity</h2>
-          <div className="flex">
-            <SystemIconButton
-              iconSize={24}
-              size="large"
+          <h2 className="text-20 font-bold justify-center flex items-center">Add Liquidity</h2>
+          <div className="flex items-center gap-2 justify-end">
+            <IconButton
+              variant={IconButtonVariant.DEFAULT}
+              buttonSize={IconButtonSize.LARGE}
               iconName="recent-transactions"
               onClick={() => setShowRecentTransactions(!showRecentTransactions)}
             />
-            <SystemIconButton
-              iconSize={24}
-              size="large"
+            <IconButton
+              variant={IconButtonVariant.DEFAULT}
+              buttonSize={IconButtonSize.LARGE}
               iconName="settings"
               onClick={() => setIsOpen(true)}
             />
@@ -323,15 +330,19 @@ export default function AddPoolPage({
             {tokenAStandard === "ERC-20" ? (
               <>
                 {!isAllowedA && (
-                  <Button variant="outline" fullWidth onClick={() => approveA()}>
-                    {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
+                  <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => approveA()}>
+                    {isLoadingA || isPendingA ? (
+                      "Loading..."
+                    ) : (
+                      <span>Approve {tokenA?.symbol}</span>
+                    )}
                   </Button>
                 )}
               </>
             ) : (
               <>
                 {!isDepositedA && (
-                  <Button variant="outline" fullWidth onClick={() => depositA()}>
+                  <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => depositA()}>
                     {isDepositingA ? "Loading..." : <span>Deposit {tokenA?.symbol}</span>}
                   </Button>
                 )}
@@ -340,15 +351,19 @@ export default function AddPoolPage({
             {tokenBStandard === "ERC-20" ? (
               <>
                 {!isAllowedB && (
-                  <Button variant="outline" fullWidth onClick={() => approveB()}>
-                    {isApprovingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}
+                  <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => approveB()}>
+                    {isLoadingB || isPendingB ? (
+                      "Loading..."
+                    ) : (
+                      <span>Approve {tokenB?.symbol}</span>
+                    )}
                   </Button>
                 )}
               </>
             ) : (
               <>
                 {!isDepositedB && (
-                  <Button variant="outline" fullWidth onClick={() => depositB()}>
+                  <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => depositB()}>
                     {isDepositingB ? "Loading..." : <span>Deposit {tokenB?.symbol}</span>}
                   </Button>
                 )}

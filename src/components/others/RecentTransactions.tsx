@@ -2,7 +2,7 @@ import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 
-import SystemIconButton from "@/components/buttons/SystemIconButton";
+import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
 import Pagination from "@/components/others/Pagination";
 import RecentTransaction from "@/components/others/RecentTransaction";
 import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
@@ -46,7 +46,7 @@ export default function RecentTransactions({
             <div className="flex justify-between items-center mb-2.5">
               <h3 className="font-bold text-20">Transactions</h3>
               <div className="flex items-center">
-                <SystemIconButton iconSize={24} iconName="close" onClick={handleClose} />
+                <IconButton variant={IconButtonVariant.CLOSE} handleClose={handleClose} />
               </div>
             </div>
             <div>

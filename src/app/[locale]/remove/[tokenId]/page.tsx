@@ -1,17 +1,16 @@
 "use client";
 
 import JSBI from "jsbi";
-import Image from "next/image";
 import { ChangeEvent, useMemo, useState } from "react";
 
 import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
 import useRemoveLiquidity from "@/app/[locale]/remove/[tokenId]/hooks/useRemoveLiquidity";
-import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import Switch from "@/components/atoms/Switch";
-import RangeBadge from "@/components/badges/RangeBadge";
+import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
+import Button from "@/components/buttons/Button";
+import IconButton, { IconButtonSize, IconSize } from "@/components/buttons/IconButton";
 import InputButton from "@/components/buttons/InputButton";
-import SystemIconButton from "@/components/buttons/SystemIconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
@@ -23,6 +22,7 @@ import {
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useRouter } from "@/navigation";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
+
 export default function DecreaseLiquidityPage({
   params,
 }: {
@@ -51,32 +51,38 @@ export default function DecreaseLiquidityPage({
     <Container>
       <div className="w-[600px] bg-primary-bg mx-auto mt-[80px] mb-5 px-10 pb-10">
         <div className="grid grid-cols-3 py-1.5 -mx-3">
-          <SystemIconButton
+          <IconButton
             onClick={() => router.push(`/pool/${params.tokenId}`)}
-            size="large"
+            buttonSize={IconButtonSize.LARGE}
             iconName="back"
-            iconSize={32}
+            iconSize={IconSize.LARGE}
           />
           <h2 className="text-20 font-bold flex justify-center items-center">Remove liquidity</h2>
           <div className="flex items-center gap-2 justify-end">
-            <SystemIconButton
+            <IconButton
               onClick={() => setIsOpen(true)}
-              size="large"
+              buttonSize={IconButtonSize.LARGE}
               iconName="recent-transactions"
-              iconSize={24}
             />
-            <SystemIconButton
+            <IconButton
               onClick={() => setIsOpen(true)}
-              size="large"
+              buttonSize={IconButtonSize.LARGE}
               iconName="settings"
-              iconSize={24}
             />
           </div>
         </div>
         <div className="rounded-b-2 bg-primary-bg">
           <div className="flex items-center justify-between mb-5">
             <TokensPair tokenA={tokenA} tokenB={tokenB} />
-            <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
+            <RangeBadge
+              status={
+                removed
+                  ? PositionRangeStatus.CLOSED
+                  : inRange
+                    ? PositionRangeStatus.IN_RANGE
+                    : PositionRangeStatus.OUT_OF_RANGE
+              }
+            />
           </div>
 
           <div className="mb-5">

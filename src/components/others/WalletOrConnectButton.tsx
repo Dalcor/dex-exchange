@@ -1,9 +1,9 @@
 import { ForwardedRef, forwardRef } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 
-import Button from "@/components/atoms/Button";
 import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
+import Button from "@/components/buttons/Button";
 import ClientOnly from "@/components/others/ClientOnly";
 
 interface Props {

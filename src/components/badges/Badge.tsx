@@ -1,27 +1,66 @@
 import clsx from "clsx";
 
-interface Props {
-  color: "blue" | "red" | "grey" | "green" | "purple";
-  text: string;
-  size?: "x-small" | "regular";
+export enum BadgeVariant {
+  COLORED,
+  DEFAULT,
+  PERCENTAGE,
 }
-export default function Badge({ color, text, size }: Props) {
-  return (
-    <div
-      className={clsx(
-        "rounded-5 flex items-center gap-1",
-        color === "blue" && "text-16 text-blue border-blue bg-blue-bg px-3",
-        color === "green" && "text-green border-green border bg-green-bg px-2 py-[2px]",
-        color === "purple" && "text-purple border-purple border bg-purple-bg px-2 py-[2px]",
-        color === "red" && "text-16 text-red border-red bg-red-bg px-3",
-        color === "grey" && "text-16 text-secondary-text bg-tertiary-bg px-2",
-        color === "green" && size === "x-small" && "text-10",
-        color === "green" && size === "regular" && "text-12",
-        color === "purple" && size === "x-small" && "text-10",
-        color === "purple" && size === "regular" && "text-12",
-      )}
-    >
-      {text}
-    </div>
-  );
+
+type Props =
+  | {
+      variant?: BadgeVariant.COLORED;
+      color?: "blue" | "red" | "green" | "purple";
+      text: string;
+    }
+  | {
+      variant: BadgeVariant.PERCENTAGE;
+      percentage: number;
+    }
+  | {
+      variant: BadgeVariant.DEFAULT;
+      size?: "default" | "small";
+      text: string;
+    };
+export default function Badge(props: Props) {
+  switch (props.variant) {
+    case BadgeVariant.COLORED:
+    case undefined:
+      const { text, color = "green" } = props;
+      return (
+        <div
+          className={clsx(
+            "rounded-5 px-2 py-px border text-12 font-medium",
+            color === "blue" && "bg-blue-bg border-blue text-blue",
+            color === "green" && "bg-green-bg border-green text-green",
+            color === "purple" && "bg-purple-bg border-purple text-purple",
+            color === "red" && "bg-red-bg border-red text-red",
+          )}
+        >
+          {text}
+        </div>
+      );
+    case BadgeVariant.DEFAULT:
+      const { text: defaultText, size = "default" } = props;
+      return (
+        <div
+          className={clsx(
+            "bg-tertiary-bg text-secondary-text px-2 rounded-20 font-medium",
+            size === "small" && "text-14",
+          )}
+        >
+          {defaultText}
+        </div>
+      );
+    case BadgeVariant.PERCENTAGE:
+      const { percentage } = props;
+      return (
+        <div
+          className={clsx(
+            "border border-secondary-text text-secondary-text px-3 rounded-5 h-6 flex items-center justify-center",
+          )}
+        >
+          {percentage}% select
+        </div>
+      );
+  }
 }

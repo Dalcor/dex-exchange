@@ -15,7 +15,7 @@ export default function SelectOption({
       onClick={onClick}
       className={clsx(
         "flex gap-2 items-center py-3 px-5 bg-primary-bg hover:bg-tertiary-bg duration-200",
-        isActive ? "text-green pointer-events-none" : "",
+        isActive ? "text-green" : "",
       )}
     >
       {children}

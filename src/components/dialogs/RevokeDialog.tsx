@@ -4,8 +4,8 @@ import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
-import Button from "../atoms/Button";
 import Badge from "../badges/Badge";
+import Button from "../buttons/Button";
 
 interface Props {
   isOpen: boolean;

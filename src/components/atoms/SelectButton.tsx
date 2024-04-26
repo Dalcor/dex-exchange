@@ -30,15 +30,19 @@ export const SelectButton = forwardRef(
         {...props}
         className={clsx(
           "flex items-center gap-2 duration-[600ms] text-base text-primary-text",
-          variant === "rectangle-primary" && "rounded-1 bg-primary-bg hover:bg-tertiary-hover",
+          variant === "rectangle-primary" && "rounded-2  hover:bg-green-bg",
           variant === "rounded-primary" &&
-            "rounded-[80px] border border-transparent bg-primary-bg hover:bg-green-bg hover:shadow-select hover:border-green",
+            "rounded-[80px] border border-transparent hover:bg-green-bg hover:shadow-select hover:border-green",
           variant === "rounded-secondary" &&
-            "rounded-[80px] border border-transparent bg-secondary-bg hover:bg-green-bg hover:shadow-select hover:border-green",
+            "rounded-[80px] border border-transparent hover:bg-green-bg hover:shadow-select hover:border-green",
           !withArrow && "px-2",
           withArrow && size === "regular" && "pl-5 pr-2",
           withArrow && size === "large" && "px-5",
-          isOpen && "bg-tertiary-bg border-hover-border",
+          isOpen
+            ? "bg-green-bg"
+            : variant !== "rounded-secondary"
+              ? "bg-primary-bg"
+              : "bg-secondary-bg",
           size === "large" && "py-3.5 text-24",
           size === "regular" && "py-2",
           fullWidth && "w-full justify-between",

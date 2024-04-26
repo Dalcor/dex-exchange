@@ -1,7 +1,7 @@
 import { ScaleLinear, select, zoom, ZoomBehavior, zoomIdentity, ZoomTransform } from "d3";
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 
-import ZoomButton from "@/components/buttons/ZoomButton";
+import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
 
 import { ZoomLevels } from "../../../hooks/types";
 
@@ -105,8 +105,8 @@ export default function Zoom({
 
   return (
     <div className="flex gap-2 justify-end w-100">
-      <ZoomButton icon="zoom-in" onClick={zoomIn} />
-      <ZoomButton icon="zoom-out" onClick={zoomOut} />
+      <IconButton variant={IconButtonVariant.CONTROL} iconName="zoom-in" onClick={zoomIn} />
+      <IconButton variant={IconButtonVariant.CONTROL} iconName="zoom-out" onClick={zoomOut} />
       <div
         onClick={() => {
           resetBrush();

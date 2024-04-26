@@ -99,7 +99,7 @@ export default function TokenInput({
               <span>{token.symbol}</span>
             </span>
           ) : (
-            <span className="whitespace-nowrap text-placeholder-text">Select token</span>
+            <span className="whitespace-nowrap text-tertiary-text">Select token</span>
           )}
         </SelectButton>
       </div>

@@ -33,6 +33,9 @@ export function useTrade(): { trade: TokenTrade | null } {
     return null;
   }, [pool, tokenA, tokenB]);
 
+  console.log("POOL");
+  console.log(pool);
+
   const amountOutData = useSimulateContract({
     address: QUOTER_ADDRESS[chainId as DexChainId],
     abi: QUOTER_ABI,
@@ -51,6 +54,9 @@ export function useTrade(): { trade: TokenTrade | null } {
         Boolean(tokenA) && Boolean(tokenB) && Boolean(tokenAAddress) && Boolean(tokenBAddress),
     },
   });
+
+  console.log("DD");
+  console.log(amountOutData);
 
   // const amountOutData = useSimulateContract({
   //   address: QUOTER_ADDRESS_V0[chainId as DexChainId],

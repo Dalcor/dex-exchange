@@ -1,20 +1,17 @@
 "use client";
 
 import clsx from "clsx";
-import JSBI from "jsbi";
-import Image from "next/image";
 import { useMemo, useState } from "react";
-import { Address } from "viem";
 
 import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
 import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
-import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import RangeBadge from "@/components/badges/RangeBadge";
-import SystemIconButton from "@/components/buttons/SystemIconButton";
+import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
+import Button from "@/components/buttons/Button";
+import IconButton, { IconButtonSize } from "@/components/buttons/IconButton";
 import RecentTransactions from "@/components/others/RecentTransactions";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokensPair from "@/components/others/TokensPair";
@@ -71,9 +68,8 @@ export default function PoolPage({
             <Svg iconName="back" />
           </button>
           <h2 className="text-20 font-bold">Position</h2>
-          <SystemIconButton
-            iconSize={24}
-            size="large"
+          <IconButton
+            buttonSize={IconButtonSize.LARGE}
             iconName="recent-transactions"
             onClick={() => setShowRecentTransactions(!showRecentTransactions)}
           />
@@ -85,7 +81,15 @@ export default function PoolPage({
             {position && (
               <Badge text={`${FEE_AMOUNT_DETAIL[position.pool.fee].label}%`} color="grey" />
             )}
-            <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
+            <RangeBadge
+              status={
+                removed
+                  ? PositionRangeStatus.CLOSED
+                  : inRange
+                    ? PositionRangeStatus.IN_RANGE
+                    : PositionRangeStatus.OUT_OF_RANGE
+              }
+            />
           </div>
         </div>
         <div className="flex items-center gap-3 mb-5">
@@ -112,7 +116,7 @@ export default function PoolPage({
           <Button
             size="small"
             onClick={() => router.push(`/increase/${params.tokenId}`)}
-            variant="outline"
+            variant={ButtonVariant.OUTLINED}
             fullWidth
           >
             Increase liquidity
@@ -120,7 +124,7 @@ export default function PoolPage({
           <Button
             size="small"
             onClick={() => router.push(`/remove/${params.tokenId}`)}
-            variant="outline"
+            variant={ButtonVariant.OUTLINED}
             fullWidth
           >
             Remove liquidity
@@ -177,7 +181,15 @@ export default function PoolPage({
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2">
               <span>Selected Range</span>
-              <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
+              <RangeBadge
+                status={
+                  removed
+                    ? PositionRangeStatus.CLOSED
+                    : inRange
+                      ? PositionRangeStatus.IN_RANGE
+                      : PositionRangeStatus.OUT_OF_RANGE
+                }
+              />
             </div>
             <div className="flex gap-0.5 bg-secondary-bg rounded-2 p-0.5">
               <button
@@ -212,7 +224,7 @@ export default function PoolPage({
               price={minPriceString}
             />
             <div className="relative">
-              <div className="bg-primary-bg w-12 h-12 rounded-full text-placeholder-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+              <div className="bg-primary-bg w-12 h-12 rounded-full text-tertiary-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
                 <Svg iconName="double-arrow" />
               </div>
             </div>

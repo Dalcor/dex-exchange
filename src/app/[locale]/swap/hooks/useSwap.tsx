@@ -9,6 +9,7 @@ import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStor
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
+import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
@@ -22,6 +23,12 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
+enum SwapStatus {
+  INITIAL,
+  PENDING,
+  LOADING,
+  SUCCESS,
+}
 export default function useSwap() {
   const { data: walletClient } = useWalletClient();
   const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
@@ -38,7 +45,18 @@ export default function useSwap() {
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
 
-  const { openConfirmInWalletDialog } = useConfirmInWalletDialogStore();
+  const [swapStatus, setSwapStatus] = useState(SwapStatus.INITIAL);
+
+  const {
+    isAllowed: isAllowedA,
+    writeTokenApprove: approveA,
+    isPending: isPendingA,
+    isLoading: isLoadingA,
+  } = useAllowance({
+    token: tokenA,
+    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
+    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
+  });
 
   const gasPriceFormatted = useMemo(() => {
     switch (gasPrice.model) {
@@ -129,6 +147,10 @@ export default function useSwap() {
   // }, [publicClient, swapParams, address]);
 
   const handleSwap = useCallback(async () => {
+    if (!isAllowedA && tokenA?.address0 === tokenAAddress) {
+      await approveA();
+    }
+
     if (
       !walletClient ||
       !address ||
@@ -155,6 +177,7 @@ export default function useSwap() {
 
     let hash;
 
+    setSwapStatus(SwapStatus.PENDING);
     if (tokenAAddress === tokenA.address0) {
       hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
     }
@@ -169,6 +192,7 @@ export default function useSwap() {
     });
 
     if (hash) {
+      setSwapStatus(SwapStatus.LOADING);
       addRecentTransaction(
         {
           hash,
@@ -194,13 +218,18 @@ export default function useSwap() {
         },
         address,
       );
+
+      await publicClient.waitForTransactionReceipt({ hash });
+      setSwapStatus(SwapStatus.SUCCESS);
     }
   }, [
     addRecentTransaction,
     address,
+    approveA,
     chainId,
     estimatedGas,
     gasPrice,
+    isAllowedA,
     output,
     publicClient,
     swapParams,
@@ -212,5 +241,15 @@ export default function useSwap() {
     walletClient,
   ]);
 
-  return { handleSwap, estimatedGas };
+  return {
+    handleSwap,
+    estimatedGas,
+    isAllowedA,
+    isPendingApprove: isPendingA,
+    isLoadingApprove: isLoadingA,
+    handleApprove: approveA,
+    isPendingSwap: swapStatus === SwapStatus.PENDING,
+    isLoadingSwap: swapStatus === SwapStatus.LOADING,
+    isSuccessSwap: swapStatus === SwapStatus.SUCCESS,
+  };
 }

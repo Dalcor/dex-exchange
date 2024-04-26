@@ -2,12 +2,12 @@ import clsx from "clsx";
 import { ChangeEvent, DragEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useAccount } from "wagmi";
 
-import Button from "@/components/atoms/Button";
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
+import Button from "@/components/buttons/Button";
 import RadioButton from "@/components/buttons/RadioButton";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { TokenList } from "@/config/types/TokenList";
@@ -230,7 +230,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                       fileInput.current.click();
                     }
                   }}
-                  variant="outline"
+                  variant={ButtonVariant.OUTLINED}
                 >
                   Browse...
                 </Button>

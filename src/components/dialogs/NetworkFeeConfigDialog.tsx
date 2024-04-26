@@ -8,13 +8,13 @@ import {
   GasOption,
   useSwapGasSettingsStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
-import Button from "@/components/atoms/Button";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
 import TextField from "@/components/atoms/TextField";
 import Tooltip from "@/components/atoms/Tooltip";
+import Button from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
 import addToast from "@/other/toast";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
@@ -352,7 +352,7 @@ function NetworkFeeDialogContent({
         })}
       </div>
       <div className="px-10 pb-10 pt-5 grid grid-cols-2 gap-3">
-        <Button fullWidth onClick={handleCancel} variant="outline">
+        <Button fullWidth onClick={handleCancel} variant={ButtonVariant.OUTLINED}>
           Cancel
         </Button>
         <Button

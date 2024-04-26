@@ -15,11 +15,11 @@ import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/
 import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
 import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
 import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
-import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
-import RangeBadge from "@/components/badges/RangeBadge";
-import SystemIconButton from "@/components/buttons/SystemIconButton";
+import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
+import Button from "@/components/buttons/Button";
+import IconButton, { IconButtonSize, IconSize } from "@/components/buttons/IconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import RecentTransactions from "@/components/others/RecentTransactions";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
@@ -130,7 +130,8 @@ export default function IncreaseLiquidityPage({
   const {
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
-    isApproving: isApprovingA,
+    isPending: isPendingA,
+    isLoading: isLoadingA,
     currentAllowance: currentAllowanceA,
     writeTokenRevoke: revokeA,
     isRevoking: isRevokingA,
@@ -148,7 +149,8 @@ export default function IncreaseLiquidityPage({
     isAllowed: isAllowedB,
     writeTokenApprove: approveB,
     writeTokenRevoke: revokeB,
-    isApproving: isApprovingB,
+    isPending: isPendingB,
+    isLoading: isLoadingB,
     currentAllowance: currentAllowanceB,
     isRevoking: isRevokingB,
   } = useAllowance({
@@ -200,23 +202,21 @@ export default function IncreaseLiquidityPage({
     <Container>
       <div className="w-[1200px] mx-auto my-[80px]">
         <div className="flex justify-between items-center bg-primary-bg rounded-t-3 py-2.5 px-6">
-          <SystemIconButton
+          <IconButton
             onClick={() => router.push(`/pool/${params.tokenId}`)}
-            size="large"
+            buttonSize={IconButtonSize.LARGE}
             iconName="back"
-            iconSize={32}
+            iconSize={IconSize.LARGE}
           />
           <h2 className="text-20 font-bold">Increase Liquidity</h2>
           <div className="flex">
-            <SystemIconButton
-              iconSize={24}
-              size="large"
+            <IconButton
+              buttonSize={IconButtonSize.LARGE}
               iconName="recent-transactions"
               onClick={() => setShowRecentTransactions(!showRecentTransactions)}
             />
-            <SystemIconButton
-              iconSize={24}
-              size="large"
+            <IconButton
+              buttonSize={IconButtonSize.LARGE}
               iconName="settings"
               onClick={() => setIsOpen(true)}
             />
@@ -225,7 +225,15 @@ export default function IncreaseLiquidityPage({
         <div className="flex flex-col bg-primary-bg px-10 pb-10 mb-5 rounded-3 rounded-t-0">
           <div className="flex items-start mb-5 gap-2">
             <TokensPair tokenA={tokenA} tokenB={tokenB} />
-            <RangeBadge status={removed ? "closed" : inRange ? "in-range" : "out-of-range"} />
+            <RangeBadge
+              status={
+                removed
+                  ? PositionRangeStatus.CLOSED
+                  : inRange
+                    ? PositionRangeStatus.IN_RANGE
+                    : PositionRangeStatus.OUT_OF_RANGE
+              }
+            />
           </div>
 
           <div className="grid gap-5 grid-cols-2 mb-5">
@@ -310,7 +318,7 @@ export default function IncreaseLiquidityPage({
                   price={minPriceString}
                 />
                 <div className="relative">
-                  <div className="bg-primary-bg w-12 h-12 rounded-full text-placeholder-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+                  <div className="bg-primary-bg w-12 h-12 rounded-full text-tertiary-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
                     <Svg iconName="double-arrow" />
                   </div>
                 </div>
@@ -336,24 +344,24 @@ export default function IncreaseLiquidityPage({
           </div>
           <div className="grid gap-2 mb-5 grid-cols-2">
             {!isAllowedA && (
-              <Button variant="outline" fullWidth onClick={() => approveA()}>
-                {isApprovingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
+              <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => approveA()}>
+                {isPendingA || isLoadingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
               </Button>
             )}
             {!isAllowedB && (
-              <Button variant="outline" fullWidth onClick={() => approveB()}>
-                {isApprovingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}
+              <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => approveB()}>
+                {isPendingB || isLoadingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}
               </Button>
             )}
           </div>
           <div className="grid gap-2 mb-5 grid-cols-2">
             {!isDepositedA && (
-              <Button variant="outline" fullWidth onClick={() => depositA()}>
+              <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => depositA()}>
                 {isDepositingA ? "Loading..." : <span>Deposit {tokenA?.symbol}</span>}
               </Button>
             )}
             {!isDepositedB && (
-              <Button variant="outline" fullWidth onClick={() => depositB()}>
+              <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => depositB()}>
                 {isDepositingB ? "Loading..." : <span>Deposit {tokenB?.symbol}</span>}
               </Button>
             )}

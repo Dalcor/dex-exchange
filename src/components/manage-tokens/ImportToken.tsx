@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Address, isAddress } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 
-import Button from "@/components/atoms/Button";
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
+import Button from "@/components/buttons/Button";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { ERC20_ABI } from "@/config/abis/erc20";
 import addToast from "@/other/toast";

@@ -9,7 +9,7 @@ export default function Input({ isError = false, ...props }: Props) {
   return (
     <input
       className={clsx(
-        "duration-200 focus:outline-0 h-12 pl-5 mb-[2px] placeholder:text-placeholder-text text-16 w-full bg-secondary-bg rounded-1 border",
+        "duration-200 focus:outline-0 h-12 pl-5 mb-[2px] placeholder:text-tertiary-text text-16 w-full bg-secondary-bg rounded-1 border",
         isError
           ? "border-red hover:border-red focus:border-red"
           : "border-primary-border hover:border-green focus:border-green",

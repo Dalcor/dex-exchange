@@ -1,6 +1,6 @@
 import { useConnect } from "wagmi";
 
-import PickButton from "@/components/atoms/PickButton";
+import PickButton from "@/components/buttons/PickButton";
 import {
   useConnectWalletDialogStateStore,
   useConnectWalletStore,

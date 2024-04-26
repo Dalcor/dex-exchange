@@ -4,11 +4,11 @@ import { formatGwei } from "viem";
 import { useBlock, useBlockNumber, useWalletClient } from "wagmi";
 
 import { GasOption } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
-import Button from "@/components/atoms/Button";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
+import Button from "@/components/buttons/Button";
 import { useTransactionSpeedUpDialogStore } from "@/components/dialogs/stores/useTransactionSpeedUpDialogStore";
 import RecentTransaction from "@/components/others/RecentTransaction";
 

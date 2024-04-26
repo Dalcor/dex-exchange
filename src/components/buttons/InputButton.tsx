@@ -13,7 +13,7 @@ export default function InputButton({ text, isActive, ...props }: Props) {
       className={clsx(
         "rounded-5 px-2 text-12 py-0.5 border hover:bg-green-bg duration-200",
         isActive
-          ? "text-green shadow-checkbox pointer-events-none border-green bg-green-bg"
+          ? "text-green shadow-checkbox border-green bg-green-bg"
           : "text-green bg-tertiary-bg border-transparent ",
       )}
     >

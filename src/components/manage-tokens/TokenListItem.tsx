@@ -1,12 +1,9 @@
-import Image from "next/image";
 import { useState } from "react";
-import { AutoSizer, List } from "react-virtualized";
 
-import Collapse from "@/components/atoms/Collapse";
 import Popover from "@/components/atoms/Popover";
 import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
-import SystemIconButton from "@/components/buttons/SystemIconButton";
+import IconButton from "@/components/buttons/IconButton";
 import { TokenList } from "@/config/types/TokenList";
 
 export default function TokenListItem({
@@ -79,7 +76,7 @@ export default function TokenListItem({
               <Svg iconName="download" />
             </a>
           )}
-          <SystemIconButton onClick={() => setOpen(!open)} iconName="details" />
+          <IconButton onClick={() => setOpen(!open)} iconName="details" />
           <Switch checked={tokenList.enabled} handleChange={() => toggle(tokenList.id)} />
         </div>
       </div>

@@ -1,9 +1,8 @@
 "use client";
 import clsx from "clsx";
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, formatGwei, parseUnits } from "viem";
+import { Address, formatGwei } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
@@ -14,34 +13,29 @@ import {
   useSwapGasSettingsStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
-import Button from "@/components/atoms/Button";
 import Collapse from "@/components/atoms/Collapse";
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
-import SystemIconButton from "@/components/buttons/SystemIconButton";
+import Button, { ButtonVariant } from "@/components/buttons/Button";
+import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
+import SwapButton from "@/components/buttons/SwapButton";
 import ConfirmSwapDialog from "@/components/dialogs/ConfirmSwapDialog";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useConfirmSwapDialogStore } from "@/components/dialogs/stores/useConfirmSwapDialogOpened";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
-import Pagination from "@/components/others/Pagination";
-import RecentTransaction from "@/components/others/RecentTransaction";
 import RecentTransactions from "@/components/others/RecentTransactions";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import TokenInput from "@/components/others/TokenInput";
 import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
-import useAllowance from "@/hooks/useAllowance";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
-import useTransactionDeadline from "@/hooks/useTransactionDeadline";
-import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
-import { DexChainId } from "@/sdk_hybrid/chains";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
-import { GasFeeModel, useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
+import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 enum Standard {
@@ -66,7 +60,7 @@ function OpenConfirmDialogButton() {
 
   if (!tokenA || !tokenB) {
     return (
-      <Button variant="outline" fullWidth disabled>
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
         Select tokens
       </Button>
     );
@@ -74,7 +68,7 @@ function OpenConfirmDialogButton() {
 
   if (!typedValue) {
     return (
-      <Button variant="outline" fullWidth disabled>
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
         Enter amount
       </Button>
     );
@@ -216,7 +210,6 @@ export default function SwapPage() {
     return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
   }, [slippage, trade]);
 
-  const [effect, setEffect] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
@@ -255,21 +248,12 @@ export default function SwapPage() {
                 <div className="flex justify-between items-center mb-2.5">
                   <h3 className="font-bold text-20">Swap</h3>
                   <div className="flex items-center">
-                    <SystemIconButton
-                      iconSize={24}
+                    <IconButton
                       iconName="recent-transactions"
                       onClick={() => setShowRecentTransactions(!showRecentTransactions)}
                     />
-                    <SystemIconButton
-                      iconSize={24}
-                      iconName="gas-edit"
-                      onClick={() => setIsOpenedFee(true)}
-                    />
-                    <SystemIconButton
-                      iconSize={24}
-                      iconName="settings"
-                      onClick={() => setIsOpen(true)}
-                    />
+                    <IconButton iconName="gas-edit" onClick={() => setIsOpenedFee(true)} />
+                    <IconButton iconSize={24} iconName="settings" onClick={() => setIsOpen(true)} />
                   </div>
                 </div>
                 <TokenInput
@@ -300,9 +284,8 @@ export default function SwapPage() {
                   }}
                 />
                 <div className="relative h-3 z-10">
-                  <button
+                  <SwapButton
                     onClick={() => {
-                      setEffect(true);
                       setTokenB(tokenA);
                       setTokenA(tokenB);
                       setTypedValue({
@@ -310,14 +293,7 @@ export default function SwapPage() {
                         field: Field.CURRENCY_A,
                       });
                     }}
-                    className="border-[3px] text-green border-tertiary-bg outline outline-tertiary-bg  w-10 h-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary-bg rounded-full flex items-center justify-center duration-200 hover:outline-green hover:shadow-checkbox"
-                  >
-                    <Svg
-                      className={effect ? "animate-swap" : ""}
-                      onAnimationEnd={() => setEffect(false)}
-                      iconName="swap"
-                    />
-                  </button>
+                  />
                 </div>
                 <TokenInput
                   value={dependentAmount?.toSignificant() || ""}

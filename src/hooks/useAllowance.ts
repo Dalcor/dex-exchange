@@ -21,6 +21,12 @@ import {
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 
+enum AllowanceStatus {
+  INITIAL,
+  PENDING,
+  LOADING,
+  SUCCESS,
+}
 export default function useAllowance({
   token,
   contractAddress,
@@ -97,7 +103,7 @@ export default function useAllowance({
   //   writeContract: writeTokenApprove
   // } = useWriteContract();
 
-  const [isApproving, setIsApproving] = useState(false);
+  const [status, setStatus] = useState(AllowanceStatus.INITIAL);
 
   const writeTokenApprove = useCallback(async () => {
     if (
@@ -112,7 +118,7 @@ export default function useAllowance({
       return;
     }
 
-    setIsApproving(true);
+    setStatus(AllowanceStatus.PENDING);
     // setOpened(`Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`)
 
     const params: {
@@ -169,6 +175,7 @@ export default function useAllowance({
       );
 
       if (hash) {
+        setStatus(AllowanceStatus.LOADING);
         // addTransaction({
         //   account: address,
         //   hash,
@@ -178,12 +185,11 @@ export default function useAllowance({
         // setSubmitted(hash, chainId as any);
 
         await publicClient.waitForTransactionReceipt({ hash });
-        setIsApproving(false);
+        setStatus(AllowanceStatus.SUCCESS);
       }
     } catch (e) {
       console.log(e);
-      // setClose();
-      setIsApproving(false);
+      setStatus(AllowanceStatus.INITIAL);
       addToast("Unexpected error, please contact support", "error");
     }
   }, [
@@ -290,7 +296,8 @@ export default function useAllowance({
 
   return {
     isAllowed,
-    isApproving,
+    isLoading: status === AllowanceStatus.LOADING,
+    isPending: status === AllowanceStatus.PENDING,
     isRevoking,
     writeTokenApprove,
     writeTokenRevoke,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import Button from "@/components/atoms/Button";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import ManageTokensDialog from "@/components/manage-tokens/ManageTokensDialog";
 
 export default function TokenListsSettings() {
@@ -8,7 +8,11 @@ export default function TokenListsSettings() {
 
   return (
     <>
-      <Button size="x-small" onClick={() => setIsOpened(true)} variant="outline">
+      <Button
+        size={ButtonSize.SMALL}
+        onClick={() => setIsOpened(true)}
+        variant={ButtonVariant.OUTLINED}
+      >
         Manage tokens
       </Button>
       <ManageTokensDialog isOpen={isOpened} setIsOpen={setIsOpened} />

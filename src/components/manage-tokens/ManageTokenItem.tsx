@@ -1,10 +1,8 @@
-import Image from "next/image";
 import { useState } from "react";
-import { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
-import SystemIconButton from "@/components/buttons/SystemIconButton";
+import IconButton from "@/components/buttons/IconButton";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { useTokenListsStore } from "@/stores/useTokenListsStore";
 
@@ -72,7 +70,7 @@ export default function ManageTokenItem({ token }: { token: Token }) {
           {/*    </Dialog>*/}
           {/*  </>*/}
           {/*)}*/}
-          <SystemIconButton onClick={() => setOpen(!open)} iconName="details" />
+          <IconButton onClick={() => setOpen(!open)} iconName="details" />
         </div>
       </div>
       <Dialog isOpen={open} setIsOpen={setOpen}>

@@ -4,11 +4,11 @@ import Image from "next/image";
 import { useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 
-import Button from "@/components/atoms/Button";
 import Container from "@/components/atoms/Container";
 import LocaleSwitcher from "@/components/atoms/LocaleSwitcher";
 import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
+import Button from "@/components/buttons/Button";
 import AccountDialog from "@/components/dialogs/AccountDialog";
 import ConnectWalletDialog from "@/components/dialogs/ConnectWalletDialog";
 import Navigation from "@/components/others/Navigation";

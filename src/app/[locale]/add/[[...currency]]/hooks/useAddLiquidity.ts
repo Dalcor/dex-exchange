@@ -49,17 +49,6 @@ export const useAddLiquidity = () => {
   const { data: walletClient } = useWalletClient();
   const { tier, setTier } = useLiquidityTierStore();
 
-  const { tokenAStandard, tokenBStandard } = useTokensStandards();
-  const [token0Standard, token1Standard] = useMemo(
-    () =>
-      tokenA && tokenB
-        ? tokenA.sortsBefore(tokenB)
-          ? [tokenAStandard, tokenBStandard]
-          : [tokenBStandard, tokenAStandard]
-        : [undefined, undefined],
-    [tokenA, tokenB, tokenAStandard, tokenBStandard],
-  );
-
   const handleTokenAChange = useCallback(() => {}, []);
 
   const handleTokenBChange = useCallback(() => {}, []);
@@ -113,26 +102,19 @@ export const useAddLiquidity = () => {
         const amount0Min = toHex(minimumAmounts.amount0);
         const amount1Min = toHex(minimumAmounts.amount1);
 
-        const token0Address =
-          token0Standard === "ERC-20"
-            ? (position.pool.token0.address0 as Address)
-            : (position.pool.token0.address1 as Address);
-        const token1Address =
-          token1Standard === "ERC-20"
-            ? (position.pool.token1.address0 as Address)
-            : (position.pool.token1.address1 as Address);
-
         if (createPool) {
           const createParams = [
-            token0Address,
-            token1Address,
+            position.pool.token0.address0,
+            position.pool.token1.address0,
+            position.pool.token0.address1,
+            position.pool.token1.address1,
             position.pool.fee,
             toHex(position.pool.sqrtRatioX96) as any,
-          ] as [Address, Address, FeeAmount, bigint];
+          ] as [Address, Address, Address, Address, FeeAmount, bigint];
 
           const mintParams = {
-            token0: token0Address,
-            token1: token1Address,
+            token0: position.pool.token0.address0,
+            token1: position.pool.token1.address0,
             fee: position.pool.fee,
             tickLower: position.tickLower,
             tickUpper: position.tickUpper,
@@ -339,16 +321,16 @@ export const useAddLiquidity = () => {
             );
           }
         } else {
-          const mintParams: any = {
-            token0: token0Address,
-            token1: token1Address,
+          const mintParams = {
+            token0: position.pool.token0.address0,
+            token1: position.pool.token1.address0,
             fee: position.pool.fee,
             tickLower: position.tickLower,
             tickUpper: position.tickUpper,
-            amount0Desired: toHex(amount0Desired),
-            amount1Desired: toHex(amount1Desired),
-            amount0Min,
-            amount1Min,
+            amount0Desired: toHex(amount0Desired) as any,
+            amount1Desired: toHex(amount1Desired) as any,
+            amount0Min: amount0Min as any,
+            amount1Min: amount1Min as any,
             recipient: accountAddress,
             deadline,
           };
@@ -430,8 +412,6 @@ export const useAddLiquidity = () => {
       tokenA,
       tokenB,
       walletClient,
-      token0Standard,
-      token1Standard,
       chainId,
       addRecentTransaction,
     ],

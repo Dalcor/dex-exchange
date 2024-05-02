@@ -4,7 +4,7 @@ import { Address } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
 
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
-import { FACTORY_ADDRESS } from "@/sdk_hybrid/addresses";
+import { FACTORY_ADDRESS, POOL_INIT_CODE_HASH } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { BigintIsh, FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
@@ -133,10 +133,7 @@ export default function usePools(
           tokenA: value[0],
           tokenB: value[1],
           fee: value[2],
-          initCodeHashManualOverride:
-            chainId === DexChainId.CALLISTO
-              ? "0xeb2af1344b4aa73e15e4ec4d5110b0358721463fa322ae01294d16e65a9966a3"
-              : "0xb7112e06e4c5b0e55a0560f43cfd041a98b718a5554606cfe637eb31021cc257",
+          initCodeHashManualOverride: POOL_INIT_CODE_HASH[chainId as DexChainId],
           standardA: value[3],
           standardB: value[4],
         }) as Address)

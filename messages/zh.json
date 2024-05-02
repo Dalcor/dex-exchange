@@ -1,9 +1,13 @@
 {
   "Trade": {
     "trade": "交易",
-    "statistics": "交易cio",
-    "lending-and-borrowing": "Lendio & Bo交易o",
-    "liquidity": "Liq交易io",
-    "list-your-token": "List our交易 tokenio"
+    "swap": "交易cio",
+    "margin-trading": "Margin tradingio",
+    "portfolio": "Portfolioio",
+    "lending-and-borrowing": "Borrow/Lendio",
+    "pools": "Poolsio",
+    "token-listing": "Token listingio",
+    "lib": "Libio"
   }
 }
+

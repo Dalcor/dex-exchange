@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import SelectButton from "@/components/atoms/SelectButton";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import ManageTokensDialog from "@/components/manage-tokens/ManageTokensDialog";
 
@@ -7,15 +8,11 @@ export default function TokenListsSettings() {
   const [isOpened, setIsOpened] = useState(false);
 
   return (
-    <>
-      <Button
-        size={ButtonSize.SMALL}
-        onClick={() => setIsOpened(true)}
-        variant={ButtonVariant.OUTLINED}
-      >
+    <div className="hidden md:block">
+      <SelectButton withArrow={false} size="regular" onClick={() => setIsOpened(true)}>
         Manage tokens
-      </Button>
+      </SelectButton>
       <ManageTokensDialog isOpen={isOpened} setIsOpen={setIsOpened} />
-    </>
+    </div>
   );
 }

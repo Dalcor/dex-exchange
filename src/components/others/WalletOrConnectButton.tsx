@@ -1,10 +1,9 @@
 import { ForwardedRef, forwardRef } from "react";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount } from "wagmi";
 
 import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
-import Button from "@/components/buttons/Button";
-import ClientOnly from "@/components/others/ClientOnly";
+import Button, { ButtonSize } from "@/components/buttons/Button";
 
 interface Props {
   openWallet: (isOpen: boolean) => void;
@@ -25,7 +24,7 @@ export const WalletOrConnectButton = forwardRef(
             </span>
           </SelectButton>
         ) : (
-          <Button size="small" onClick={() => openWallet(true)}>
+          <Button size={ButtonSize.MEDIUM} onClick={() => openWallet(true)}>
             Connect wallet
           </Button>
         )}

@@ -79,7 +79,7 @@ export default function AccountDialog({ isOpen, setIsOpen, setOpenedWallet }: Pr
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <div>
+    <div className="hidden md:block">
       <Popover
         isOpened={isOpen}
         setIsOpened={setIsOpen}

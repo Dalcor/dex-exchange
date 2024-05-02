@@ -14,7 +14,7 @@ import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import { useConfirmSwapDialogStore } from "@/components/dialogs/stores/useConfirmSwapDialogOpened";
 import { Standard } from "@/components/others/TokenInput";
 import { formatFloat } from "@/functions/formatFloat";
@@ -220,7 +220,7 @@ function ReadonlyTokenAmountCard({
         <div className="flex items-center gap-2">
           <Image src={token?.logoURI || ""} alt="" width={32} height={32} />
           {token?.symbol}
-          <Badge size="x-small" color="green" text={standard} />
+          <Badge color="green" text={standard} />
         </div>
       </div>
       <p className="text-secondary-text text-14">${amountUSD}</p>

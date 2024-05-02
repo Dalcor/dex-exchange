@@ -8,7 +8,13 @@ import { RevokeDialog } from "@/components/dialogs/RevokeDialog";
 import { formatFloat } from "@/functions/formatFloat";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
-const InputRange = ({ value, onChange }: { value: number; onChange: (value: 0 | 100) => void }) => {
+export const InputRange = ({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: 0 | 100) => void;
+}) => {
   return (
     <div className="relative h-6">
       <input

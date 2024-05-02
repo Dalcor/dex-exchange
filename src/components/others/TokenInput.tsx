@@ -41,7 +41,7 @@ function StandardOption({
     >
       <div className="flex items-center gap-1">
         <span className="text-12">Standard</span>
-        <Badge size="x-small" color="green" text={standard} />
+        <Badge color="green" text={standard} />
         <Tooltip iconSize={16} text={`${standard} Tooltip`} />
       </div>
       <span className="block text-secondary-text">
@@ -103,7 +103,7 @@ export default function TokenInput({
           )}
         </SelectButton>
       </div>
-      <div className="grid grid-cols-2 gap-3 relative">
+      <div className="flex flex-col md:grid md:grid-cols-2 gap-1 md:gap-3 relative">
         <StandardOption
           setIsActive={setStandard}
           active={standard}
@@ -111,7 +111,7 @@ export default function TokenInput({
           symbol={token?.symbol}
           balance={balance0}
         />
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 text-10 h-[28px] rounded-20 border-green border p-1 flex gap-1 items-center">
+        <div className="relative mx-auto md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-10 text-10 h-[28px] rounded-20 border-green border p-1 flex gap-1 items-center">
           {[Standard.ERC20, Standard.ERC223].map((st) => {
             return (
               <button

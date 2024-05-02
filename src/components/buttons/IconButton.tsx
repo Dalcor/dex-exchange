@@ -3,6 +3,7 @@ import { ButtonHTMLAttributes } from "react";
 
 import Svg from "@/components/atoms/Svg";
 import { IconName } from "@/config/types/IconName";
+import { clsxMerge } from "@/functions/clsxMerge";
 
 export enum IconSize {
   SMALL = 20,
@@ -61,7 +62,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> &
       }
     | { variant: IconButtonVariant.CLOSE; handleClose: () => void }
     | { variant: IconButtonVariant.CONTROL; iconName: IconName }
-    | { variant?: IconButtonVariant.DEFAULT; iconName: IconName }
+    | { variant?: IconButtonVariant.DEFAULT | undefined; iconName: IconName; active?: boolean }
   );
 export default function IconButton(_props: Props) {
   const { ...props } = _props;
@@ -72,7 +73,10 @@ export default function IconButton(_props: Props) {
       return (
         <IconButtonFrame
           iconName={_props.iconName}
-          className="text-primary-text rounded-full bg-transparent hover:bg-green-bg duration-200"
+          className={clsxMerge(
+            "text-primary-text rounded-full bg-transparent hover:bg-green-bg duration-200",
+            _props.active && "text-green",
+          )}
           {...props}
         />
       );

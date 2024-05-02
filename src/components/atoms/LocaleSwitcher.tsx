@@ -40,7 +40,7 @@ export default function LocaleSwitcher() {
   };
 
   return (
-    <div>
+    <div className="hidden md:block">
       <Popover
         isOpened={isOpened}
         setIsOpened={setIsOpened}

@@ -1,6 +1,11 @@
 import clsx from "clsx";
 import { PropsWithChildren } from "react";
 
-export default function Container({ children }: PropsWithChildren) {
-  return <div className="max-w-[1366px] my-0 mx-auto">{children}</div>;
+import { clsxMerge } from "@/functions/clsxMerge";
+
+export default function Container({
+  className,
+  children,
+}: PropsWithChildren<{ className?: string }>) {
+  return <div className={clsxMerge("max-w-[1406px] my-0 mx-auto", className)}>{children}</div>;
 }

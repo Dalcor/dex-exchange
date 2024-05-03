@@ -18,7 +18,7 @@ export const QUOTER_ADDRESS: Record<DexChainId, Address> = {
 
 export const NONFUNGIBLE_POSITION_MANAGER_ADDRESS: Record<DexChainId, Address> = {
   [DexChainId.CALLISTO]: "0xeAAfD389039229BB850F8F3a9CA5e5E1d53f3BeE",
-  [DexChainId.SEPOLIA]: "0xf9b9f98e74a28b6c2cab8cdf66fb7f1a6f671c19",
+  [DexChainId.SEPOLIA]: "0x250155fca186afd41349097791bfffdb2c4c7c28",
 };
 
 export const POOL_INIT_CODE_HASH: Record<DexChainId, Address> = {

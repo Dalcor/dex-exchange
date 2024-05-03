@@ -14,7 +14,7 @@ import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import Button, { ButtonVariant } from "@/components/buttons/Button";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import { useConfirmSwapDialogStore } from "@/components/dialogs/stores/useConfirmSwapDialogOpened";
 import { Standard } from "@/components/others/TokenInput";
 import { formatFloat } from "@/functions/formatFloat";

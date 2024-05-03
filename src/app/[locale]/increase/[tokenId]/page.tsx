@@ -15,7 +15,7 @@ import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/Pos
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonVariant } from "@/components/buttons/Button";
 import IconButton, { IconButtonSize, IconSize } from "@/components/buttons/IconButton";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import RecentTransactions from "@/components/others/RecentTransactions";

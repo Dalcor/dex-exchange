@@ -1,9 +1,12 @@
 {
   "Trade": {
     "trade": "Tradio",
-    "statistics": "Statisticio",
-    "lending-and-borrowing": "Lendio & Borrowio",
-    "liquidity": "Liquidio",
-    "list-your-token": "List your tokenio"
+    "swap": "Swapio",
+    "margin-trading": "Margin tradingio",
+    "portfolio": "Portfolioio",
+    "lending-and-borrowing": "Borrow/Lendio",
+    "pools": "Poolsio",
+    "token-listing": "Token listingio",
+    "lib": "Libio"
   }
 }

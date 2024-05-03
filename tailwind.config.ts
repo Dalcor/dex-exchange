@@ -13,6 +13,8 @@ const config: Config = {
         select: "0 0 10px 0 #8EFFCB99",
         checkbox: "0 0 8px 0 #B3FFE2CC",
         popup: "0 4px 42px 0px #000000E6",
+        error: "0px 0px 10px 0px #D13B3B99",
+        warning: "0px 0px 10px 0px #D9A25199",
       },
       backgroundImage: {
         "account-card-pattern": "url('/account-bg.svg')",
@@ -23,6 +25,9 @@ const config: Config = {
           "linear-gradient(90deg, rgba(56, 59, 58, 0.2) 0%, #383B3A 50%, rgba(56, 59, 58, 0.2) 100%)",
         "swap-radio-right": "linear-gradient(90deg, #0F0F0F 0%, #1D1E1E 100%)",
         "swap-radio-left": "linear-gradient(270deg, #0F0F0F 0%, #1D1E1E 100%)",
+        "navigation-active":
+          "linear-gradient(180deg, #0B0B0B -6.77%, #283631 87.04%, #70C59E 100%)",
+        "navigation-hover": "linear-gradient(180deg, #0F0F0F -6.77%, #3B4E47 100%);",
       },
       keyframes: {
         orbit: {

@@ -4,14 +4,26 @@ import { InputHTMLAttributes, ReactNode } from "react";
 import Input from "@/components/atoms/Input";
 import Tooltip from "@/components/atoms/Tooltip";
 
-interface Props extends InputHTMLAttributes<HTMLInputElement> {
+type Props = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   helperText?: ReactNode;
-  error?: string;
   tooltipText?: string;
-}
+} & (
+    | {
+        error?: string;
+        warning?: never;
+      }
+    | { warning?: string; error?: never }
+  );
 
-export default function TextField({ label, helperText, error, tooltipText, ...props }: Props) {
+export default function TextField({
+  label,
+  helperText,
+  error,
+  warning,
+  tooltipText,
+  ...props
+}: Props) {
   return (
     <div>
       <p
@@ -23,7 +35,7 @@ export default function TextField({ label, helperText, error, tooltipText, ...pr
         {label}
         {tooltipText && <Tooltip iconSize={20} text={tooltipText} />}
       </p>
-      <Input isError={Boolean(error)} {...props} />
+      <Input isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
       {typeof helperText !== "undefined" && !error && (
         <div
           className={clsx("text-12 text-secondary-text mt-0.5 h-4", props.disabled && "opacity-50")}
@@ -32,6 +44,7 @@ export default function TextField({ label, helperText, error, tooltipText, ...pr
         </div>
       )}
       {error && <p className="text-12 text-red mt-0.5">{error}</p>}
+      {warning && <p className="text-12 text-orange mt-0.5">{warning}</p>}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   GasOption,
   useSwapGasSettingsStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
+import { useSwapRecentTransactionsStore } from "@/app/[locale]/swap/stores/useSwapRecentTransactions";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import Collapse from "@/components/atoms/Collapse";
 import Container from "@/components/atoms/Container";
@@ -112,7 +113,8 @@ export default function SwapPage() {
 
   const t = useTranslations("Trade");
 
-  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
+  const { isOpened: showRecentTransactions, setIsOpened: setShowRecentTransactions } =
+    useSwapRecentTransactionsStore();
 
   const [isOpenedFee, setIsOpenedFee] = useState(false);
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
@@ -237,18 +239,27 @@ export default function SwapPage() {
   return (
     <>
       <Container>
-        <div className={clsx("grid py-[80px]", showRecentTransactions ? "grid-cols-2" : "")}>
-          <RecentTransactions
-            showRecentTransactions={showRecentTransactions}
-            handleClose={() => setShowRecentTransactions(false)}
-          />
-          <div className="flex justify-center">
-            <div className="grid gap-5 w-[640px]">
-              <div className="px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
+        <div
+          className={clsx(
+            "grid py-4 md:py-[80px] grid-cols-1 md:grid-areas-[left_right] grid-areas-[right,left]",
+            showRecentTransactions && "grid-cols-1 md:grid-cols-2 gap-4",
+          )}
+        >
+          <div className="grid-in-[left]">
+            <RecentTransactions
+              showRecentTransactions={showRecentTransactions}
+              handleClose={() => setShowRecentTransactions(false)}
+            />
+          </div>
+
+          <div className="flex justify-center grid-in-[right]">
+            <div className="grid gap-5 w-full md:w-[640px]">
+              <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
                 <div className="flex justify-between items-center mb-2.5">
                   <h3 className="font-bold text-20">Swap</h3>
                   <div className="flex items-center">
                     <IconButton
+                      active={showRecentTransactions}
                       iconName="recent-transactions"
                       onClick={() => setShowRecentTransactions(!showRecentTransactions)}
                     />
@@ -323,7 +334,7 @@ export default function SwapPage() {
 
                 <div
                   className={clsx(
-                    "rounded-3 h-12 flex justify-between duration-200 px-5 bg-tertiary-bg my-5 items-center",
+                    "rounded-3 py-3.5 flex flex-col md:flex-row justify-between duration-200 px-5 bg-tertiary-bg my-5 md:items-center",
                   )}
                   role="button"
                 >
@@ -332,16 +343,19 @@ export default function SwapPage() {
                     <div className="text-secondary-text text-14 flex items-center">Network fee</div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center px-2 text-14 rounded-20 font-500 text-secondary-text bg-quaternary-bg">
-                      {gasOptionTitle[gasOption]}
+                  <div className="flex items-center gap-2 justify-between md:justify-end">
+                    <span className="flex gap-2 items-center">
+                      <span className="flex items-center justify-center px-2 text-14 rounded-20 font-500 text-secondary-text bg-quaternary-bg">
+                        {gasOptionTitle[gasOption]}
+                      </span>
+                      <div>
+                        <span className="text-secondary-text mr-1 text-14">
+                          {computedGasSpending} GWEI
+                        </span>{" "}
+                        <span className="mr-1 text-14">~$0.00</span>
+                      </div>
                     </span>
-                    <div>
-                      <span className="text-secondary-text mr-1 text-14">
-                        {computedGasSpending} GWEI
-                      </span>{" "}
-                      <span className="mr-1 text-14">~$0.00</span>
-                    </div>
+
                     <button
                       className="border border-green flex px-4 rounded-5"
                       onClick={(e) => {

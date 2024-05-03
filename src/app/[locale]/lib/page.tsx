@@ -9,7 +9,7 @@ import Switch from "@/components/atoms/Switch";
 import TextField from "@/components/atoms/TextField";
 import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import IconButton, { IconButtonVariant, IconSize } from "@/components/buttons/IconButton";
 import addToast from "@/other/toast";
 
@@ -33,15 +33,15 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
         </div>
 
         <div className="inline-flex gap-1 ml-7">
-          <Button size="regular">Regular contained button</Button>
-          <Button size="regular" variant={ButtonVariant.OUTLINED}>
+          <Button size={ButtonSize.MEDIUM}>Regular contained button</Button>
+          <Button size={ButtonSize.MEDIUM} variant={ButtonVariant.OUTLINED}>
             Regular outline button
           </Button>
         </div>
 
         <div className="inline-flex gap-1 ml-7">
-          <Button size="small">Small contained button</Button>
-          <Button size="small" variant={ButtonVariant.OUTLINED}>
+          <Button size={ButtonSize.SMALL}>Small contained button</Button>
+          <Button size={ButtonSize.SMALL} variant={ButtonVariant.OUTLINED}>
             Small outline button
           </Button>
         </div>
@@ -115,7 +115,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
         <h2 className="mb-3 border-b border-primary-border pb-3">Toasts</h2>
         <div className="inline-flex gap-3 py-3 items-center">
           <Button
-            size="small"
+            size={ButtonSize.SMALL}
             variant={ButtonVariant.OUTLINED}
             onClick={() => {
               addToast("This is success Toast");
@@ -125,7 +125,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
           </Button>
 
           <Button
-            size="small"
+            size={ButtonSize.SMALL}
             variant={ButtonVariant.OUTLINED}
             onClick={() => {
               addToast("This is info Toast", "info");
@@ -135,7 +135,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
           </Button>
 
           <Button
-            size="small"
+            size={ButtonSize.SMALL}
             variant={ButtonVariant.OUTLINED}
             onClick={() => {
               addToast("This is warning Toast", "warning");
@@ -145,7 +145,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
           </Button>
 
           <Button
-            size="small"
+            size={ButtonSize.SMALL}
             variant={ButtonVariant.OUTLINED}
             onClick={() => {
               addToast("This is error Toast", "error");

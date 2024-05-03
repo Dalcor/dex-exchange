@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { ButtonHTMLAttributes, ForwardedRef, forwardRef, PropsWithChildren } from "react";
 
 import Svg from "@/components/atoms/Svg";
+import { clsxMerge } from "@/functions/clsxMerge";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   withArrow?: boolean;
@@ -9,6 +10,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "regular" | "large";
   fullWidth?: boolean;
   variant?: "rounded-primary" | "rounded-secondary" | "rectangle-primary";
+  className?: string;
 }
 
 export const SelectButton = forwardRef(
@@ -20,6 +22,7 @@ export const SelectButton = forwardRef(
       size = "regular",
       fullWidth = false,
       variant = "rectangle-primary",
+      className,
       ...props
     }: PropsWithChildren<Props>,
     ref: ForwardedRef<HTMLButtonElement>,
@@ -28,14 +31,14 @@ export const SelectButton = forwardRef(
       <button
         ref={ref}
         {...props}
-        className={clsx(
+        className={clsxMerge(
           "flex items-center gap-2 duration-[600ms] text-base text-primary-text",
           variant === "rectangle-primary" && "rounded-2  hover:bg-green-bg",
           variant === "rounded-primary" &&
             "rounded-[80px] border border-transparent hover:bg-green-bg hover:shadow-select hover:border-green",
           variant === "rounded-secondary" &&
             "rounded-[80px] border border-transparent hover:bg-green-bg hover:shadow-select hover:border-green",
-          !withArrow && "px-2",
+          !withArrow && "px-3",
           withArrow && size === "regular" && "pl-5 pr-2",
           withArrow && size === "large" && "px-5",
           isOpen
@@ -46,6 +49,7 @@ export const SelectButton = forwardRef(
           size === "large" && "py-3.5 text-24",
           size === "regular" && "py-2",
           fullWidth && "w-full justify-between",
+          className,
         )}
       >
         {children}

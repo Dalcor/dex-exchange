@@ -32,10 +32,14 @@ export default function NetworkPicker() {
         setIsOpened={setIsOpened}
         placement="bottom-start"
         trigger={
-          <SelectButton isOpen={isOpened} onClick={() => setIsOpened(!isOpened)}>
-            <span className="flex items-center gap-2 min-w-[110px]">
+          <SelectButton
+            className="pl-2 pr-1 py-1 md:py-2 gap-0 md:gap-2 md:px-3"
+            isOpen={isOpened}
+            onClick={() => setIsOpened(!isOpened)}
+          >
+            <span className="flex items-center gap-2 md:min-w-[110px]">
               <Image src={`${currentNetwork?.logo}`} alt="Ethereum" width={24} height={24} />
-              {currentNetwork?.name}
+              <span className="hidden md:inline">{currentNetwork?.name}</span>
             </span>
           </SelectButton>
         }

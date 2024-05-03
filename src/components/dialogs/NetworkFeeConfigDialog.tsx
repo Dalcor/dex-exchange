@@ -14,7 +14,7 @@ import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
 import TextField from "@/components/atoms/TextField";
 import Tooltip from "@/components/atoms/Tooltip";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonVariant } from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
 import addToast from "@/other/toast";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";

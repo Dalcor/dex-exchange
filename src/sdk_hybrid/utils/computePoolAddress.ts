@@ -2,8 +2,10 @@ import { defaultAbiCoder } from "@ethersproject/abi";
 import { getCreate2Address } from "@ethersproject/address";
 import { keccak256 } from "@ethersproject/solidity";
 
-import { FeeAmount, POOL_INIT_CODE_HASH } from "@/sdk_hybrid/constants";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 
+import { POOL_INIT_CODE_HASH } from "../addresses";
+import { DexChainId } from "../chains";
 import { Token, TokenStandard } from "../entities/token";
 
 /**
@@ -46,6 +48,6 @@ export function computePoolAddress({
         ),
       ],
     ),
-    initCodeHashManualOverride ?? POOL_INIT_CODE_HASH,
+    initCodeHashManualOverride ?? POOL_INIT_CODE_HASH[DexChainId.SEPOLIA],
   );
 }

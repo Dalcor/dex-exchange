@@ -4,19 +4,24 @@ import { DexChainId } from "./chains";
 
 export const FACTORY_ADDRESS: Record<DexChainId, Address> = {
   [DexChainId.CALLISTO]: "0xEAc1aF2e4472219b88e56dC009F4824547830AC0",
-  [DexChainId.SEPOLIA]: "0x41368e68E2EB0A74CBa9d4f6B418B487b7df5e58",
+  [DexChainId.SEPOLIA]: "0xb0085429ff43a2a51ec1b1ac8956a35c19ec008e",
 };
 export const ROUTER_ADDRESS: Record<DexChainId, Address> = {
   [DexChainId.CALLISTO]: "0xd71B50caF51f39657BA358759c54777FA44357Fb",
-  [DexChainId.SEPOLIA]: "0xd71B50caF51f39657BA358759c54777FA44357Fb",
+  [DexChainId.SEPOLIA]: "0xf5bf22509f1368a65b758655ee60522bbe7e4e92",
 };
 
 export const QUOTER_ADDRESS: Record<DexChainId, Address> = {
   [DexChainId.CALLISTO]: "0xf35D69f403E89d54e4D3d6B01125010AB596095e",
-  [DexChainId.SEPOLIA]: "0x9a20d5299ffd32053b7642ca57fc2305b2c3d671",
+  [DexChainId.SEPOLIA]: "0x9d5af46fbd55a742969eac7710d54aeff4ace4d9",
 };
 
 export const NONFUNGIBLE_POSITION_MANAGER_ADDRESS: Record<DexChainId, Address> = {
   [DexChainId.CALLISTO]: "0xeAAfD389039229BB850F8F3a9CA5e5E1d53f3BeE",
-  [DexChainId.SEPOLIA]: "0xc70b2f2Db899B8d0E73EE53Dbc4b40a12d0E2be5",
+  [DexChainId.SEPOLIA]: "0xf9b9f98e74a28b6c2cab8cdf66fb7f1a6f671c19",
+};
+
+export const POOL_INIT_CODE_HASH: Record<DexChainId, Address> = {
+  [DexChainId.CALLISTO]: "0xeb2af1344b4aa73e15e4ec4d5110b0358721463fa322ae01294d16e65a9966a3",
+  [DexChainId.SEPOLIA]: "0xab833028026788c713a927db0b749989cac2bdfce76df735761cac2f9c3ec069",
 };

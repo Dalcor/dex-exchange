@@ -1355,4 +1355,4 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;

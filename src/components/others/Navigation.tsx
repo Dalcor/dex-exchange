@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 
-import { Link } from "@/navigation";
+import NavigationItem from "@/components/atoms/NavigationItem";
+import { usePathname } from "@/navigation";
 
 const menuItems: Array<{
   label: any;
@@ -11,37 +12,38 @@ const menuItems: Array<{
     href: "/swap",
   },
   {
-    label: "statistics",
-    href: "#",
+    label: "pools",
+    href: "/pools",
   },
   {
     label: "lending-and-borrowing",
     href: "#",
   },
   {
-    label: "pools",
-    href: "/pools",
+    label: "portfolio",
+    href: "/portfolio",
   },
   {
-    label: "list-your-token",
+    label: "token-listing",
     href: "#",
   },
-  {
-    label: "lib",
-    href: "/lib",
-  },
 ];
+
 export default function Navigation() {
   const t = useTranslations("Trade");
 
+  const pathname = usePathname();
+
   return (
-    <ul className="flex gap-5">
+    <ul className="hidden md:flex">
       {menuItems.map((menuItem) => {
         return (
           <li key={menuItem.label}>
-            <Link className="uppercase hover:text-green duration-200" href={menuItem.href}>
-              {t(menuItem.label)}
-            </Link>
+            <NavigationItem
+              title={t(menuItem.label)}
+              href={menuItem.href}
+              active={pathname.includes(menuItem.href)}
+            />
           </li>
         );
       })}

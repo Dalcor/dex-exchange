@@ -1,10 +1,12 @@
 {
   "Trade": {
     "trade": "Trade",
-    "statistics": "Statistics",
-    "lending-and-borrowing": "Lending & Borrowing",
+    "swap": "Swap",
+    "margin-trading": "Margin trading",
+    "portfolio": "Portfolio",
+    "lending-and-borrowing": "Borrow/Lend",
     "pools": "Pools",
-    "list-your-token": "List your token",
+    "token-listing": "Token listing",
     "lib": "Lib"
   }
 }

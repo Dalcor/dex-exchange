@@ -20,7 +20,13 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
-export default function useRemoveLiquidity({ percentage }: { percentage: number }) {
+export default function useRemoveLiquidity({
+  percentage,
+  tokenId,
+}: {
+  percentage: number;
+  tokenId: string | undefined;
+}) {
   const { slippage, deadline: _deadline } = useTransactionSettingsStore();
   const deadline = useTransactionDeadline(_deadline);
   const { address: accountAddress } = useAccount();
@@ -40,14 +46,14 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
         !accountAddress ||
         !tokenA ||
         !tokenB ||
-        !chainId
+        !chainId ||
+        !tokenId
       ) {
         return;
       }
 
       try {
         const percent = new Percent(percentage, 100);
-
         const partialPosition = new Position({
           pool: position.pool,
           liquidity: percent.multiply(position.liquidity).quotient,
@@ -66,7 +72,7 @@ export default function useRemoveLiquidity({ percentage }: { percentage: number 
         const amount1Min = toHex(minimumAmounts.amount1);
 
         const decreaseParams = {
-          tokenId: toHex(JSBI.BigInt(5)),
+          tokenId: toHex(JSBI.BigInt(tokenId)),
           liquidity: toHex(partialPosition.liquidity),
           amount0Min,
           amount1Min,

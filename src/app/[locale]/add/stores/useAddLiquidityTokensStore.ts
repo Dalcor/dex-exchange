@@ -23,8 +23,8 @@ export const useAddLiquidityTokensStore = create<AddLiquidityTokensStore>((set, 
   setTokenA: (token) =>
     set((state) => {
       const newToken = state.tokenB && token?.equals(state.tokenB) ? undefined : token;
-      const newPath = `/en/add/${newToken?.address0}/${state.tokenB?.address0}`;
-      window.history.replaceState(null, "", newPath);
+      // const newPath = `/en/add/${newToken?.address0}/${state.tokenB?.address0}`;
+      // window.history.replaceState(null, "", newPath);
       return {
         tokenA: newToken,
       };

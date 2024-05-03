@@ -62,7 +62,7 @@ export default function useDeposit({
     // }
 
     if (currentDeposit?.data && amountToCheck) {
-      return currentDeposit.data >= amountToCheck;
+      return (currentDeposit.data as bigint) >= amountToCheck;
     }
 
     return false;
@@ -170,7 +170,7 @@ export default function useDeposit({
     ) {
       return;
     }
-    const amountToWithdraw = currentDeposit.data;
+    const amountToWithdraw = currentDeposit.data as bigint;
 
     setIsWithdrawing(true);
     // setOpened(`Approve ${formatUnits(amountToWithdraw, token.decimals)} ${token.symbol} tokens`)
@@ -254,6 +254,6 @@ export default function useDeposit({
     isWithdrawing,
     writeTokenDeposit,
     writeTokenWithdraw,
-    currentDeposit: currentDeposit.data,
+    currentDeposit: currentDeposit.data as bigint,
   };
 }

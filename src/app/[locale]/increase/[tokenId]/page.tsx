@@ -5,14 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-import { Bound } from "@/app/[locale]/add/[[...currency]]/components/PriceRange/LiquidityChartRangeInput/types";
-import {
-  useAddLiquidity,
-  useV3DerivedMintInfo,
-} from "@/app/[locale]/add/[[...currency]]/hooks/useAddLiquidity";
-import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
-import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityPriceRangeStore";
-import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
+import { Bound } from "@/app/[locale]/add/components/PriceRange/LiquidityChartRangeInput/types";
+import { useAddLiquidity, useV3DerivedMintInfo } from "@/app/[locale]/add/hooks/useAddLiquidity";
+import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
+import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/stores/useLiquidityPriceRangeStore";
+import { useLiquidityTierStore } from "@/app/[locale]/add/stores/useLiquidityTierStore";
 import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
 import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
 import Container from "@/components/atoms/Container";
@@ -38,8 +35,8 @@ import { useRouter } from "@/navigation";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 
-import { DepositAmounts } from "../../add/[[...currency]]/components/DepositAmounts/DepositAmounts";
-import { usePriceRange } from "../../add/[[...currency]]/hooks/usePrice";
+import { DepositAmounts } from "../../add/components/DepositAmounts/DepositAmounts";
+import { usePriceRange } from "../../add/hooks/usePrice";
 import { Field } from "../../swap/stores/useSwapAmountsStore";
 
 export default function IncreaseLiquidityPage({
@@ -254,6 +251,7 @@ export default function IncreaseLiquidityPage({
               isRevokingB={isRevokingB}
               isWithdrawingA={isWithdrawingA}
               isWithdrawingB={isWithdrawingB}
+              // approveTransactions={approv}
             />
             <div className="rounded-3 p-5 bg-tertiary-bg h-min">
               <div className="rounded-3 bg-quaternary-bg mb-4">

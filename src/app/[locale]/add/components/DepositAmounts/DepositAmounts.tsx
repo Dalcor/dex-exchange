@@ -1,13 +1,19 @@
-import TokenDepositCard from "@/app/[locale]/add/[[...currency]]/components/DepositAmounts/TokenDepositCard";
+import { formatEther, formatGwei } from "viem";
+import { useAccount } from "wagmi";
+
+import TokenDepositCard from "@/app/[locale]/add/components/DepositAmounts/TokenDepositCard";
 import {
   Field,
   useLiquidityAmountsStore,
-} from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityAmountsStore";
+} from "@/app/[locale]/add/stores/useAddLiquidityAmountsStore";
 import Tooltip from "@/components/atoms/Tooltip";
-import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
+import { formatFloat } from "@/functions/formatFloat";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
+
+import { ApproveTransaction } from "../../hooks/useLiquidityApprove";
+import { FeeDetailsButton } from "../FeeDetailsButton";
 
 export const DepositAmounts = ({
   parsedAmounts,
@@ -26,6 +32,8 @@ export const DepositAmounts = ({
   isRevokingB,
   isWithdrawingA,
   isWithdrawingB,
+  approveTransactions,
+  gasPrice,
 }: {
   currentAllowanceA?: bigint;
   currentAllowanceB?: bigint;
@@ -46,6 +54,8 @@ export const DepositAmounts = ({
   isWithdrawingB: boolean;
   isRevokingA: boolean;
   isRevokingB: boolean;
+  approveTransactions: ApproveTransaction[];
+  gasPrice?: bigint;
 }) => {
   const {
     typedValue,
@@ -57,12 +67,17 @@ export const DepositAmounts = ({
     setTokenAStandardRatio,
     setTokenBStandardRatio,
   } = useLiquidityAmountsStore();
+  const { chain } = useAccount();
 
   // get formatted amounts
   const formattedAmounts = {
     [independentField]: typedValue,
     [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? "",
   };
+
+  const totalGasLimit = approveTransactions.reduce((acc, { estimatedGas }) => {
+    return estimatedGas ? acc + estimatedGas : acc;
+  }, BigInt(0));
 
   return (
     <div className="flex flex-col gap-5">
@@ -88,21 +103,17 @@ export const DepositAmounts = ({
             Gas price
             <Tooltip iconSize={20} text="Tooltip text" />
           </div>
-          <div>33.53 GWEI</div>
+          <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
         </div>
         <div className="flex flex-col">
           <div className="text-secondary-text text-14">Total fee</div>
-          <div>0.005 ETH</div>
+          <div>{`${gasPrice ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</div>
         </div>
         <div className="flex flex-col">
           <div className="text-secondary-text text-14">Transactions</div>
-          <div>2</div>
+          <div>{approveTransactions.length + 1}</div>
         </div>
-        <div>
-          <Button size={ButtonSize.EXTRA_SMALL} variant={ButtonVariant.OUTLINED}>
-            Details
-          </Button>
-        </div>
+        <FeeDetailsButton approveTransactions={approveTransactions} gasPrice={gasPrice} />
       </div>
       {currencies[Field.CURRENCY_B] && (
         <TokenDepositCard

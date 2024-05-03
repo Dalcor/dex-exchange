@@ -41,7 +41,7 @@ function StandardOption({
     >
       <div className="flex items-center gap-1">
         <span className="text-12">Standard</span>
-        <Badge size="x-small" color="green" text={standard} />
+        <Badge color="green" text={standard} />
         <Tooltip iconSize={16} text={`${standard} Tooltip`} />
       </div>
       <span className="block text-secondary-text">

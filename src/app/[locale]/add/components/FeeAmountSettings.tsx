@@ -50,8 +50,6 @@ function FeeAmountOption({
                 : "No data"
           }
         />
-        <span></span>
-        {/*<TextLabel text="1% select" color="grey"/>*/}
       </div>
       <span className="text-secondary-text">{FEE_AMOUNT_DETAIL[feeAmount].description}</span>
     </button>

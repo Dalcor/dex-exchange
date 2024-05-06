@@ -64,12 +64,6 @@ export function Chart({
     setZoom(null);
   }, [zoomLevels]);
 
-  useEffect(() => {
-    if (!brushDomain) {
-      onBrushDomainChange(xScale.domain() as [number, number], undefined);
-    }
-  }, [brushDomain, onBrushDomainChange, xScale]);
-
   return (
     <>
       <Zoom

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/stores/useLiquidityTierStore";
 import { usePathname } from "@/navigation";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 
 import { useTokens } from "./useTokenLists";
 
@@ -50,7 +51,7 @@ export const usePoolsSearchParams = () => {
     if (!isInitialized && tokens.length) {
       const queryTokenA = searchParams.get(PoolsQueryParams.tokenA);
       const queryTokenB = searchParams.get(PoolsQueryParams.tokenB);
-      const queryTier = searchParams.get(PoolsQueryParams.tier);
+      const queryTier = parseInt(searchParams.get(PoolsQueryParams.tier) || "");
       if (queryTokenA) {
         const token = tokens.find((t) => t.address0 === queryTokenA);
         if (token) {
@@ -63,9 +64,8 @@ export const usePoolsSearchParams = () => {
           setTokenB(token);
         }
       }
-      if (queryTier) {
-        // TODO add check
-        setTier(queryTier as any);
+      if (queryTier && Object.values(FeeAmount).includes(queryTier)) {
+        setTier(queryTier as FeeAmount);
       }
 
       setIsInitialized(true);

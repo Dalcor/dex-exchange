@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useMemo } from "react";
+import { ReactNode, useCallback, useEffect, useMemo } from "react";
 
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
@@ -18,9 +18,9 @@ const ChartWrapper = ({ children, ...props }: any) => (
 
 function InfoBox({ message, icon }: { message?: ReactNode; icon: ReactNode }) {
   return (
-    // <ColumnCenter style={{ height: "100%", justifyContent: "center" }}>
     <div style={{ height: "100%", justifyContent: "center" }}>
       {icon}
+      {" icon: "}
       {message && (
         //   <ThemedText.DeprecatedMediumHeader padding={10} marginTop="20px" textAlign="center">
         //   {message}
@@ -133,6 +133,18 @@ export default function LiquidityChartRangeInput({
 
   const isUninitialized = !currencyA || !currencyB || (formattedData === undefined && !isLoading);
 
+  const zoomLevels = ZOOM_LEVELS[feeAmount ?? FeeAmount.MEDIUM];
+
+  // SET DEFAULT PRICE RANGE
+  useEffect(() => {
+    if (price && !brushDomain) {
+      onBrushDomainChangeEnded(
+        [price * zoomLevels.initialMin, price * zoomLevels.initialMax],
+        undefined,
+      );
+    }
+  }, [brushDomain, onBrushDomainChangeEnded, price, zoomLevels.initialMin, zoomLevels.initialMax]);
+
   return (
     // <AutoColumn gap="md" style={{ minHeight: "200px" }}>
     <div style={{ minHeight: "200px" }}>
@@ -181,7 +193,7 @@ export default function LiquidityChartRangeInput({
             brushLabels={brushLabelValue}
             brushDomain={brushDomain}
             onBrushDomainChange={onBrushDomainChangeEnded}
-            zoomLevels={ZOOM_LEVELS[feeAmount ?? FeeAmount.MEDIUM]}
+            zoomLevels={zoomLevels}
             ticksAtLimit={ticksAtLimit}
           />
         </ChartWrapper>

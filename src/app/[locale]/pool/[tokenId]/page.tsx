@@ -8,9 +8,9 @@ import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/Pos
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
-import Badge from "@/components/badges/Badge";
+import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import IconButton, { IconButtonSize } from "@/components/buttons/IconButton";
 import RecentTransactions from "@/components/others/RecentTransactions";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
@@ -79,7 +79,10 @@ export default function PoolPage({
           <div className="flex items-center gap-2">
             <TokensPair tokenA={position?.pool.token0} tokenB={position?.pool.token1} />
             {position && (
-              <Badge text={`${FEE_AMOUNT_DETAIL[position.pool.fee].label}%`} color="grey" />
+              <Badge
+                text={`${FEE_AMOUNT_DETAIL[position.pool.fee].label}%`}
+                variant={BadgeVariant.DEFAULT}
+              />
             )}
             <RangeBadge
               status={
@@ -114,7 +117,7 @@ export default function PoolPage({
         </div>
         <div className="grid grid-cols-2 items-center gap-3 mb-5">
           <Button
-            size="small"
+            size={ButtonSize.SMALL}
             onClick={() => router.push(`/increase/${params.tokenId}`)}
             variant={ButtonVariant.OUTLINED}
             fullWidth
@@ -122,7 +125,7 @@ export default function PoolPage({
             Increase liquidity
           </Button>
           <Button
-            size="small"
+            size={ButtonSize.SMALL}
             onClick={() => router.push(`/remove/${params.tokenId}`)}
             variant={ButtonVariant.OUTLINED}
             fullWidth
@@ -158,7 +161,7 @@ export default function PoolPage({
                 <h3 className="text-14">Unclaimed fees</h3>
                 <p className="text-20 font-bold mb-3 text-green">$0.00</p>
               </div>
-              <Button onClick={handleCollectFees} size="small">
+              <Button onClick={handleCollectFees} size={ButtonSize.SMALL}>
                 Collect fees
               </Button>
             </div>

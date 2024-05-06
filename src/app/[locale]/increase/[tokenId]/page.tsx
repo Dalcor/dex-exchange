@@ -251,7 +251,7 @@ export default function IncreaseLiquidityPage({
               isRevokingB={isRevokingB}
               isWithdrawingA={isWithdrawingA}
               isWithdrawingB={isWithdrawingB}
-              // approveTransactions={approv}
+              approveTransactions={[]}
             />
             <div className="rounded-3 p-5 bg-tertiary-bg h-min">
               <div className="rounded-3 bg-quaternary-bg mb-4">

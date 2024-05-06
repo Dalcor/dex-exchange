@@ -7,7 +7,7 @@ import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import RadioButton from "@/components/buttons/RadioButton";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { TokenList } from "@/config/types/TokenList";
@@ -190,7 +190,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                   />
                   <Button
                     fullWidth
-                    size="regular"
+                    size={ButtonSize.MEDIUM}
                     disabled={!checkedUnderstand}
                     onClick={() => {
                       addTokenList(
@@ -224,7 +224,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
             <div className="flex items-center justify-between">
               <div className="w-[120px]">
                 <Button
-                  size="regular"
+                  size={ButtonSize.MEDIUM}
                   onClick={() => {
                     if (fileInput.current && fileInput.current) {
                       fileInput.current.click();
@@ -260,7 +260,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
 
             <Button
               fullWidth
-              size="regular"
+              size={ButtonSize.MEDIUM}
               onClick={() => {
                 handleJSONImport();
                 setContent("default");

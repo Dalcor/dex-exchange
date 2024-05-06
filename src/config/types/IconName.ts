@@ -115,6 +115,9 @@ export const svgIconsNames = [
   "custom-gas",
   "fast-gas",
   "auto-increase",
+  "margin-trading",
+  "portfolio",
+  "token",
 ] as const;
 
 export const socialIconNames = [""] as const;

@@ -1,8 +1,7 @@
 import { useArgs } from "@storybook/client-api";
 import type { Meta, StoryObj } from "@storybook/react";
-import { ChangeEvent } from "react";
 
-import { InputRange } from "@/app/[locale]/add/[[...currency]]/components/DepositAmounts/TokenDepositCard";
+import { InputRange } from "@/app/[locale]/add/components/DepositAmounts/TokenDepositCard";
 
 const meta = {
   title: "Atoms/Input Range",

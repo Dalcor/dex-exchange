@@ -7,6 +7,10 @@ interface Props {
 }
 
 export default function Preloader({ size = 24, type = "circular" }: Props) {
+  const internalSize = useMemo(() => {
+    return size / Math.sqrt(2);
+  }, [size]);
+
   switch (type) {
     case "circular":
       return (
@@ -29,10 +33,6 @@ export default function Preloader({ size = 24, type = "circular" }: Props) {
         </div>
       );
     case "awaiting":
-      const internalSize = useMemo(() => {
-        return size / Math.sqrt(2);
-      }, [size]);
-
       return (
         <div className="flex items-center justify-center" style={{ width: size, height: size }}>
           <div

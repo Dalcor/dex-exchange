@@ -1,10 +1,15 @@
 import { defaultAbiCoder } from "@ethersproject/abi";
 import { getCreate2Address } from "@ethersproject/address";
 import { keccak256 } from "@ethersproject/solidity";
+import { readContract } from "@wagmi/core";
+import { Address } from "viem";
+import { useAccount, useChainId, useReadContract } from "wagmi";
 
+import { FACTORY_ABI } from "@/config/abis/factory";
+import { config } from "@/config/wagmi/config";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 
-import { POOL_INIT_CODE_HASH } from "../addresses";
+import { FACTORY_ADDRESS, POOL_INIT_CODE_HASH } from "../addresses";
 import { DexChainId } from "../chains";
 import { Token, TokenStandard } from "../entities/token";
 
@@ -51,3 +56,24 @@ export function computePoolAddress({
     initCodeHashManualOverride ?? POOL_INIT_CODE_HASH[DexChainId.SEPOLIA],
   );
 }
+
+export const computePoolAddressDex = async ({
+  tokenA,
+  tokenB,
+  tier,
+  chainId,
+}: {
+  tokenA: Token;
+  tokenB: Token;
+  tier: FeeAmount;
+  chainId: DexChainId;
+}) => {
+  const poolContract = await readContract(config, {
+    abi: FACTORY_ABI,
+    address: FACTORY_ADDRESS[chainId],
+    functionName: "getPool",
+    args: [tokenA.address0 as Address, tokenB.address0 as Address, tier],
+  });
+
+  return poolContract;
+};

@@ -5,12 +5,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-import FeeAmountSettings from "@/app/[locale]/add/[[...currency]]/components/FeeAmountSettings";
-import { useAddLiquidityTokensStore } from "@/app/[locale]/add/[[...currency]]/stores/useAddLiquidityTokensStore";
-import { useLiquidityTierStore } from "@/app/[locale]/add/[[...currency]]/stores/useLiquidityTierStore";
+import FeeAmountSettings from "@/app/[locale]/add/components/FeeAmountSettings";
+import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
+import { useLiquidityTierStore } from "@/app/[locale]/add/stores/useLiquidityTierStore";
 import Container from "@/components/atoms/Container";
 import SelectButton from "@/components/atoms/SelectButton";
-import Button, { ButtonVariant } from "@/components/buttons/Button";
 import IconButton, {
   IconButtonSize,
   IconButtonVariant,
@@ -20,9 +19,9 @@ import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import RecentTransactions from "@/components/others/RecentTransactions";
 import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
-import { FEE_TIERS } from "@/config/constants/liquidityFee";
 import useAllowance from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
+import { usePoolsSearchParams } from "@/hooks/usePoolsSearchParams";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
@@ -30,9 +29,12 @@ import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 
+import { ApproveButton } from "./components/ApproveButton";
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
+import { MintButton } from "./components/MintButton";
 import { PriceRange } from "./components/PriceRange/PriceRange";
 import { useAddLiquidity, useV3DerivedMintInfo } from "./hooks/useAddLiquidity";
+import { useLiquidityApprove } from "./hooks/useLiquidityApprove";
 import { usePriceRange } from "./hooks/usePrice";
 import { Field, useTokensStandards } from "./stores/useAddLiquidityAmountsStore";
 
@@ -43,6 +45,7 @@ export default function AddPoolPage({
     currency: [string, string, string];
   };
 }) {
+  usePoolsSearchParams();
   useRecentTransactionTracking();
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
@@ -74,28 +77,6 @@ export default function AddPoolPage({
     },
     [currentlyPicking, setTokenA, setTokenB],
   );
-
-  useEffect(() => {
-    if (currency?.[0]) {
-      const token = tokens.find((t) => t.address0 === currency[0]);
-      if (token) {
-        setTokenA(token);
-      }
-    }
-
-    if (currency?.[1]) {
-      const token = tokens.find((t) => t.address0 === currency[1]);
-      if (token) {
-        setTokenB(token);
-      }
-    }
-
-    if (currency?.[2]) {
-      if (FEE_TIERS.includes(Number(currency[2]))) {
-        setTier(Number(currency[2]));
-      }
-    }
-  }, [currency, setTier, setTokenA, setTokenB, tokens]);
 
   // PRICE RANGE HOOK START
   const {
@@ -201,9 +182,9 @@ export default function AddPoolPage({
 
   // Deposit Amounts END
 
-  const { tokenAStandard, tokenBStandard } = useTokensStandards();
-
   const { handleAddLiquidity } = useAddLiquidity();
+  const { approveTransactions, handleApprove, approveTransactionsType, gasPrice } =
+    useLiquidityApprove();
 
   return (
     <Container>
@@ -307,6 +288,8 @@ export default function AddPoolPage({
               isRevokingB={isRevokingB}
               isWithdrawingA={isWithdrawingA}
               isWithdrawingB={isWithdrawingB}
+              approveTransactions={approveTransactions}
+              gasPrice={gasPrice}
             />
             <PriceRange
               noLiquidity={noLiquidity}
@@ -325,62 +308,15 @@ export default function AddPoolPage({
               outOfRange={outOfRange}
             />
           </div>
-
-          <div className="grid gap-2 mb-5 grid-cols-2 mt-5">
-            {tokenAStandard === "ERC-20" ? (
-              <>
-                {!isAllowedA && (
-                  <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => approveA()}>
-                    {isLoadingA || isPendingA ? (
-                      "Loading..."
-                    ) : (
-                      <span>Approve {tokenA?.symbol}</span>
-                    )}
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                {!isDepositedA && (
-                  <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => depositA()}>
-                    {isDepositingA ? "Loading..." : <span>Deposit {tokenA?.symbol}</span>}
-                  </Button>
-                )}
-              </>
-            )}
-            {tokenBStandard === "ERC-20" ? (
-              <>
-                {!isAllowedB && (
-                  <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => approveB()}>
-                    {isLoadingB || isPendingB ? (
-                      "Loading..."
-                    ) : (
-                      <span>Approve {tokenB?.symbol}</span>
-                    )}
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                {!isDepositedB && (
-                  <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => depositB()}>
-                    {isDepositingB ? "Loading..." : <span>Deposit {tokenB?.symbol}</span>}
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-          {noLiquidity ? (
-            <Button
-              onClick={() => handleAddLiquidity({ position, increase: false, createPool: true })}
-              fullWidth
-            >
-              Create Pool & Mint liquidity
-            </Button>
+          {approveTransactions?.length ? (
+            <ApproveButton
+              approveTransactions={approveTransactions}
+              handleApprove={handleApprove}
+              approveTransactionsType={approveTransactionsType}
+              gasPrice={gasPrice}
+            />
           ) : (
-            <Button onClick={() => handleAddLiquidity({ position, increase: false })} fullWidth>
-              Mint liquidity
-            </Button>
+            <MintButton />
           )}
         </div>
         <div className="flex flex-col gap-5">

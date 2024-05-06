@@ -45,7 +45,10 @@ export default function DecreaseLiquidityPage({
   const { inRange, removed } = usePositionRangeStatus({ position });
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
-  const { handleRemoveLiquidity } = useRemoveLiquidity({ percentage: value });
+  const { handleRemoveLiquidity } = useRemoveLiquidity({
+    percentage: value,
+    tokenId: params.tokenId,
+  });
 
   return (
     <Container>

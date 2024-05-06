@@ -294,6 +294,48 @@ export default function useAllowance({
     }
   }, [contractAddress, token, walletClient, address, chainId, publicClient, addRecentTransaction]);
 
+  const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
+  const [isEstimatedGasLoading, setIsEstimatedGasLoading] = useState(false);
+  useMemo(async () => {
+    if (
+      !amountToCheck ||
+      !contractAddress ||
+      !token ||
+      !walletClient ||
+      !address ||
+      !chainId ||
+      !publicClient
+    ) {
+      return;
+    }
+
+    setIsEstimatedGasLoading(true);
+
+    const params: {
+      address: Address;
+      account: Address;
+      abi: Abi;
+      functionName: "approve";
+      args: [Address, bigint];
+    } = {
+      address: token.address0 as Address,
+      account: address,
+      abi: ERC20_ABI,
+      functionName: "approve",
+      args: [contractAddress!, amountToCheck!],
+    };
+
+    try {
+      const estimatedGas = await publicClient.estimateContractGas(params);
+      setEstimatedGas(estimatedGas);
+      setIsEstimatedGasLoading(false);
+    } catch (error) {
+      console.error("~ estimatedGas ~ error:", error);
+      setEstimatedGas(null);
+      setIsEstimatedGasLoading(false);
+    }
+  }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
+
   return {
     isAllowed,
     isLoading: status === AllowanceStatus.LOADING,
@@ -302,5 +344,6 @@ export default function useAllowance({
     writeTokenApprove,
     writeTokenRevoke,
     currentAllowance: currentAllowance.data,
+    estimatedGas,
   };
 }

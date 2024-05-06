@@ -14,7 +14,7 @@ type Props =
     }
   | {
       variant: BadgeVariant.PERCENTAGE;
-      percentage: number;
+      percentage: number | string;
     }
   | {
       variant: BadgeVariant.DEFAULT;
@@ -59,7 +59,7 @@ export default function Badge(props: Props) {
             "border border-secondary-text text-secondary-text px-3 rounded-5 h-6 flex items-center justify-center",
           )}
         >
-          {percentage}% select
+          {typeof percentage === "number" ? `${percentage}% select` : percentage}
         </div>
       );
   }

@@ -10,7 +10,7 @@ import { BigintIsh, FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Pool } from "@/sdk_hybrid/entities/pool";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
-import { computePoolAddress } from "@/sdk_hybrid/utils/computePoolAddress";
+import { computePoolAddress, computePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 import { usePoolsStore } from "@/stores/usePoolsStore";
 
 // Classes are expensive to instantiate, so this caches the recently instantiated pools.

@@ -7,9 +7,9 @@ import Container from "@/components/atoms/Container";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
-import Badge from "@/components/badges/Badge";
+import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonSize } from "@/components/buttons/Button";
 import TokensPair from "@/components/others/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import usePositions, {
@@ -64,9 +64,9 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
         <div className="flex items-center gap-2">
           <TokensPair tokenA={tokenA} tokenB={tokenB} />
           {fee ? (
-            <Badge color="grey" text={`${FEE_AMOUNT_DETAIL[fee].label}%`} />
+            <Badge variant={BadgeVariant.DEFAULT} text={`${FEE_AMOUNT_DETAIL[fee].label}%`} />
           ) : (
-            <Badge color="grey" text="loading..." />
+            <Badge variant={BadgeVariant.DEFAULT} text="loading..." />
           )}
         </div>
         <RangeBadge
@@ -102,7 +102,7 @@ export default function PoolsPage() {
         <div className="w-full">
           <div className="flex items-center justify-between mb-5">
             <h1 className="text-24">Pools</h1>
-            <Button size="regular" onClick={() => router.push("/add")}>
+            <Button size={ButtonSize.MEDIUM} onClick={() => router.push("/add")}>
               <span className="flex items-center gap-2">
                 New position
                 <Svg iconName="add" />

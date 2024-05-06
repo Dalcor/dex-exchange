@@ -5,9 +5,9 @@ import { useState } from "react";
 
 import Container from "@/components/atoms/Container";
 import LocaleSwitcher from "@/components/atoms/LocaleSwitcher";
-import IconButton, { IconButtonSize } from "@/components/buttons/IconButton";
 import AccountDialog from "@/components/dialogs/AccountDialog";
 import ConnectWalletDialog from "@/components/dialogs/ConnectWalletDialog";
+import MobileMenu from "@/components/others/MobileMenu";
 import Navigation from "@/components/others/Navigation";
 import NetworkPicker from "@/components/others/NetworkPicker";
 import TokenListsSettings from "@/components/others/TokenListsSettings";
@@ -38,13 +38,17 @@ export default function Header() {
             />
             <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet} />
 
-            <div className="md:hidden">
-              <IconButton
-                buttonSize={IconButtonSize.LARGE}
-                iconName="menu"
-                onClick={() => console.log("Hey")}
-              />
-            </div>
+            <MobileMenu />
+          </div>
+
+          <div className="md:hidden grid grid-cols-2 fixed bottom-0 left-0 bg-secondary-bg z-[98] gap-2 w-full px-4 py-2">
+            <TokenListsSettings isMobile={true} />
+            <AccountDialog
+              isOpen={isOpenedAccount}
+              setIsOpen={setIsOpenedAccount}
+              setOpenedWallet={setOpenedWallet}
+              isMobile={true}
+            />
           </div>
         </div>
       </Container>

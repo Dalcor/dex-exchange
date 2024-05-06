@@ -26,6 +26,7 @@ interface Props {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   setOpenedWallet: (isOpen: boolean) => void;
+  isMobile?: boolean;
 }
 
 function IconButton({
@@ -44,7 +45,12 @@ function IconButton({
   );
 }
 
-export default function AccountDialog({ isOpen, setIsOpen, setOpenedWallet }: Props) {
+export default function AccountDialog({
+  isOpen,
+  setIsOpen,
+  setOpenedWallet,
+  isMobile = false,
+}: Props) {
   const { disconnect } = useDisconnect();
   const { address, connector } = useAccount();
 
@@ -79,12 +85,18 @@ export default function AccountDialog({ isOpen, setIsOpen, setOpenedWallet }: Pr
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <div className="hidden md:block">
+    <div className={clsx(!isMobile && "hidden md:block")}>
       <Popover
         isOpened={isOpen}
         setIsOpened={setIsOpen}
         placement={"bottom-start"}
-        trigger={<WalletOrConnectButton openWallet={setOpenedWallet} openAccount={setIsOpen} />}
+        trigger={
+          <WalletOrConnectButton
+            fullWidth={isMobile}
+            openWallet={setOpenedWallet}
+            openAccount={setIsOpen}
+          />
+        }
       >
         <div className="bg-primary-bg rounded-5 border border-secondary-border shadow-popup">
           <DialogHeader onClose={() => setIsOpen(false)} title="My wallet" />

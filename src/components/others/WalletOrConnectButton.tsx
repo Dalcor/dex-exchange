@@ -8,23 +8,29 @@ import Button, { ButtonSize } from "@/components/buttons/Button";
 interface Props {
   openWallet: (isOpen: boolean) => void;
   openAccount: (isOpen: boolean) => void;
+  fullWidth?: boolean;
 }
 
 export const WalletOrConnectButton = forwardRef(
-  ({ openWallet, openAccount }: Props, ref: ForwardedRef<HTMLButtonElement>) => {
+  ({ openWallet, openAccount, fullWidth }: Props, ref: ForwardedRef<HTMLButtonElement>) => {
     const { address, isConnected, isConnecting } = useAccount();
 
     return (
       <>
         {isConnected && address ? (
-          <SelectButton ref={ref} withArrow={false} onClick={() => openAccount(true)}>
+          <SelectButton
+            fullWidth={fullWidth}
+            ref={ref}
+            withArrow={false}
+            onClick={() => openAccount(true)}
+          >
             <span className="flex gap-2 items-center px-3">
               <Svg iconName="wallet" />
               {`${address.slice(0, 5)}...${address.slice(-3)}`}
             </span>
           </SelectButton>
         ) : (
-          <Button size={ButtonSize.MEDIUM} onClick={() => openWallet(true)}>
+          <Button fullWidth={fullWidth} size={ButtonSize.MEDIUM} onClick={() => openWallet(true)}>
             Connect wallet
           </Button>
         )}

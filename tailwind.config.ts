@@ -28,6 +28,8 @@ const config: Config = {
         "navigation-active":
           "linear-gradient(180deg, #0B0B0B -6.77%, #283631 87.04%, #70C59E 100%)",
         "navigation-hover": "linear-gradient(180deg, #0F0F0F -6.77%, #3B4E47 100%);",
+        "navigation-active-mobile":
+          "linear-gradient(270deg, #1D1E1E 13.5%, #283631 97.85%, #70C59E 100%)",
       },
       keyframes: {
         orbit: {

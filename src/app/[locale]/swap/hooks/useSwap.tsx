@@ -95,18 +95,20 @@ export default function useSwap() {
       return {
         address: ROUTER_ADDRESS[chainId as DexChainId],
         abi: ROUTER_ABI,
-        functionName: "exactInputSingle1" as "exactInputSingle1",
+        functionName: "exactInputSingle" as "exactInputSingle",
         args: [
-          tokenAAddress,
-          tokenBAddress,
-          FeeAmount.MEDIUM,
-          address as Address,
-          deadline,
-          parseUnits(typedValue, tokenA.decimals),
-          BigInt(0),
-          BigInt(0),
-        ] as any,
-        // ...gasPriceFormatted,
+          {
+            tokenIn: tokenAAddress,
+            tokenOut: tokenBAddress,
+            fee: FeeAmount.MEDIUM,
+            recipient: address as Address,
+            deadline,
+            amountIn: parseUnits(typedValue, tokenA.decimals),
+            amountOutMinimum: BigInt(0),
+            sqrtPriceLimitX96: BigInt(0),
+            prefer223Out: false,
+          },
+        ],
       };
     }
 
@@ -116,16 +118,19 @@ export default function useSwap() {
         value: 0,
         data: encodeFunctionData({
           abi: ROUTER_ABI,
-          functionName: "exactInputSingle1",
+          functionName: "exactInputSingle",
           args: [
-            tokenAAddress,
-            tokenBAddress,
-            FeeAmount.MEDIUM,
-            address as Address,
-            deadline,
-            parseUnits(typedValue, tokenA.decimals),
-            BigInt(0),
-            BigInt(0),
+            {
+              tokenIn: tokenAAddress,
+              tokenOut: tokenBAddress,
+              fee: FeeAmount.MEDIUM,
+              recipient: address as Address,
+              deadline,
+              amountIn: parseUnits(typedValue, tokenA.decimals),
+              amountOutMinimum: BigInt(0),
+              sqrtPriceLimitX96: BigInt(0),
+              prefer223Out: false,
+            },
           ],
         }),
       };
@@ -204,7 +209,7 @@ export default function useSwap() {
           },
           params: {
             ...stringifyObject(swapParams),
-            abi: [getAbiItem({ name: "exactInputSingle1", abi: ROUTER_ABI })],
+            abi: [getAbiItem({ name: "exactInputSingle", abi: ROUTER_ABI })],
           },
           title: {
             symbol0: tokenA.symbol!,

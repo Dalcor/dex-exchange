@@ -48,7 +48,8 @@ export const SelectButton = forwardRef(
               : "bg-secondary-bg",
           size === "large" && "py-3.5 text-24",
           size === "regular" && "py-2",
-          fullWidth && "w-full justify-between",
+          fullWidth && withArrow && "w-full justify-between",
+          fullWidth && !withArrow && "w-full justify-center",
           className,
         )}
       >

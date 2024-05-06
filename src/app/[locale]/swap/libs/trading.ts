@@ -41,13 +41,11 @@ export function useTrade(): { trade: TokenTrade | null } {
     abi: QUOTER_ABI,
     functionName: "quoteExactInputSingle",
     args: [
-      {
-        tokenIn: tokenAAddress as Address,
-        tokenOut: tokenBAddress as Address,
-        fee: FeeAmount.MEDIUM, //3000
-        amountIn: parseUnits(typedValue, tokenA?.decimals || 18),
-        sqrtPriceLimitX96: BigInt(0),
-      },
+      tokenAAddress as Address,
+      tokenBAddress as Address,
+      FeeAmount.MEDIUM, //3000
+      parseUnits(typedValue, tokenA?.decimals || 18),
+      BigInt(0),
     ],
     query: {
       enabled:
@@ -74,10 +72,7 @@ export function useTrade(): { trade: TokenTrade | null } {
 
   const amountOut = useMemo(() => {
     if (amountOutData.data) {
-      const [_amountOut, sqrtPriceX96AfterList, initializedTicksCrossedList, gasEstimate] =
-        amountOutData.data.result;
-
-      return _amountOut;
+      return amountOutData.data.result;
     }
 
     return;

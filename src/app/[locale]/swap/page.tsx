@@ -241,16 +241,20 @@ export default function SwapPage() {
       <Container>
         <div
           className={clsx(
-            "grid py-4 md:py-[80px] grid-cols-1 md:grid-areas-[left_right] grid-areas-[right,left]",
-            showRecentTransactions && "grid-cols-1 md:grid-cols-2 gap-4",
+            "grid py-4 md:py-[80px] grid-cols-1",
+            showRecentTransactions
+              ? "md:grid-cols-2 gap-4 md:grid-areas-[left_right] grid-areas-[right,left]"
+              : "grid-areas-[right]",
           )}
         >
-          <div className="grid-in-[left]">
-            <RecentTransactions
-              showRecentTransactions={showRecentTransactions}
-              handleClose={() => setShowRecentTransactions(false)}
-            />
-          </div>
+          {showRecentTransactions && (
+            <div className="grid-in-[left]">
+              <RecentTransactions
+                showRecentTransactions={showRecentTransactions}
+                handleClose={() => setShowRecentTransactions(false)}
+              />
+            </div>
+          )}
 
           <div className="flex justify-center grid-in-[right]">
             <div className="grid gap-5 w-full md:w-[640px]">

@@ -18,6 +18,7 @@ interface Props {
   isOpened?: boolean;
   setIsOpened?: (isOpened: boolean) => void;
   trigger: ReactElement;
+  customOffset?: number;
 }
 
 export default function Popover({
@@ -26,11 +27,12 @@ export default function Popover({
   setIsOpened,
   children,
   trigger,
+  customOffset,
 }: PropsWithChildren<Props>) {
   const { refs, floatingStyles, context } = useFloating({
     open: isOpened,
     onOpenChange: setIsOpened,
-    middleware: [offset(24), flip({ fallbackAxisSideDirection: "end" }), shift()],
+    middleware: [offset(customOffset || 24), flip({ fallbackAxisSideDirection: "end" }), shift()],
     placement,
     whileElementsMounted: autoUpdate,
   });

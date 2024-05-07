@@ -13,6 +13,7 @@ const config: Config = {
         select: "0 0 10px 0 #8EFFCB99",
         checkbox: "0 0 8px 0 #B3FFE2CC",
         popup: "0 4px 42px 0px #000000E6",
+        popover: "0 4px 42px 0px #000000CC",
         error: "0px 0px 10px 0px #D13B3B99",
         warning: "0px 0px 10px 0px #D9A25199",
       },

@@ -8,7 +8,7 @@ import { IconName } from "@/config/types/IconName";
 import { Link, usePathname } from "@/navigation";
 import addToast from "@/other/toast";
 
-function MobileLink({
+export function MobileLink({
   href,
   iconName,
   title,

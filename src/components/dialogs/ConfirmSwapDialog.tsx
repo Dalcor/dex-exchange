@@ -325,12 +325,12 @@ export default function ConfirmSwapDialog() {
             <SwapDetailsRow
               title="Trading fee"
               value="Loading..."
-              tooltipText="Minimum received tooltip"
+              tooltipText="Trading fee tooltip"
             />
             <SwapDetailsRow
               title="Order routing"
               value="Loading..."
-              tooltipText="Minimum received tooltip"
+              tooltipText="Order routing tooltip"
             />
             <SwapDetailsRow
               title="Max. slippage"

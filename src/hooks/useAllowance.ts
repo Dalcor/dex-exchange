@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-// import { isNativeToken } from "@/other/isNativeToken";
 import { Abi, Address, formatUnits, getAbiItem, parseUnits } from "viem";
 import {
   useAccount,
@@ -10,8 +9,7 @@ import {
 } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
-// import { useRecentTransactionsStore } from "@/stores/useRecentTransactions";
-// import { useAwaitingDialogStore } from "@/stores/useAwaitingDialogStore";
+import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
 import {
@@ -45,7 +43,7 @@ export default function useAllowance({
 
   const { addRecentTransaction } = useRecentTransactionsStore();
 
-  const currentAllowance = useReadContract({
+  const { refetch, data: currentAllowanceData } = useReadContract({
     abi: ERC20_ABI,
     address: token?.address0 as Address,
     functionName: "allowance",
@@ -65,8 +63,8 @@ export default function useAllowance({
   const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {
-    currentAllowance.refetch();
-  }, [currentAllowance, blockNumber]);
+    refetch();
+  }, [refetch, blockNumber]);
 
   const isAllowed = useMemo(() => {
     if (!token) {
@@ -77,12 +75,12 @@ export default function useAllowance({
     //   return true;
     // }
 
-    if (currentAllowance?.data && amountToCheck) {
-      return currentAllowance.data >= amountToCheck;
+    if (currentAllowanceData && amountToCheck) {
+      return currentAllowanceData >= amountToCheck;
     }
 
     return false;
-  }, [amountToCheck, currentAllowance?.data, token]);
+  }, [amountToCheck, currentAllowanceData, token]);
 
   // const { data: simulateData } = useSimulateContract({
   //   address: tokenAddress,
@@ -296,44 +294,46 @@ export default function useAllowance({
 
   const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
   const [isEstimatedGasLoading, setIsEstimatedGasLoading] = useState(false);
-  useMemo(async () => {
-    if (
-      !amountToCheck ||
-      !contractAddress ||
-      !token ||
-      !walletClient ||
-      !address ||
-      !chainId ||
-      !publicClient
-    ) {
-      return;
-    }
+  useEffect(() => {
+    IIFE(async () => {
+      if (
+        !amountToCheck ||
+        !contractAddress ||
+        !token ||
+        !walletClient ||
+        !address ||
+        !chainId ||
+        !publicClient
+      ) {
+        return;
+      }
 
-    setIsEstimatedGasLoading(true);
+      setIsEstimatedGasLoading(true);
 
-    const params: {
-      address: Address;
-      account: Address;
-      abi: Abi;
-      functionName: "approve";
-      args: [Address, bigint];
-    } = {
-      address: token.address0 as Address,
-      account: address,
-      abi: ERC20_ABI,
-      functionName: "approve",
-      args: [contractAddress!, amountToCheck!],
-    };
+      const params: {
+        address: Address;
+        account: Address;
+        abi: Abi;
+        functionName: "approve";
+        args: [Address, bigint];
+      } = {
+        address: token.address0 as Address,
+        account: address,
+        abi: ERC20_ABI,
+        functionName: "approve",
+        args: [contractAddress!, amountToCheck!],
+      };
 
-    try {
-      const estimatedGas = await publicClient.estimateContractGas(params);
-      setEstimatedGas(estimatedGas);
-      setIsEstimatedGasLoading(false);
-    } catch (error) {
-      console.error("~ estimatedGas ~ error:", error);
-      setEstimatedGas(null);
-      setIsEstimatedGasLoading(false);
-    }
+      try {
+        const estimatedGas = await publicClient.estimateContractGas(params);
+        setEstimatedGas(estimatedGas);
+        setIsEstimatedGasLoading(false);
+      } catch (error) {
+        console.error("~ estimatedGas ~ error:", error);
+        setEstimatedGas(null);
+        setIsEstimatedGasLoading(false);
+      }
+    });
   }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
 
   return {
@@ -343,7 +343,7 @@ export default function useAllowance({
     isRevoking,
     writeTokenApprove,
     writeTokenRevoke,
-    currentAllowance: currentAllowance.data,
+    currentAllowance: currentAllowanceData,
     estimatedGas,
   };
 }

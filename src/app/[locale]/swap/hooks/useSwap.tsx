@@ -46,7 +46,7 @@ export default function useSwap() {
   const { addRecentTransaction } = useRecentTransactionsStore();
 
   const [swapStatus, setSwapStatus] = useState(SwapStatus.INITIAL);
-
+  //
   const {
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
@@ -58,17 +58,17 @@ export default function useSwap() {
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
-  const gasPriceFormatted = useMemo(() => {
-    switch (gasPrice.model) {
-      case GasFeeModel.EIP1559:
-        return {
-          maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
-          maxFeePerGas: gasPrice.maxFeePerGas,
-        };
-      case GasFeeModel.LEGACY:
-        return { gasPrice: gasPrice.gasPrice };
-    }
-  }, [gasPrice]);
+  // const gasPriceFormatted = useMemo(() => {
+  //   switch (gasPrice.model) {
+  //     case GasFeeModel.EIP1559:
+  //       return {
+  //         maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
+  //         maxFeePerGas: gasPrice.maxFeePerGas,
+  //       };
+  //     case GasFeeModel.LEGACY:
+  //       return { gasPrice: gasPrice.gasPrice };
+  //   }
+  // }, [gasPrice]);
 
   const output = useMemo(() => {
     if (!trade) {
@@ -227,34 +227,20 @@ export default function useSwap() {
       await publicClient.waitForTransactionReceipt({ hash });
       setSwapStatus(SwapStatus.SUCCESS);
     }
-  }, [
-    addRecentTransaction,
-    address,
-    approveA,
-    chainId,
-    estimatedGas,
-    gasPrice,
-    isAllowedA,
-    output,
-    publicClient,
-    swapParams,
-    tokenA,
-    tokenAAddress,
-    tokenB,
-    trade,
-    typedValue,
-    walletClient,
-  ]);
+  }, []);
+
+  const isPendingSwap = useMemo(() => {
+    return false;
+  }, []);
 
   return {
     handleSwap,
-    estimatedGas,
-    isAllowedA,
-    isPendingApprove: isPendingA,
-    isLoadingApprove: isLoadingA,
-    handleApprove: approveA,
-    isPendingSwap: swapStatus === SwapStatus.PENDING,
-    isLoadingSwap: swapStatus === SwapStatus.LOADING,
-    isSuccessSwap: swapStatus === SwapStatus.SUCCESS,
+    isAllowedA: false,
+    isPendingApprove: false,
+    isLoadingApprove: false,
+    handleApprove: () => null,
+    isPendingSwap,
+    isLoadingSwap: isPendingSwap,
+    isSuccessSwap: isPendingSwap,
   };
 }

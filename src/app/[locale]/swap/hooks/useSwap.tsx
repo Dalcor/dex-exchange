@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Address, encodeFunctionData, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
@@ -9,6 +9,7 @@ import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStor
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
+import { IIFE } from "@/functions/iife";
 import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
@@ -58,17 +59,17 @@ export default function useSwap() {
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
-  // const gasPriceFormatted = useMemo(() => {
-  //   switch (gasPrice.model) {
-  //     case GasFeeModel.EIP1559:
-  //       return {
-  //         maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
-  //         maxFeePerGas: gasPrice.maxFeePerGas,
-  //       };
-  //     case GasFeeModel.LEGACY:
-  //       return { gasPrice: gasPrice.gasPrice };
-  //   }
-  // }, [gasPrice]);
+  const gasPriceFormatted = useMemo(() => {
+    switch (gasPrice.model) {
+      case GasFeeModel.EIP1559:
+        return {
+          maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
+          maxFeePerGas: gasPrice.maxFeePerGas,
+        };
+      case GasFeeModel.LEGACY:
+        return { gasPrice: gasPrice.gasPrice };
+    }
+  }, [gasPrice]);
 
   const output = useMemo(() => {
     if (!trade) {
@@ -146,7 +147,7 @@ export default function useSwap() {
   //     const _estimatedGas = await publicClient.estimateContractGas({
   //       ...swapParams,
   //       account: address,
-  //     });
+  //     } as any); //TODO: remove any
   //     setEstimatedGas(_estimatedGas);
   //   });
   // }, [publicClient, swapParams, address]);
@@ -227,7 +228,24 @@ export default function useSwap() {
       await publicClient.waitForTransactionReceipt({ hash });
       setSwapStatus(SwapStatus.SUCCESS);
     }
-  }, []);
+  }, [
+    addRecentTransaction,
+    address,
+    approveA,
+    chainId,
+    estimatedGas,
+    gasPrice,
+    isAllowedA,
+    output,
+    publicClient,
+    swapParams,
+    tokenA,
+    tokenAAddress,
+    tokenB,
+    trade,
+    typedValue,
+    walletClient,
+  ]);
 
   const isPendingSwap = useMemo(() => {
     return false;
@@ -235,12 +253,13 @@ export default function useSwap() {
 
   return {
     handleSwap,
-    isAllowedA: false,
-    isPendingApprove: false,
-    isLoadingApprove: false,
+    isAllowedA: isAllowedA,
+    isPendingApprove: isPendingA,
+    isLoadingApprove: isLoadingA,
     handleApprove: () => null,
     isPendingSwap,
     isLoadingSwap: isPendingSwap,
     isSuccessSwap: isPendingSwap,
+    estimatedGas,
   };
 }

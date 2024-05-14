@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { useState } from "react";
@@ -13,22 +14,26 @@ const localesMap: {
   [key: string]: {
     img: string;
     label: string;
+    symbol: string;
   };
 } = {
   en: {
     img: "/locales/en.svg",
     label: "English",
+    symbol: "En",
   },
   es: {
     img: "/locales/es.svg",
     label: "Español",
+    symbol: "Es",
   },
   zh: {
     img: "/locales/zh.svg",
     label: "中国人",
+    symbol: "Zh",
   },
 };
-export default function LocaleSwitcher() {
+export default function LocaleSwitcher({ isMobile = false }: { isMobile?: boolean }) {
   const lang = useLocale();
   const pathName = usePathname();
   const router = useRouter();
@@ -40,23 +45,23 @@ export default function LocaleSwitcher() {
   };
 
   return (
-    <div className="hidden md:block">
+    <div className={clsx(!isMobile && "hidden md:block", "flex-shrink-0")}>
       <Popover
         isOpened={isOpened}
         setIsOpened={setIsOpened}
         placement={"bottom-start"}
         trigger={
-          <SelectButton isOpen={isOpened} onClick={() => setIsOpened(!isOpened)} withArrow={false}>
-            <Image
-              src={localesMap[lang]?.img || localesMap["en"]?.img}
-              alt={localesMap[lang]?.label}
-              width={24}
-              height={24}
-            />
+          <SelectButton
+            className="px-3"
+            variant={isMobile ? "rectangle-secondary" : "rectangle-primary"}
+            isOpen={isOpened}
+            onClick={() => setIsOpened(!isOpened)}
+          >
+            {localesMap[lang]?.symbol || localesMap["en"]?.symbol}
           </SelectButton>
         }
       >
-        <div className="py-1 bg-primary-bg rounded-2 border border-primary-border">
+        <div className="py-1 bg-primary-bg rounded-2 shadow-popover">
           <ul>
             {locales.map((locale) => {
               return (
@@ -71,7 +76,7 @@ export default function LocaleSwitcher() {
                       width={24}
                       height={24}
                     />
-                    {localesMap[locale]?.label}
+                    {localesMap[locale]?.label} ({localesMap[locale]?.symbol})
                   </SelectOption>
                 </li>
               );

@@ -2,10 +2,10 @@
 import clsx from "clsx";
 import { useLocale, useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, formatGwei } from "viem";
+import { Address, formatGwei, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
-import useSwap from "@/app/[locale]/swap/hooks/useSwap";
+import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import {
@@ -14,21 +14,19 @@ import {
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapRecentTransactionsStore } from "@/app/[locale]/swap/stores/useSwapRecentTransactions";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
-import Collapse from "@/components/atoms/Collapse";
 import Container from "@/components/atoms/Container";
-import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
 import SwapButton from "@/components/buttons/SwapButton";
+import RecentTransactions from "@/components/common/RecentTransactions";
+import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
+import TokenInput from "@/components/common/TokenInput";
 import ConfirmSwapDialog from "@/components/dialogs/ConfirmSwapDialog";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useConfirmSwapDialogStore } from "@/components/dialogs/stores/useConfirmSwapDialogOpened";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
-import RecentTransactions from "@/components/others/RecentTransactions";
-import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
-import TokenInput from "@/components/others/TokenInput";
 import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
@@ -43,18 +41,8 @@ enum Standard {
   ERC20 = "ERC-20",
   ERC223 = "ERC-223",
 }
-//sepolia v3 addresses I found
-// UniversalRouter: 0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD
-// swap router: 0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E
-// v3CoreFactoryAddress: 0x0227628f3F023bb0B980b67D528571c95c6DaC1c
-// multicallAddress: 0xD7F33bCdb21b359c8ee6F0251d30E94832baAd07
-// quoterAddress: 0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3
-// v3MigratorAddress: 0x729004182cF005CEC8Bd85df140094b6aCbe8b15
-// tickLensAddress: 0xd7f33bcdb21b359c8ee6f0251d30e94832baad07
-// WETH: 0xfff9976782d46cc05630d1f6ebab18b2324d6b14
-// USD: 0x6f14C02Fc1F78322cFd7d707aB90f18baD3B54f5
 
-function OpenConfirmDialogButton() {
+function OpenConfirmDialogButton({ isSufficientBalance }: { isSufficientBalance: boolean }) {
   const { tokenA, tokenB } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
@@ -75,29 +63,18 @@ function OpenConfirmDialogButton() {
     );
   }
 
+  if (!isSufficientBalance) {
+    return (
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+        Insufficient balance
+      </Button>
+    );
+  }
+
   return (
     <Button onClick={() => setConfirmSwapDialogOpen(true)} fullWidth>
       Swap
     </Button>
-  );
-}
-function SwapDetailsRow({
-  title,
-  value,
-  tooltipText,
-}: {
-  title: string;
-  value: string;
-  tooltipText: string;
-}) {
-  return (
-    <div className="flex justify-between items-center">
-      <div className="flex gap-2 items-center text-secondary-text">
-        <Tooltip iconSize={20} text={tooltipText} />
-        {title}
-      </div>
-      <span>{value}</span>
-    </div>
   );
 }
 
@@ -126,8 +103,6 @@ export default function SwapPage() {
   const { address } = useAccount();
 
   const lang = useLocale();
-
-  const { estimatedGas } = useSwap();
 
   const {
     tokenA,
@@ -211,8 +186,6 @@ export default function SwapPage() {
 
     return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
   }, [slippage, trade]);
-
-  const [expanded, setExpanded] = useState(false);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
   const { data: baseFee } = useGasPrice();
@@ -303,6 +276,8 @@ export default function SwapPage() {
                     onClick={() => {
                       setTokenB(tokenA);
                       setTokenA(tokenB);
+                      setTokenAAddress(tokenBAddress);
+                      setTokenBAddress(tokenAAddress);
                       setTypedValue({
                         typedValue: dependentAmount?.toSignificant() || "",
                         field: Field.CURRENCY_A,
@@ -372,88 +347,22 @@ export default function SwapPage() {
                   </div>
                 </div>
 
-                <OpenConfirmDialogButton />
+                <OpenConfirmDialogButton
+                  isSufficientBalance={
+                    (tokenAAddress === tokenA?.address0 &&
+                      (tokenA0Balance && tokenA
+                        ? tokenA0Balance?.value >= parseUnits(typedValue, tokenA.decimals)
+                        : false)) ||
+                    (tokenAAddress === tokenA?.address1 &&
+                      (tokenA1Balance && tokenA
+                        ? tokenA1Balance?.value >= parseUnits(typedValue, tokenA.decimals)
+                        : false))
+                  }
+                />
 
-                <div
-                  className={clsx("mt-5 bg-tertiary-bg", !expanded ? "rounded-3" : "rounded-t-3")}
-                >
-                  <div
-                    className={clsx(
-                      "h-12 flex justify-between duration-200 px-5 items-center",
-                      !expanded ? "hover:bg-green-bg rounded-3" : "rounded-t-3",
-                    )}
-                    role="button"
-                    onClick={() => setExpanded(!expanded)}
-                  >
-                    <div className="text-secondary-text text-14 flex items-center">
-                      Swap details
-                    </div>
-                    <span className="text-secondary-text">
-                      <Svg
-                        className={clsx("duration-200", expanded && "-rotate-180")}
-                        iconName="small-expand-arrow"
-                      />
-                    </span>
-                  </div>
-                </div>
-                <Collapse open={expanded}>
-                  <div className="flex flex-col gap-2 pb-4 px-5 bg-tertiary-bg rounded-b-3 text-14">
-                    <SwapDetailsRow
-                      title={`${tokenA?.symbol} Price`}
-                      value={
-                        trade
-                          ? `${trade.executionPrice.toSignificant()} ${tokenB?.symbol}`
-                          : "Loading..."
-                      }
-                      tooltipText="Minimum received tooltip"
-                    />
-                    <SwapDetailsRow
-                      title={`${tokenB?.symbol} Price`}
-                      value={
-                        trade
-                          ? `${trade.executionPrice.invert().toSignificant()} ${tokenA?.symbol}`
-                          : "Loading..."
-                      }
-                      tooltipText="Minimum received tooltip"
-                    />
-                    <SwapDetailsRow
-                      title="Min. received"
-                      value={
-                        trade
-                          ?.minimumAmountOut(new Percent(slippage * 100, 10000), dependentAmount)
-                          .toSignificant() || "Loading..."
-                      }
-                      tooltipText="Minimum received tooltip"
-                    />
-                    <SwapDetailsRow
-                      title="Price impact"
-                      value={
-                        trade ? `${formatFloat(trade.priceImpact.toSignificant())}%` : "Loading..."
-                      }
-                      tooltipText="Minimum received tooltip"
-                    />
-                    <SwapDetailsRow
-                      title="Trading fee"
-                      value="Loading..."
-                      tooltipText="Minimum received tooltip"
-                    />
-                    <SwapDetailsRow
-                      title="Order routing"
-                      value="Loading..."
-                      tooltipText="Minimum received tooltip"
-                    />
-                    <SwapDetailsRow
-                      title="Max. slippage"
-                      value={`${slippage}%`}
-                      tooltipText="Minimum received tooltip"
-                    />
-                    <SwapDetailsRow
-                      title="Gas limit"
-                      value={estimatedGas?.toString() || "Loading..."}
-                      tooltipText="Minimum received tooltip"
-                    />
-                  </div>
-                </Collapse>
+                {trade && tokenA && tokenB && (
+                  <SwapDetails trade={trade} tokenA={tokenA} tokenB={tokenB} />
+                )}
 
                 <NetworkFeeConfigDialog isOpen={isOpenedFee} setIsOpen={setIsOpenedFee} />
               </div>

@@ -3,8 +3,8 @@ import React, { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 
 import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
-import Pagination from "@/components/others/Pagination";
-import RecentTransaction from "@/components/others/RecentTransaction";
+import Pagination from "@/components/common/Pagination";
+import RecentTransaction from "@/components/common/RecentTransaction";
 import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
 
 const PAGE_SIZE = 10;

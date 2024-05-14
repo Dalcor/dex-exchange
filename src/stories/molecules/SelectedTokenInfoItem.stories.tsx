@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { SelectedTokenInfoItem } from "@/components/others/SelectedTokensInfo";
+import { SelectedTokenInfoItem } from "@/components/common/SelectedTokensInfo";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { exampleToken } from "@/stories/example-data";

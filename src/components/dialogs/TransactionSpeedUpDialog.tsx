@@ -6,11 +6,12 @@ import { useBlock, useBlockNumber, useWalletClient } from "wagmi";
 import { GasOption } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Button from "@/components/buttons/Button";
+import RecentTransaction from "@/components/common/RecentTransaction";
 import { useTransactionSpeedUpDialogStore } from "@/components/dialogs/stores/useTransactionSpeedUpDialogStore";
-import RecentTransaction from "@/components/others/RecentTransaction";
 
 export enum SpeedUpOption {
   AUTO_INCREASE,
@@ -63,10 +64,10 @@ export default function TransactionSpeedUpDialog() {
   }
 
   return (
-    <Dialog isOpen={isOpen} setIsOpen={handleClose}>
-      <div className="w-[600px]">
+    <DrawerDialog isOpen={isOpen} setIsOpen={handleClose}>
+      <div className="w-full md:w-[600px]">
         <DialogHeader onClose={handleClose} title="Speed up" />
-        <div className="px-10 pb-10">
+        <div className="px-4 pb-4 md:px-10 md:pb-10">
           <RecentTransaction transaction={transaction} showSpeedUp={false} />
           <div className="flex flex-col gap-2">
             {speedUpOptions.map((_speedUpOption) => {
@@ -112,6 +113,6 @@ export default function TransactionSpeedUpDialog() {
           Speed up
         </Button>
       </div>
-    </Dialog>
+    </DrawerDialog>
   );
 }

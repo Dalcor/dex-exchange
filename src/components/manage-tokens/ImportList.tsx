@@ -11,6 +11,7 @@ import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import RadioButton from "@/components/buttons/RadioButton";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { TokenList } from "@/config/types/TokenList";
+import { db } from "@/db/db";
 import { IIFE } from "@/functions/iife";
 import { fetchTokenList } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
@@ -72,14 +73,20 @@ export default function ImportList({ setContent, handleClose }: Props) {
             const fileContents: any = e.target.result;
             const parsedJson = JSON.parse(fileContents);
 
-            addTokenList(
-              {
-                name: parsedJson.name,
-                enabled: true,
-                list: parsedJson,
-              },
-              chainId as DexChainId,
-            );
+            // addTokenList(
+            //   {
+            //     name: parsedJson.name,
+            //     enabled: true,
+            //     list: parsedJson,
+            //   },
+            //   chainId as DexChainId,
+            // );
+
+            console.log(parsedJson);
+
+            db.tokenLists.add({
+              list: parsedJson,
+            });
           }
         } catch (e) {
           console.log(e);
@@ -87,7 +94,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
       };
       reader.readAsText(tokenListFile);
     }
-  }, [addTokenList, chainId, tokenListFile]);
+  }, [tokenListFile]);
 
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [importType, setImportType] = useState<"url" | "json">("url");
@@ -123,7 +130,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
         title="Import list"
       />
 
-      <div className="px-10 pb-10 w-[550px] h-[580px] flex flex-col">
+      <div className="px-4 pb-4 md:px-10 md:pb-10 w-full md:w-[550px] h-[580px] flex flex-col">
         <h3 className="text-16 font-bold mb-1">Importing type</h3>
         <div className="grid grid-cols-2 gap-2 mb-5">
           <RadioButton isActive={importType === "url"} onClick={() => setImportType("url")}>

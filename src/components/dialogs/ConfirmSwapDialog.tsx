@@ -10,13 +10,14 @@ import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsSt
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
+import { Standard } from "@/components/common/TokenInput";
 import { useConfirmSwapDialogStore } from "@/components/dialogs/stores/useConfirmSwapDialogOpened";
-import { Standard } from "@/components/others/TokenInput";
 import { formatFloat } from "@/functions/formatFloat";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
@@ -169,7 +170,7 @@ function SwapActionButton() {
   if (isPendingSwap) {
     return (
       <Rows>
-        <ApproveRow isSuccess logoURI={tokenA.logoURI} />
+        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
         <SwapRow isPending />
       </Rows>
     );
@@ -178,7 +179,7 @@ function SwapActionButton() {
   if (isLoadingSwap) {
     return (
       <Rows>
-        <ApproveRow isSuccess logoURI={tokenA.logoURI} />
+        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
         <SwapRow isLoading />
       </Rows>
     );
@@ -187,7 +188,7 @@ function SwapActionButton() {
   if (isSuccessSwap) {
     return (
       <Rows>
-        <ApproveRow isSuccess logoURI={tokenA.logoURI} />
+        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
         <SwapRow isSuccess />
       </Rows>
     );
@@ -271,10 +272,10 @@ export default function ConfirmSwapDialog() {
   const { estimatedGas } = useSwap();
 
   return (
-    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
-      <div className="shadow-popup bg-primary-bg rounded-5 w-[600px]">
+    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
+      <div className="shadow-popup bg-primary-bg rounded-5 w-full md:w-[600px]">
         <DialogHeader onClose={() => setIsOpen(false)} title="Review swap" />
-        <div className="px-10 pb-9">
+        <div className="px-4 pb-4 md:px-10 md:pb-9">
           <div className="flex flex-col gap-3 pb-4">
             <ReadonlyTokenAmountCard
               token={tokenA}
@@ -324,12 +325,16 @@ export default function ConfirmSwapDialog() {
             />
             <SwapDetailsRow
               title="Trading fee"
-              value="Loading..."
-              tooltipText="Trading fee tooltip"
+              value={
+                typedValue && Boolean(+typedValue) && tokenA
+                  ? `${(+typedValue * 0.3) / 100} ${tokenA.symbol}`
+                  : "Loading..."
+              }
+              tooltipText="Minimum received tooltip"
             />
             <SwapDetailsRow
               title="Order routing"
-              value="Loading..."
+              value="Direct swap"
               tooltipText="Order routing tooltip"
             />
             <SwapDetailsRow
@@ -346,6 +351,6 @@ export default function ConfirmSwapDialog() {
           <SwapActionButton />
         </div>
       </div>
-    </Dialog>
+    </DrawerDialog>
   );
 }

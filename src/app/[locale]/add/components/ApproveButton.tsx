@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Badge from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
@@ -38,9 +39,9 @@ export const ApproveButton = ({
       <Button onClick={() => setIsOpen(true)} fullWidth>
         {APPROVE_BUTTON_TEXT[approveTransactionsType]}
       </Button>
-      <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
+      <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
         <DialogHeader onClose={() => setIsOpen(false)} title="Approve transactions" />
-        <div className="w-[570px] px-10 pb-10">
+        <div className="w-full md:w-[570px] px-4 md:px-10 md:pb-10 pb-4">
           {approveTransactions.map(({ token, standard, amount, estimatedGas }, index) => {
             return (
               <div key="1" className="flex gap-2">
@@ -88,7 +89,7 @@ export const ApproveButton = ({
             Approve?
           </Button>
         </div>
-      </Dialog>
+      </DrawerDialog>
     </div>
   );
 };

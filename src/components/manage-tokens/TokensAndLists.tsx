@@ -37,8 +37,8 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
   return (
     <>
       <DialogHeader onClose={handleClose} title="Manage tokens" />
-      <div className="w-[550px] h-[580px] flex flex-col">
-        <div className="grid grid-cols-2 mb-3 px-10">
+      <div className="w-full md:w-[550px] h-[580px] flex flex-col">
+        <div className="grid grid-cols-2 mb-3 px-4 md:px-10">
           <button
             className={clsx(
               "duration-200 rounded-l-1 hover:bg-tertiary-bg border border-primary-border py-2 ",
@@ -61,7 +61,7 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
 
         {activeTab === "lists" && (
           <div className="flex-grow flex flex-col">
-            <div className="flex gap-3 px-10">
+            <div className="flex gap-3 px-4 md:px-10">
               <Input
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
@@ -94,7 +94,7 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
 
         {activeTab === "tokens" && (
           <div className="flex-grow flex flex-col">
-            <div className="flex gap-3 px-10">
+            <div className="flex gap-3 px-4 md:px-10">
               <Input
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
@@ -102,7 +102,7 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
               />
             </div>
 
-            <div className="flex justify-between items-center px-10 my-3">
+            <div className="flex justify-between items-center px-4 md:px-10 my-3">
               <div>Total: {filteredTokens.length}</div>
               <div>
                 <Checkbox

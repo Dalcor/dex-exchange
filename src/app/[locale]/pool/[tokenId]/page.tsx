@@ -12,9 +12,9 @@ import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import IconButton, { IconButtonSize } from "@/components/buttons/IconButton";
-import RecentTransactions from "@/components/others/RecentTransactions";
-import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
-import TokensPair from "@/components/others/TokensPair";
+import RecentTransactions from "@/components/common/RecentTransactions";
+import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
+import TokensPair from "@/components/common/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import {
   usePositionFees,

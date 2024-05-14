@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import Dialog from "@/components/atoms/Dialog";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import ImportList from "@/components/manage-tokens/ImportList";
 import ImportToken from "@/components/manage-tokens/ImportToken";
 import TokensAndLists from "@/components/manage-tokens/TokensAndLists";
@@ -19,7 +19,7 @@ export default function ManageTokensDialog({ isOpen, setIsOpen }: Props) {
   }, [setIsOpen]);
 
   return (
-    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
+    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
       {content === "default" && (
         <TokensAndLists setContent={setContent} handleClose={handleClose} />
       )}
@@ -29,6 +29,6 @@ export default function ManageTokensDialog({ isOpen, setIsOpen }: Props) {
       {content === "import-list" && (
         <ImportList setContent={setContent} handleClose={handleClose} />
       )}
-    </Dialog>
+    </DrawerDialog>
   );
 }

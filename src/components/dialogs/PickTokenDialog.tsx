@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
 import { useTokens } from "@/hooks/useTokenLists";
@@ -42,9 +43,9 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
   const tokens = useTokens();
 
   return (
-    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
+    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
       <DialogHeader onClose={() => setIsOpen(false)} title="Select a token" />
-      <div className="w-[570px]">
+      <div className="w-full md:w-[570px]">
         <div className="pt-10 pl-10 pr-10 pb-3">
           <Input placeholder="Search name or paste address" />
           <div className="mt-3 grid grid-cols-3 gap-3">
@@ -68,6 +69,6 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
           ))}
         </div>
       </div>
-    </Dialog>
+    </DrawerDialog>
   );
 }

@@ -37,6 +37,10 @@ export function useTokenLists() {
     }
     const tokenListsFromStorage = savedLists[chainId as DexChainId];
 
+    if (!tokenListsFromStorage) {
+      return;
+    }
+
     const externalLists = tokenListsFromStorage.filter(isExternal);
     const localLists = tokenListsFromStorage.filter(isLocal);
 

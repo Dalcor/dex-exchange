@@ -15,10 +15,10 @@ import IconButton, {
   IconButtonVariant,
   IconSize,
 } from "@/components/buttons/IconButton";
+import RecentTransactions from "@/components/common/RecentTransactions";
+import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
-import RecentTransactions from "@/components/others/RecentTransactions";
-import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
 import useAllowance from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
 import { usePoolsSearchParams } from "@/hooks/usePoolsSearchParams";

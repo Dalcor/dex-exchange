@@ -10,7 +10,7 @@ import Svg from "@/components/atoms/Svg";
 import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
 import Button, { ButtonSize } from "@/components/buttons/Button";
-import TokensPair from "@/components/others/TokensPair";
+import TokensPair from "@/components/common/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import usePositions, {
   usePositionFromPositionInfo,

@@ -65,22 +65,24 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> &
     | { variant?: IconButtonVariant.DEFAULT | undefined; iconName: IconName; active?: boolean }
   );
 export default function IconButton(_props: Props) {
-  const { ...props } = _props;
-
   switch (_props.variant) {
     case IconButtonVariant.DEFAULT:
-    case undefined:
+    case undefined: {
+      const { active, iconName, ...props } = _props;
       return (
         <IconButtonFrame
           iconName={_props.iconName}
           className={clsxMerge(
             "text-primary-text rounded-full bg-transparent hover:bg-green-bg duration-200",
-            _props.active && "text-green",
+            active && "text-green",
           )}
           {...props}
         />
       );
-    case IconButtonVariant.DELETE:
+    }
+    case IconButtonVariant.DELETE: {
+      const { handleDelete, ...props } = _props;
+
       return (
         <IconButtonFrame
           iconName="delete"
@@ -89,7 +91,10 @@ export default function IconButton(_props: Props) {
           {...props}
         />
       );
-    case IconButtonVariant.CLOSE:
+    }
+    case IconButtonVariant.CLOSE: {
+      const { handleClose, ...props } = _props;
+
       return (
         <IconButtonFrame
           iconName="close"
@@ -98,14 +103,18 @@ export default function IconButton(_props: Props) {
           {...props}
         />
       );
-    case IconButtonVariant.CONTROL:
+    }
+    case IconButtonVariant.CONTROL: {
+      const { iconName, buttonSize, ...props } = _props;
+
       return (
         <IconButtonFrame
-          iconName={_props.iconName}
-          buttonSize={props.buttonSize || IconButtonSize.SMALL}
+          iconName={iconName}
+          buttonSize={buttonSize || IconButtonSize.SMALL}
           className="rounded-2 hover:bg-green-bg bg-transparent duration-200 text-primary-text"
           {...props}
         />
       );
+    }
   }
 }

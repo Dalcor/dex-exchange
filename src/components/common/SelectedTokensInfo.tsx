@@ -11,10 +11,14 @@ interface Props {
   tokenB: Token | undefined;
 }
 export default function SelectedTokensInfo({ tokenA, tokenB }: Props) {
+  if (!tokenA && !tokenB) {
+    return null;
+  }
+
   return (
     <div className="w-full bg-primary-bg p-10 grid gap-3 rounded-5">
-      <SelectedTokenInfoItem token={tokenA} />
-      <SelectedTokenInfoItem token={tokenB} />
+      {tokenA && <SelectedTokenInfoItem token={tokenA} />}
+      {tokenB && <SelectedTokenInfoItem token={tokenB} />}
     </div>
   );
 }

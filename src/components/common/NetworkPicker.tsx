@@ -6,8 +6,8 @@ import Popover from "@/components/atoms/Popover";
 import SelectButton from "@/components/atoms/SelectButton";
 import SelectOption from "@/components/atoms/SelectOption";
 import Svg from "@/components/atoms/Svg";
+import ClientOnly from "@/components/common/ClientOnly";
 import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
-import ClientOnly from "@/components/others/ClientOnly";
 import { networks } from "@/config/networks";
 import { formatFloat } from "@/functions/formatFloat";
 import { useConfirmInWalletDialogStore } from "@/stores/useConfirmInWalletDialogStore";
@@ -37,10 +37,14 @@ export default function NetworkPicker() {
             isOpen={isOpened}
             onClick={() => setIsOpened(!isOpened)}
           >
-            <span className="flex items-center gap-2 md:min-w-[110px]">
-              <Image src={`${currentNetwork?.logo}`} alt="Ethereum" width={24} height={24} />
-              <span className="hidden md:inline">{currentNetwork?.name}</span>
-            </span>
+            {currentNetwork ? (
+              <span className="flex items-center gap-2 md:min-w-[110px]">
+                <Image src={`${currentNetwork?.logo}`} alt="Ethereum" width={24} height={24} />
+                <span className="hidden md:inline">{currentNetwork?.name}</span>
+              </span>
+            ) : (
+              "Unknown network"
+            )}
           </SelectButton>
         }
       >
@@ -49,7 +53,7 @@ export default function NetworkPicker() {
             {networks.map(({ chainId: _chainId, name, logo }) => {
               return (
                 <SelectOption
-                  key={chainId}
+                  key={_chainId}
                   onClick={async () => {
                     if (!chainId) {
                       console.log(chainId);

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import RecentTransaction from "@/components/others/RecentTransaction";
+import RecentTransaction from "@/components/common/RecentTransaction";
 import { RecentTransactionStatus } from "@/stores/useRecentTransactionsStore";
 import { exampleTitleForTwo, exampleTransaction } from "@/stories/example-data";
 

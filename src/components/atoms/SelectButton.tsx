@@ -9,7 +9,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   isOpen?: boolean;
   size?: "regular" | "large";
   fullWidth?: boolean;
-  variant?: "rounded-primary" | "rounded-secondary" | "rectangle-primary";
+  variant?: "rounded-primary" | "rounded-secondary" | "rectangle-primary" | "rectangle-secondary";
   className?: string;
 }
 
@@ -33,21 +33,19 @@ export const SelectButton = forwardRef(
         {...props}
         className={clsxMerge(
           "flex items-center gap-2 duration-[600ms] text-base text-primary-text",
-          variant === "rectangle-primary" && "rounded-2  hover:bg-green-bg",
+          variant === "rectangle-primary" ||
+            (variant === "rectangle-secondary" && "rounded-2  hover:bg-green-bg"),
           variant === "rounded-primary" &&
             "rounded-[80px] border border-transparent hover:bg-green-bg hover:shadow-select hover:border-green",
           variant === "rounded-secondary" &&
             "rounded-[80px] border border-transparent hover:bg-green-bg hover:shadow-select hover:border-green",
-          !withArrow && "px-3",
-          withArrow && size === "regular" && "pl-5 pr-2",
-          withArrow && size === "large" && "px-5",
           isOpen
             ? "bg-green-bg"
-            : variant !== "rounded-secondary"
+            : variant !== "rounded-secondary" && variant !== "rectangle-secondary"
               ? "bg-primary-bg"
               : "bg-secondary-bg",
-          size === "large" && "py-3.5 text-24",
-          size === "regular" && "py-2",
+          size === "large" && "py-3.5 text-24 px-5",
+          size === "regular" && "py-2 px-3",
           fullWidth && withArrow && "w-full justify-between",
           fullWidth && !withArrow && "w-full justify-center",
           className,

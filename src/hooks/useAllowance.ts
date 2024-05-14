@@ -184,11 +184,13 @@ export default function useAllowance({
 
         await publicClient.waitForTransactionReceipt({ hash });
         setStatus(AllowanceStatus.SUCCESS);
+        return { success: true };
       }
     } catch (e) {
       console.log(e);
       setStatus(AllowanceStatus.INITIAL);
       addToast("Unexpected error, please contact support", "error");
+      return { success: false };
     }
   }, [
     amountToCheck,

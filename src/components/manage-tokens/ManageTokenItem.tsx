@@ -16,7 +16,7 @@ export default function ManageTokenItem({ token }: { token: Token }) {
 
   return (
     <div>
-      <div className="flex justify-between py-1.5 px-10">
+      <div className="flex justify-between py-1.5 px-4 md:px-10">
         <div className="flex gap-3 items-center">
           <img className="rounded-full" width={40} height={40} src={token.logoURI} alt="" />
           <div className="flex flex-col">

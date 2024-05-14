@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
@@ -60,9 +61,9 @@ export const MintButton = () => {
       <Button onClick={() => setIsOpen(true)} fullWidth>
         {buttonText}
       </Button>
-      <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
+      <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
         <DialogHeader onClose={() => setIsOpen(false)} title="Add liquidity" />
-        <div className="w-[570px] px-10 pb-10">
+        <div className="px-4 md:px-10 md:w-[570px] pb-4 md:pb-10">
           <div className="flex items-center gap-2">
             <div className="flex items-center relative w-12 h-[34px]">
               <Image
@@ -202,7 +203,7 @@ export const MintButton = () => {
             {buttonText}
           </Button>
         </div>
-      </Dialog>
+      </DrawerDialog>
     </div>
   );
 };

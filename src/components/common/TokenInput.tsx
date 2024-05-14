@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { NumericFormat } from "react-number-format";
 
 import SelectButton from "@/components/atoms/SelectButton";
 import Tooltip from "@/components/atoms/Tooltip";
@@ -76,12 +77,16 @@ export default function TokenInput({
       <span className="text-14 block mb-2 text-secondary-text">{label}</span>
       <div className="flex items-center mb-2 justify-between">
         <div>
-          <input
-            value={value}
-            onChange={(e) => onInputChange(e.target.value)}
-            className="h-12 bg-transparent outline-0 border-0 text-32 w-full peer"
-            placeholder="0"
+          <NumericFormat
+            inputMode="decimal"
+            placeholder="0.0"
+            className={clsx("h-12 bg-transparent outline-0 border-0 text-32 w-full peer")}
             type="text"
+            value={value}
+            onValueChange={(values) => {
+              onInputChange(values.value);
+            }}
+            allowNegative={false}
           />
           <span className="text-12 block -mt-1 text-secondary-text">$3,220.40</span>
           <div className="duration-200 rounded-3 pointer-events-none absolute w-full h-full border border-transparent peer-hover:shadow-checkbox peer-focus:shadow-checkbox peer-focus:border-green top-0 left-0" />

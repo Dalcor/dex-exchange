@@ -11,9 +11,9 @@ import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge"
 import Button from "@/components/buttons/Button";
 import IconButton, { IconButtonSize, IconSize } from "@/components/buttons/IconButton";
 import InputButton from "@/components/buttons/InputButton";
+import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
+import TokensPair from "@/components/common/TokensPair";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
-import SelectedTokensInfo from "@/components/others/SelectedTokensInfo";
-import TokensPair from "@/components/others/TokensPair";
 import {
   usePositionFromPositionInfo,
   usePositionFromTokenId,

@@ -63,7 +63,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
         onClose={handleClose}
         title="Import token"
       />
-      <div className="w-[550px] px-10 pb-10 min-h-[580px] flex flex-col">
+      <div className="w-full md:w-[550px] px-4 pb-4 md:px-10 md:pb-10 min-h-[580px] flex flex-col">
         <h3 className="text-16 font-bold mb-1">Import token</h3>
         <Input
           value={tokenAddressToImport}

@@ -10,6 +10,7 @@ import {
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
 import TextField from "@/components/atoms/TextField";
@@ -95,7 +96,7 @@ function NetworkFeeDialogContent({
 
   return (
     <>
-      <div className="flex flex-col gap-2 px-10">
+      <div className="flex flex-col gap-2 px-4 md:px-10">
         {gasOptions.map((_gasOption) => {
           return (
             <div
@@ -351,7 +352,7 @@ function NetworkFeeDialogContent({
           );
         })}
       </div>
-      <div className="px-10 pb-10 pt-5 grid grid-cols-2 gap-3">
+      <div className="px-4 pb-4 md:px-10 md:pb-10 pt-5 grid grid-cols-2 gap-3">
         <Button fullWidth onClick={handleCancel} variant={ButtonVariant.OUTLINED}>
           Cancel
         </Button>
@@ -397,8 +398,8 @@ export default function NetworkFeeConfigDialog({ isOpen, setIsOpen }: Props) {
   const [isAdvanced, setIsAdvanced] = useState(false);
 
   return (
-    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
-      <div className="w-[800px] duration-200">
+    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
+      <div className="w-full md:w-[800px] duration-200">
         <DialogHeader
           onClose={() => setIsOpen(false)}
           title="Gas settings"
@@ -411,6 +412,6 @@ export default function NetworkFeeConfigDialog({ isOpen, setIsOpen }: Props) {
         />
         <NetworkFeeDialogContent setIsOpen={setIsOpen} isAdvanced={isAdvanced} />
       </div>
-    </Dialog>
+    </DrawerDialog>
   );
 }

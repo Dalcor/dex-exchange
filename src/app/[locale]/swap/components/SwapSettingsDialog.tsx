@@ -10,6 +10,7 @@ import React, {
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import TextField from "@/components/atoms/TextField";
 import Tooltip from "@/components/atoms/Tooltip";
 import Button from "@/components/buttons/Button";
@@ -126,9 +127,9 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
   }, [customDeadline, customSlippage, setDeadline, setIsOpen, setSlippage, slippageType]);
 
   return (
-    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
+    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
       <DialogHeader onClose={() => setIsOpen(false)} title="Settings" />
-      <div className="px-10 pt-10 pb-5.5 w-[600px]">
+      <div className="px-4 md:px-10 pt-4 md:pt-10 pb-4 md:pb-5.5 w-full md:w-[600px]">
         <div className="flex justify-between items-center mb-1">
           <div className="flex gap-1 items-center">
             <h3 className="font-bold text-16">Max slippage</h3>
@@ -181,6 +182,6 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
           Save settings
         </Button>
       </div>
-    </Dialog>
+    </DrawerDialog>
   );
 }

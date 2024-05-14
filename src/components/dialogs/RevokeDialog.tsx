@@ -32,7 +32,7 @@ export const RevokeDialog = ({
         onClose={() => setIsOpen(false)}
         title={standard === "ERC-20" ? "Revoke" : "Withdraw"}
       />
-      <div className="w-[570px] px-10 pb-10">
+      <div className="w-full md:w-[570px] px-4 pb-4 md:px-10 md:pb-10">
         <div className="flex gap-2 py-2 items-center">
           <span>{`${standard === "ERC-20" ? "Revoke" : "Withdraw"} ${token.symbol}`}</span>
           <Badge color="green" text={standard} />

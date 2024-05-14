@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Badge from "@/components/badges/Badge";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
@@ -33,9 +34,9 @@ export const FeeDetailsButton = ({
         Details
       </Button>
 
-      <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
+      <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
         <DialogHeader onClose={() => setIsOpen(false)} title="Fee details" />
-        <div className="w-[570px] px-10 pb-4">
+        <div className="w-full md:w-[570px] px-4 md:px-10 pb-4 md:pb-10">
           {approveTransactions.map(({ token, standard, amount, estimatedGas }, index) => {
             return (
               <div key="1" className="flex gap-2">
@@ -104,7 +105,7 @@ export const FeeDetailsButton = ({
             <span className="font-bold">{`${gasPrice && totalGasLimit ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
           </div>
         </div>
-      </Dialog>
+      </DrawerDialog>
     </div>
   );
 };

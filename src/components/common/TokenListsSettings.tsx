@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { useState } from "react";
 
 import SelectButton from "@/components/atoms/SelectButton";
-import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import ManageTokensDialog from "@/components/manage-tokens/ManageTokensDialog";
 
 export default function TokenListsSettings({ isMobile = false }: { isMobile?: boolean }) {

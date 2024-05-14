@@ -2,8 +2,8 @@ import { useTranslations } from "next-intl";
 import { ReactNode } from "react";
 
 import NavigationItem, { NavigationItemWithSubmenu } from "@/components/atoms/NavigationItem";
-import { MobileLink } from "@/components/others/MobileMenu";
-import { Link, usePathname } from "@/navigation";
+import { MobileLink } from "@/components/common/MobileMenu";
+import { usePathname } from "@/navigation";
 
 const menuItems: Array<
   | {
@@ -45,14 +45,31 @@ const menuItems: Array<
   {
     label: "",
     submenu: (handleClose) => (
-      <div className="flex flex-col py-4 px-5 bg-primary-bg rounded-2">
-        <MobileLink href="/swap" iconName="swap" title="Swap" handleClose={handleClose} />
-        <MobileLink
-          href="/margin-trading"
-          iconName="margin-trading"
-          title="Margin trading"
-          handleClose={handleClose}
-        />
+      <div className="flex flex-col py-4 px-5 bg-primary-bg rounded-2 shadow-popover gap-5">
+        <div className="flex flex-col text-16 text-primary-text gap-2">
+          <div className="text-secondary-text">Token</div>
+          <div>Statistics</div>
+          <div>Token lists</div>
+        </div>
+        <div className="flex flex-col text-16 text-primary-text gap-2">
+          <div className="text-secondary-text">Social media</div>
+          <a href="#">Telegram discussions</a>
+          <a href="#">Telegram discussions</a>
+          <a href="#">DEX223 X account</a>
+          <a href="#">Dexaran’s X account</a>
+        </div>
+        <div className="flex flex-col text-16 text-primary-text gap-2">
+          <div className="text-secondary-text">Useful links</div>
+
+          <a href="#">ERC20 & ERC223 token converter</a>
+          <a href="#"> ERC-20 live losses calculator</a>
+          <a href="#">ERC223 front page</a>
+          <a href="#">Page source codes</a>
+        </div>
+        <div className="flex flex-col text-16 text-primary-text gap-2">
+          <div className="text-secondary-text">Partners</div>
+          <a href="#">EOS support</a>
+        </div>
       </div>
     ),
   },

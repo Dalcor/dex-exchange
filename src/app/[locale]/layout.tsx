@@ -9,8 +9,8 @@ import { PropsWithChildren } from "react";
 import { cookieToInitialState } from "wagmi";
 
 import { Providers } from "@/app/[locale]/providers";
-import Footer from "@/components/others/Footer";
-import Header from "@/components/others/Header";
+import Footer from "@/components/common/Footer";
+import Header from "@/components/common/Header";
 import { config } from "@/config/wagmi/config";
 import DialogsProvider from "@/providers/DialogsProvider";
 
@@ -40,7 +40,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={locale}>
+    <html suppressHydrationWarning lang={locale}>
       <body className={clsx(golos_text.className)}>
         <Providers initialState={initialState} messages={messages} locale={locale}>
           <DialogsProvider>

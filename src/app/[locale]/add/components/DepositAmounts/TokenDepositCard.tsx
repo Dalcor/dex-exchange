@@ -41,10 +41,12 @@ function InputTotalAmount({
   token,
   value,
   onChange,
+  isDisabled,
 }: {
-  token: Token;
+  token?: Token;
   value: string;
   onChange: (value: string) => void;
+  isDisabled?: boolean;
 }) {
   const { address } = useAccount();
 
@@ -75,15 +77,25 @@ function InputTotalAmount({
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            disabled={isDisabled}
           />
           <div className="bg-secondary-bg rounded-5 py-1 pl-1 pr-3 flex items-center gap-2">
-            <Image src={token?.logoURI || ""} alt="" width={24} height={24} />
-            <span>{token.symbol}</span>
+            {token ? (
+              <>
+                <Image src={token?.logoURI || ""} alt="" width={24} height={24} />
+                <span>{token.symbol}</span>
+              </>
+            ) : (
+              <span>Select token</span>
+            )}
           </div>
         </div>
         <div className="flex justify-between items-center text-14">
           <span className="text-secondary-text">—</span>
-          <span>{`Balance: ${formatFloat(formatUnits(totalBalance, token.decimals))} ${token.symbol}`}</span>
+          <span>
+            {token &&
+              `Balance: ${formatFloat(formatUnits(totalBalance, token.decimals))} ${token.symbol}`}
+          </span>
         </div>
       </div>
     </div>
@@ -103,13 +115,13 @@ function InputStandardAmount({
   value?: number;
   onChange?: (value: number) => void;
   currentAllowance: bigint; // currentAllowance or currentDeposit
-  token: Token;
+  token?: Token;
   onRevoke: () => void; // onWithdraw or onWithdraw
   isRevoking: boolean; // isRevoking or isWithdrawing
 }) {
   const { address } = useAccount();
   const { data: blockNumber } = useBlockNumber({ watch: true });
-  const tokenAddress = standard === "ERC-20" ? token.address0 : token.address1;
+  const tokenAddress = standard === "ERC-20" ? token?.address0 : token?.address1;
   const { data: tokenBalance, refetch: refetchBalance } = useBalance({
     address: token ? address : undefined,
     token: token ? (tokenAddress as Address) : undefined,
@@ -141,15 +153,20 @@ function InputStandardAmount({
           />
         </div>
         <div className="flex justify-end items-center text-14">
-          <span>{`Balance: ${formatFloat(formatUnits(tokenBalance?.value || BigInt(0), token.decimals))} ${token.symbol}`}</span>
+          <span>
+            {token &&
+              `Balance: ${formatFloat(formatUnits(tokenBalance?.value || BigInt(0), token.decimals))} ${token.symbol}`}
+          </span>
         </div>
       </div>
       <div className="flex justify-between items-center">
-        <span className="text-12 text-secondary-text">
-          {standard === "ERC-20"
-            ? `Approved: ${formatFloat(formatUnits(currentAllowance || BigInt(0), token.decimals))} ${token.symbol}`
-            : `Deposited: ${formatFloat(formatUnits(currentAllowance || BigInt(0), token.decimals))} ${token.symbol}`}
-        </span>
+        {token && (
+          <span className="text-12 text-secondary-text">
+            {standard === "ERC-20"
+              ? `Approved: ${formatFloat(formatUnits(currentAllowance || BigInt(0), token.decimals))} ${token.symbol}`
+              : `Deposited: ${formatFloat(formatUnits(currentAllowance || BigInt(0), token.decimals))} ${token.symbol}`}
+          </span>
+        )}
         {!!currentAllowance ? (
           <span
             className="text-12 px-4 pt-[1px] pb-[2px] border border-green rounded-3 h-min cursor-pointer hover:text-green duration-200"
@@ -159,15 +176,17 @@ function InputStandardAmount({
           </span>
         ) : null}
       </div>
-      <RevokeDialog
-        standard={standard}
-        amount={currentAllowance}
-        token={token}
-        revokeHandler={revokeHandler}
-        isOpen={isOpenedRevokeDialog}
-        setIsOpen={setIsOpenedRevokeDialog}
-        isRevoking={isRevoking}
-      />
+      {token && (
+        <RevokeDialog
+          standard={standard}
+          amount={currentAllowance}
+          token={token}
+          revokeHandler={revokeHandler}
+          isOpen={isOpenedRevokeDialog}
+          setIsOpen={setIsOpenedRevokeDialog}
+          isRevoking={isRevoking}
+        />
+      )}
     </div>
   );
 }
@@ -181,12 +200,13 @@ export default function TokenDepositCard({
   revokeHandler,
   withdrawHandler,
   isDisabled,
+  isOutOfRange,
   isRevoking,
   isWithdrawing,
   tokenStandardRatio,
   setTokenStandardRatio,
 }: {
-  token: Token;
+  token?: Token;
   value: string;
   onChange: (value: string) => void;
   currentAllowance?: bigint;
@@ -194,6 +214,7 @@ export default function TokenDepositCard({
   revokeHandler: () => void;
   withdrawHandler: () => void;
   isDisabled: boolean;
+  isOutOfRange: boolean;
   isWithdrawing: boolean;
   isRevoking: boolean;
   tokenStandardRatio: 0 | 100;
@@ -209,7 +230,7 @@ export default function TokenDepositCard({
       ? parseFloat(value) - ERC223Value
       : undefined;
 
-  if (isDisabled) {
+  if (isOutOfRange) {
     return (
       <div className="flex justify-center items-center rounded-3 bg-tertiary-bg p-5 min-h-[320px]">
         <span className="text-center text-secondary-text">
@@ -221,11 +242,13 @@ export default function TokenDepositCard({
   return (
     <div className="rounded-3 bg-secondary-bg p-5">
       <div className="flex items-center gap-2 mb-3">
-        <Image width={24} height={24} src={token?.logoURI || ""} alt="" />
-        <h3 className="text-16 font-bold">{token.symbol} deposit amounts</h3>
+        {token && <Image width={24} height={24} src={token?.logoURI || ""} alt="" />}
+        <h3 className="text-16 font-bold">
+          {token ? `${token?.symbol} deposit amounts` : "Select token"}
+        </h3>
       </div>
       <div className="flex flex-col gap-5">
-        <InputTotalAmount token={token} value={value} onChange={onChange} />
+        <InputTotalAmount token={token} value={value} onChange={onChange} isDisabled={isDisabled} />
         <InputRange value={tokenStandardRatio} onChange={setTokenStandardRatio} />
         <div className="flex justify-between gap-3 w-full">
           <InputStandardAmount

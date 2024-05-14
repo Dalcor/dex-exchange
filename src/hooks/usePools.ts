@@ -1,87 +1,14 @@
 import JSBI from "jsbi";
 import { useMemo } from "react";
-import { Address } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
 
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
-import { FACTORY_ADDRESS, POOL_INIT_CODE_HASH } from "@/sdk_hybrid/addresses";
-import { DexChainId } from "@/sdk_hybrid/chains";
-import { BigintIsh, FeeAmount } from "@/sdk_hybrid/constants";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Pool } from "@/sdk_hybrid/entities/pool";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
-import { computePoolAddress, computePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
+import { useComputePoolAddressesDex } from "@/sdk_hybrid/utils/computePoolAddress";
 import { usePoolsStore } from "@/stores/usePoolsStore";
-
-// Classes are expensive to instantiate, so this caches the recently instantiated pools.
-// This avoids re-instantiating pools as the other pools in the same request are loaded.
-class PoolCache {
-  // Evict after 128 entries. Empirically, a swap uses 64 entries.
-  private static MAX_ENTRIES = 128;
-
-  // These are FIFOs, using unshift/pop. This makes recent entries faster to find.
-  private static pools: Pool[] = [];
-  private static addresses: { key: string; address: string }[] = [];
-
-  static getPoolAddress(
-    factoryAddress: string,
-    tokenA: Token,
-    tokenB: Token,
-    fee: FeeAmount,
-  ): string {
-    if (this.addresses.length > this.MAX_ENTRIES) {
-      this.addresses = this.addresses.slice(0, this.MAX_ENTRIES / 2);
-    }
-
-    const { address0: addressA } = tokenA;
-    const { address0: addressB } = tokenB;
-    const key = `${factoryAddress}:${addressA}:${addressB}:${fee.toString()}`;
-    const found = this.addresses.find((address) => address.key === key);
-    if (found) return found.address;
-
-    const address = {
-      key,
-      address: computePoolAddress({
-        factoryAddress,
-        tokenA,
-        tokenB,
-        fee,
-        standardA: "ERC-20",
-        standardB: "ERC-20",
-      }),
-    };
-    this.addresses.unshift(address);
-    return address.address;
-  }
-
-  static getPool(
-    tokenA: Token,
-    tokenB: Token,
-    fee: FeeAmount,
-    sqrtPriceX96: BigintIsh,
-    liquidity: BigintIsh,
-    tick: number,
-  ): Pool {
-    if (this.pools.length > this.MAX_ENTRIES) {
-      this.pools = this.pools.slice(0, this.MAX_ENTRIES / 2);
-    }
-
-    const found = this.pools.find(
-      (pool) =>
-        pool.token0 === tokenA &&
-        pool.token1 === tokenB &&
-        pool.fee === fee &&
-        JSBI.EQ(pool.sqrtRatioX96, sqrtPriceX96) &&
-        JSBI.EQ(pool.liquidity, liquidity) &&
-        pool.tickCurrent === tick,
-    );
-    if (found) return found;
-
-    const pool = new Pool(tokenA, tokenB, fee, sqrtPriceX96.toString(), liquidity.toString(), tick);
-    this.pools.unshift(pool);
-    return pool;
-  }
-}
 
 export enum PoolState {
   LOADING,
@@ -89,15 +16,10 @@ export enum PoolState {
   EXISTS,
   INVALID,
 }
-export default function usePools(
-  poolKeys: [
-    Currency | undefined,
-    Currency | undefined,
-    FeeAmount | undefined,
-    TokenStandard,
-    TokenStandard,
-  ][],
-): [PoolState, Pool | null][] {
+
+export type PoolKeys = [Currency | undefined, Currency | undefined, FeeAmount | undefined][];
+
+export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][] {
   const { chainId } = useAccount();
   const { pools, addPool } = usePoolsStore();
 
@@ -105,47 +27,38 @@ export default function usePools(
     useMemo(() => {
       if (!chainId) return new Array(poolKeys.length);
 
-      return poolKeys.map(([currencyA, currencyB, feeAmount, standardA, standardB]) => {
+      return poolKeys.map(([currencyA, currencyB, feeAmount]) => {
         if (currencyA && currencyB && feeAmount) {
           const tokenA = currencyA.wrapped;
           const tokenB = currencyB.wrapped;
           if (tokenA.equals(tokenB)) return undefined;
 
           return tokenA.sortsBefore(tokenB)
-            ? [tokenA, tokenB, feeAmount, standardA, standardB]
-            : [tokenB, tokenA, feeAmount, standardA, standardB];
+            ? [tokenA, tokenB, feeAmount]
+            : [tokenB, tokenA, feeAmount];
         }
         return undefined;
       });
     }, [chainId, poolKeys]);
 
-  const poolAddresses: (Address | undefined)[] = useMemo(() => {
-    const v3CoreFactoryAddress = chainId && FACTORY_ADDRESS[chainId as DexChainId];
-
-    if (!v3CoreFactoryAddress)
-      return Array.apply(undefined, Array(poolTokens.length)) as undefined[];
-
-    return poolTokens.map((value) => {
-      return (
-        value &&
-        (computePoolAddress({
-          factoryAddress: v3CoreFactoryAddress,
-          tokenA: value[0],
-          tokenB: value[1],
-          fee: value[2],
-          initCodeHashManualOverride: POOL_INIT_CODE_HASH[chainId as DexChainId],
-          standardA: value[3],
-          standardB: value[4],
-        }) as Address)
-      );
+  const poolAddressesParams = useMemo(() => {
+    return poolTokens.map((poolToken) => {
+      if (!poolToken) return {};
+      const [tokenA, tokenB, tier] = poolToken;
+      return {
+        tokenA,
+        tokenB,
+        tier,
+      };
     });
-  }, [chainId, poolTokens]);
+  }, [poolTokens]);
+  const poolAddresses = useComputePoolAddressesDex(poolAddressesParams);
 
   const slot0Contracts = useMemo(() => {
     return poolAddresses.map((address) => {
       return {
         abi: POOL_STATE_ABI,
-        address: address,
+        address: address?.address,
         functionName: "slot0",
       };
     });
@@ -155,7 +68,7 @@ export default function usePools(
     return poolAddresses.map((address) => {
       return {
         abi: POOL_STATE_ABI,
-        address: address,
+        address: address?.address,
         functionName: "liquidity",
       };
     });
@@ -235,18 +148,10 @@ export function usePool(
   currencyA: Currency | undefined,
   currencyB: Currency | undefined,
   feeAmount: FeeAmount | undefined,
-  standardA: TokenStandard | undefined = "ERC-20", // TODO: temp param, remove after supporting pool with 4 tokens
-  standardB: TokenStandard | undefined = "ERC-20", // TODO: temp param, remove after supporting pool with 4 tokens
 ): [PoolState, Pool | null] {
-  const poolKeys: [
-    Currency | undefined,
-    Currency | undefined,
-    FeeAmount | undefined,
-    TokenStandard,
-    TokenStandard,
-  ][] = useMemo(
-    () => [[currencyA, currencyB, feeAmount, standardA, standardB]],
-    [currencyA, currencyB, feeAmount, standardA, standardB],
+  const poolKeys: PoolKeys = useMemo(
+    () => [[currencyA, currencyB, feeAmount]],
+    [currencyA, currencyB, feeAmount],
   );
 
   return usePools(poolKeys)[0];

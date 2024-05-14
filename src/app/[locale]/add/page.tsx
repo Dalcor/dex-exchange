@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import Image from "next/image";
 import React, { useCallback, useEffect, useState } from "react";
 import { parseUnits } from "viem";
@@ -181,10 +182,10 @@ export default function AddPoolPage({
   });
 
   // Deposit Amounts END
-
-  const { handleAddLiquidity } = useAddLiquidity();
   const { approveTransactions, handleApprove, approveTransactionsType, gasPrice } =
     useLiquidityApprove();
+
+  const isFormDisabled = !tokenA || !tokenB;
 
   return (
     <Container>
@@ -239,7 +240,7 @@ export default function AddPoolPage({
                   </span>
                 </span>
               ) : (
-                <span>Select token</span>
+                <span className="text-tertiary-text">Select token</span>
               )}
             </SelectButton>
             <SelectButton
@@ -265,12 +266,12 @@ export default function AddPoolPage({
                   </span>
                 </span>
               ) : (
-                <span>Select token</span>
+                <span className="text-tertiary-text">Select token</span>
               )}
             </SelectButton>
           </div>
-          <FeeAmountSettings />
-          <div className="grid gap-5 grid-cols-2">
+          <FeeAmountSettings isDisabled={isFormDisabled} />
+          <div className={clsx("grid gap-5 grid-cols-2", isFormDisabled && "opacity-20")}>
             <DepositAmounts
               parsedAmounts={parsedAmounts}
               currencies={currencies}
@@ -290,6 +291,7 @@ export default function AddPoolPage({
               isWithdrawingB={isWithdrawingB}
               approveTransactions={approveTransactions}
               gasPrice={gasPrice}
+              isFormDisabled={isFormDisabled}
             />
             <PriceRange
               noLiquidity={noLiquidity}

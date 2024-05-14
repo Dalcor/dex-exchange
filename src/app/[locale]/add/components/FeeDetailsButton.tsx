@@ -13,9 +13,11 @@ import { ApproveTransaction } from "../hooks/useLiquidityApprove";
 export const FeeDetailsButton = ({
   approveTransactions,
   gasPrice,
+  isDisabled,
 }: {
   approveTransactions: ApproveTransaction[];
   gasPrice?: bigint;
+  isDisabled: boolean;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { chain } = useAccount();
@@ -26,9 +28,10 @@ export const FeeDetailsButton = ({
   return (
     <div className="">
       <Button
-        onClick={() => setIsOpen(true)}
+        onClick={() => isDisabled && setIsOpen(true)}
         size={ButtonSize.EXTRA_SMALL}
         variant={ButtonVariant.OUTLINED}
+        disabled={isDisabled}
       >
         Details
       </Button>

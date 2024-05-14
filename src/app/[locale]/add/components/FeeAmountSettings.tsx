@@ -9,10 +9,9 @@ import Svg from "@/components/atoms/Svg";
 import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import { FEE_AMOUNT_DETAIL, FEE_TIERS } from "@/config/constants/liquidityFee";
 import { useFeeTierDistribution } from "@/hooks/useFeeTierDistribution";
-import usePools, { PoolState, usePool } from "@/hooks/usePools";
+import usePools, { PoolKeys, PoolState, usePool } from "@/hooks/usePools";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 
-import { useTokensStandards } from "../stores/useAddLiquidityAmountsStore";
 import { useLiquidityPriceRangeStore } from "../stores/useLiquidityPriceRangeStore";
 
 interface FeeAmountOptionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -56,7 +55,7 @@ function FeeAmountOption({
   );
 }
 
-export default function FeeAmountSettings() {
+export default function FeeAmountSettings({ isDisabled }: { isDisabled: boolean }) {
   const locale = useLocale();
 
   const [isFeeOpened, setIsFeeOpened] = useState(false);
@@ -66,22 +65,28 @@ export default function FeeAmountSettings() {
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
   const { clearPriceRange } = useLiquidityPriceRangeStore();
 
-  const { tokenAStandard, tokenBStandard } = useTokensStandards();
   const { isLoading, isError, largestUsageFeeTier, distributions } = useFeeTierDistribution({
     tokenA,
     tokenB,
-    tokenAStandard,
-    tokenBStandard,
   });
-  const [poolState, pool] = usePool(tokenA, tokenB, tier, tokenAStandard, tokenBStandard);
+
+  // const poolKeys: [Currency | undefined, Currency | undefined, FeeAmount | undefined][] = useMemo(
+  //   () => [[currencyA, currencyB, feeAmount]],
+  //   [currencyA, currencyB, feeAmount],
+  // );
+
+  const poolKeys: PoolKeys = useMemo(
+    () => [
+      [tokenA, tokenB, FeeAmount.LOWEST],
+      [tokenA, tokenB, FeeAmount.LOW],
+      [tokenA, tokenB, FeeAmount.MEDIUM],
+      [tokenA, tokenB, FeeAmount.HIGH],
+    ],
+    [tokenA, tokenB],
+  );
 
   // get pool data on-chain for latest states
-  const pools = usePools([
-    [tokenA, tokenB, FeeAmount.LOWEST, tokenAStandard, tokenBStandard],
-    [tokenA, tokenB, FeeAmount.LOW, tokenAStandard, tokenBStandard],
-    [tokenA, tokenB, FeeAmount.MEDIUM, tokenAStandard, tokenBStandard],
-    [tokenA, tokenB, FeeAmount.HIGH, tokenAStandard, tokenBStandard],
-  ]);
+  const pools = usePools(poolKeys);
 
   const poolsByFeeTier: Record<FeeAmount, PoolState> = useMemo(
     () =>
@@ -132,13 +137,17 @@ export default function FeeAmountSettings() {
   }, [isError]);
 
   return (
-    <div className="rounded-3 mb-5 bg-secondary-bg">
+    <div className={clsx("rounded-3 mb-5 bg-secondary-bg", isDisabled && "opacity-20")}>
       <div
         role="button"
-        onClick={() => setIsFeeOpened(!isFeeOpened)}
+        onClick={() => {
+          if (isDisabled) return;
+          setIsFeeOpened(!isFeeOpened);
+        }}
         className={clsx(
           "flex justify-between items-center pb-[18px] pt-5 px-5 rounded-3 duration-200",
-          !isFeeOpened && "hover:bg-green-bg",
+          !isFeeOpened && !isDisabled && "hover:bg-green-bg",
+          isDisabled && "cursor-default",
         )}
       >
         <div className="flex items-center gap-2">

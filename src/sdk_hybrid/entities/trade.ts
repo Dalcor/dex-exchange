@@ -8,8 +8,11 @@ import { Pool } from "@/sdk_hybrid/entities/pool";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { sortedInsert } from "@/sdk_hybrid/utils/sortedInsert";
 
+import { FACTORY_ADDRESS } from "../addresses";
+import { DexChainId } from "../chains";
 import { TradeType } from "../constants";
 import { ONE, ZERO } from "../internalConstants";
+import { computePoolAddress } from "../utils/computePoolAddress";
 import { Currency } from "./currency";
 import { Route } from "./route";
 
@@ -477,13 +480,15 @@ export class Trade<
     for (const { route } of routes) {
       for (const pool of route.pools) {
         poolAddressSet.add(
-          Pool.getAddress(
-            pool.token0,
-            pool.token1,
-            pool.fee,
-            "ERC-20", // TODO
-            "ERC-20", // TODO
-          ),
+          // TODO Change it
+          computePoolAddress({
+            factoryAddress: FACTORY_ADDRESS[DexChainId.SEPOLIA],
+            fee: pool.fee,
+            tokenA: pool.token0,
+            tokenB: pool.token1,
+            standardA: "ERC-20", // TODO,
+            standardB: "ERC-20", // TODO,
+          }),
         );
       }
     }

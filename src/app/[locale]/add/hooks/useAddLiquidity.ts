@@ -1,5 +1,5 @@
 import JSBI from "jsbi";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Abi, Address, encodeFunctionData, formatUnits, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
@@ -441,7 +441,7 @@ export const useV3DerivedMintInfo = ({
 }) => {
   const { ticks } = useLiquidityPriceRangeStore();
   const { LOWER: tickLower, UPPER: tickUpper } = ticks;
-
+  const { chainId } = useAccount();
   // mark invalid range
   const invalidRange = Boolean(
     typeof tickLower === "number" && typeof tickUpper === "number" && tickLower >= tickUpper,
@@ -449,9 +449,7 @@ export const useV3DerivedMintInfo = ({
   const { typedValue, independentField, dependentField, setTypedValue } =
     useLiquidityAmountsStore();
 
-  const { tokenAStandard, tokenBStandard } = useTokensStandards();
-
-  const [poolState, pool] = usePool(tokenA, tokenB, tier, tokenAStandard, tokenBStandard);
+  const [poolState, pool] = usePool(tokenA, tokenB, tier);
   const noLiquidity = poolState === PoolState.NOT_EXISTS;
 
   const currencyA = tokenA;

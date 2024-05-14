@@ -203,13 +203,7 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
     if (token && tokenStandard) return { token, tokenStandard };
   }, [positionDetails?.token1, tokens]);
 
-  const pool = usePool(
-    tokenA?.token,
-    tokenB?.token,
-    positionDetails?.tier,
-    tokenA?.tokenStandard,
-    tokenB?.tokenStandard,
-  );
+  const pool = usePool(tokenA?.token, tokenB?.token, positionDetails?.tier);
 
   return useMemo(() => {
     if (pool[1] && positionDetails) {

@@ -13,6 +13,7 @@ import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Price } from "@/sdk_hybrid/entities/fractions/price";
 import { Pool } from "@/sdk_hybrid/entities/pool";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
+import { useComputePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 import { tickToPrice } from "@/sdk_hybrid/utils/priceTickConversions";
 
 import { useTokensStandards } from "../../../stores/useAddLiquidityAmountsStore";
@@ -93,32 +94,22 @@ const getActiveTick = (tickCurrent: number | undefined, feeAmount: FeeAmount | u
     : undefined;
 
 function useTicksFromSubgraph(
-  currencyA: Currency | undefined,
-  currencyB: Currency | undefined,
+  currencyA: Token | undefined,
+  currencyB: Token | undefined,
   feeAmount: FeeAmount | undefined,
   skip = 0,
   chainId: DexChainId,
-  tokenAStandard: TokenStandard,
-  tokenBStandard: TokenStandard,
 ) {
   const apolloClient = chainToApolloClient[chainId];
-  const poolAddress =
-    currencyA && currencyB && feeAmount
-      ? Pool.getAddress(
-          currencyA?.wrapped,
-          currencyB?.wrapped,
-          feeAmount,
-          tokenAStandard,
-          tokenBStandard,
-          undefined,
-          chainId ? FACTORY_ADDRESS[chainId] : undefined,
-        )
-      : undefined;
+  const { poolAddress, poolAddressLoading } = useComputePoolAddressDex({
+    tokenA: currencyA,
+    tokenB: currencyB,
+    tier: feeAmount,
+  });
 
   return useAllV3TicksQuery({
     variables: { poolAddress: poolAddress?.toLowerCase(), skip },
     skip: !poolAddress,
-    // pollInterval: ms(`30s`),
     pollInterval: 30000,
     client: apolloClient,
   });
@@ -127,12 +118,10 @@ function useTicksFromSubgraph(
 const MAX_THE_GRAPH_TICK_FETCH_VALUE = 1000;
 // Fetches all ticks for a given pool
 function useAllV3Ticks(
-  currencyA: Currency | undefined,
-  currencyB: Currency | undefined,
+  currencyA: Token | undefined,
+  currencyB: Token | undefined,
   feeAmount: FeeAmount | undefined,
   chainId: DexChainId,
-  tokenAStandard: TokenStandard,
-  tokenBStandard: TokenStandard,
 ): {
   isLoading: boolean;
   error: unknown;
@@ -144,15 +133,7 @@ function useAllV3Ticks(
     data,
     error,
     loading: isLoading,
-  } = useTicksFromSubgraph(
-    currencyA,
-    currencyB,
-    feeAmount,
-    skipNumber,
-    chainId,
-    tokenAStandard,
-    tokenBStandard,
-  );
+  } = useTicksFromSubgraph(currencyA, currencyB, feeAmount, skipNumber, chainId);
 
   useEffect(() => {
     if (data?.ticks.length) {
@@ -188,16 +169,8 @@ export function usePoolActiveLiquidity(
 } {
   const { chainId: accountChainId } = useAccount();
   const defaultChainId = accountChainId ?? DexChainId.SEPOLIA;
-  const { tokenAStandard, tokenBStandard } = useTokensStandards();
 
-  const pool = usePool(
-    currencyA?.wrapped,
-    currencyB?.wrapped,
-    feeAmount,
-    tokenAStandard,
-    tokenBStandard,
-    // chainId ?? defaultChainId,
-  );
+  const pool = usePool(currencyA?.wrapped, currencyB?.wrapped, feeAmount);
 
   const liquidity = pool[1]?.liquidity;
   const sqrtPriceX96 = pool[1]?.sqrtRatioX96;
@@ -207,12 +180,10 @@ export function usePoolActiveLiquidity(
   const activeTick = useMemo(() => getActiveTick(currentTick, feeAmount), [currentTick, feeAmount]);
 
   const { isLoading, error, ticks }: any = useAllV3Ticks(
-    currencyA,
-    currencyB,
+    currencyA?.wrapped,
+    currencyB?.wrapped,
     feeAmount,
     chainId ?? defaultChainId,
-    tokenAStandard,
-    tokenBStandard,
   );
 
   return useMemo(() => {

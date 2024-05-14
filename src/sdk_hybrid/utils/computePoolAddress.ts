@@ -2,12 +2,14 @@ import { defaultAbiCoder } from "@ethersproject/abi";
 import { getCreate2Address } from "@ethersproject/address";
 import { keccak256 } from "@ethersproject/solidity";
 import { readContract } from "@wagmi/core";
+import { useEffect, useMemo } from "react";
 import { Address } from "viem";
-import { useAccount, useChainId, useReadContract } from "wagmi";
+import { useAccount } from "wagmi";
 
 import { FACTORY_ABI } from "@/config/abis/factory";
 import { config } from "@/config/wagmi/config";
-import { FeeAmount } from "@/sdk_hybrid/constants";
+import { ADDRESS_ZERO, FeeAmount } from "@/sdk_hybrid/constants";
+import { usePoolAddresses } from "@/stores/usePoolsStore";
 
 import { FACTORY_ADDRESS, POOL_INIT_CODE_HASH } from "../addresses";
 import { DexChainId } from "../chains";
@@ -15,6 +17,7 @@ import { Token, TokenStandard } from "../entities/token";
 
 /**
  * Computes a pool address
+ * @deprecated deprecated
  * @param factoryAddress The Uniswap V3 factory address
  * @param tokenA The first token of the pair, irrespective of sort order
  * @param tokenB The second token of the pair, irrespective of sort order
@@ -57,14 +60,14 @@ export function computePoolAddress({
   );
 }
 
-export const computePoolAddressDex = async ({
-  tokenA,
-  tokenB,
+const computePoolAddressDex = async ({
+  addressTokenA,
+  addressTokenB,
   tier,
   chainId,
 }: {
-  tokenA: Token;
-  tokenB: Token;
+  addressTokenA: Address;
+  addressTokenB: Address;
   tier: FeeAmount;
   chainId: DexChainId;
 }) => {
@@ -72,8 +75,140 @@ export const computePoolAddressDex = async ({
     abi: FACTORY_ABI,
     address: FACTORY_ADDRESS[chainId],
     functionName: "getPool",
-    args: [tokenA.address0 as Address, tokenB.address0 as Address, tier],
+    args: [addressTokenA, addressTokenB, tier],
   });
-
   return poolContract;
+};
+
+const getPoolAddressKey = ({
+  addressTokenA,
+  addressTokenB,
+  tier,
+  chainId,
+}: {
+  addressTokenA: Address;
+  addressTokenB: Address;
+  tier: FeeAmount;
+  chainId: DexChainId;
+}): string =>
+  `${chainId}:${addressTokenA.toLowerCase()}:${addressTokenB.toLowerCase()}:${tier.toString()}`;
+
+export const useComputePoolAddressDex = ({
+  tokenA,
+  tokenB,
+  tier,
+}: {
+  tokenA?: Token;
+  tokenB?: Token;
+  tier?: FeeAmount;
+}) => {
+  const { chainId } = useAccount();
+  const { addresses, addPoolAddress } = usePoolAddresses();
+
+  const key = useMemo(() => {
+    if (!tokenA || !tokenB || !tier || !chainId) {
+      return;
+    }
+    return getPoolAddressKey({
+      addressTokenA: tokenA?.address0,
+      addressTokenB: tokenB?.address0,
+      tier,
+      chainId,
+    });
+  }, [tokenA, tokenB, tier, chainId]);
+
+  const poolAddressFromStore = useMemo(() => {
+    if (!key) return;
+    return addresses[key];
+  }, [addresses, key]);
+
+  useEffect(() => {
+    if (poolAddressFromStore || !tokenA || !tokenB || !tier || !chainId) {
+      return;
+    }
+
+    computePoolAddressDex({
+      addressTokenA: tokenA.address0,
+      addressTokenB: tokenB.address0,
+      tier,
+      chainId,
+    }).then((address) => {
+      const key = getPoolAddressKey({
+        addressTokenA: tokenA.address0,
+        addressTokenB: tokenB.address0,
+        tier,
+        chainId,
+      });
+      addPoolAddress(key, {
+        address,
+        isLoading: false,
+      });
+    });
+  }, [poolAddressFromStore, tokenA, tokenB, tier, chainId, addPoolAddress]);
+
+  return {
+    poolAddress: poolAddressFromStore?.address,
+    poolAddressLoading: poolAddressFromStore?.isLoading,
+  };
+};
+
+export const useComputePoolAddressesDex = (
+  params: {
+    tokenA?: Token;
+    tokenB?: Token;
+    tier?: FeeAmount;
+  }[],
+) => {
+  const { chainId } = useAccount();
+  const { addresses, addPoolAddress } = usePoolAddresses();
+
+  const keys = useMemo(() => {
+    return params.map(({ tier, tokenA, tokenB }) => {
+      if (!tokenA || !tokenB || !tier || !chainId) {
+        return;
+      }
+      return getPoolAddressKey({
+        addressTokenA: tokenA?.address0,
+        addressTokenB: tokenB?.address0,
+        tier,
+        chainId,
+      });
+    });
+  }, [params, chainId]);
+
+  const poolAddressesFromStore = useMemo(() => {
+    return keys.map((key) => (key ? addresses[key] : undefined));
+  }, [addresses, keys]);
+
+  useEffect(() => {
+    params.map(({ tier, tokenA, tokenB }, index) => {
+      const poolAddressFromStore = poolAddressesFromStore[index];
+      if (poolAddressFromStore || !tokenA || !tokenB || !tier || !chainId) {
+        return;
+      }
+      const key = getPoolAddressKey({
+        addressTokenA: tokenA.address0,
+        addressTokenB: tokenB.address0,
+        tier,
+        chainId,
+      });
+      addPoolAddress(key, {
+        address: undefined,
+        isLoading: true,
+      });
+      computePoolAddressDex({
+        addressTokenA: tokenA.address0,
+        addressTokenB: tokenB.address0,
+        tier,
+        chainId,
+      }).then((address) => {
+        addPoolAddress(key, {
+          address,
+          isLoading: false,
+        });
+      });
+    });
+  }, [poolAddressesFromStore, params, chainId, addPoolAddress]);
+
+  return poolAddressesFromStore;
 };

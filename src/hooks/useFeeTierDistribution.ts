@@ -6,7 +6,7 @@ import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
 import useFeeTierDistributionQuery from "../graphql/thegraph/FeeTierDistributionQuery";
-import { PoolState, usePool } from "./usePools";
+import usePools, { PoolKeys, PoolState, usePool } from "./usePools";
 
 // maximum number of blocks past which we consider the data stale
 const MAX_DATA_BLOCK_AGE = 20;
@@ -23,26 +23,26 @@ interface FeeTierDistribution {
 export function useFeeTierDistribution({
   tokenA,
   tokenB,
-  tokenAStandard,
-  tokenBStandard,
 }: {
   tokenA?: Token;
   tokenB?: Token;
-  tokenAStandard: TokenStandard;
-  tokenBStandard: TokenStandard;
 }): FeeTierDistribution {
   const { isLoading, error, distributions } = usePoolTVL({
     tokenA,
     tokenB,
-    tokenAStandard,
-    tokenBStandard,
   });
 
   // fetch all pool states to determine pool state
-  const [poolStateVeryLow] = usePool(tokenA, tokenB, FeeAmount.LOWEST);
-  const [poolStateLow] = usePool(tokenA, tokenB, FeeAmount.LOW);
-  const [poolStateMedium] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
-  const [poolStateHigh] = usePool(tokenA, tokenB, FeeAmount.HIGH);
+  const poolKeys: PoolKeys = useMemo(
+    () => [
+      [tokenA, tokenB, FeeAmount.LOWEST],
+      [tokenA, tokenB, FeeAmount.LOW],
+      [tokenA, tokenB, FeeAmount.MEDIUM],
+      [tokenA, tokenB, FeeAmount.HIGH],
+    ],
+    [tokenA, tokenB],
+  );
+  const [poolStateVeryLow, poolStateLow, poolStateMedium, poolStateHigh] = usePools(poolKeys);
 
   return useMemo(() => {
     if (isLoading || error || !distributions) {
@@ -65,25 +65,25 @@ export function useFeeTierDistribution({
       !isLoading &&
       !error &&
       distributions &&
-      poolStateVeryLow !== PoolState.LOADING &&
-      poolStateLow !== PoolState.LOADING &&
-      poolStateMedium !== PoolState.LOADING &&
-      poolStateHigh !== PoolState.LOADING
+      poolStateVeryLow[0] !== PoolState.LOADING &&
+      poolStateLow[0] !== PoolState.LOADING &&
+      poolStateMedium[0] !== PoolState.LOADING &&
+      poolStateHigh[0] !== PoolState.LOADING
         ? {
             [FeeAmount.LOWEST]:
-              poolStateVeryLow === PoolState.EXISTS
+              poolStateVeryLow[0] === PoolState.EXISTS
                 ? (distributions[FeeAmount.LOWEST] ?? 0) * 100
                 : undefined,
             [FeeAmount.LOW]:
-              poolStateLow === PoolState.EXISTS
+              poolStateLow[0] === PoolState.EXISTS
                 ? (distributions[FeeAmount.LOW] ?? 0) * 100
                 : undefined,
             [FeeAmount.MEDIUM]:
-              poolStateMedium === PoolState.EXISTS
+              poolStateMedium[0] === PoolState.EXISTS
                 ? (distributions[FeeAmount.MEDIUM] ?? 0) * 100
                 : undefined,
             [FeeAmount.HIGH]:
-              poolStateHigh === PoolState.EXISTS
+              poolStateHigh[0] === PoolState.EXISTS
                 ? (distributions[FeeAmount.HIGH] ?? 0) * 100
                 : undefined,
           }
@@ -106,22 +106,12 @@ export function useFeeTierDistribution({
   ]);
 }
 
-function usePoolTVL({
-  tokenA,
-  tokenB,
-  tokenAStandard,
-  tokenBStandard,
-}: {
-  tokenA?: Token;
-  tokenB?: Token;
-  tokenAStandard: TokenStandard;
-  tokenBStandard: TokenStandard;
-}) {
+function usePoolTVL({ tokenA, tokenB }: { tokenA?: Token; tokenB?: Token }) {
   const { data: latestBlock } = useBlockNumber({ watch: true });
   // TODO
   const { isLoading, error, data } = useFeeTierDistributionQuery(
-    tokenAStandard === "ERC-20" ? tokenA?.address0 : tokenA?.address1,
-    tokenBStandard === "ERC-20" ? tokenB?.address0 : tokenB?.address1,
+    tokenA?.address0,
+    tokenB?.address0,
     ms(`30s`),
   );
 

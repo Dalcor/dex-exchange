@@ -47,26 +47,6 @@ export class Pool {
   private _token0Price?: Price<Token, Token>;
   private _token1Price?: Price<Token, Token>;
 
-  public static getAddress(
-    tokenA: Token,
-    tokenB: Token,
-    fee: FeeAmount,
-    standardA: TokenStandard,
-    standardB: TokenStandard,
-    initCodeHashManualOverride?: string,
-    factoryAddressOverride?: string,
-  ): string {
-    return computePoolAddress({
-      factoryAddress: factoryAddressOverride ?? FACTORY_ADDRESS[DexChainId.SEPOLIA],
-      fee,
-      tokenA,
-      tokenB,
-      initCodeHashManualOverride,
-      standardA,
-      standardB,
-    });
-  }
-
   /**
    * Construct a pool
    * @param tokenA One of the tokens in the pool

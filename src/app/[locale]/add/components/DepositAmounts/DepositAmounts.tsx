@@ -34,6 +34,7 @@ export const DepositAmounts = ({
   isWithdrawingB,
   approveTransactions,
   gasPrice,
+  isFormDisabled,
 }: {
   currentAllowanceA?: bigint;
   currentAllowanceB?: bigint;
@@ -56,6 +57,7 @@ export const DepositAmounts = ({
   isRevokingB: boolean;
   approveTransactions: ApproveTransaction[];
   gasPrice?: bigint;
+  isFormDisabled: boolean;
 }) => {
   const {
     typedValue,
@@ -81,22 +83,21 @@ export const DepositAmounts = ({
 
   return (
     <div className="flex flex-col gap-5">
-      {currencies[Field.CURRENCY_A] && (
-        <TokenDepositCard
-          value={formattedAmounts[Field.CURRENCY_A]}
-          onChange={(value) => setTypedValue({ field: Field.CURRENCY_A, typedValue: value })}
-          token={currencies[Field.CURRENCY_A]}
-          currentAllowance={currentAllowanceA}
-          currentDeposit={currentDepositA}
-          revokeHandler={revokeA}
-          withdrawHandler={withdrawA}
-          isDisabled={depositADisabled}
-          isRevoking={isRevokingA}
-          isWithdrawing={isWithdrawingA}
-          tokenStandardRatio={tokenAStandardRatio}
-          setTokenStandardRatio={setTokenAStandardRatio}
-        />
-      )}
+      <TokenDepositCard
+        value={formattedAmounts[Field.CURRENCY_A]}
+        onChange={(value) => setTypedValue({ field: Field.CURRENCY_A, typedValue: value })}
+        token={currencies[Field.CURRENCY_A]}
+        currentAllowance={currentAllowanceA}
+        currentDeposit={currentDepositA}
+        revokeHandler={revokeA}
+        withdrawHandler={withdrawA}
+        isDisabled={isFormDisabled}
+        isOutOfRange={depositADisabled}
+        isRevoking={isRevokingA}
+        isWithdrawing={isWithdrawingA}
+        tokenStandardRatio={tokenAStandardRatio}
+        setTokenStandardRatio={setTokenAStandardRatio}
+      />
       <div className="px-5 py-2 flex justify-between bg-tertiary-bg rounded-3">
         <div className="flex flex-col">
           <div className="text-secondary-text flex items-center gap-1 text-14">
@@ -113,24 +114,27 @@ export const DepositAmounts = ({
           <div className="text-secondary-text text-14">Transactions</div>
           <div>{approveTransactions.length + 1}</div>
         </div>
-        <FeeDetailsButton approveTransactions={approveTransactions} gasPrice={gasPrice} />
-      </div>
-      {currencies[Field.CURRENCY_B] && (
-        <TokenDepositCard
-          value={formattedAmounts[Field.CURRENCY_B]}
-          onChange={(value) => setTypedValue({ field: Field.CURRENCY_B, typedValue: value })}
-          token={currencies[Field.CURRENCY_B]}
-          currentAllowance={currentAllowanceB}
-          currentDeposit={currentDepositB}
-          revokeHandler={revokeB}
-          withdrawHandler={withdrawB}
-          isDisabled={depositBDisabled}
-          isRevoking={isRevokingB}
-          isWithdrawing={isWithdrawingB}
-          tokenStandardRatio={tokenBStandardRatio}
-          setTokenStandardRatio={setTokenBStandardRatio}
+        <FeeDetailsButton
+          approveTransactions={approveTransactions}
+          gasPrice={gasPrice}
+          isDisabled={isFormDisabled}
         />
-      )}
+      </div>
+      <TokenDepositCard
+        value={formattedAmounts[Field.CURRENCY_B]}
+        onChange={(value) => setTypedValue({ field: Field.CURRENCY_B, typedValue: value })}
+        token={currencies[Field.CURRENCY_B]}
+        currentAllowance={currentAllowanceB}
+        currentDeposit={currentDepositB}
+        revokeHandler={revokeB}
+        withdrawHandler={withdrawB}
+        isDisabled={isFormDisabled}
+        isOutOfRange={depositBDisabled}
+        isRevoking={isRevokingB}
+        isWithdrawing={isWithdrawingB}
+        tokenStandardRatio={tokenBStandardRatio}
+        setTokenStandardRatio={setTokenBStandardRatio}
+      />
     </div>
   );
 };

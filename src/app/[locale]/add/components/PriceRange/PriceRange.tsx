@@ -72,8 +72,7 @@ export const PriceRange = ({
     setTicks,
   } = useLiquidityPriceRangeStore();
   const { tier } = useLiquidityTierStore();
-  const { tokenAStandard, tokenBStandard } = useTokensStandards();
-  const [poolState, pool] = usePool(tokenA, tokenB, tier, tokenAStandard, tokenBStandard);
+  const [poolState, pool] = usePool(tokenA, tokenB, tier);
 
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks;
 

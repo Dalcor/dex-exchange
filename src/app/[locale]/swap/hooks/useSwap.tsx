@@ -25,7 +25,7 @@ import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { ONE } from "@/sdk_hybrid/internalConstants";
-import { computePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
+import { useComputePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 import { TickMath } from "@/sdk_hybrid/utils/tickMath";
 import {
   GasFeeModel,
@@ -90,25 +90,11 @@ export default function useSwap() {
     return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
   }, [slippage, trade]);
 
-  const [poolAddress, setPoolAddress] = useState<Address | null>(null);
-
-  useEffect(() => {
-    IIFE(async () => {
-      if (!tokenA || !tokenB || !chainId) {
-        return;
-      }
-      const _poolAddress = await computePoolAddressDex({
-        tokenA,
-        chainId,
-        tokenB,
-        tier: FeeAmount.MEDIUM,
-      });
-
-      if (_poolAddress) {
-        setPoolAddress(_poolAddress);
-      }
-    });
-  }, [chainId, tokenA, tokenB]);
+  const poolAddress = useComputePoolAddressDex({
+    tokenA,
+    tokenB,
+    tier: FeeAmount.MEDIUM,
+  });
 
   const swapParams = useMemo(() => {
     if (
@@ -213,6 +199,8 @@ export default function useSwap() {
     typedValue,
   ]);
 
+  console.log(swapParams);
+
   useEffect(() => {
     if (!publicClient || !swapParams) {
       return;
@@ -267,7 +255,7 @@ export default function useSwap() {
       return;
     }
 
-    console.log(swapParams);
+    // console.log(swapParams);
     // const { request } = await publicClient.simulateContract({
     //   ...swapParams,
     //   account: address,

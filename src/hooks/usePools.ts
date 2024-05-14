@@ -23,27 +23,33 @@ export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][]
   const { chainId } = useAccount();
   const { pools, addPool } = usePoolsStore();
 
-  const poolTokens: ([Token, Token, FeeAmount, TokenStandard, TokenStandard] | undefined)[] =
-    useMemo(() => {
-      if (!chainId) return new Array(poolKeys.length);
+  console.log(poolKeys);
 
-      return poolKeys.map(([currencyA, currencyB, feeAmount]) => {
-        if (currencyA && currencyB && feeAmount) {
-          const tokenA = currencyA.wrapped;
-          const tokenB = currencyB.wrapped;
-          if (tokenA.equals(tokenB)) return undefined;
+  const poolTokens: ([Token, Token, FeeAmount] | undefined)[] = useMemo(() => {
+    if (!chainId) return [...Array(poolKeys.length)];
 
-          return tokenA.sortsBefore(tokenB)
-            ? [tokenA, tokenB, feeAmount]
-            : [tokenB, tokenA, feeAmount];
-        }
-        return undefined;
-      });
-    }, [chainId, poolKeys]);
+    return poolKeys.map(([currencyA, currencyB, feeAmount]) => {
+      if (currencyA && currencyB && feeAmount) {
+        const tokenA = currencyA.wrapped;
+        const tokenB = currencyB.wrapped;
+        if (tokenA.equals(tokenB)) return undefined;
+
+        return tokenA.sortsBefore(tokenB)
+          ? [tokenA, tokenB, feeAmount]
+          : [tokenB, tokenA, feeAmount];
+      }
+      return undefined;
+    });
+  }, [chainId, poolKeys]);
 
   const poolAddressesParams = useMemo(() => {
     return poolTokens.map((poolToken) => {
-      if (!poolToken) return {};
+      if (!poolToken)
+        return {
+          tokenA: undefined,
+          tokenB: undefined,
+          tier: undefined,
+        };
       const [tokenA, tokenB, tier] = poolToken;
       return {
         tokenA,

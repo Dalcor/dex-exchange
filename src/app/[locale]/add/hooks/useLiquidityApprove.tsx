@@ -139,7 +139,7 @@ export const useLiquidityApprove = () => {
     let transactions: ApproveTransaction[] = [];
     if (tokenA && tokenAStandard && amountToCheckA) {
       if (
-        (tokenAStandard === "ERC-20" && currentAllowanceA && currentAllowanceA < amountToCheckA) ||
+        (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountToCheckA) ||
         (tokenAStandard === "ERC-223" && currentDepositA && currentDepositA < amountToCheckA)
       ) {
         transactions.push({
@@ -152,7 +152,7 @@ export const useLiquidityApprove = () => {
     }
     if (tokenB && tokenBStandard && amountToCheckB) {
       if (
-        (tokenBStandard === "ERC-20" && currentAllowanceB && currentAllowanceB < amountToCheckB) ||
+        (tokenBStandard === "ERC-20" && (currentAllowanceB || BigInt(0)) < amountToCheckB) ||
         (tokenBStandard === "ERC-223" && currentDepositB && currentDepositB < amountToCheckB)
       ) {
         transactions.push({
@@ -176,12 +176,13 @@ export const useLiquidityApprove = () => {
     currentAllowanceB,
     currentDepositA,
     currentDepositB,
-    // estimatedGasA,
-    // estimatedGasB,
+    estimatedGasA,
+    estimatedGasB,
   ]);
 
   const handleApprove = useCallback(async () => {
-    if (tokenAStandard === "ERC-20" && currentAllowanceA && currentAllowanceA < amountToCheckA) {
+    console.log("🚀 ~ handleApprove ~ handleApprove:");
+    if (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountToCheckA) {
       approveA();
     } else if (
       tokenAStandard === "ERC-223" &&
@@ -190,7 +191,7 @@ export const useLiquidityApprove = () => {
     ) {
       depositA();
     }
-    if (tokenBStandard === "ERC-20" && currentAllowanceB && currentAllowanceB < amountToCheckB) {
+    if (tokenBStandard === "ERC-20" && (currentAllowanceB || BigInt(0)) < amountToCheckB) {
       approveB();
     } else if (
       tokenBStandard === "ERC-223" &&
@@ -212,6 +213,8 @@ export const useLiquidityApprove = () => {
     currentDepositB,
     amountToCheckA,
     amountToCheckB,
+    // estimatedGasA,
+    // estimatedGasB,
   ]);
 
   const approveTransactionsType = useMemo(() => {

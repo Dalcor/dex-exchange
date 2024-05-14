@@ -23,8 +23,6 @@ export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][]
   const { chainId } = useAccount();
   const { pools, addPool } = usePoolsStore();
 
-  console.log(poolKeys);
-
   const poolTokens: ([Token, Token, FeeAmount] | undefined)[] = useMemo(() => {
     if (!chainId) return [...Array(poolKeys.length)];
 

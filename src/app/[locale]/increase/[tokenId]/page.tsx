@@ -252,6 +252,7 @@ export default function IncreaseLiquidityPage({
               isWithdrawingA={isWithdrawingA}
               isWithdrawingB={isWithdrawingB}
               approveTransactions={[]}
+              isFormDisabled={false}
             />
             <div className="rounded-3 p-5 bg-tertiary-bg h-min">
               <div className="rounded-3 bg-quaternary-bg mb-4">

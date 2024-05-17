@@ -31,13 +31,13 @@ function FeeAmountOption({
     <button
       {...props}
       className={clsx(
-        "flex justify-between items-center px-5 py-2 rounded-1 border cursor-pointer  duration-200",
+        "flex flex-col md:flex-row md:justify-between items-start md:items-center px-4 py-3 md:px-5 md:py-2 rounded-2 border cursor-pointer duration-200 gap-2 md:gap-0",
         active
           ? "bg-green-bg shadow-select border-green pointer-events-none"
           : "border-transparent bg-primary-bg hover:bg-green-bg",
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
         <span>{FEE_AMOUNT_DETAIL[feeAmount].label}% fee tier</span>
         <Badge
           variant={BadgeVariant.PERCENTAGE}
@@ -137,7 +137,7 @@ export default function FeeAmountSettings({ isDisabled }: { isDisabled: boolean 
   }, [isError]);
 
   return (
-    <div className={clsx("rounded-3 mb-5 bg-secondary-bg", isDisabled && "opacity-20")}>
+    <div className={clsx("rounded-3 mb-4 md:mb-5 bg-secondary-bg", isDisabled && "opacity-20")}>
       <div
         role="button"
         onClick={() => {
@@ -145,25 +145,24 @@ export default function FeeAmountSettings({ isDisabled }: { isDisabled: boolean 
           setIsFeeOpened(!isFeeOpened);
         }}
         className={clsx(
-          "flex justify-between items-center pb-[18px] pt-5 px-5 rounded-3 duration-200",
+          "flex justify-between items-center px-4 py-2 md:p-5 rounded-3 duration-200",
           !isFeeOpened && !isDisabled && "hover:bg-green-bg",
           isDisabled && "cursor-default",
         )}
       >
         <div className="flex items-center gap-2">
           <span className="font-bold">{FEE_AMOUNT_DETAIL[tier].label}% fee tier</span>
-          {/*<TextLabel text="67% select" color="grey"/>*/}
         </div>
-        <span className="flex items-center gap-1 group">
-          <span className="text-secondary-text">{isFeeOpened ? "Hide" : "Edit"}</span>
+        <span className="flex items-center gap-2 group">
+          <span className="">{isFeeOpened ? "Hide" : "Edit"}</span>
           <Svg
-            iconName="expand-arrow"
+            iconName="small-expand-arrow"
             className={isFeeOpened ? "duration-200 -rotate-180" : "duration-200 "}
           />
         </span>
       </div>
       <Collapse open={isFeeOpened}>
-        <div className="grid gap-2 pb-5 px-5">
+        <div className="grid gap-2 pb-5 px-4 md:px-5">
           {FEE_TIERS.map((_feeAmount) => (
             <FeeAmountOption
               feeAmount={_feeAmount}
@@ -174,11 +173,6 @@ export default function FeeAmountSettings({ isDisabled }: { isDisabled: boolean 
               onClick={() => {
                 setTier(_feeAmount);
                 clearPriceRange();
-                // window.history.replaceState(
-                //   null,
-                //   "",
-                //   `/${locale}/add/${tokenA?.address0}/${tokenB?.address0}/${_feeAmount}`,
-                // );
               }}
             />
           ))}

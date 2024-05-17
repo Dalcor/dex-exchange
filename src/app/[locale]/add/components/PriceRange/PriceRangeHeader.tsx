@@ -20,10 +20,10 @@ export const PriceRangeHeader = ({
   button1Handler: () => void;
 }) => {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex flex-col gap-1 md:gap-0 md:flex-row md:justify-between md:items-center">
       <h3 className="text-16 font-bold">Set price range</h3>
       {button0Text && button1Text ? (
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 justify-between md:items-center">
           <div className="flex items-center gap-2">
             <span className="text-primary-text text-12">Full range</span>
             <Switch checked={isFullRange} handleChange={handleSetFullRange} />

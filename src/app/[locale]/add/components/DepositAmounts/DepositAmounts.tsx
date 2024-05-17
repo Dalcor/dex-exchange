@@ -82,7 +82,7 @@ export const DepositAmounts = ({
   }, BigInt(0));
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4 md:gap-5">
       <TokenDepositCard
         value={formattedAmounts[Field.CURRENCY_A]}
         onChange={(value) => setTypedValue({ field: Field.CURRENCY_A, typedValue: value })}
@@ -98,21 +98,23 @@ export const DepositAmounts = ({
         tokenStandardRatio={tokenAStandardRatio}
         setTokenStandardRatio={setTokenAStandardRatio}
       />
-      <div className="px-5 py-2 flex justify-between bg-tertiary-bg rounded-3">
-        <div className="flex flex-col">
-          <div className="text-secondary-text flex items-center gap-1 text-14">
-            Gas price
-            <Tooltip iconSize={20} text="Tooltip text" />
+      <div className="flex flex-col items-center gap-2 md:flex-row px-5 py-2 bg-tertiary-bg rounded-3">
+        <div className="flex w-full justify-between">
+          <div className="flex flex-col">
+            <div className="text-secondary-text flex items-center gap-1 text-14">
+              Gas price
+              <Tooltip iconSize={20} text="Tooltip text" />
+            </div>
+            <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
           </div>
-          <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
-        </div>
-        <div className="flex flex-col">
-          <div className="text-secondary-text text-14">Total fee</div>
-          <div>{`${gasPrice ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</div>
-        </div>
-        <div className="flex flex-col">
-          <div className="text-secondary-text text-14">Transactions</div>
-          <div>{approveTransactions.length + 1}</div>
+          <div className="flex flex-col">
+            <div className="text-secondary-text text-14">Total fee</div>
+            <div>{`${gasPrice ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</div>
+          </div>
+          <div className="flex flex-col">
+            <div className="text-secondary-text text-14">Transactions</div>
+            <div>{approveTransactions.length + 1}</div>
+          </div>
         </div>
         <FeeDetailsButton
           approveTransactions={approveTransactions}

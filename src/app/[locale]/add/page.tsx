@@ -189,21 +189,24 @@ export default function AddPoolPage({
 
   return (
     <Container>
-      <div className="w-[1200px] mx-auto my-[80px]">
-        <div className="grid grid-cols-3 bg-primary-bg rounded-t-5 py-2.5 px-6">
-          <IconButton
-            variant={IconButtonVariant.DEFAULT}
-            iconSize={IconSize.REGULAR}
-            iconName="back"
-            buttonSize={IconButtonSize.LARGE}
-            onClick={() => router.push("/pools")}
-          />
-          <h2 className="text-20 font-bold justify-center flex items-center">Add Liquidity</h2>
-          <div className="flex items-center gap-2 justify-end">
+      <div className="md:w-[1200px] mx-auto my-4 md:my-[80px]">
+        <div className="flex justify-between items-center bg-primary-bg rounded-t-5 py-2.5 px-6">
+          <div className="w-[80px] md:w-[104px]">
+            <IconButton
+              variant={IconButtonVariant.DEFAULT}
+              iconSize={IconSize.REGULAR}
+              iconName="back"
+              buttonSize={IconButtonSize.LARGE}
+              onClick={() => router.push("/pools")}
+            />
+          </div>
+          <h2 className="text-18 md:text-20 font-bold">Add Liquidity</h2>
+          <div className="w-[80px] md:w-[104px] flex items-center gap-2 justify-end">
             <IconButton
               variant={IconButtonVariant.DEFAULT}
               buttonSize={IconButtonSize.LARGE}
               iconName="recent-transactions"
+              active={showRecentTransactions}
               onClick={() => setShowRecentTransactions(!showRecentTransactions)}
             />
             <IconButton
@@ -214,9 +217,9 @@ export default function AddPoolPage({
             />
           </div>
         </div>
-        <div className="rounded-b-5 border-t-0 p-10 bg-primary-bg mb-5">
+        <div className="rounded-b-5 border-t-0 p-4 md:p-10 bg-primary-bg mb-4 md:mb-5">
           <h3 className="text-16 font-bold mb-4">Select pair</h3>
-          <div className="flex gap-3 mb-5">
+          <div className="flex gap-3 mb-4 md:mb-5">
             <SelectButton
               variant="rounded-secondary"
               fullWidth
@@ -229,13 +232,20 @@ export default function AddPoolPage({
               {tokenA ? (
                 <span className="flex gap-2 items-center">
                   <Image
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 hidden md:block"
                     src={tokenA?.logoURI || ""}
                     alt="Ethereum"
                     width={32}
                     height={32}
                   />
-                  <span className="block overflow-ellipsis whitespace-nowrap w-[141px] overflow-hidden text-left">
+                  <Image
+                    className="flex-shrink-0 block md:hidden"
+                    src={tokenA?.logoURI || ""}
+                    alt="Ethereum"
+                    width={24}
+                    height={24}
+                  />
+                  <span className="block overflow-ellipsis whitespace-nowrap w-[84px] md:w-[141px] overflow-hidden text-left">
                     {tokenA.symbol}
                   </span>
                 </span>
@@ -255,13 +265,20 @@ export default function AddPoolPage({
               {tokenB ? (
                 <span className="flex gap-2 items-center">
                   <Image
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 hidden md:block"
                     src={tokenB?.logoURI || ""}
                     alt="Ethereum"
                     width={32}
                     height={32}
                   />
-                  <span className="block overflow-ellipsis whitespace-nowrap w-[141px] overflow-hidden text-left">
+                  <Image
+                    className="flex-shrink-0 block md:hidden"
+                    src={tokenB?.logoURI || ""}
+                    alt="Ethereum"
+                    width={24}
+                    height={24}
+                  />
+                  <span className="block overflow-ellipsis whitespace-nowrap w-[84px] md:w-[141px] overflow-hidden text-left">
                     {tokenB.symbol}
                   </span>
                 </span>
@@ -271,7 +288,7 @@ export default function AddPoolPage({
             </SelectButton>
           </div>
           <FeeAmountSettings isDisabled={isFormDisabled} />
-          <div className={clsx("grid gap-5 grid-cols-2", isFormDisabled && "opacity-20")}>
+          <div className={clsx("gap-5 md:grid md:grid-cols-2", isFormDisabled && "opacity-20")}>
             <DepositAmounts
               parsedAmounts={parsedAmounts}
               currencies={currencies}

@@ -27,12 +27,14 @@ export const FeeDetailsButton = ({
     return estimatedGas ? acc + estimatedGas : acc;
   }, BigInt(0));
   return (
-    <div className="">
+    <div className="w-full md:w-auto">
       <Button
         onClick={() => isDisabled && setIsOpen(true)}
         size={ButtonSize.EXTRA_SMALL}
         variant={ButtonVariant.OUTLINED}
         disabled={isDisabled}
+        mobileSize={ButtonSize.SMALL}
+        fullWidth
       >
         Details
       </Button>

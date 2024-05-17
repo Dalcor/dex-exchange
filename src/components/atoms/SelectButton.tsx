@@ -44,7 +44,7 @@ export const SelectButton = forwardRef(
             : variant !== "rounded-secondary" && variant !== "rectangle-secondary"
               ? "bg-primary-bg"
               : "bg-secondary-bg",
-          size === "large" && "py-3.5 text-24 px-5",
+          size === "large" && "p-2 md:px-5 md:py-3.5 md:text-24 ",
           size === "regular" && "py-2 px-3",
           fullWidth && withArrow && "w-full justify-between",
           fullWidth && !withArrow && "w-full justify-center",

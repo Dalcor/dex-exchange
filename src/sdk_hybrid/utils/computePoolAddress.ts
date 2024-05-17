@@ -60,6 +60,7 @@ export function computePoolAddress({
   );
 }
 
+const cachedKeys = new Set<string>();
 const computePoolAddressDex = async ({
   addressTokenA,
   addressTokenB,
@@ -71,15 +72,27 @@ const computePoolAddressDex = async ({
   tier: FeeAmount;
   chainId: DexChainId;
 }) => {
+  const key = getPoolAddressKey({
+    addressTokenA,
+    addressTokenB,
+    chainId,
+    tier,
+  });
+
+  if (cachedKeys.has(key)) return undefined;
+  cachedKeys.add(key);
+
   const poolContract = await readContract(config, {
     abi: FACTORY_ABI,
     address: FACTORY_ADDRESS[chainId],
     functionName: "getPool",
     args: [addressTokenA, addressTokenB, tier],
   });
+  cachedKeys.delete(key);
   return poolContract;
 };
 
+// TODO: sort TokenA TokenB
 const getPoolAddressKey = ({
   addressTokenA,
   addressTokenB,
@@ -126,7 +139,6 @@ export const useComputePoolAddressDex = ({
     if (poolAddressFromStore || !tokenA || !tokenB || !tier || !chainId) {
       return;
     }
-
     computePoolAddressDex({
       addressTokenA: tokenA.address0,
       addressTokenB: tokenB.address0,

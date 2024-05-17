@@ -1,5 +1,7 @@
+import clsx from "clsx";
 import Image from "next/image";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { NumericFormat } from "react-number-format";
 import { Address, formatUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
@@ -71,15 +73,19 @@ function InputTotalAmount({
     <div>
       <div className="bg-primary-bg px-5 pt-5 pb-4 rounded-3">
         <div className="mb-1 flex justify-between items-center">
-          <input
-            className="text-20 bg-transparent flex-grow outline-0"
-            placeholder="0"
+          <NumericFormat
+            inputMode="decimal"
+            placeholder="0.0"
+            className={clsx("bg-transparent outline-0 border-0 text-20 w-full peer")}
             type="text"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onValueChange={(values) => {
+              onChange(values.value);
+            }}
+            allowNegative={false}
             disabled={isDisabled}
           />
-          <div className="bg-secondary-bg rounded-5 py-1 pl-1 pr-3 flex items-center gap-2">
+          <div className="bg-secondary-bg rounded-5 py-1 pl-1 pr-3 flex items-center gap-2 min-w-[100px]">
             {token ? (
               <>
                 <Image src={token?.logoURI || ""} alt="" width={24} height={24} />
@@ -92,7 +98,7 @@ function InputTotalAmount({
         </div>
         <div className="flex justify-between items-center text-14">
           <span className="text-secondary-text">—</span>
-          <span>
+          <span className="text-14 md:text-16">
             {token &&
               `Balance: ${formatFloat(formatUnits(totalBalance, token.decimals))} ${token.symbol}`}
           </span>
@@ -138,21 +144,21 @@ function InputStandardAmount({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
         <span>Standard</span>
         <Badge color={standard === "ERC-20" ? "purple" : "green"} text={standard} />
       </div>
-      <div className="bg-primary-bg px-5 pt-5 pb-4 w-full rounded-2">
+      <div className="bg-primary-bg px-4 py-2 md:p-5 w-full rounded-2">
         <div className="mb-1 flex justify-between items-center">
           <input
-            className="bg-transparent outline-0 text-20 w-full"
+            className="bg-transparent outline-0 text-16 md:text-20 w-full"
             placeholder="0"
             type="text"
             value={value}
             // onChange={(e) => onChange(e.target.value)}
           />
         </div>
-        <div className="flex justify-end items-center text-14">
+        <div className="flex justify-end items-center text-10 md:text-14">
           <span>
             {token &&
               `Balance: ${formatFloat(formatUnits(tokenBalance?.value || BigInt(0), token.decimals))} ${token.symbol}`}
@@ -250,7 +256,7 @@ export default function TokenDepositCard({
       <div className="flex flex-col gap-5">
         <InputTotalAmount token={token} value={value} onChange={onChange} isDisabled={isDisabled} />
         <InputRange value={tokenStandardRatio} onChange={setTokenStandardRatio} />
-        <div className="flex justify-between gap-3 w-full">
+        <div className="flex flex-col md:flex-row justify-between gap-4 w-full">
           <InputStandardAmount
             standard="ERC-20"
             value={ERC20Value}

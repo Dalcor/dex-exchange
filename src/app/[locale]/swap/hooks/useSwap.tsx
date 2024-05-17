@@ -12,13 +12,14 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
+import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
+import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { POOL_ABI } from "@/config/abis/pool";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
-import { IIFE } from "@/functions/iife";
 import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
@@ -27,6 +28,7 @@ import { FeeAmount } from "@/sdk_hybrid/constants";
 import { ONE } from "@/sdk_hybrid/internalConstants";
 import { useComputePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 import { TickMath } from "@/sdk_hybrid/utils/tickMath";
+import { useConfirmInWalletAlertStore } from "@/stores/useConfirmInWalletAlertStore";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -35,12 +37,6 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
-enum SwapStatus {
-  INITIAL,
-  PENDING,
-  LOADING,
-  SUCCESS,
-}
 export default function useSwap() {
   const { data: walletClient } = useWalletClient();
   const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
@@ -57,8 +53,14 @@ export default function useSwap() {
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
 
-  const [swapStatus, setSwapStatus] = useState(SwapStatus.INITIAL);
+  const { status: swapStatus, setStatus: setSwapStatus } = useSwapStatusStore();
+  const { isOpen: confirmDialogOpened } = useConfirmSwapDialogStore();
 
+  const {
+    isOpened: confirmAlertOpened,
+    openConfirmInWalletAlert,
+    closeConfirmInWalletAlert,
+  } = useConfirmInWalletAlertStore();
   const {
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
@@ -69,6 +71,15 @@ export default function useSwap() {
     contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
+
+  useEffect(() => {
+    if (isPendingA) {
+      setSwapStatus(SwapStatus.PENDING_APPROVE);
+    }
+    if (isLoadingA) {
+      setSwapStatus(SwapStatus.LOADING_APPROVE);
+    }
+  }, [isLoadingA, isPendingA, setSwapStatus]);
 
   const gasPriceFormatted = useMemo(() => {
     switch (gasPrice.model) {
@@ -106,6 +117,7 @@ export default function useSwap() {
       !tokenBAddress ||
       !poolAddress
     ) {
+      console.log("NOT READY SWAP PARAMS:");
       console.log({
         tokenA,
         tokenB,
@@ -158,7 +170,7 @@ export default function useSwap() {
         abi: ERC223_ABI,
         functionName: "transfer",
         args: [
-          poolAddress,
+          poolAddress.poolAddress,
           parseUnits(typedValue, tokenA.decimals), // amountSpecified
           encodeFunctionData({
             abi: POOL_ABI,
@@ -199,25 +211,35 @@ export default function useSwap() {
     typedValue,
   ]);
 
-  console.log(swapParams);
-
   useEffect(() => {
-    if (!publicClient || !swapParams) {
-      return;
+    if (swapStatus === SwapStatus.SUCCESS && !confirmDialogOpened) {
+      setSwapStatus(SwapStatus.INITIAL);
     }
-
-    IIFE(async () => {
-      try {
-        const _estimatedGas = await publicClient.estimateContractGas({
-          ...swapParams,
-          account: address,
-        } as any); //TODO: remove any
-        setEstimatedGas(_estimatedGas);
-      } catch (e) {
-        console.log("Error while estimating gas");
-      }
-    });
-  }, [publicClient, swapParams, address]);
+  }, [confirmDialogOpened, setSwapStatus, swapStatus]);
+  //
+  // useEffect(() => {
+  //   if (swapStatus === SwapStatus.LOADING && confirmAlertOpened) {
+  //     closeConfirmInWalletAlert();
+  //   }
+  // }, [closeConfirmInWalletAlert, confirmAlertOpened, confirmDialogOpened, setSwapStatus, swapStatus]);
+  //
+  // useEffect(() => {
+  //   if (!publicClient || !swapParams) {
+  //     return;
+  //   }
+  //
+  //   IIFE(async () => {
+  //     try {
+  //       const _estimatedGas = await publicClient.estimateContractGas({
+  //         ...swapParams,
+  //         account: address,
+  //       } as any); //TODO: remove any
+  //       setEstimatedGas(_estimatedGas);
+  //     } catch (e) {
+  //       console.log("Error while estimating gas");
+  //     }
+  //   });
+  // }, [publicClient, swapParams, address]);
 
   const handleSwap = useCallback(async () => {
     if (!isAllowedA && tokenA?.address0 === tokenAAddress) {
@@ -263,10 +285,13 @@ export default function useSwap() {
     // });
     // const hash = await walletClient.writeContract(swapParams);
 
-    let hash;
-
     setSwapStatus(SwapStatus.PENDING);
-    hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
+    openConfirmInWalletAlert("Confirm action in your wallet");
+
+    console.log(swapParams);
+    const hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
+
+    closeConfirmInWalletAlert();
 
     const nonce = await publicClient.getTransactionCount({
       address,
@@ -309,11 +334,14 @@ export default function useSwap() {
     address,
     approveA,
     chainId,
+    closeConfirmInWalletAlert,
     estimatedGas,
     gasPrice,
     isAllowedA,
+    openConfirmInWalletAlert,
     output,
     publicClient,
+    setSwapStatus,
     swapParams,
     tokenA,
     tokenAAddress,
@@ -326,8 +354,8 @@ export default function useSwap() {
   return {
     handleSwap,
     isAllowedA: isAllowedA,
-    isPendingApprove: isPendingA,
-    isLoadingApprove: isLoadingA,
+    isPendingApprove: swapStatus === SwapStatus.PENDING_APPROVE,
+    isLoadingApprove: swapStatus === SwapStatus.LOADING_APPROVE,
     handleApprove: () => null,
     isPendingSwap: swapStatus === SwapStatus.PENDING,
     isLoadingSwap: swapStatus === SwapStatus.LOADING,

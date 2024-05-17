@@ -1,5 +1,4 @@
-import Checkbox, { CheckboxButton } from "@/components/atoms/Checkbox";
-import Dialog from "@/components/atoms/Dialog";
+import { CheckboxButton } from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Svg from "@/components/atoms/Svg";

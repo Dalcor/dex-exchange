@@ -124,7 +124,7 @@ export default function AccountDialog({ setOpenedWallet, isMobile = false }: Pro
                   <div className="relative mb-5 px-5 pt-4 pb-3 grid gap-3 z-10">
                     <div>
                       <div className="text-12 text-secondary-text">Total Balance</div>
-                      <div className="text-32 text-primary-text font-medium">$234.234</div>
+                      <div className="text-32 text-primary-text font-medium">$0.00</div>
                     </div>
                   </div>
                 </div>

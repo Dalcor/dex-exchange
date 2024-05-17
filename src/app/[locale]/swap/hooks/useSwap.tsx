@@ -14,6 +14,7 @@ import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
+import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ERC223_ABI } from "@/config/abis/erc223";
@@ -35,7 +36,6 @@ import {
   stringifyObject,
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
-import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 export default function useSwap() {
   const { data: walletClient } = useWalletClient();
@@ -48,7 +48,7 @@ export default function useSwap() {
 
   const { gasPrice } = useSwapGas();
 
-  const { slippage, deadline: _deadline } = useTransactionSettingsStore();
+  const { slippage, deadline: _deadline } = useSwapSettingsStore();
   const deadline = useTransactionDeadline(_deadline);
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();

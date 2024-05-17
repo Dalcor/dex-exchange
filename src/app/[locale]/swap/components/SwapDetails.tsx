@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { TokenTrade } from "@/app/[locale]/swap/libs/trading";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
+import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import Collapse from "@/components/atoms/Collapse";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
@@ -12,7 +13,6 @@ import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
-import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 function SwapDetailsRow({
   title,
@@ -49,7 +49,7 @@ export default function SwapDetails({
     return trade?.outputAmount;
   }, [trade?.outputAmount]);
 
-  const { slippage, deadline: _deadline } = useTransactionSettingsStore();
+  const { slippage, deadline: _deadline } = useSwapSettingsStore();
   const { estimatedGas } = useSwap();
 
   return (

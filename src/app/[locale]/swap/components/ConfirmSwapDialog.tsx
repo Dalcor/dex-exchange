@@ -7,6 +7,7 @@ import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
+import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -267,7 +268,7 @@ export default function ConfirmSwapDialog() {
     return trade.outputAmount.toSignificant();
   }, [trade]);
 
-  const { slippage, deadline: _deadline } = useTransactionSettingsStore();
+  const { slippage, deadline: _deadline } = useSwapSettingsStore();
   const {
     estimatedGas,
     isPendingSwap,

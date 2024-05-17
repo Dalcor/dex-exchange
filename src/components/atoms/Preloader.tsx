@@ -4,9 +4,10 @@ import { useMemo } from "react";
 interface Props {
   size?: number;
   type?: "circular" | "linear" | "awaiting";
+  color?: "green" | "black";
 }
 
-export default function Preloader({ size = 24, type = "circular" }: Props) {
+export default function Preloader({ size = 24, type = "circular", color = "green" }: Props) {
   const internalSize = useMemo(() => {
     return size / Math.sqrt(2);
   }, [size]);
@@ -20,7 +21,12 @@ export default function Preloader({ size = 24, type = "circular" }: Props) {
         >
           <div
             style={{ borderWidth: size > 50 ? 4 : 2 }}
-            className="rounded-full border-4 border-transparent border-t-green border-l-green border-r-green top-0 left-0 w-full h-full bg-transparent animate-spin"
+            className={clsx(
+              "rounded-full border-4 border-transparent top-0 left-0 w-full h-full bg-transparent animate-spin",
+              color === "green" && "border-t-green border-l-green border-r-green",
+              color === "black" &&
+                "border-t-secondary-bg border-l-secondary-bg border-r-secondary-bg",
+            )}
           />
         </div>
       );

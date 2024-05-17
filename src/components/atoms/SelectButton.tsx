@@ -33,8 +33,8 @@ export const SelectButton = forwardRef(
         {...props}
         className={clsxMerge(
           "flex items-center gap-2 duration-[600ms] text-base text-primary-text",
-          variant === "rectangle-primary" ||
-            (variant === "rectangle-secondary" && "rounded-2  hover:bg-green-bg"),
+          (variant === "rectangle-primary" || variant === "rectangle-secondary") &&
+            "rounded-2  hover:bg-green-bg",
           variant === "rounded-primary" &&
             "rounded-[80px] border border-transparent hover:bg-green-bg hover:shadow-select hover:border-green",
           variant === "rounded-secondary" &&

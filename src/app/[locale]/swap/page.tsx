@@ -5,8 +5,11 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Address, formatGwei, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
+import ConfirmSwapDialog from "@/app/[locale]/swap/components/ConfirmSwapDialog";
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
+import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
+import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import {
   GasOption,
@@ -15,24 +18,22 @@ import {
 import { useSwapRecentTransactionsStore } from "@/app/[locale]/swap/stores/useSwapRecentTransactions";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import Container from "@/components/atoms/Container";
+import Preloader from "@/components/atoms/Preloader";
 import Tooltip from "@/components/atoms/Tooltip";
-import Button, { ButtonVariant } from "@/components/buttons/Button";
-import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
+import IconButton from "@/components/buttons/IconButton";
 import SwapButton from "@/components/buttons/SwapButton";
 import RecentTransactions from "@/components/common/RecentTransactions";
 import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import TokenInput from "@/components/common/TokenInput";
-import ConfirmSwapDialog from "@/components/dialogs/ConfirmSwapDialog";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
-import { useConfirmSwapDialogStore } from "@/components/dialogs/stores/useConfirmSwapDialogOpened";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
-import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
@@ -46,6 +47,41 @@ function OpenConfirmDialogButton({ isSufficientBalance }: { isSufficientBalance:
   const { tokenA, tokenB } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
+
+  const { isLoadingSwap, isLoadingApprove, isPendingApprove, isPendingSwap } = useSwap();
+
+  if (isLoadingSwap) {
+    return (
+      <Button fullWidth disabled>
+        <span className="flex items-center gap-2">
+          <span>Processing swap</span>
+          <Preloader size={20} color="black" />
+        </span>
+      </Button>
+    );
+  }
+
+  if (isLoadingApprove) {
+    return (
+      <Button fullWidth disabled>
+        <span className="flex items-center gap-2">
+          <span>Approval in progress</span>
+          <Preloader size={20} color="black" />
+        </span>
+      </Button>
+    );
+  }
+
+  if (isPendingApprove || isPendingSwap) {
+    return (
+      <Button fullWidth disabled>
+        <span className="flex items-center gap-2">
+          <span>Waiting for confirmation</span>
+          <Preloader size={20} color="black" />
+        </span>
+      </Button>
+    );
+  }
 
   if (!tokenA || !tokenB) {
     return (
@@ -209,6 +245,11 @@ export default function SwapPage() {
     return "Loading...";
   }, [baseFee, gasPrice]);
 
+  const { isSuccessSwap, isLoadingSwap, isPendingSwap, isLoadingApprove, isPendingApprove } =
+    useSwap();
+
+  const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
+
   return (
     <>
       <Container>
@@ -346,6 +387,28 @@ export default function SwapPage() {
                     </button>
                   </div>
                 </div>
+
+                {(isLoadingSwap || isPendingSwap || isPendingApprove || isLoadingApprove) && (
+                  <div className="flex justify-between px-5 py-3 rounded-2 bg-tertiary-bg mb-5">
+                    <div className="flex items-center gap-2 text-14">
+                      <Preloader size={20} />
+
+                      {isLoadingSwap && <span>Processing swap</span>}
+                      {isPendingSwap && <span>Waiting for confirmation</span>}
+                      {isLoadingApprove && <span>Approving in progress</span>}
+                      {isPendingApprove && <span>Waiting for confirmation</span>}
+                    </div>
+
+                    <Button
+                      onClick={() => {
+                        setConfirmSwapDialogOpen(true);
+                      }}
+                      size={ButtonSize.EXTRA_SMALL}
+                    >
+                      Review swap
+                    </Button>
+                  </div>
+                )}
 
                 <OpenConfirmDialogButton
                   isSufficientBalance={

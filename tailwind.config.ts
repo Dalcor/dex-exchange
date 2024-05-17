@@ -16,6 +16,7 @@ const config: Config = {
         popover: "0 4px 42px 0px #000000CC",
         error: "0px 0px 10px 0px #D13B3B99",
         warning: "0px 0px 10px 0px #D9A25199",
+        notification: "0px -8px 24px 0px #B3FFE24D",
       },
       backgroundImage: {
         "account-card-pattern": "url('/account-bg.svg')",

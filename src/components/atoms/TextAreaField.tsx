@@ -1,10 +1,11 @@
 import clsx from "clsx";
-import { InputHTMLAttributes, ReactNode } from "react";
+import { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
 import Input from "@/components/atoms/Input";
+import TextArea from "@/components/atoms/TextArea";
 import Tooltip from "@/components/atoms/Tooltip";
 
-type Props = InputHTMLAttributes<HTMLInputElement> & {
+type Props = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label: string;
   helperText?: ReactNode;
   tooltipText?: string;
@@ -16,7 +17,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
     | { warning?: string; error?: never }
   );
 
-export default function TextField({
+export default function TextAreaField({
   label,
   helperText,
   error,
@@ -35,7 +36,7 @@ export default function TextField({
         {label}
         {tooltipText && <Tooltip iconSize={20} text={tooltipText} />}
       </p>
-      <Input isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
+      <TextArea isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
       {typeof helperText !== "undefined" && !error && (
         <div
           className={clsx("text-12 text-secondary-text mt-0.5 h-4", props.disabled && "opacity-50")}

@@ -6,7 +6,7 @@ export const sepolia = defineChain({
   nativeCurrency: { name: "Sepolia Ether", symbol: "SEP", decimals: 18 },
   rpcUrls: {
     default: {
-      http: ["https://endpoints.omniatech.io/v1/eth/sepolia/public"],
+      http: ["https://ethereum-sepolia-rpc.publicnode.com"],
     },
   },
   blockExplorers: {

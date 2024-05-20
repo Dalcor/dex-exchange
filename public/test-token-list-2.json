@@ -8,7 +8,7 @@
     "tokens": [
         {
           "address0": "0x7F4C5c87C630b3f8a2265FD76413E7d6C7DEbFB4",
-          "address1": "",
+          "address1": "0x47329E626e2FCCed96e14909a154b3F61AfE3477",
           "name": "Test Sep 1",
           "symbol": "TSP1",
           "logoURI": "/tokens/placeholder.svg",

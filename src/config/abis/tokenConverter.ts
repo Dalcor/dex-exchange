@@ -164,7 +164,7 @@ export const TOKEN_CONVERTER_ABI = [
         type: "address",
       },
     ],
-    name: "getOriginFor",
+    name: "getERC20OriginFor",
     outputs: [
       {
         internalType: "address",
@@ -188,7 +188,55 @@ export const TOKEN_CONVERTER_ABI = [
         type: "address",
       },
     ],
-    name: "getWrapperFor",
+    name: "getERC223OriginFor",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+    ],
+    name: "getERC20WrapperFor",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+    ],
+    name: "getERC223WrapperFor",
     outputs: [
       {
         internalType: "address",

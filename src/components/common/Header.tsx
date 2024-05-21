@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Container from "@/components/atoms/Container";
 import LocaleSwitcher from "@/components/atoms/LocaleSwitcher";
@@ -11,10 +11,43 @@ import NetworkPicker from "@/components/common/NetworkPicker";
 import TokenListsSettings from "@/components/common/TokenListsSettings";
 import AccountDialog from "@/components/dialogs/AccountDialog";
 import ConnectWalletDialog from "@/components/dialogs/ConnectWalletDialog";
+import { db } from "@/db/db";
+import { sepoliaDefaultList } from "@/db/lists/sepolia-default-list";
+import { IIFE } from "@/functions/iife";
 import { Link } from "@/navigation";
 
+function useInitializeDB() {
+  useEffect(() => {
+    IIFE(async () => {
+      const defaultList = await db.tokenLists.get("default");
+
+      if (!defaultList) {
+        await db.tokenLists.add({
+          id: "default",
+          list: sepoliaDefaultList,
+          enabled: true,
+        });
+      } else {
+        const { major, minor, patch } = defaultList.list.version;
+        const { major: _major, minor: _minor, patch: _patch } = sepoliaDefaultList.version;
+        if (
+          major < _major ||
+          (major === major && minor < _minor) ||
+          (major === _major && minor === _minor && patch < _patch)
+        ) {
+          await (db.tokenLists as any).update("default", {
+            list: sepoliaDefaultList,
+            enabled: true,
+          });
+        }
+      }
+    });
+  }, []);
+}
 export default function Header() {
   const [isOpenedWallet, setOpenedWallet] = useState(false);
+
+  useInitializeDB();
 
   return (
     <header className="md:mb-3 md:before:hidden before:h-[1px] before:bg-footer-border before:w-full before:absolute relative before:bottom-0 before:left-0">

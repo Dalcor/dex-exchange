@@ -20,7 +20,7 @@ export default function TabButton({
         size === 28 && "h-7 text-12",
         size === 32 && "h-8 text-12",
         size === 40 && "h-10 text-16",
-        size === 48 && "h-12 text-18",
+        size === 48 && "h-12 text-16",
         size === 60 && "h-[60px] text-18",
         active
           ? "text-primary-text border-green bg-green-bg pointer-events-none"

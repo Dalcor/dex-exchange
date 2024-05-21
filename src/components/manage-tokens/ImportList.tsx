@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import { ChangeEvent, DragEvent, useCallback, useEffect, useRef, useState } from "react";
-import { useAccount } from "wagmi";
 
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -10,13 +9,10 @@ import Svg from "@/components/atoms/Svg";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import RadioButton from "@/components/buttons/RadioButton";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
-import { TokenList } from "@/config/types/TokenList";
-import { db } from "@/db/db";
+import { db, TokenList } from "@/db/db";
 import { IIFE } from "@/functions/iife";
 import { fetchTokenList } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
-import { DexChainId } from "@/sdk_hybrid/chains";
-import { useTokenListsStore } from "@/stores/useTokenListsStore";
 
 interface Props {
   setContent: (content: ManageTokensDialogContent) => void;
@@ -32,7 +28,6 @@ function getListImage(url: string) {
 }
 
 export default function ImportList({ setContent, handleClose }: Props) {
-  const { chainId } = useAccount();
   const [tokenListAddressToImport, setTokenListAddressToImport] = useState("");
   const [tokenListFile, setTokenListFile] = useState<File | undefined>();
 
@@ -43,8 +38,12 @@ export default function ImportList({ setContent, handleClose }: Props) {
       try {
         const data = await fetchTokenList(tokenListAddressToImport);
 
+        console.log(data);
         if (data) {
-          setTokenListToImport(data);
+          setTokenListToImport({
+            enabled: true,
+            list: data,
+          });
         }
       } catch (e) {
         console.log(e);
@@ -62,8 +61,6 @@ export default function ImportList({ setContent, handleClose }: Props) {
     }
   };
 
-  const { addTokenList } = useTokenListsStore();
-
   const handleJSONImport = useCallback(() => {
     if (tokenListFile) {
       const reader = new FileReader();
@@ -73,18 +70,8 @@ export default function ImportList({ setContent, handleClose }: Props) {
             const fileContents: any = e.target.result;
             const parsedJson = JSON.parse(fileContents);
 
-            // addTokenList(
-            //   {
-            //     name: parsedJson.name,
-            //     enabled: true,
-            //     list: parsedJson,
-            //   },
-            //   chainId as DexChainId,
-            // );
-
-            console.log(parsedJson);
-
             db.tokenLists.add({
+              enabled: true,
               list: parsedJson,
             });
           }
@@ -97,7 +84,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
   }, [tokenListFile]);
 
   const fileInput = useRef<HTMLInputElement | null>(null);
-  const [importType, setImportType] = useState<"url" | "json">("url");
+  const [importType, setImportType] = useState<"url" | "json" | "contract">("url");
   const [checkedUnderstand, setCheckedUnderstand] = useState<boolean>(false);
 
   const [dragEntered, setDragEntered] = useState(false);
@@ -132,12 +119,18 @@ export default function ImportList({ setContent, handleClose }: Props) {
 
       <div className="px-4 pb-4 md:px-10 md:pb-10 w-full md:w-[550px] h-[580px] flex flex-col">
         <h3 className="text-16 font-bold mb-1">Importing type</h3>
-        <div className="grid grid-cols-2 gap-2 mb-5">
+        <div className="grid grid-cols-3 gap-3 mb-5">
           <RadioButton isActive={importType === "url"} onClick={() => setImportType("url")}>
-            From URL
+            URL
           </RadioButton>
           <RadioButton isActive={importType === "json"} onClick={() => setImportType("json")}>
-            From JSON
+            JSON
+          </RadioButton>
+          <RadioButton
+            isActive={importType === "contract"}
+            onClick={() => setImportType("contract")}
+          >
+            Contract
           </RadioButton>
         </div>
 
@@ -168,13 +161,13 @@ export default function ImportList({ setContent, handleClose }: Props) {
                       className="w-12 h-12"
                       width={48}
                       height={48}
-                      src={getListImage(tokenListToImport.logoURI)}
+                      src={tokenListToImport.list.logoURI}
                       alt=""
                     />
                     <div className="flex flex-col text-16">
-                      <span className="text-primary-text">{tokenListToImport.name}</span>
+                      <span className="text-primary-text">{tokenListToImport.list.name}</span>
                       <span className="text-secondary-text">
-                        {tokenListToImport.tokens.length} tokens
+                        {tokenListToImport.list.tokens.length} tokens
                       </span>
                     </div>
                   </div>
@@ -200,14 +193,8 @@ export default function ImportList({ setContent, handleClose }: Props) {
                     size={ButtonSize.MEDIUM}
                     disabled={!checkedUnderstand}
                     onClick={() => {
-                      addTokenList(
-                        {
-                          name: tokenListToImport?.name,
-                          enabled: true,
-                          url: tokenListAddressToImport,
-                        },
-                        chainId as DexChainId,
-                      );
+                      db.tokenLists.add(tokenListToImport);
+
                       setContent("default");
                       addToast("List imported");
                     }}
@@ -276,6 +263,12 @@ export default function ImportList({ setContent, handleClose }: Props) {
             >
               Import with JSON
             </Button>
+          </div>
+        )}
+        {importType === "contract" && (
+          <div className="flex flex-col gap-4 flex-grow items-center justify-center">
+            <Svg size={80} iconName="settings" />
+            <span className="text-secondary-text">This page is under development</span>
           </div>
         )}
       </div>

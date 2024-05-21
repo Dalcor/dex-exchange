@@ -1,14 +1,16 @@
-import clsx from "clsx";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AutoSizer, List } from "react-virtualized";
 
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Input from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
+import Button, { ButtonVariant } from "@/components/buttons/Button";
+import TabButton from "@/components/buttons/TabButton";
 import ManageTokenItem from "@/components/manage-tokens/ManageTokenItem";
 import TokenListItem from "@/components/manage-tokens/TokenListItem";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
+import { db } from "@/db/db";
 import { useTokenLists, useTokens } from "@/hooks/useTokenLists";
 import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
 
@@ -19,49 +21,40 @@ interface Props {
 export default function TokensAndLists({ setContent, handleClose }: Props) {
   const { activeTab, setActiveTab } = useManageTokensDialogStore();
 
-  const { lists, toggleTokenList } = useTokenLists();
-  const tokens = useTokens();
+  const lists = useTokenLists();
+  const [onlyCustom, setOnlyCustom] = useState(false);
+
+  const tokens = useTokens(onlyCustom);
 
   const [value, setValue] = useState("");
 
-  const [onlyCustom, setOnlyCustom] = useState(false);
-
   const filteredTokens = useMemo(() => {
-    const tokensAfterCustomCheck = onlyCustom ? tokens.filter((t) => true) : tokens;
-
-    return value
-      ? tokensAfterCustomCheck.filter((t) => t.name && t.name.toLowerCase().startsWith(value))
-      : tokensAfterCustomCheck;
-  }, [onlyCustom, tokens, value]);
+    return value ? tokens.filter((t) => t.name && t.name.toLowerCase().startsWith(value)) : tokens;
+  }, [tokens, value]);
 
   return (
     <>
       <DialogHeader onClose={handleClose} title="Manage tokens" />
-      <div className="w-full md:w-[550px] h-[580px] flex flex-col">
-        <div className="grid grid-cols-2 mb-3 px-4 md:px-10">
-          <button
-            className={clsx(
-              "duration-200 rounded-l-1 hover:bg-tertiary-bg border border-primary-border py-2 ",
-              activeTab === "lists" ? "text-primary-text bg-tertiary-bg" : "text-secondary-text",
-            )}
-            onClick={() => setActiveTab("lists")}
-          >
-            Lists
-          </button>
-          <button
-            className={clsx(
-              "duration-200 rounded-r-1 hover:bg-tertiary-bg border-y border-r border-primary-border py-2 ",
-              activeTab === "tokens" ? "text-primary-text bg-tertiary-bg" : "text-secondary-text",
-            )}
-            onClick={() => setActiveTab("tokens")}
-          >
-            Tokens
-          </button>
+      <div className="w-full md:w-[550px] h-[580px] flex flex-col px-4 md:px-10">
+        <div className="grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3  mb-3">
+          {["Lists", "Tokens"].map((title, index) => {
+            return (
+              <TabButton
+                key={title}
+                inactiveBackground="bg-primary-bg"
+                size={48}
+                active={index === activeTab}
+                onClick={() => setActiveTab(index)}
+              >
+                {title}
+              </TabButton>
+            );
+          })}
         </div>
 
-        {activeTab === "lists" && (
+        {activeTab === 0 && (
           <div className="flex-grow flex flex-col">
-            <div className="flex gap-3 px-4 md:px-10">
+            <div className="flex gap-3">
               <Input
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
@@ -69,32 +62,34 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
               />
             </div>
 
+            <Button
+              endIcon="import-list"
+              variant={ButtonVariant.OUTLINED}
+              onClick={() => setContent("import-list")}
+              className="mt-3"
+            >
+              Import list
+            </Button>
+
             <div className="flex flex-col mt-3 overflow-scroll flex-grow">
-              {lists.map((tokenList) => {
+              {lists?.map((tokenList) => {
                 return (
                   <TokenListItem
-                    toggle={toggleTokenList}
+                    toggle={() => {
+                      (db.tokenLists as any).update(tokenList.id, { enabled: !tokenList.enabled });
+                    }}
                     tokenList={tokenList}
                     key={tokenList.id}
                   />
                 );
               })}
             </div>
-            <button
-              className="cursor-pointer w-full h-[60px] bg-tertiary-bg hover:bg-tertiary-hover duration-200 rounded-b-5"
-              onClick={() => setContent("import-list")}
-            >
-              <span className="flex items-center justify-center gap-2">
-                Import list
-                <Svg iconName="import" />
-              </span>
-            </button>
           </div>
         )}
 
-        {activeTab === "tokens" && (
+        {activeTab === 1 && (
           <div className="flex-grow flex flex-col">
-            <div className="flex gap-3 px-4 md:px-10">
+            <div className="flex gap-3">
               <Input
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
@@ -102,7 +97,16 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
               />
             </div>
 
-            <div className="flex justify-between items-center px-4 md:px-10 my-3">
+            <Button
+              endIcon="import-token"
+              variant={ButtonVariant.OUTLINED}
+              onClick={() => setContent("import-token")}
+              className="mt-3"
+            >
+              Import token
+            </Button>
+
+            <div className="flex justify-between items-center my-3">
               <div>Total: {filteredTokens.length}</div>
               <div>
                 <Checkbox
@@ -137,15 +141,6 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
                 </AutoSizer>
               </div>
             </div>
-            <button
-              className="cursor-pointer w-full h-[60px] bg-tertiary-bg hover:bg-tertiary-hover duration-200 rounded-b-5"
-              onClick={() => setContent("import-token")}
-            >
-              <span className="flex items-center justify-center gap-2">
-                Import token
-                <Svg iconName="import" />
-              </span>
-            </button>
           </div>
         )}
       </div>

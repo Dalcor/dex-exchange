@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type ManageTokensTab = "lists" | "tokens";
+type ManageTokensTab = number;
 interface ManageTokensDialogStore {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
@@ -10,7 +10,7 @@ interface ManageTokensDialogStore {
 
 export const useManageTokensDialogStore = create<ManageTokensDialogStore>((set, get) => ({
   isOpen: false,
-  activeTab: "lists",
+  activeTab: 0,
 
   setIsOpen: (isOpen) => set({ isOpen }),
   setActiveTab: (activeTab) => set({ activeTab }),

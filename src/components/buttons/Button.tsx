@@ -78,6 +78,7 @@ export default function Button({
   fullWidth,
   colorScheme = ButtonColor.GREEN,
   children,
+  className,
   ...props
 }: Props) {
   const _mobileSize = mobileSize || size;
@@ -91,7 +92,7 @@ export default function Button({
         mobileButtonSizeClassnameMap[_mobileSize],
         fullWidth && "w-full",
         props.disabled && "opacity-50 pointer-events-none",
-        props.className,
+        className,
       )}
       {...props}
     >

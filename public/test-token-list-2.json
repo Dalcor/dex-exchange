@@ -2,9 +2,10 @@
     "version": {
       "patch": 1,
       "minor": 0,
-      "major": 1
+      "major": 0
     },
-    "name": "Test list#1",
+    "logoURI": "/token-list-placeholder.svg",
+    "name": "Test list#2",
     "tokens": [
         {
           "address0": "0x7F4C5c87C630b3f8a2265FD76413E7d6C7DEbFB4",
@@ -17,7 +18,7 @@
         },
         {
           "address0": "0x73a68acd477ABf858fd3b18a9A13d080B781cbE5",
-          "address1": "",
+          "address1": "0x4D2D54436afa2B1ee5B7BaaBbBA72E7D6a54BE17",
           "name": "Test Sep 2",
           "symbol": "TSP2",
           "logoURI": "/tokens/placeholder.svg",
@@ -26,7 +27,7 @@
         },
         {
           "address0": "0x78B2BebFb31788372F449a8fD7b9BA7B654B03E4",
-          "address1": "",
+          "address1": "0x3a7B42c87EA1Bd76621bee51d96Ad9cd62e3C306",
           "name": "Test Sep 3",
           "symbol": "TSP3",
           "logoURI": "/tokens/placeholder.svg",
@@ -35,7 +36,7 @@
         },
         {
           "address0": "0x4817B28641eec4D43266A3BA3347D6d4b8401Ac3",
-          "address1": "",
+          "address1": "0x294C0eb07e830787a4Af9Bdfb0872B505a0288EA",
           "name": "Test Sep 4",
           "symbol": "TSP4",
           "logoURI": "/tokens/placeholder.svg",
@@ -44,7 +45,7 @@
         },
         {
           "address0": "0x19CE05d621b89cC59c49ebDD36dF9066234963c5",
-          "address1": "",
+          "address1": "0x15effc60ece5a3244CdFbABB26bE3bE7B6c44B86",
           "name": "Test Sep 5",
           "symbol": "TSP5",
           "logoURI": "/tokens/placeholder.svg",
@@ -53,7 +54,7 @@
         },
         {
           "address0": "0xf886E984F9519641fD6C5F78F1573094c6037365",
-          "address1": "",
+          "address1": "0x0fDd774f7302BDA5Bd7a3Ac854E91bA20b88C74e",
           "name": "Test Sep 6",
           "symbol": "TSP6",
           "logoURI": "/tokens/placeholder.svg",

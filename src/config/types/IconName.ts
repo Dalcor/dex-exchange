@@ -118,6 +118,8 @@ export const svgIconsNames = [
   "margin-trading",
   "portfolio",
   "token",
+  "import-token",
+  "import-list",
 ] as const;
 
 export const socialIconNames = [""] as const;

@@ -2,6 +2,8 @@ import { BigNumber } from "@ethersproject/bignumber";
 import invariant from "tiny-invariant";
 import { Address } from "viem";
 
+import { Rate } from "@/components/badges/TrustBadge";
+
 import { checkValidAddress, validateAndParseAddress } from "../utils/validateAndParseAddress";
 import { BaseCurrency } from "./baseCurrency";
 import { Currency } from "./currency";
@@ -25,6 +27,9 @@ export class Token extends BaseCurrency {
    */
   public readonly logoURI?: string;
 
+  public readonly lists?: any[];
+  public readonly rate?: Rate;
+
   /**
    * Relevant for fee-on-transfer (FOT) token taxes,
    * Not every ERC20 token is FOT token, so this field is optional
@@ -41,6 +46,8 @@ export class Token extends BaseCurrency {
    * @param symbol {@link BaseCurrency#symbol}
    * @param name {@link BaseCurrency#name}
    * @param logoURI Token logotype to show in UI
+   * @param lists Tokenlists token was found in
+   * @param rate Token rate depending on existence in different tokenLists
    * @param bypassChecksum If true it only checks for length === 42, startsWith 0x and contains only hex characters
    * @param buyFeeBps Buy fee tax for FOT tokens, in basis points
    * @param sellFeeBps Sell fee tax for FOT tokens, in basis points
@@ -53,6 +60,8 @@ export class Token extends BaseCurrency {
     symbol?: string,
     name?: string,
     logoURI?: string,
+    lists?: any[],
+    rate?: Rate,
     bypassChecksum?: boolean,
     buyFeeBps?: BigNumber,
     sellFeeBps?: BigNumber,
@@ -74,6 +83,8 @@ export class Token extends BaseCurrency {
     this.buyFeeBps = buyFeeBps;
     this.sellFeeBps = sellFeeBps;
     this.logoURI = logoURI;
+    this.lists = lists;
+    this.rate = rate;
   }
 
   /**

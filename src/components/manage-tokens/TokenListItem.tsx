@@ -1,11 +1,64 @@
+import clsx from "clsx";
 import { useState } from "react";
 
 import Popover from "@/components/atoms/Popover";
 import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
 import IconButton from "@/components/buttons/IconButton";
-import { TokenList } from "@/config/types/TokenList";
+import { db, TokenList } from "@/db/db";
 
+enum ListActionOption {
+  VIEW,
+  DOWNLOAD,
+  REMOVE,
+}
+
+type Props =
+  | {
+      variant: ListActionOption.VIEW;
+      href: string;
+    }
+  | {
+      variant: ListActionOption.DOWNLOAD;
+      href: string;
+    }
+  | {
+      variant: ListActionOption.REMOVE;
+      handleRemove: () => void;
+    };
+
+const commonClassName = "flex items-center gap-2 py-2 duration-200";
+function ListPopoverOption(props: Props) {
+  switch (props.variant) {
+    case ListActionOption.DOWNLOAD:
+      return (
+        <a
+          className={clsx(commonClassName, "text-primary-text hover:text-green-hover")}
+          href={props.href}
+        >
+          Download
+          <Svg iconName="download" />
+        </a>
+      );
+    case ListActionOption.REMOVE:
+      return (
+        <button
+          className={clsx(commonClassName, "text-red hover:text-red-hover")}
+          onClick={props.handleRemove}
+        >
+          Remove
+          <Svg iconName="delete" />
+        </button>
+      );
+    case ListActionOption.VIEW:
+      return (
+        <a className={clsx(commonClassName, "text-green hover:text-green-hover")} href={props.href}>
+          View list
+          <Svg iconName="next" />
+        </a>
+      );
+  }
+}
 export default function TokenListItem({
   tokenList,
   toggle,
@@ -18,7 +71,7 @@ export default function TokenListItem({
 
   return (
     <div>
-      <div className="flex justify-between py-1.5 px-4 md:px-10">
+      <div className="flex justify-between py-1.5">
         <div className="flex gap-3 items-center">
           <img
             onError={({ currentTarget }) => {
@@ -29,54 +82,46 @@ export default function TokenListItem({
             width={40}
             height={40}
             className="w-10 h-10"
-            src={tokenList.logoURI}
+            src={tokenList.list.logoURI}
             alt=""
           />
           <div className="flex flex-col">
-            <span>{tokenList.name}</span>
+            <span>{tokenList.list.name}</span>
             <div className="flex gap-1 items-cente text-secondary-text">
-              {tokenList.tokens.length} tokens
+              {tokenList.list.tokens.length} tokens
               <Popover
-                placement="top-end"
+                placement="top"
                 isOpened={isPopoverOpened}
                 setIsOpened={() => setPopoverOpened(!isPopoverOpened)}
+                customOffset={12}
                 trigger={
                   <button
                     onClick={() => setPopoverOpened(true)}
                     className="text-secondary-text hover:text-primary-text duration-200 relative"
                   >
-                    <Svg iconName="settings" />
+                    <Svg size={20} iconName="settings" />
                   </button>
                 }
               >
-                <div className="flex flex-col gap-3 p-5 border-secondary-border border bg-primary-bg rounded-1">
-                  v1.0.30
-                  <a
-                    href="#"
-                    className="flex items-center text-green hover:text-green-hover duration-200 gap-2"
-                  >
-                    See
-                    <Svg iconName="forward" />
-                  </a>
-                  <button className="bg-red py-0.5 px-2 rounded-5 text-black hover:bg-red-hover duration-200">
-                    Remove
-                  </button>
+                <div className="flex flex-col gap-1 px-5 py-3 border-secondary-border border bg-primary-bg rounded-1 shadow-popover">
+                  <ListPopoverOption variant={ListActionOption.VIEW} href="#" />
+                  <ListPopoverOption
+                    variant={ListActionOption.DOWNLOAD}
+                    href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(tokenList.list))}`}
+                  />
+
+                  {tokenList.id !== "default" && (
+                    <ListPopoverOption
+                      variant={ListActionOption.REMOVE}
+                      handleRemove={() => db.tokenLists.delete(tokenList.id)}
+                    />
+                  )}
                 </div>
               </Popover>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {tokenList.id === "custom" && (
-            <a
-              className="flex items-center justify-center w-10 h-10 text-primary-text bg-transparent rounded-full duration-200 hover:bg-white/10"
-              download="custom-list.json"
-              href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(tokenList))}`}
-            >
-              <Svg iconName="download" />
-            </a>
-          )}
-          <IconButton onClick={() => setOpen(!open)} iconName="details" />
           <Switch checked={tokenList.enabled} handleChange={() => toggle(tokenList.id)} />
         </div>
       </div>

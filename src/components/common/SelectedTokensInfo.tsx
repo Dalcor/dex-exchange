@@ -44,8 +44,7 @@ export function SelectedTokenInfoItem({ token }: { token: Token | undefined }) {
         <Image src={token?.logoURI || ""} alt="Ethereum" width={32} height={32} />
         <div className="flex flex-col">
           <div className="flex gap-2 items-center">
-            {token?.name?.replace("Token ", "")}
-            {/*Tether*/}
+            {token?.name}
             <div className="hidden @[620px]:block">
               <AddressPair token={token} />
             </div>
@@ -54,15 +53,7 @@ export function SelectedTokenInfoItem({ token }: { token: Token | undefined }) {
         </div>
       </div>
       <div className="flex gap-2 items-center">
-        <TrustBadge
-          rate={{
-            [Check.DEFAULT_LIST]: TrustRateCheck.FALSE,
-            [Check.OTHER_LIST]: OtherListCheck.FOUND_IN_ONE,
-            [Check.SAME_NAME_IN_DEFAULT_LIST]: TrustRateCheck.TRUE,
-            [Check.SAME_NAME_IN_OTHER_LIST]: TrustRateCheck.FALSE,
-            [Check.ERC223_VERSION_EXIST]: TrustRateCheck.TRUE,
-          }}
-        />
+        {token?.rate && <TrustBadge rate={token?.rate} />}
         <div className="flex items-center">
           <span className="text-secondary-text text-14">5</span>
           <div className="text-tertiary-text w-10 h-10 flex items-center justify-center">

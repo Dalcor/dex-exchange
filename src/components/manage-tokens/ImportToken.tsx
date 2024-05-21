@@ -10,9 +10,11 @@ import Svg from "@/components/atoms/Svg";
 import Button, { ButtonSize } from "@/components/buttons/Button";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { ERC20_ABI } from "@/config/abis/erc20";
+import { TOKEN_CONVERTER_ABI } from "@/config/abis/tokenConverter";
+import { db } from "@/db/db";
+import { useTokenLists } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
-import { DexChainId } from "@/sdk_hybrid/chains";
-import { useTokenListsStore } from "@/stores/useTokenListsStore";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 interface Props {
   setContent: (content: ManageTokensDialogContent) => void;
@@ -22,6 +24,7 @@ interface Props {
 export default function ImportToken({ setContent, handleClose }: Props) {
   const [tokenAddressToImport, setTokenAddressToImport] = useState("");
   const { chainId } = useAccount();
+  const tokenLists = useTokenLists();
 
   const { data: tokenName, isFetched } = useReadContract({
     abi: ERC20_ABI,
@@ -53,7 +56,19 @@ export default function ImportToken({ setContent, handleClose }: Props) {
     },
   });
 
-  const { addTokenToCustomTokenList } = useTokenListsStore();
+  const { data: erc223Address } = useReadContract({
+    abi: TOKEN_CONVERTER_ABI,
+    functionName: "getERC223WrapperFor",
+    address: "0x258e392a314034eb093706254960f26a90696d4c",
+    args: [tokenAddressToImport as Address],
+    query: {
+      enabled: !!tokenAddressToImport && isAddress(tokenAddressToImport),
+    },
+  });
+
+  console.log("23 address");
+  console.log(erc223Address);
+
   const [checkedUnderstand, setCheckedUnderstand] = useState<boolean>(false);
 
   return (
@@ -80,7 +95,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
           </div>
         )}
 
-        {tokenName && tokenDecimals && tokenSymbol && (
+        {tokenName && typeof tokenDecimals !== "undefined" && tokenSymbol && erc223Address?.[0] && (
           <>
             <div className="flex-grow">
               <div className="flex items-center gap-3 py-2.5 mt-3 mb-3">
@@ -93,8 +108,15 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                 />
                 <div className="flex flex-col text-16">
                   <span className="text-primary-text">{tokenSymbol}</span>
-                  <span className="text-secondary-text">{tokenName}</span>
+                  <span className="text-secondary-text">
+                    {tokenName} ({tokenDecimals} decimals)
+                  </span>
                 </div>
+              </div>
+              <div className="mb-4">
+                <span className="text-primary-text">
+                  <b>ERC223:</b> {erc223Address[0]}
+                </span>
               </div>
               <div className="px-5 py-3 flex gap-2 rounded-1 border border-orange bg-orange-bg">
                 <Svg className="text-orange shrink-0" iconName="warning" />
@@ -118,16 +140,40 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                 fullWidth
                 size={ButtonSize.MEDIUM}
                 disabled={!checkedUnderstand}
-                onClick={() => {
-                  if (chainId && tokenName && tokenDecimals && tokenSymbol) {
-                    addTokenToCustomTokenList(chainId as DexChainId, {
-                      address0: tokenAddressToImport as Address,
-                      address1: tokenAddressToImport as Address,
-                      name: tokenName,
-                      decimals: tokenDecimals,
-                      symbol: tokenSymbol,
+                onClick={async () => {
+                  if (chainId && tokenName && tokenDecimals && tokenSymbol && erc223Address?.[0]) {
+                    const currentCustomList = tokenLists?.find((t) => t.id === "custom");
+
+                    const token = new Token(
                       chainId,
-                    });
+                      tokenAddressToImport as Address,
+                      erc223Address[0] as Address,
+                      tokenDecimals,
+                      tokenSymbol,
+                      tokenName,
+                      "/tokens/placeholder.svg",
+                    );
+
+                    if (!currentCustomList) {
+                      await db.tokenLists.add({
+                        id: "custom",
+                        enabled: true,
+                        list: {
+                          name: "Custom token list",
+                          version: {
+                            minor: 0,
+                            major: 0,
+                            patch: 0,
+                          },
+                          tokens: [token],
+                          logoURI: "/token-list-placeholder.svg",
+                        },
+                      });
+                    } else {
+                      (db.tokenLists as any).update("custom", {
+                        "list.tokens": [...currentCustomList.list.tokens, token],
+                      });
+                    }
                   }
                   setContent("default");
                   addToast("Token imported");

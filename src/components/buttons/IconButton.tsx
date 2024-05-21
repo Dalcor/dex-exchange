@@ -12,7 +12,6 @@ export enum IconSize {
 }
 
 export enum IconButtonSize {
-  EXTRA_SMALL = 24,
   SMALL = 32,
   REGULAR = 40,
   LARGE = 48,
@@ -34,7 +33,6 @@ function IconButtonFrame({
   return (
     <button
       className={clsx(
-        buttonSize === IconButtonSize.EXTRA_SMALL && "w-6 h-6",
         buttonSize === IconButtonSize.SMALL && "w-8 h-8",
         buttonSize === IconButtonSize.REGULAR && "w-10 h-10",
         buttonSize === IconButtonSize.LARGE && "w-12 h-12",
@@ -75,7 +73,7 @@ export default function IconButton(_props: Props) {
         <IconButtonFrame
           iconName={_props.iconName}
           className={clsxMerge(
-            "text-primary-text rounded-full bg-transparent hover:bg-green-bg duration-200 disabled:pointer-events-none disabled:text-tertiary-text",
+            "text-primary-text rounded-full bg-transparent hover:bg-green-bg duration-200",
             active && "text-green",
           )}
           {...props}

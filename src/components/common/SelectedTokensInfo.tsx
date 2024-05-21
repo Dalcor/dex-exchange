@@ -3,7 +3,7 @@ import { Address } from "viem";
 
 import Svg from "@/components/atoms/Svg";
 import TokenAddressWithStandard from "@/components/atoms/TokenAddressWithStandard";
-import TrustBadge, { Check, OtherListCheck, TrustRateCheck } from "@/components/badges/TrustBadge";
+import TrustBadge from "@/components/badges/TrustBadge";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 interface Props {
@@ -54,12 +54,10 @@ export function SelectedTokenInfoItem({ token }: { token: Token | undefined }) {
       </div>
       <div className="flex gap-2 items-center">
         {token?.rate && <TrustBadge rate={token?.rate} />}
-        <div className="flex items-center">
-          <span className="text-secondary-text text-14">5</span>
-          <div className="text-tertiary-text w-10 h-10 flex items-center justify-center">
-            <Svg iconName="list" />
-          </div>
-        </div>
+        <span className="flex gap-0.5 items-center text-secondary-text text-14">
+          {token?.lists?.length || 1}
+          <Svg className="text-tertiary-text" iconName="list" />
+        </span>
 
         <div className="w-10 h-10 flex items-center justify-center">
           <Svg iconName="details" />

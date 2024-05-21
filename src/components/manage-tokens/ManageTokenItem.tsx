@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import Svg from "@/components/atoms/Svg";
 import IconButton, {
   IconButtonSize,
   IconButtonVariant,
@@ -63,12 +64,7 @@ export default function ManageTokenItem({ token }: { token: Token }) {
           )}
           <span className="flex gap-0.5 items-center text-secondary-text text-14">
             {token.lists?.length || 1}
-            <IconButton
-              iconSize={IconSize.REGULAR}
-              buttonSize={IconButtonSize.EXTRA_SMALL}
-              iconName="list"
-              disabled
-            />
+            <Svg className="text-tertiary-text" iconName="list" />
           </span>
 
           <IconButton onClick={() => setOpen(!open)} iconName="details" />

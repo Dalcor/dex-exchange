@@ -61,7 +61,9 @@ export default function ImportList({ setContent, handleClose }: Props) {
     }
   };
 
-  const handleJSONImport = useCallback(() => {
+  const [tokenListFileContent, setTokenListFileContent] = useState<TokenList | undefined>();
+
+  useEffect(() => {
     if (tokenListFile) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -70,7 +72,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
             const fileContents: any = e.target.result;
             const parsedJson = JSON.parse(fileContents);
 
-            db.tokenLists.add({
+            setTokenListFileContent({
               enabled: true,
               list: parsedJson,
             });
@@ -82,6 +84,12 @@ export default function ImportList({ setContent, handleClose }: Props) {
       reader.readAsText(tokenListFile);
     }
   }, [tokenListFile]);
+
+  const handleJSONImport = useCallback(() => {
+    if (tokenListFileContent) {
+      db.tokenLists.add(tokenListFileContent);
+    }
+  }, [tokenListFileContent]);
 
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [importType, setImportType] = useState<"url" | "json" | "contract">("url");
@@ -216,7 +224,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
               ref={fileInput}
             />
             <div className="flex items-center justify-between">
-              <div className="w-[120px]">
+              <div>
                 <Button
                   size={ButtonSize.MEDIUM}
                   onClick={() => {
@@ -226,7 +234,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                   }}
                   variant={ButtonVariant.OUTLINED}
                 >
-                  Browse...
+                  {tokenListFileContent ? "Choose another list" : "Browse..."}
                 </Button>
               </div>
               <p className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">
@@ -237,32 +245,72 @@ export default function ImportList({ setContent, handleClose }: Props) {
                 )}
               </p>
             </div>
+            {!tokenListFileContent && (
+              <>
+                <h3 className="text-16 font-bold mt-5 mb-1">Please select JSON file to import</h3>
+                <div
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  className={clsx(
+                    "mb-5 rounded-2 flex justify-center items-center h-[288px] bg-drag-and-drop-dashed-pattern flex-grow duration-200",
+                    dragEntered ? "bg-green/20" : "bg-secondary-bg",
+                  )}
+                >
+                  Import files or Drag & Drop
+                </div>
+              </>
+            )}
+            {tokenListFileContent && (
+              <>
+                <div className="flex-grow">
+                  <div className="flex items-center gap-3 py-2.5 mt-3 mb-3">
+                    <img
+                      className="w-12 h-12"
+                      width={48}
+                      height={48}
+                      src={tokenListFileContent.list.logoURI}
+                      alt=""
+                    />
+                    <div className="flex flex-col text-16">
+                      <span className="text-primary-text">{tokenListFileContent.list.name}</span>
+                      <span className="text-secondary-text">
+                        {tokenListFileContent.list.tokens.length} tokens
+                      </span>
+                    </div>
+                  </div>
+                  <div className="px-5 py-3 flex gap-2 rounded-1 border border-orange bg-orange-bg">
+                    <Svg className="text-orange shrink-0" iconName="warning" />
+                    <p className="text-16 text-primary-text flex-grow">
+                      By adding this list you are implicitly trusting that the data is correct.
+                      Anyone can create a list, including creating fake versions of existing lists
+                      and lists that claim to represent projects that do not have one.
+                    </p>
+                  </div>
+                </div>
 
-            <h3 className="text-16 font-bold mt-5 mb-1">Please select JSON file to import</h3>
-            <div
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-              className={clsx(
-                "mb-5 rounded-2 flex justify-center items-center h-[288px] bg-drag-and-drop-dashed-pattern flex-grow duration-200",
-                dragEntered ? "bg-green/20" : "bg-secondary-bg",
-              )}
-            >
-              Import files or Drag & Drop
-            </div>
-
-            <Button
-              fullWidth
-              size={ButtonSize.MEDIUM}
-              onClick={() => {
-                handleJSONImport();
-                setContent("default");
-                addToast("List imported");
-              }}
-            >
-              Import with JSON
-            </Button>
+                <div className="flex flex-col gap-5">
+                  <Checkbox
+                    checked={checkedUnderstand}
+                    handleChange={() => setCheckedUnderstand(!checkedUnderstand)}
+                    id="approve-list-import"
+                    label="I understand"
+                  />
+                  <Button
+                    fullWidth
+                    size={ButtonSize.MEDIUM}
+                    onClick={() => {
+                      handleJSONImport();
+                      setContent("default");
+                      addToast("List imported");
+                    }}
+                  >
+                    Import with JSON
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
         {importType === "contract" && (

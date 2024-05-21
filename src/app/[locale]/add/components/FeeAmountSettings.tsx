@@ -55,25 +55,17 @@ function FeeAmountOption({
   );
 }
 
-export default function FeeAmountSettings({ isDisabled }: { isDisabled: boolean }) {
-  const locale = useLocale();
-
+export default function FeeAmountSettings() {
   const [isFeeOpened, setIsFeeOpened] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
-
   const { tier, setTier } = useLiquidityTierStore();
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
   const { clearPriceRange } = useLiquidityPriceRangeStore();
+  const isDisabled = !tokenA || !tokenB;
 
   const { isLoading, isError, largestUsageFeeTier, distributions } = useFeeTierDistribution({
     tokenA,
     tokenB,
   });
-
-  // const poolKeys: [Currency | undefined, Currency | undefined, FeeAmount | undefined][] = useMemo(
-  //   () => [[currencyA, currencyB, feeAmount]],
-  //   [currencyA, currencyB, feeAmount],
-  // );
 
   const poolKeys: PoolKeys = useMemo(
     () => [
@@ -108,33 +100,6 @@ export default function FeeAmountSettings({ isDisabled }: { isDisabled: boolean 
       ),
     [pools],
   );
-
-  useEffect(() => {
-    if (tier || isLoading || isError) {
-      return;
-    }
-
-    if (!largestUsageFeeTier) {
-      // cannot recommend, open options
-      setShowOptions(true);
-    } else {
-      setShowOptions(false);
-
-      // recommended.current = true
-
-      // handleFeePoolSelect(largestUsageFeeTier)
-    }
-  }, [
-    tier,
-    isLoading,
-    isError,
-    largestUsageFeeTier,
-    //  handleFeePoolSelect,
-  ]);
-
-  useEffect(() => {
-    setShowOptions(isError);
-  }, [isError]);
 
   return (
     <div className={clsx("rounded-3 mb-4 md:mb-5 bg-secondary-bg", isDisabled && "opacity-20")}>

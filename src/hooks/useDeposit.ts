@@ -10,6 +10,7 @@ import {
 
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
 import {
@@ -18,6 +19,8 @@ import {
   stringifyObject,
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
+
+import { AllowanceStatus } from "./useAllowance";
 
 export default function useDeposit({
   token,
@@ -28,12 +31,12 @@ export default function useDeposit({
   contractAddress: Address | undefined;
   amountToCheck: bigint | null;
 }) {
+  const [status, setStatus] = useState(AllowanceStatus.INITIAL);
   const { address } = useAccount();
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const { chainId } = useAccount();
-  // const {setOpened, setSubmitted, setClose} = useAwaitingDialogStore();
 
   const { addRecentTransaction } = useRecentTransactionsStore();
 
@@ -68,8 +71,6 @@ export default function useDeposit({
     return false;
   }, [amountToCheck, currentDeposit?.data, token]);
 
-  const [isDepositing, setIsDepositing] = useState(false);
-
   const writeTokenDeposit = useCallback(async () => {
     if (
       !amountToCheck ||
@@ -84,8 +85,7 @@ export default function useDeposit({
       return;
     }
 
-    setIsDepositing(true);
-    // setOpened(`Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`)
+    setStatus(AllowanceStatus.PENDING);
 
     try {
       const params = {
@@ -136,13 +136,13 @@ export default function useDeposit({
       );
 
       if (hash) {
+        setStatus(AllowanceStatus.LOADING);
         await publicClient.waitForTransactionReceipt({ hash });
-        setIsDepositing(false);
+        setStatus(AllowanceStatus.SUCCESS);
       }
     } catch (e) {
       console.log(e);
-      // setClose();
-      setIsDepositing(false);
+      setStatus(AllowanceStatus.INITIAL);
       addToast("Unexpected error, please contact support", "error");
     }
   }, [
@@ -173,7 +173,6 @@ export default function useDeposit({
     const amountToWithdraw = currentDeposit.data as bigint;
 
     setIsWithdrawing(true);
-    // setOpened(`Approve ${formatUnits(amountToWithdraw, token.decimals)} ${token.symbol} tokens`)
 
     if (!token) return;
     try {
@@ -248,12 +247,48 @@ export default function useDeposit({
     addRecentTransaction,
   ]);
 
+  const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
+  useEffect(() => {
+    IIFE(async () => {
+      if (
+        !amountToCheck ||
+        !contractAddress ||
+        !token ||
+        !walletClient ||
+        !address ||
+        !chainId ||
+        !publicClient
+      ) {
+        return;
+      }
+
+      const params = {
+        account: address as Address,
+        abi: ERC223_ABI,
+        functionName: "transfer" as const,
+        address: token.address1 as Address,
+        args: [contractAddress, amountToCheck] as any,
+      };
+
+      try {
+        const estimatedGas = await publicClient.estimateContractGas(params);
+        setEstimatedGas(estimatedGas);
+      } catch (error) {
+        console.error("~ estimatedGas ~ error:", error);
+        setEstimatedGas(null);
+      }
+    });
+  }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
+
   return {
     isDeposited,
-    isDepositing,
+    status,
+    isLoading: status === AllowanceStatus.LOADING,
+    isPending: status === AllowanceStatus.PENDING,
     isWithdrawing,
     writeTokenDeposit,
     writeTokenWithdraw,
     currentDeposit: currentDeposit.data as bigint,
+    estimatedGas,
   };
 }

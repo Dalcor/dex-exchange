@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseUnits } from "viem";
 import { useAccount, useBlock, useGasPrice } from "wagmi";
 
-import useAllowance from "@/hooks/useAllowance";
+import useAllowance, { AllowanceStatus } from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
@@ -20,6 +20,13 @@ export type ApproveTransaction = {
   amount: bigint;
   estimatedGas: bigint | null;
 };
+export type TestApproveTransaction = {
+  token: Token;
+  amount: bigint;
+  isAllowed: boolean;
+  status: AllowanceStatus;
+  estimatedGas: bigint | null;
+};
 
 export enum ApproveTransactionType {
   "ERC20",
@@ -29,34 +36,13 @@ export enum ApproveTransactionType {
 
 export const useLiquidityApprove = () => {
   const { chainId } = useAccount();
-  const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
-  const {
-    formattedPrice,
-    invertPrice,
-    price,
-    pricesAtTicks,
-    ticksAtLimit,
-    isFullRange,
-    isSorted,
-    leftPrice,
-    rightPrice,
-    token0,
-    token1,
-    tickSpaceLimits,
-  } = usePriceRange();
+  const { tokenA, tokenB } = useAddLiquidityTokensStore();
+  const { price } = usePriceRange();
 
-  const { tier, setTier } = useLiquidityTierStore();
+  const { tier } = useLiquidityTierStore();
 
   const { tokenAStandard, tokenBStandard } = useTokensStandards();
-  const {
-    parsedAmounts,
-    position,
-    currencies,
-    noLiquidity,
-    outOfRange,
-    depositADisabled,
-    depositBDisabled,
-  } = useV3DerivedMintInfo({
+  const { parsedAmounts } = useV3DerivedMintInfo({
     tokenA,
     tokenB,
     tier,
@@ -77,10 +63,10 @@ export const useLiquidityApprove = () => {
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
     writeTokenRevoke: revokeA,
-    isLoading: isApprovingA,
     currentAllowance: currentAllowanceA,
     isRevoking: isRevokingA,
     estimatedGas: estimatedGasAllowanceA,
+    status: statusAllowanceA,
   } = useAllowance({
     token: tokenA,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
@@ -92,10 +78,10 @@ export const useLiquidityApprove = () => {
     isAllowed: isAllowedB,
     writeTokenApprove: approveB,
     writeTokenRevoke: revokeB,
-    isLoading: isApprovingB,
     currentAllowance: currentAllowanceB,
     isRevoking: isRevokingB,
     estimatedGas: estimatedGasAllowanceB,
+    status: statusAllowanceB,
   } = useAllowance({
     token: tokenB,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
@@ -107,9 +93,10 @@ export const useLiquidityApprove = () => {
     isDeposited: isDepositedA,
     writeTokenDeposit: depositA,
     writeTokenWithdraw: withdrawA,
-    isDepositing: isDepositingA,
     currentDeposit: currentDepositA,
     isWithdrawing: isWithdrawingA,
+    status: statusDepositA,
+    estimatedGas: estimatedGasDepositA,
   } = useDeposit({
     token: tokenA,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
@@ -120,9 +107,10 @@ export const useLiquidityApprove = () => {
     isDeposited: isDepositedB,
     writeTokenDeposit: depositB,
     writeTokenWithdraw: withdrawB,
-    isDepositing: isDepositingB,
     currentDeposit: currentDepositB,
     isWithdrawing: isWithdrawingB,
+    status: statusDepositB,
+    estimatedGas: estimatedGasDepositB,
   } = useDeposit({
     token: tokenB,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
@@ -130,8 +118,76 @@ export const useLiquidityApprove = () => {
     amountToCheck: amountToCheckB,
   });
 
-  const estimatedGasA = estimatedGasAllowanceA;
-  const estimatedGasB = estimatedGasAllowanceB;
+  const testTransactions = useMemo(() => {
+    let approveA = undefined as undefined | TestApproveTransaction;
+    let approveB = undefined as undefined | TestApproveTransaction;
+    let depositA = undefined as undefined | TestApproveTransaction;
+    let depositB = undefined as undefined | TestApproveTransaction;
+    if (tokenA && tokenAStandard && amountToCheckA) {
+      if (tokenAStandard === "ERC-20") {
+        approveA = {
+          token: tokenA,
+          amount: amountToCheckA,
+          isAllowed: isAllowedA,
+          status: statusAllowanceA,
+          estimatedGas: estimatedGasAllowanceA,
+        };
+      } else if (tokenAStandard === "ERC-223") {
+        depositA = {
+          token: tokenA,
+          amount: amountToCheckA,
+          isAllowed: isDepositedA,
+          status: statusDepositA,
+          estimatedGas: estimatedGasDepositA,
+        };
+      }
+    }
+    if (tokenB && tokenBStandard && amountToCheckB) {
+      if (tokenBStandard === "ERC-20") {
+        approveB = {
+          token: tokenB,
+          amount: amountToCheckB,
+          isAllowed: isAllowedB,
+          status: statusAllowanceB,
+          estimatedGas: estimatedGasAllowanceB,
+        };
+      } else if (tokenBStandard === "ERC-223") {
+        depositB = {
+          token: tokenB,
+          amount: amountToCheckB,
+          isAllowed: isDepositedB,
+          status: statusDepositB,
+          estimatedGas: estimatedGasDepositB,
+        };
+      }
+    }
+
+    return {
+      approveA,
+      approveB,
+      depositA,
+      depositB,
+    };
+  }, [
+    tokenA,
+    tokenB,
+    tokenAStandard,
+    tokenBStandard,
+    amountToCheckA,
+    amountToCheckB,
+    estimatedGasAllowanceA,
+    estimatedGasAllowanceB,
+    isAllowedA,
+    isAllowedB,
+    statusAllowanceA,
+    statusAllowanceB,
+    statusDepositA,
+    statusDepositB,
+    estimatedGasDepositA,
+    estimatedGasDepositB,
+    isDepositedA,
+    isDepositedB,
+  ]);
 
   const [approveTransactions, setApproveTransactions] = useState([] as ApproveTransaction[]);
 
@@ -140,26 +196,26 @@ export const useLiquidityApprove = () => {
     if (tokenA && tokenAStandard && amountToCheckA) {
       if (
         (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountToCheckA) ||
-        (tokenAStandard === "ERC-223" && currentDepositA && currentDepositA < amountToCheckA)
+        (tokenAStandard === "ERC-223" && (currentDepositA || BigInt(0)) < amountToCheckA)
       ) {
         transactions.push({
           token: tokenA,
           standard: tokenAStandard,
           amount: amountToCheckA,
-          estimatedGas: estimatedGasA,
+          estimatedGas: estimatedGasAllowanceA,
         });
       }
     }
     if (tokenB && tokenBStandard && amountToCheckB) {
       if (
         (tokenBStandard === "ERC-20" && (currentAllowanceB || BigInt(0)) < amountToCheckB) ||
-        (tokenBStandard === "ERC-223" && currentDepositB && currentDepositB < amountToCheckB)
+        (tokenBStandard === "ERC-223" && (currentDepositB || BigInt(0)) < amountToCheckB)
       ) {
         transactions.push({
           token: tokenB,
           standard: tokenBStandard,
           amount: amountToCheckB,
-          estimatedGas: estimatedGasB,
+          estimatedGas: estimatedGasAllowanceB,
         });
       }
     }
@@ -176,28 +232,19 @@ export const useLiquidityApprove = () => {
     currentAllowanceB,
     currentDepositA,
     currentDepositB,
-    estimatedGasA,
-    estimatedGasB,
+    estimatedGasAllowanceA,
+    estimatedGasAllowanceB,
   ]);
 
   const handleApprove = useCallback(async () => {
-    console.log("🚀 ~ handleApprove ~ handleApprove:");
     if (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountToCheckA) {
       approveA();
-    } else if (
-      tokenAStandard === "ERC-223" &&
-      currentDepositA &&
-      currentDepositA < amountToCheckA
-    ) {
+    } else if (tokenAStandard === "ERC-223" && (currentDepositA || BigInt(0)) < amountToCheckA) {
       depositA();
     }
     if (tokenBStandard === "ERC-20" && (currentAllowanceB || BigInt(0)) < amountToCheckB) {
       approveB();
-    } else if (
-      tokenBStandard === "ERC-223" &&
-      currentDepositB &&
-      currentDepositB < amountToCheckB
-    ) {
+    } else if (tokenBStandard === "ERC-223" && (currentDepositB || BigInt(0)) < amountToCheckB) {
       depositB();
     }
   }, [
@@ -218,8 +265,8 @@ export const useLiquidityApprove = () => {
   ]);
 
   const approveTransactionsType = useMemo(() => {
-    const isERC20Transaction = approveTransactions.map((t) => t.standard).includes("ERC-20");
-    const isERC223Transaction = approveTransactions.map((t) => t.standard).includes("ERC-223");
+    const isERC20Transaction = testTransactions.approveA || testTransactions.approveB;
+    const isERC223Transaction = testTransactions.depositA || testTransactions.depositB;
     if (isERC20Transaction && isERC223Transaction) {
       return ApproveTransactionType.ERC20_AND_ERC223;
     } else if (isERC20Transaction) {
@@ -227,7 +274,7 @@ export const useLiquidityApprove = () => {
     } else {
       return ApproveTransactionType.ERC223;
     }
-  }, [approveTransactions]);
+  }, [testTransactions]);
 
   // Gas price
   const { data: gasPrice, refetch: refetchGasPrice } = useGasPrice();
@@ -239,6 +286,7 @@ export const useLiquidityApprove = () => {
 
   return {
     approveTransactions,
+    testTransactions,
     handleApprove,
     approveTransactionsType,
     gasPrice,

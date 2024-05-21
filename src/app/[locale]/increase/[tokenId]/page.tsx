@@ -164,7 +164,7 @@ export default function IncreaseLiquidityPage({
     isDeposited: isDepositedA,
     writeTokenDeposit: depositA,
     writeTokenWithdraw: withdrawA,
-    isDepositing: isDepositingA,
+    isLoading: isDepositingA,
     currentDeposit: currentDepositA,
     isWithdrawing: isWithdrawingA,
   } = useDeposit({
@@ -180,7 +180,7 @@ export default function IncreaseLiquidityPage({
     isDeposited: isDepositedB,
     writeTokenDeposit: depositB,
     writeTokenWithdraw: withdrawB,
-    isDepositing: isDepositingB,
+    isLoading: isDepositingB,
     currentDeposit: currentDepositB,
     isWithdrawing: isWithdrawingB,
   } = useDeposit({

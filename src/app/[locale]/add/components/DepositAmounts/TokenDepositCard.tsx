@@ -154,8 +154,9 @@ function InputStandardAmount({
             className="bg-transparent outline-0 text-16 md:text-20 w-full"
             placeholder="0"
             type="text"
-            value={value}
+            value={value || ""}
             // onChange={(e) => onChange(e.target.value)}
+            onChange={() => {}}
           />
         </div>
         <div className="flex justify-end items-center text-10 md:text-14">

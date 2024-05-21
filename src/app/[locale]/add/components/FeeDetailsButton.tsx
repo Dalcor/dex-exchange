@@ -29,7 +29,7 @@ export const FeeDetailsButton = ({
   return (
     <div className="w-full md:w-auto">
       <Button
-        onClick={() => isDisabled && setIsOpen(true)}
+        onClick={() => !isDisabled && setIsOpen(true)}
         size={ButtonSize.EXTRA_SMALL}
         variant={ButtonVariant.OUTLINED}
         disabled={isDisabled}

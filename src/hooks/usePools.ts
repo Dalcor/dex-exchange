@@ -1,5 +1,5 @@
 import JSBI from "jsbi";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContracts } from "wagmi";
 
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
@@ -86,8 +86,12 @@ export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][]
     contracts: liquidityContracts,
   });
 
-  return useMemo(() => {
-    return poolKeys.map((_key, index) => {
+  // Change useMemo to useEffect bc of WARNING addPool(poolToAdd) inside useMemo
+  const [result, setResult] = useState(
+    poolKeys.map(() => [PoolState.LOADING, null]) as [PoolState, Pool | null][],
+  );
+  useEffect(() => {
+    const updatedResult: [PoolState, Pool | null][] = poolKeys.map((_key, index) => {
       const tokens = poolTokens[index];
       if (!tokens) return [PoolState.INVALID, null];
       const [token0, token1, fee] = tokens;
@@ -136,6 +140,7 @@ export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][]
         return [PoolState.NOT_EXISTS, null];
       }
     });
+    setResult(updatedResult);
   }, [
     poolKeys,
     poolTokens,
@@ -146,6 +151,8 @@ export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][]
     pools,
     addPool,
   ]);
+
+  return result;
 }
 
 export function usePool(

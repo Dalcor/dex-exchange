@@ -1,14 +1,17 @@
 import JSBI from "jsbi";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Abi, Address, encodeFunctionData, formatUnits, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/stores/useLiquidityTierStore";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { IIFE } from "@/functions/iife";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
+import { AllowanceStatus } from "@/hooks/useAllowance";
 import { PoolState, usePool } from "@/hooks/usePools";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
+import addToast from "@/other/toast";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
@@ -39,6 +42,7 @@ import {
 import { useLiquidityPriceRangeStore } from "../stores/useLiquidityPriceRangeStore";
 
 export const useAddLiquidity = () => {
+  const [status, setStatus] = useState(AllowanceStatus.INITIAL);
   const { slippage, deadline: _deadline } = useTransactionSettingsStore();
   const deadline = useTransactionDeadline(_deadline);
   const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
@@ -47,7 +51,6 @@ export const useAddLiquidity = () => {
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const { tier, setTier } = useLiquidityTierStore();
 
   const handleTokenAChange = useCallback(() => {}, []);
 
@@ -82,7 +85,7 @@ export const useAddLiquidity = () => {
         console.log("handleAddLiquidity: SOMESING UNDEFINED");
         return;
       }
-      const callData = [];
+      setStatus(AllowanceStatus.PENDING);
 
       try {
         // const estimatedGas = await publicClient.estimateContractGas(params as any);
@@ -232,6 +235,11 @@ export const useAddLiquidity = () => {
             },
             accountAddress,
           );
+          if (hash) {
+            setStatus(AllowanceStatus.LOADING);
+            await publicClient.waitForTransactionReceipt({ hash });
+            setStatus(AllowanceStatus.SUCCESS);
+          }
         } else if (increase) {
           if (tokenId) {
             const increaseParams = {
@@ -319,6 +327,11 @@ export const useAddLiquidity = () => {
               },
               accountAddress,
             );
+            if (hash) {
+              setStatus(AllowanceStatus.LOADING);
+              await publicClient.waitForTransactionReceipt({ hash });
+              setStatus(AllowanceStatus.SUCCESS);
+            }
           }
         } else {
           const mintParams = {
@@ -400,9 +413,16 @@ export const useAddLiquidity = () => {
             },
             accountAddress,
           );
+          if (hash) {
+            setStatus(AllowanceStatus.LOADING);
+            await publicClient.waitForTransactionReceipt({ hash });
+            setStatus(AllowanceStatus.SUCCESS);
+          }
         }
       } catch (error) {
         console.error("useAddLiquidity ~ error:", error);
+        addToast("Unexpected error, please contact support", "error");
+        setStatus(AllowanceStatus.INITIAL);
       }
     },
     [
@@ -417,12 +437,16 @@ export const useAddLiquidity = () => {
     ],
   );
 
+  const [estimatedGas, setEstimatedGas] = useState(BigInt(0) as null | bigint);
+
   return {
     handleTokenAChange,
     handleTokenBChange,
     handleAmountAChange,
     handleAmountBChange,
     handleAddLiquidity,
+    estimatedGas,
+    status,
   };
 };
 

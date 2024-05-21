@@ -19,7 +19,7 @@ import {
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 
-enum AllowanceStatus {
+export enum AllowanceStatus {
   INITIAL,
   PENDING,
   LOADING,
@@ -34,12 +34,11 @@ export default function useAllowance({
   contractAddress: Address | undefined;
   amountToCheck: bigint | null;
 }) {
-  const { address, chainId } = useAccount();
+  const [status, setStatus] = useState(AllowanceStatus.INITIAL);
 
+  const { address, chainId } = useAccount();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  // const {addTransaction} = useRecentTransactionsStore();
-  // const {setOpened, setSubmitted, setClose} = useAwaitingDialogStore();
 
   const { addRecentTransaction } = useRecentTransactionsStore();
 
@@ -66,6 +65,7 @@ export default function useAllowance({
     refetch();
   }, [refetch, blockNumber]);
 
+  // TODO: mb change isAllowed to one of status AllowanceStatus
   const isAllowed = useMemo(() => {
     if (!token) {
       return false;
@@ -101,8 +101,6 @@ export default function useAllowance({
   //   writeContract: writeTokenApprove
   // } = useWriteContract();
 
-  const [status, setStatus] = useState(AllowanceStatus.INITIAL);
-
   const writeTokenApprove = useCallback(async () => {
     if (
       !amountToCheck ||
@@ -113,11 +111,11 @@ export default function useAllowance({
       !chainId ||
       !publicClient
     ) {
+      console.error("Error: writeTokenApprove ~ something undefined");
       return;
     }
 
     setStatus(AllowanceStatus.PENDING);
-    // setOpened(`Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`)
 
     const params: {
       address: Address;
@@ -174,14 +172,6 @@ export default function useAllowance({
 
       if (hash) {
         setStatus(AllowanceStatus.LOADING);
-        // addTransaction({
-        //   account: address,
-        //   hash,
-        //   chainId,
-        //   title: `Approve ${formatUnits(amountToCheck, token.decimals)} ${token.symbol} tokens`,
-        // }, address);
-        // setSubmitted(hash, chainId as any);
-
         await publicClient.waitForTransactionReceipt({ hash });
         setStatus(AllowanceStatus.SUCCESS);
         return { success: true };
@@ -239,11 +229,6 @@ export default function useAllowance({
 
       console.log("TRANSACTION METADATA TO SAVE");
 
-      // console.log("ABI PART:", getAbiItem({ name: "approve", abi: ERC20_ABI }));
-      // console.log("Args:", [contractAddress!, amountToRevoke!]);
-      // console.log("Label info:", { symbol: token.symbol });
-      // console.log("functionName", "approve");
-
       const nonce = await publicClient.getTransactionCount({
         address,
         blockTag: "pending",
@@ -275,27 +260,17 @@ export default function useAllowance({
       );
 
       if (hash) {
-        // addTransaction({
-        //   account: address,
-        //   hash,
-        //   chainId,
-        //   title: `Approve ${formatUnits(amountToRevoke, token.decimals)} ${token.symbol} tokens`,
-        // }, address);
-        // setSubmitted(hash, chainId as any);
-
         await publicClient.waitForTransactionReceipt({ hash });
         setIsRevoking(false);
       }
     } catch (e) {
       console.log(e);
-      // setClose();
       setIsRevoking(false);
       addToast("Unexpected error, please contact support", "error");
     }
   }, [contractAddress, token, walletClient, address, chainId, publicClient, addRecentTransaction]);
 
   const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
-  const [isEstimatedGasLoading, setIsEstimatedGasLoading] = useState(false);
   useEffect(() => {
     IIFE(async () => {
       if (
@@ -309,8 +284,6 @@ export default function useAllowance({
       ) {
         return;
       }
-
-      setIsEstimatedGasLoading(true);
 
       const params: {
         address: Address;
@@ -329,17 +302,16 @@ export default function useAllowance({
       try {
         const estimatedGas = await publicClient.estimateContractGas(params);
         setEstimatedGas(estimatedGas);
-        setIsEstimatedGasLoading(false);
       } catch (error) {
         console.error("~ estimatedGas ~ error:", error);
         setEstimatedGas(null);
-        setIsEstimatedGasLoading(false);
       }
     });
   }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
 
   return {
     isAllowed,
+    status,
     isLoading: status === AllowanceStatus.LOADING,
     isPending: status === AllowanceStatus.PENDING,
     isRevoking,

@@ -51,7 +51,7 @@ const Tooltip = ({ children, ...props }: any) => (
   <text
     className="text-[13px] fill-[#FFFFFF]"
     style={{
-      "text-anchor": "middle",
+      textAnchor: "middle",
     }}
     {...props}
   >

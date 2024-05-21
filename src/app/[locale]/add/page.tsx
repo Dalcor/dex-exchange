@@ -39,13 +39,7 @@ import { useLiquidityApprove } from "./hooks/useLiquidityApprove";
 import { usePriceRange } from "./hooks/usePrice";
 import { Field, useTokensStandards } from "./stores/useAddLiquidityAmountsStore";
 
-export default function AddPoolPage({
-  params,
-}: {
-  params: {
-    currency: [string, string, string];
-  };
-}) {
+export default function AddPoolPage() {
   usePoolsSearchParams();
   useRecentTransactionTracking();
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
@@ -54,13 +48,9 @@ export default function AddPoolPage({
 
   const router = useRouter();
 
-  const currency = params.currency;
-
   const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
   const { tier, setTier } = useLiquidityTierStore();
   const { setIsOpen } = useTransactionSettingsDialogStore();
-
-  const tokens = useTokens();
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
@@ -152,7 +142,6 @@ export default function AddPoolPage({
     isDeposited: isDepositedA,
     writeTokenDeposit: depositA,
     writeTokenWithdraw: withdrawA,
-    isDepositing: isDepositingA,
     currentDeposit: currentDepositA,
     isWithdrawing: isWithdrawingA,
   } = useDeposit({
@@ -168,7 +157,6 @@ export default function AddPoolPage({
     isDeposited: isDepositedB,
     writeTokenDeposit: depositB,
     writeTokenWithdraw: withdrawB,
-    isDepositing: isDepositingB,
     currentDeposit: currentDepositB,
     isWithdrawing: isWithdrawingB,
   } = useDeposit({
@@ -180,8 +168,8 @@ export default function AddPoolPage({
       tokenB?.decimals || 18,
     ),
   });
-
   // Deposit Amounts END
+
   const { approveTransactions, handleApprove, approveTransactionsType, gasPrice } =
     useLiquidityApprove();
 
@@ -287,7 +275,7 @@ export default function AddPoolPage({
               )}
             </SelectButton>
           </div>
-          <FeeAmountSettings isDisabled={isFormDisabled} />
+          <FeeAmountSettings />
           <div className={clsx("gap-5 md:grid md:grid-cols-2", isFormDisabled && "opacity-20")}>
             <DepositAmounts
               parsedAmounts={parsedAmounts}
@@ -327,16 +315,7 @@ export default function AddPoolPage({
               outOfRange={outOfRange}
             />
           </div>
-          {approveTransactions?.length ? (
-            <ApproveButton
-              approveTransactions={approveTransactions}
-              handleApprove={handleApprove}
-              approveTransactionsType={approveTransactionsType}
-              gasPrice={gasPrice}
-            />
-          ) : (
-            <MintButton />
-          )}
+          {approveTransactions?.length ? <ApproveButton /> : <MintButton />}
         </div>
         <div className="flex flex-col gap-5">
           <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />

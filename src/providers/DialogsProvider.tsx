@@ -6,6 +6,7 @@ import ConfirmInWalletAlert from "@/components/dialogs/ConfirmInWalletAlert";
 import ConfirmInWalletDialog from "@/components/dialogs/ConfirmInWalletDialog";
 import FeedbackDialog from "@/components/dialogs/FeedbackDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import TokenPortfolioDialog from "@/components/dialogs/TokenPortfolioDialog";
 import TransactionSpeedUpDialog from "@/components/dialogs/TransactionSpeedUpDialog";
 
 export default function DialogsProvider({ children }: PropsWithChildren) {
@@ -19,6 +20,7 @@ export default function DialogsProvider({ children }: PropsWithChildren) {
       <ConfirmInWalletDialog />
       <ConfirmInWalletAlert />
       <FeedbackDialog />
+      <TokenPortfolioDialog />
     </>
   );
 }

@@ -4,6 +4,8 @@ import { Address } from "viem";
 import Svg from "@/components/atoms/Svg";
 import TokenAddressWithStandard from "@/components/atoms/TokenAddressWithStandard";
 import TrustBadge from "@/components/badges/TrustBadge";
+import IconButton from "@/components/buttons/IconButton";
+import { useTokenPortfolioDialogStore } from "@/components/dialogs/stores/useTokenPortfolioDialogStore";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 interface Props {
@@ -37,30 +39,32 @@ function AddressPair({ token }: { token: Token | undefined }) {
     </div>
   );
 }
-export function SelectedTokenInfoItem({ token }: { token: Token | undefined }) {
+export function SelectedTokenInfoItem({ token }: { token: Token }) {
+  const { handleOpen } = useTokenPortfolioDialogStore();
+
   return (
     <div className="bg-tertiary-bg rounded-3 py-2.5 px-5 flex flex-wrap justify-between items-center @container relative z-20">
       <div className="flex items-center gap-2">
-        <Image src={token?.logoURI || ""} alt="Ethereum" width={32} height={32} />
+        <Image src={token.logoURI || ""} alt="Ethereum" width={32} height={32} />
         <div className="flex flex-col">
           <div className="flex gap-2 items-center">
-            {token?.name}
+            {token.name}
             <div className="hidden @[620px]:block">
               <AddressPair token={token} />
             </div>
           </div>
-          <div className="text-secondary-text text-12">{token?.symbol}</div>
+          <div className="text-secondary-text text-12">{token.symbol}</div>
         </div>
       </div>
       <div className="flex gap-2 items-center">
-        {token?.rate && <TrustBadge rate={token?.rate} />}
+        {token.rate && <TrustBadge rate={token?.rate} />}
         <span className="flex gap-0.5 items-center text-secondary-text text-14">
-          {token?.lists?.length || 1}
+          {token.lists?.length || 1}
           <Svg className="text-tertiary-text" iconName="list" />
         </span>
 
         <div className="w-10 h-10 flex items-center justify-center">
-          <Svg iconName="details" />
+          <IconButton iconName="details" onClick={() => handleOpen(token)} />
         </div>
       </div>
       <div className="@[620px]:hidden w-full mt-3">

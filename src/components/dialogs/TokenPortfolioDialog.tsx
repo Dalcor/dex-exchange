@@ -6,6 +6,7 @@ import ExternalTextLink from "@/components/atoms/ExternalTextLink";
 import TokenListLogo, { TokenListLogoType } from "@/components/atoms/TokenListLogo";
 import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
+import { useTokenPortfolioDialogStore } from "@/components/dialogs/stores/useTokenPortfolioDialogStore";
 import { TokenListId } from "@/db/db";
 import { copyToClipboard } from "@/functions/copyToClipboard";
 import { useTokenLists } from "@/hooks/useTokenLists";
@@ -110,19 +111,13 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
   );
 }
 
-export default function TokenPortfolioDialog({
-  isOpen,
-  setIsOpen,
-  token,
-}: {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  token: Token;
-}) {
+export default function TokenPortfolioDialog() {
+  const { token, isOpen, handleClose } = useTokenPortfolioDialogStore();
+
   return (
-    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
-      <DialogHeader onClose={() => setIsOpen(false)} title={token.name || "Unknown"} />
-      <TokenPortfolioDialogContent token={token} />
+    <DrawerDialog isOpen={isOpen} setIsOpen={handleClose}>
+      <DialogHeader onClose={handleClose} title={token?.name || "Unknown"} />
+      {token && <TokenPortfolioDialogContent token={token} />}
     </DrawerDialog>
   );
 }

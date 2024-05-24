@@ -46,6 +46,7 @@ export default function Checkbox({
 export function CheckboxButton({ checked, handleChange, id, label }: Props) {
   return (
     <button
+      type="button"
       className="w-full p-3 rounded-3 hover:bg-green-bg duration-200 bg-tertiary-bg group"
       onClick={handleChange}
     >

@@ -56,8 +56,6 @@ export default function NetworkPicker() {
                   key={_chainId}
                   onClick={async () => {
                     if (!chainId) {
-                      console.log(chainId);
-                      console.log("Change chain to connect");
                       setChainToConnect(_chainId);
                     }
                     if (switchChainAsync) {

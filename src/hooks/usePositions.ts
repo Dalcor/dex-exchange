@@ -129,8 +129,6 @@ export default function usePositions() {
     },
   });
 
-  console.log(balance);
-
   const tokenIdsArgs = useMemo(() => {
     if (balance && account) {
       const tokenRequests = [];
@@ -142,8 +140,6 @@ export default function usePositions() {
     return [];
   }, [account, balance]);
 
-  console.log(tokenIdsArgs);
-
   const tokenIdsContracts = useMemo(() => {
     return tokenIdsArgs.map((tokenId) => ({
       abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
@@ -151,13 +147,11 @@ export default function usePositions() {
       args: tokenId,
       address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     }));
-  }, [tokenIdsArgs]);
+  }, [chainId, tokenIdsArgs]);
 
   const { data: tokenIdsData, isLoading: tokenIdsLoading } = useReadContracts({
     contracts: tokenIdsContracts,
   });
-
-  console.log(tokenIdsData);
 
   const { positions, loading: positionsLoading } = usePositionsFromTokenIds(
     tokenIdsData
@@ -165,7 +159,6 @@ export default function usePositions() {
       .map((value) => value.result as bigint),
   );
 
-  console.log(positions);
   return {
     positions,
     loading: positionsLoading || tokenIdsLoading || balanceLoading,

@@ -2,6 +2,10 @@ import { Address } from "viem";
 
 import { DexChainId } from "./chains";
 
+export const CONVERTER_ADDRESS: Record<DexChainId, Address> = {
+  [DexChainId.CALLISTO]: "0x5714E07b52FCF05EeBE586815062a049D786C3DB",
+  [DexChainId.SEPOLIA]: "0x258e392a314034eb093706254960f26a90696d4c",
+};
 export const FACTORY_ADDRESS: Record<DexChainId, Address> = {
   [DexChainId.CALLISTO]: "0xEAc1aF2e4472219b88e56dC009F4824547830AC0",
   [DexChainId.SEPOLIA]: "0xb0085429ff43a2a51ec1b1ac8956a35c19ec008e",

@@ -1,23 +1,26 @@
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Svg from "@/components/atoms/Svg";
-import IconButton, {
-  IconButtonSize,
-  IconButtonVariant,
-  IconSize,
-} from "@/components/buttons/IconButton";
+import Button, { ButtonColor, ButtonVariant } from "@/components/buttons/Button";
+import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
 import { db } from "@/db/db";
-import { useTokenLists } from "@/hooks/useTokenLists";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { Token } from "@/sdk_hybrid/entities/token";
 
-export default function ManageTokenItem({ token }: { token: Token }) {
+export default function ManageTokenItem({
+  token,
+  setTokenForPortfolio,
+}: {
+  token: Token;
+  setTokenForPortfolio: (token: Token) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [deleteOpened, setDeleteOpened] = useState(false);
 
-  const tokenLists = useTokenLists();
+  const chainId = useCurrentChainId();
 
   return (
     <div className="group">
@@ -30,36 +33,59 @@ export default function ManageTokenItem({ token }: { token: Token }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {token.lists?.includes("custom") && (
+          {token.lists?.includes(`custom-${chainId}`) && (
             <div className="group-hover:opacity-100 opacity-0 duration-200">
               <IconButton
                 variant={IconButtonVariant.DELETE}
                 handleDelete={() => setDeleteOpened(true)}
               />
-              <Dialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>
-                <DialogHeader onClose={() => setDeleteOpened(false)} title="Remove token" />
-                Are you sure you want delete this token? It will be removed only from your custom
-                token list.
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => setDeleteOpened(false)}>Cancel</button>
-                  <button
-                    onClick={async () => {
-                      const currentCustomTokens = await db.tokenLists.get("custom");
+              <DrawerDialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>
+                <div className="w-full md:w-[600px]">
+                  <DialogHeader
+                    onClose={() => setDeleteOpened(false)}
+                    title="Removing custom token"
+                  />
+                  <div className="px-4 pb-4 md:px-10 md:pb-10">
+                    <Image
+                      className="mx-auto mt-5 mb-2"
+                      src={token.logoURI || ""}
+                      alt=""
+                      width={60}
+                      height={60}
+                    />
+                    <p className="mb-5 text-center">
+                      Please confirm you would like to remove the{" "}
+                      <b className="whitespace-nowrap">“{token.name}”</b> custom token. It will be
+                      removed only from custom list.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant={ButtonVariant.OUTLINED}
+                        onClick={() => setDeleteOpened(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        colorScheme={ButtonColor.RED}
+                        onClick={async () => {
+                          const currentCustomTokens = await db.tokenLists.get(`custom-${chainId}`);
 
-                      if (currentCustomTokens) {
-                        await (db.tokenLists as any).update("custom", {
-                          "list.tokens": currentCustomTokens.list.tokens.filter(
-                            (t) => t.address0 !== token.address0,
-                          ),
-                        });
-                      }
-                      setDeleteOpened(false);
-                    }}
-                  >
-                    Remove
-                  </button>
+                          if (currentCustomTokens) {
+                            await (db.tokenLists as any).update(`custom-${chainId}`, {
+                              "list.tokens": currentCustomTokens.list.tokens.filter(
+                                (t) => t.address0 !== token.address0,
+                              ),
+                            });
+                          }
+                          setDeleteOpened(false);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </Dialog>
+              </DrawerDialog>
             </div>
           )}
           <span className="flex gap-0.5 items-center text-secondary-text text-14">
@@ -67,49 +93,9 @@ export default function ManageTokenItem({ token }: { token: Token }) {
             <Svg className="text-tertiary-text" iconName="list" />
           </span>
 
-          <IconButton onClick={() => setOpen(!open)} iconName="details" />
+          <IconButton onClick={() => setTokenForPortfolio(token)} iconName="details" />
         </div>
       </div>
-      <Dialog isOpen={open} setIsOpen={setOpen}>
-        <div className="px-5 pt-3 w-[530px]">
-          <div className="border-b border-primary-border pb-3 flex flex-col gap-2">
-            <div className="flex justify-between">
-              <span className="text-secondary-text">Name</span>
-              <span>{token.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-secondary-text">Symbol</span>
-              <span>{token.symbol}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-secondary-text">Address</span>
-              <span>{token.address0}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-secondary-text">Decimals</span>
-              <span>{token.decimals}</span>
-            </div>
-          </div>
-          <p className="pt-3 text-secondary-text">Found in these token-lists:</p>
-          <div className="flex flex-col gap-3 py-3">
-            {token.lists?.map((listId) => {
-              return (
-                <div className="flex gap-3 items-center" key={listId}>
-                  <div className="px-2">
-                    <Image
-                      width={32}
-                      height={32}
-                      src={tokenLists?.find((tl) => tl.id === listId)?.list.logoURI || ""}
-                      alt=""
-                    />
-                  </div>
-                  {tokenLists?.find((tl) => tl.id === listId)?.list.name || ""}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Dialog>
     </div>
   );
 }

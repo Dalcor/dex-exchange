@@ -227,8 +227,6 @@ export default function useAllowance({
       });
       const hash = await walletClient.writeContract(request);
 
-      console.log("TRANSACTION METADATA TO SAVE");
-
       const nonce = await publicClient.getTransactionCount({
         address,
         blockTag: "pending",

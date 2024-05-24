@@ -3,6 +3,7 @@ import { useConnect } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Preloader from "@/components/atoms/Preloader";
 import TextField from "@/components/atoms/TextField";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
@@ -75,7 +76,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
   };
 
   return (
-    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
+    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
       <div className="min-w-[440px]">
         <DialogHeader onClose={() => setIsOpen(false)} title="Import wallet with JSON file" />
 
@@ -135,6 +136,6 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
           </div>
         </div>
       </div>
-    </Dialog>
+    </DrawerDialog>
   );
 }

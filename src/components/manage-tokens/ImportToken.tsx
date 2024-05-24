@@ -12,8 +12,10 @@ import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { TOKEN_CONVERTER_ABI } from "@/config/abis/tokenConverter";
 import { db } from "@/db/db";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { useTokenLists } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
+import { CONVERTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 interface Props {
@@ -23,7 +25,7 @@ interface Props {
 
 export default function ImportToken({ setContent, handleClose }: Props) {
   const [tokenAddressToImport, setTokenAddressToImport] = useState("");
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
   const tokenLists = useTokenLists();
 
   const { data: tokenName, isFetched } = useReadContract({
@@ -59,15 +61,13 @@ export default function ImportToken({ setContent, handleClose }: Props) {
   const { data: erc223Address } = useReadContract({
     abi: TOKEN_CONVERTER_ABI,
     functionName: "getERC223WrapperFor",
-    address: "0x258e392a314034eb093706254960f26a90696d4c",
+    address: CONVERTER_ADDRESS[chainId],
     args: [tokenAddressToImport as Address],
+    chainId,
     query: {
       enabled: !!tokenAddressToImport && isAddress(tokenAddressToImport),
     },
   });
-
-  console.log("23 address");
-  console.log(erc223Address);
 
   const [checkedUnderstand, setCheckedUnderstand] = useState<boolean>(false);
 
@@ -142,7 +142,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                 disabled={!checkedUnderstand}
                 onClick={async () => {
                   if (chainId && tokenName && tokenDecimals && tokenSymbol && erc223Address?.[0]) {
-                    const currentCustomList = tokenLists?.find((t) => t.id === "custom");
+                    const currentCustomList = tokenLists?.find((t) => t.id === `custom-${chainId}`);
 
                     const token = new Token(
                       chainId,
@@ -156,8 +156,9 @@ export default function ImportToken({ setContent, handleClose }: Props) {
 
                     if (!currentCustomList) {
                       await db.tokenLists.add({
-                        id: "custom",
+                        id: `custom-${chainId}`,
                         enabled: true,
+                        chainId,
                         list: {
                           name: "Custom token list",
                           version: {
@@ -170,7 +171,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                         },
                       });
                     } else {
-                      (db.tokenLists as any).update("custom", {
+                      (db.tokenLists as any).update(`custom-${chainId}`, {
                         "list.tokens": [...currentCustomList.list.tokens, token],
                       });
                     }

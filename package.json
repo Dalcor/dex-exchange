@@ -28,6 +28,7 @@
     "dexie": "^4.0.4",
     "dexie-react-hooks": "^1.1.7",
     "ethereumjs-wallet": "^1.0.2",
+    "formik": "^2.4.6",
     "graphql": "16.6.0",
     "invariant": "^2.2.4",
     "jsbi": "^3.2.5",
@@ -46,6 +47,7 @@
     "toformat": "^2.0.0",
     "viem": "^2.7.11",
     "wagmi": "^2.5.7",
+    "yup": "^1.4.0",
     "zustand": "^4.4.6"
   },
   "devDependencies": {

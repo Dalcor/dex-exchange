@@ -80,7 +80,6 @@ export default function useDeposit({
       !chainId ||
       !publicClient
     ) {
-      console.log("WRONG0");
       return;
     }
 
@@ -96,7 +95,6 @@ export default function useDeposit({
         args: [contractAddress, amountToCheck] as any,
       };
 
-      console.log(1);
       const estimatedGas = await publicClient.estimateContractGas(params);
 
       const { request } = await publicClient.simulateContract({

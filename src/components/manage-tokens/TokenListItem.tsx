@@ -1,11 +1,17 @@
 import clsx from "clsx";
+import Image from "next/image";
 import { useState } from "react";
 
+import Dialog from "@/components/atoms/Dialog";
+import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Popover from "@/components/atoms/Popover";
 import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
-import IconButton from "@/components/buttons/IconButton";
+import TokenListLogo, { TokenListLogoType } from "@/components/atoms/TokenListLogo";
+import Button, { ButtonColor, ButtonVariant } from "@/components/buttons/Button";
 import { db, TokenList } from "@/db/db";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 
 enum ListActionOption {
   VIEW,
@@ -44,7 +50,7 @@ function ListPopoverOption(props: Props) {
       return (
         <button
           className={clsx(commonClassName, "text-red hover:text-red-hover")}
-          onClick={props.handleRemove}
+          onClick={() => props.handleRemove()}
         >
           Remove
           <Svg iconName="delete" />
@@ -66,25 +72,25 @@ export default function TokenListItem({
   tokenList: TokenList;
   toggle: any;
 }) {
-  const [open, setOpen] = useState(false);
   const [isPopoverOpened, setPopoverOpened] = useState(false);
+  const [deleteOpened, setDeleteOpened] = useState(false);
+
+  const chainId = useCurrentChainId();
 
   return (
     <div>
       <div className="flex justify-between py-1.5">
         <div className="flex gap-3 items-center">
-          <img
-            onError={({ currentTarget }) => {
-              currentTarget.onerror = null; // prevents looping
-              currentTarget.src = "/token-list-placeholder.svg";
-            }}
-            loading="lazy"
-            width={40}
-            height={40}
-            className="w-10 h-10"
-            src={tokenList.list.logoURI}
-            alt=""
-          />
+          {tokenList?.id?.toString()?.startsWith("default") && (
+            <TokenListLogo type={TokenListLogoType.DEFAULT} chainId={tokenList.chainId} />
+          )}
+          {tokenList?.id?.toString()?.startsWith("custom") && (
+            <TokenListLogo type={TokenListLogoType.CUSTOM} chainId={tokenList.chainId} />
+          )}
+          {typeof tokenList.id === "number" && (
+            <TokenListLogo type={TokenListLogoType.OTHER} url={tokenList.list.logoURI} />
+          )}
+
           <div className="flex flex-col">
             <span>{tokenList.list.name}</span>
             <div className="flex gap-1 items-cente text-secondary-text">
@@ -110,11 +116,53 @@ export default function TokenListItem({
                     href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(tokenList.list))}`}
                   />
 
-                  {tokenList.id !== "default" && (
-                    <ListPopoverOption
-                      variant={ListActionOption.REMOVE}
-                      handleRemove={() => db.tokenLists.delete(tokenList.id)}
-                    />
+                  {tokenList.id !== `default-${chainId}` && (
+                    <>
+                      <ListPopoverOption
+                        variant={ListActionOption.REMOVE}
+                        handleRemove={() => {
+                          setDeleteOpened(true);
+                        }}
+                      />
+                      <DrawerDialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>
+                        <div className="w-full md:w-[600px]">
+                          <DialogHeader
+                            onClose={() => setDeleteOpened(false)}
+                            title="Removing list"
+                          />
+                          <div className="px-4 pb-4 md:px-10 md:pb-10">
+                            <Image
+                              className="mx-auto mt-5 mb-2"
+                              src={tokenList.list.logoURI || ""}
+                              alt=""
+                              width={60}
+                              height={60}
+                            />
+                            <p className="mb-5 text-center">
+                              Please confirm you would like to remove the
+                              <b className="whitespace-nowrap">“{tokenList.list.name}”</b> list
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant={ButtonVariant.OUTLINED}
+                                onClick={() => setDeleteOpened(false)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                colorScheme={ButtonColor.RED}
+                                onClick={() => {
+                                  db.tokenLists.delete(tokenList.id);
+                                  setDeleteOpened(false);
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </DrawerDialog>
+                    </>
                   )}
                 </div>
               </Popover>

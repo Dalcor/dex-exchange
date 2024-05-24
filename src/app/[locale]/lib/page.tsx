@@ -71,8 +71,6 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
 
   const { data: latestBlock } = useBlockNumber({ watch: true });
 
-  console.log("Decimals", decimals);
-
   useEffect(() => {
     refetch();
   }, [latestBlock, refetch]);

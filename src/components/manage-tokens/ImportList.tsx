@@ -39,9 +39,13 @@ export default function ImportList({ setContent, handleClose }: Props) {
         const data = await fetchTokenList(tokenListAddressToImport);
 
         console.log(data);
-        if (data) {
+        //TODO: Check that all tokens in list from same chain
+        const listChainId = data.tokens[0].chainId;
+
+        if (data && listChainId) {
           setTokenListToImport({
             enabled: true,
+            chainId: listChainId,
             list: data,
           });
         }
@@ -71,11 +75,17 @@ export default function ImportList({ setContent, handleClose }: Props) {
           if (e.target) {
             const fileContents: any = e.target.result;
             const parsedJson = JSON.parse(fileContents);
+            //TODO: Check that all tokens in list from same chain
 
-            setTokenListFileContent({
-              enabled: true,
-              list: parsedJson,
-            });
+            const listChainId = parsedJson.tokens[0].chainId;
+
+            if (listChainId) {
+              setTokenListFileContent({
+                enabled: true,
+                list: parsedJson,
+                chainId: listChainId,
+              });
+            }
           }
         } catch (e) {
           console.log(e);
@@ -234,7 +244,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                   }}
                   variant={ButtonVariant.OUTLINED}
                 >
-                  {tokenListFileContent ? "Choose another list" : "Browse..."}
+                  Browse
                 </Button>
               </div>
               <p className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">
@@ -299,6 +309,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                   />
                   <Button
                     fullWidth
+                    disabled={!checkedUnderstand}
                     size={ButtonSize.MEDIUM}
                     onClick={() => {
                       handleJSONImport();

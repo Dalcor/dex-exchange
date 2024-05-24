@@ -117,16 +117,6 @@ export default function useSwap() {
       !tokenBAddress ||
       !poolAddress
     ) {
-      console.log("NOT READY SWAP PARAMS:");
-      console.log({
-        tokenA,
-        tokenB,
-        chainId,
-        tokenAAddress,
-        tokenBAddress,
-        poolAddress,
-      });
-
       return null;
     }
 
@@ -288,7 +278,6 @@ export default function useSwap() {
     setSwapStatus(SwapStatus.PENDING);
     openConfirmInWalletAlert("Confirm action in your wallet");
 
-    console.log(swapParams);
     const hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
 
     closeConfirmInWalletAlert();

@@ -69,7 +69,6 @@ export const useAddLiquidity = () => {
       createPool?: boolean;
       tokenId?: string;
     }) => {
-      console.log("handleAddLiquidity");
       if (
         !position ||
         !publicClient ||

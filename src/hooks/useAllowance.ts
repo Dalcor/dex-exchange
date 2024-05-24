@@ -237,13 +237,6 @@ export default function useAllowance({
       });
       const hash = await walletClient.writeContract(request);
 
-      console.log("TRANSACTION METADATA TO SAVE");
-
-      // console.log("ABI PART:", getAbiItem({ name: "approve", abi: ERC20_ABI }));
-      // console.log("Args:", [contractAddress!, amountToRevoke!]);
-      // console.log("Label info:", { symbol: token.symbol });
-      // console.log("functionName", "approve");
-
       const nonce = await publicClient.getTransactionCount({
         address,
         blockTag: "pending",

@@ -7,7 +7,7 @@ export const sepoliaDefaultList = {
     patch: 2,
   },
   logoURI: "/token-list-placeholder.svg",
-  name: "Sepolia Default List",
+  name: "DEX223 Sepolia Default",
   tokens: [
     new Token(
       11155111,

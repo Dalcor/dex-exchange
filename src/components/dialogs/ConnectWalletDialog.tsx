@@ -2,6 +2,7 @@ import { useSwitchChain } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
 import PickButton from "@/components/buttons/PickButton";
 import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import CoinbaseCard from "@/components/wallet-cards/CoinbaseCard";
@@ -32,10 +33,10 @@ export default function ConnectWalletDialog({ isOpen, setIsOpen }: Props) {
   const { switchChain } = useSwitchChain();
 
   return (
-    <Dialog isOpen={isOpen} setIsOpen={setIsOpen}>
-      <div className="min-w-[600px]">
+    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
+      <div className="w-full md:w-[600px]">
         <DialogHeader onClose={() => setIsOpen(false)} title="Connect wallet" />
-        <div className="p-10">
+        <div className="pb-4 px-4 md:pb-10 md:px-10">
           <StepLabel step="1" label="Choose network" />
           <div className="grid grid-cols-4 gap-3 mt-3 mb-5">
             {networks.map(({ name, chainId, logo }) => {
@@ -65,6 +66,6 @@ export default function ConnectWalletDialog({ isOpen, setIsOpen }: Props) {
           </div>
         </div>
       </div>
-    </Dialog>
+    </DrawerDialog>
   );
 }

@@ -4,7 +4,6 @@ import { AutoSizer, List } from "react-virtualized";
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Input from "@/components/atoms/Input";
-import Svg from "@/components/atoms/Svg";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import TabButton from "@/components/buttons/TabButton";
 import ManageTokenItem from "@/components/manage-tokens/ManageTokenItem";
@@ -12,13 +11,15 @@ import TokenListItem from "@/components/manage-tokens/TokenListItem";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { db } from "@/db/db";
 import { useTokenLists, useTokens } from "@/hooks/useTokenLists";
+import { Token } from "@/sdk_hybrid/entities/token";
 import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
 
 interface Props {
   setContent: (content: ManageTokensDialogContent) => void;
   handleClose: () => void;
+  setTokenForPortfolio: (token: Token) => void;
 }
-export default function TokensAndLists({ setContent, handleClose }: Props) {
+export default function TokensAndLists({ setContent, handleClose, setTokenForPortfolio }: Props) {
   const { activeTab, setActiveTab } = useManageTokensDialogStore();
 
   const lists = useTokenLists();
@@ -35,7 +36,7 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
   return (
     <>
       <DialogHeader onClose={handleClose} title="Manage tokens" />
-      <div className="w-full md:w-[550px] h-[580px] flex flex-col px-4 md:px-10">
+      <div className="w-full md:w-[600px] h-[580px] flex flex-col px-4 md:px-10">
         <div className="grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3  mb-3">
           {["Lists", "Tokens"].map((title, index) => {
             return (
@@ -72,17 +73,21 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
             </Button>
 
             <div className="flex flex-col mt-3 overflow-scroll flex-grow">
-              {lists?.map((tokenList) => {
-                return (
-                  <TokenListItem
-                    toggle={() => {
-                      (db.tokenLists as any).update(tokenList.id, { enabled: !tokenList.enabled });
-                    }}
-                    tokenList={tokenList}
-                    key={tokenList.id}
-                  />
-                );
-              })}
+              {lists
+                ?.filter((l) => Boolean(l.list.tokens.length))
+                ?.map((tokenList) => {
+                  return (
+                    <TokenListItem
+                      toggle={() => {
+                        (db.tokenLists as any).update(tokenList.id, {
+                          enabled: !tokenList.enabled,
+                        });
+                      }}
+                      tokenList={tokenList}
+                      key={tokenList.id}
+                    />
+                  );
+                })}
             </div>
           </div>
         )}
@@ -122,21 +127,34 @@ export default function TokensAndLists({ setContent, handleClose }: Props) {
               <div style={{ flex: "1 1 auto" }} className="pb-[1px]">
                 <AutoSizer>
                   {({ width, height }) => {
-                    return (
-                      <List
-                        width={width}
-                        height={height}
-                        rowCount={filteredTokens.length}
-                        rowHeight={60}
-                        rowRenderer={({ key, index, isScrolling, isVisible, style }) => {
-                          return (
-                            <div key={key} style={style}>
-                              <ManageTokenItem token={filteredTokens[index]} />
-                            </div>
-                          );
-                        }}
-                      />
-                    );
+                    if (filteredTokens.length) {
+                      return (
+                        <List
+                          width={width}
+                          height={height}
+                          rowCount={filteredTokens.length}
+                          rowHeight={60}
+                          rowRenderer={({ key, index, isScrolling, isVisible, style }) => {
+                            return (
+                              <div key={key} style={style}>
+                                <ManageTokenItem
+                                  setTokenForPortfolio={setTokenForPortfolio}
+                                  token={filteredTokens[index]}
+                                />
+                              </div>
+                            );
+                          }}
+                        />
+                      );
+                    }
+
+                    if (!filteredTokens.length && onlyCustom) {
+                      return <div>No custom tokens yet</div>;
+                    }
+
+                    if (!filteredTokens.length) {
+                      return <div>No tokens yet</div>;
+                    }
                   }}
                 </AutoSizer>
               </div>

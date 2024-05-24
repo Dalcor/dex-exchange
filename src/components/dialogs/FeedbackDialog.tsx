@@ -1,3 +1,6 @@
+import { Form, Formik, FormikHelpers } from "formik";
+import * as Yup from "yup";
+
 import { CheckboxButton } from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
@@ -17,6 +20,24 @@ const feedbackTagLabelsMap: Record<FeedbackTag, string> = {
   [FeedbackTag.FEATURE_REQUEST]: "Feature request",
   [FeedbackTag.OTHER]: "Other",
 };
+
+interface Values {
+  email: string;
+  description: string;
+  tags: FeedbackTag[];
+}
+
+const initialValues: Values = {
+  email: "",
+  description: "",
+  tags: [],
+};
+
+const FeedbackSchema = Yup.object().shape({
+  email: Yup.string(),
+  description: Yup.string().required("Required").min(3).max(20000),
+  tags: Yup.array().of(Yup.number()),
+});
 export default function FeedbackDialog() {
   const { isOpen, setIsOpen, description, setDescription, tags, addTag, removeTag } =
     useFeedbackDialogStore();
@@ -41,50 +62,83 @@ export default function FeedbackDialog() {
               Github
             </a>
           </p>
-          <TextField
-            placeholder="Email, wallet address or nickname "
-            label="Email, wallet address or nickname (optional)"
-          />
-          <div className="h-5" />
-          <TextAreaField
-            onChange={(e) => setDescription(e.target.value)}
-            value={description}
-            error={description.length < 3 ? "Must be at least 3 characters" : ""}
-            label="Describe your issue"
-            rows={4}
-            placeholder="Describe your issue"
-          />
-
-          <h3 className="text-16 font-bold mb-1 flex items-center gap-1 mt-5">Feedback category</h3>
-          <div className="grid gap-2 grid-cols-2 mb-5">
-            {[
-              FeedbackTag.COMMENT,
-              FeedbackTag.BUG,
-              FeedbackTag.FEATURE_REQUEST,
-              FeedbackTag.OTHER,
-            ].map((feedbackTag) => {
-              return (
-                <CheckboxButton
-                  key={feedbackTag}
-                  checked={tags.includes(feedbackTag)}
-                  handleChange={() =>
-                    tags.includes(feedbackTag) ? removeTag(feedbackTag) : addTag(feedbackTag)
-                  }
-                  id={feedbackTag + "_feedback_tag"}
-                  label={feedbackTagLabelsMap[feedbackTag]}
-                />
-              );
-            })}
-          </div>
-          <Button
-            onClick={() => {
+          <Formik
+            initialValues={initialValues}
+            validationSchema={FeedbackSchema}
+            onSubmit={async (values: Values, { setSubmitting }: FormikHelpers<Values>) => {
+              console.log(values);
               addToast("Feedback successfully sent");
               setIsOpen(false);
             }}
-            fullWidth
           >
-            Send feedback
-          </Button>
+            {({ handleChange, handleBlur, values, errors, touched, setFieldValue }) => {
+              console.log(touched);
+              console.log(values);
+              return (
+                <Form>
+                  <TextField
+                    id="email"
+                    name="email"
+                    placeholder="Email, wallet address or nickname "
+                    label="Email, wallet address or nickname (optional)"
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.email}
+                  />
+                  <div className="h-5" />
+                  <TextAreaField
+                    id="description"
+                    name="description"
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    label="Describe your issue"
+                    rows={4}
+                    placeholder="Describe your issue"
+                    value={values.description}
+                    error={touched.description && errors.description ? errors.description : ""}
+                  />
+                  <h3 className="text-16 font-bold mb-1 flex items-center gap-1 mt-5">
+                    Feedback category
+                  </h3>
+                  <div className="grid gap-2 grid-cols-2 mb-5">
+                    {[
+                      FeedbackTag.COMMENT,
+                      FeedbackTag.BUG,
+                      FeedbackTag.FEATURE_REQUEST,
+                      FeedbackTag.OTHER,
+                    ].map((feedbackTag) => {
+                      return (
+                        <CheckboxButton
+                          key={feedbackTag}
+                          checked={values.tags.includes(feedbackTag)}
+                          handleChange={async () => {
+                            if (values.tags.includes(feedbackTag)) {
+                              await setFieldValue(
+                                "tags",
+                                values.tags.filter((v) => v !== feedbackTag),
+                                false,
+                              );
+                            } else {
+                              await setFieldValue("tags", [...values.tags, feedbackTag], false);
+                            }
+                          }}
+                          id={feedbackTag + "_feedback_tag"}
+                          label={feedbackTagLabelsMap[feedbackTag]}
+                        />
+                      );
+                    })}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={Boolean(errors.description && touched.description)}
+                    fullWidth
+                  >
+                    Send feedback
+                  </Button>
+                </Form>
+              );
+            }}
+          </Formik>
         </div>
       </DrawerDialog>
     </>

@@ -28,14 +28,17 @@ body {
 }
 
 .drawer-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 99;
+  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.7);
+  display: grid;
+  place-items: center;
+  z-index: 98;
 }
 
 .drawer-container {
   position: fixed;
-  z-index: 100;
-  overflow: auto;
+  z-index: 98;
+  /*overflow: auto;*/
 }
 
 @keyframes appear {

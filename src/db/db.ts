@@ -1,10 +1,13 @@
 import Dexie, { Table } from "dexie";
 
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 
+export type TokenListId = number | `custom-${DexChainId}` | `default-${DexChainId}`;
 export interface TokenList {
-  id?: number | "custom" | "default";
+  id?: TokenListId;
   enabled: boolean;
+  chainId: DexChainId;
   list: {
     logoURI: string;
     version: {
@@ -24,7 +27,7 @@ export class TokenListsDexie extends Dexie {
   constructor() {
     super("dex223TokenListsDatabase");
     this.version(1).stores({
-      tokenLists: "++id, enabled, list", // Primary key and indexed props
+      tokenLists: "++id, enabled, list, chainId", // Primary key and indexed props
     });
   }
 }

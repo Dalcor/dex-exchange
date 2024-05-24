@@ -1,7 +1,7 @@
 import "../../assets/styles/globals.css";
 
 import clsx from "clsx";
-import { Golos_Text } from "next/font/google";
+import { Golos_Text, Space_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
@@ -12,9 +12,16 @@ import { Providers } from "@/app/[locale]/providers";
 import Footer from "@/components/common/Footer";
 import Header from "@/components/common/Header";
 import { config } from "@/config/wagmi/config";
-import DialogsProvider from "@/providers/DialogsProvider";
+import useInitializeDB from "@/hooks/useInitializeDB";
 
 const golos_text = Golos_Text({
+  subsets: ["latin"],
+  display: "swap",
+  adjustFontFallback: false,
+});
+
+const mono_space = Space_Mono({
+  weight: "400",
   subsets: ["latin"],
   display: "swap",
   adjustFontFallback: false,
@@ -43,13 +50,11 @@ export default async function RootLayout({
     <html suppressHydrationWarning lang={locale}>
       <body className={clsx(golos_text.className)}>
         <Providers initialState={initialState} messages={messages} locale={locale}>
-          <DialogsProvider>
-            <div className="grid h-[100vh] grid-rows-layout">
-              <Header />
-              <div>{children}</div>
-              <Footer />
-            </div>
-          </DialogsProvider>
+          <div className="grid h-[100vh] grid-rows-layout">
+            <Header />
+            <div>{children}</div>
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>

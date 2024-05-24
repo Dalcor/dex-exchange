@@ -7,6 +7,8 @@ import { type State, WagmiProvider } from "wagmi";
 
 import { config } from "@/config/wagmi/config";
 import { Locale } from "@/navigation";
+import DatabaseProvider from "@/providers/DatabaseProvider";
+import DialogsProvider from "@/providers/DialogsProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import ToastProvider from "@/providers/ToastProvider";
 
@@ -22,14 +24,18 @@ const timeZone = "Europe/Vienna";
 
 export function Providers({ children, initialState, messages, locale }: Props) {
   return (
-    <WagmiProvider config={config} initialState={initialState}>
-      <QueryClientProvider client={queryClient}>
-        <NextIntlClientProvider locale={locale} timeZone={timeZone} messages={messages}>
-          <ThemeProvider attribute="class">
-            <ToastProvider>{children}</ToastProvider>
-          </ThemeProvider>
-        </NextIntlClientProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <DatabaseProvider>
+      <WagmiProvider config={config} initialState={initialState}>
+        <QueryClientProvider client={queryClient}>
+          <NextIntlClientProvider locale={locale} timeZone={timeZone} messages={messages}>
+            <ThemeProvider attribute="class">
+              <ToastProvider>
+                <DialogsProvider>{children}</DialogsProvider>
+              </ToastProvider>
+            </ThemeProvider>
+          </NextIntlClientProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </DatabaseProvider>
   );
 }

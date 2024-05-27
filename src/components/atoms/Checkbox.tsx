@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { InputHTMLAttributes } from "react";
 
 import Svg from "@/components/atoms/Svg";

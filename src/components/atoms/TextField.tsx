@@ -36,15 +36,20 @@ export default function TextField({
         {tooltipText && <Tooltip iconSize={20} text={tooltipText} />}
       </p>
       <Input isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
-      {typeof helperText !== "undefined" && !error && (
-        <div
-          className={clsx("text-12 text-secondary-text mt-0.5 h-4", props.disabled && "opacity-50")}
-        >
-          {helperText}
-        </div>
-      )}
-      {error && <p className="text-12 text-red mt-0.5">{error}</p>}
-      {warning && <p className="text-12 text-orange mt-0.5">{warning}</p>}
+      <div className="text-12 mt-0.5 h-4">
+        {typeof helperText !== "undefined" && !error && (
+          <div
+            className={clsx(
+              "text-12 text-secondary-text mt-0.5 h-4",
+              props.disabled && "opacity-50",
+            )}
+          >
+            {helperText}
+          </div>
+        )}
+        {error && <p className="text-12 text-red-input mt-0.5">{error}</p>}
+        {warning && <p className="text-12 text-orange mt-0.5">{warning}</p>}
+      </div>
     </div>
   );
 }

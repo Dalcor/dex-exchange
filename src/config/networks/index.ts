@@ -15,4 +15,9 @@ export const networks: Array<{
     name: "Sepolia",
     logo: "/chains/sepolia.svg",
   },
+  {
+    chainId: DexChainId.BSC_TESTNET,
+    name: "Binance Smart Chain Testnet",
+    logo: "/chains/bsc.svg",
+  },
 ];

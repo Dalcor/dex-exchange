@@ -7,6 +7,7 @@ import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import ConfirmSwapDialog from "@/app/[locale]/swap/components/ConfirmSwapDialog";
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
+import TwoVersionsInfo from "@/app/[locale]/swap/components/TwoVersionsInfo";
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
@@ -17,8 +18,10 @@ import {
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapRecentTransactionsStore } from "@/app/[locale]/swap/stores/useSwapRecentTransactions";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
+import Collapse from "@/components/atoms/Collapse";
 import Container from "@/components/atoms/Container";
 import Preloader from "@/components/atoms/Preloader";
+import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import IconButton from "@/components/buttons/IconButton";
@@ -271,7 +274,8 @@ export default function SwapPage() {
           )}
 
           <div className="flex justify-center grid-in-[right]">
-            <div className="grid gap-5 w-full md:w-[640px]">
+            <div className="flex flex-col gap-5 w-full md:w-[640px]">
+              <TwoVersionsInfo />
               <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
                 <div className="flex justify-between items-center mb-2.5">
                   <h3 className="font-bold text-20">Swap</h3>

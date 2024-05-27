@@ -5,7 +5,11 @@ import DrawerDialog from "@/components/atoms/DrawerDialog";
 import ExternalTextLink from "@/components/atoms/ExternalTextLink";
 import TokenListLogo, { TokenListLogoType } from "@/components/atoms/TokenListLogo";
 import Badge, { BadgeVariant } from "@/components/badges/Badge";
-import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
+import IconButton, {
+  IconButtonSize,
+  IconButtonVariant,
+  IconSize,
+} from "@/components/buttons/IconButton";
 import { useTokenPortfolioDialogStore } from "@/components/dialogs/stores/useTokenPortfolioDialogStore";
 import { TokenListId } from "@/db/db";
 import { copyToClipboard } from "@/functions/copyToClipboard";
@@ -53,7 +57,7 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
           <span className="text-secondary-text">Symbol</span>
           <span>{token.symbol}</span>
         </div>
-        <div className="grid grid-cols-[1fr_auto_24px] gap-2">
+        <div className="grid grid-cols-[1fr_auto_32px] gap-x-2">
           <span className="text-secondary-text flex items-center gap-1">
             Address <Badge variant={BadgeVariant.COLORED} text="ERC-20" />{" "}
           </span>
@@ -64,7 +68,9 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
             className="justify-between"
           />
           <IconButton
+            iconSize={IconSize.SMALL}
             variant={IconButtonVariant.DEFAULT}
+            buttonSize={IconButtonSize.SMALL}
             iconName="copy"
             onClick={async () => {
               await copyToClipboard(token.address0);
@@ -81,7 +87,9 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
             className="justify-between"
           />
           <IconButton
+            iconSize={IconSize.SMALL}
             variant={IconButtonVariant.DEFAULT}
+            buttonSize={IconButtonSize.SMALL}
             iconName="copy"
             onClick={async () => {
               await copyToClipboard(token.address1);

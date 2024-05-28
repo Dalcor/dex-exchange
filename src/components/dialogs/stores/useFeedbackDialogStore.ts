@@ -1,10 +1,10 @@
 import { create } from "zustand";
 
 export enum FeedbackTag {
-  COMMENT,
-  BUG,
-  FEATURE_REQUEST,
-  OTHER,
+  COMMENT = "COMMENT",
+  BUG = "BUG",
+  FEATURE_REQUEST = "FEATURE",
+  OTHER = "OTHER",
 }
 interface FeedbackDialogStore {
   isOpen: boolean;

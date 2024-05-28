@@ -1,8 +1,8 @@
 import clsx from "clsx";
+import download from "downloadjs";
 import Image from "next/image";
 import { useState } from "react";
 
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Popover from "@/components/atoms/Popover";
@@ -26,7 +26,7 @@ type Props =
     }
   | {
       variant: ListActionOption.DOWNLOAD;
-      href: string;
+      handleDownload: () => void;
     }
   | {
       variant: ListActionOption.REMOVE;
@@ -38,13 +38,13 @@ function ListPopoverOption(props: Props) {
   switch (props.variant) {
     case ListActionOption.DOWNLOAD:
       return (
-        <a
+        <button
           className={clsx(commonClassName, "text-primary-text hover:text-green-hover")}
-          href={props.href}
+          onClick={() => props.handleDownload()}
         >
           Download
           <Svg iconName="download" />
-        </a>
+        </button>
       );
     case ListActionOption.REMOVE:
       return (
@@ -113,7 +113,13 @@ export default function TokenListItem({
                   <ListPopoverOption variant={ListActionOption.VIEW} href="#" />
                   <ListPopoverOption
                     variant={ListActionOption.DOWNLOAD}
-                    href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(tokenList.list))}`}
+                    handleDownload={async () => {
+                      const blob = new Blob([JSON.stringify(tokenList.list, null, 2)], {
+                        type: "application/json",
+                      });
+
+                      download(blob, tokenList.list.name, "application/json");
+                    }}
                   />
 
                   {tokenList.id !== `default-${chainId}` && (

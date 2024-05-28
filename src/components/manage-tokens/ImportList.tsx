@@ -38,7 +38,6 @@ export default function ImportList({ setContent, handleClose }: Props) {
       try {
         const data = await fetchTokenList(tokenListAddressToImport);
 
-        console.log(data);
         //TODO: Check that all tokens in list from same chain
         const listChainId = data.tokens[0].chainId;
 
@@ -145,6 +144,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
             JSON
           </RadioButton>
           <RadioButton
+            disabled
             isActive={importType === "contract"}
             onClick={() => setImportType("contract")}
           >

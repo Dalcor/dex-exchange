@@ -7,6 +7,7 @@ import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import ConfirmSwapDialog from "@/app/[locale]/swap/components/ConfirmSwapDialog";
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
+import TwoVersionsInfo from "@/app/[locale]/swap/components/TwoVersionsInfo";
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
@@ -271,7 +272,8 @@ export default function SwapPage() {
           )}
 
           <div className="flex justify-center grid-in-[right]">
-            <div className="grid gap-5 w-full md:w-[640px]">
+            <div className="flex flex-col gap-5 w-full md:w-[640px]">
+              <TwoVersionsInfo />
               <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
                 <div className="flex justify-between items-center mb-2.5">
                   <h3 className="font-bold text-20">Swap</h3>
@@ -281,7 +283,7 @@ export default function SwapPage() {
                       iconName="recent-transactions"
                       onClick={() => setShowRecentTransactions(!showRecentTransactions)}
                     />
-                    <IconButton iconName="gas-edit" onClick={() => setIsOpenedFee(true)} />
+                    <IconButton disabled iconName="gas-edit" onClick={() => setIsOpenedFee(true)} />
                     <IconButton iconSize={24} iconName="settings" onClick={() => setIsOpen(true)} />
                   </div>
                 </div>
@@ -356,7 +358,7 @@ export default function SwapPage() {
                   className={clsx(
                     "rounded-3 py-3.5 flex flex-col md:flex-row justify-between duration-200 px-5 bg-tertiary-bg my-5 md:items-center",
                   )}
-                  role="button"
+                  // role="button"
                 >
                   <div className="flex items-center gap-1">
                     <Tooltip text="Tooltip" />
@@ -377,7 +379,8 @@ export default function SwapPage() {
                     </span>
 
                     <button
-                      className="border border-green flex px-4 rounded-5"
+                      disabled //TODO: Remove disabled
+                      className="border border-green flex px-4 rounded-5 opacity-50"
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsOpenedFee(true);

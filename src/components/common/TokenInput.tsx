@@ -91,7 +91,12 @@ export default function TokenInput({
           <span className="text-12 block -mt-1 text-secondary-text">$3,220.40</span>
           <div className="duration-200 rounded-3 pointer-events-none absolute w-full h-full border border-transparent peer-hover:shadow-checkbox peer-focus:shadow-checkbox peer-focus:border-green top-0 left-0" />
         </div>
-        <SelectButton variant="rounded-primary" onClick={handleClick} size="large">
+        <SelectButton
+          className="flex-shrink-0"
+          variant="rounded-primary"
+          onClick={handleClick}
+          size="large"
+        >
           {token ? (
             <span className="flex gap-2 items-center pr-2">
               <Image

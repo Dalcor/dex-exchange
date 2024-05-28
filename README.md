@@ -36,3 +36,22 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## Add new chain checklist
+
+1. Add new network to src/config/wagmi/config.ts 
+   1. Networks
+   2. Transports
+2. Modify DexChainId to src/sdk_hybrid/chains.ts
+   1. Add new chain to DexChainId enum with [chainId] as value
+   2. Add chain to DEX_SUPPORTED_CHAINS array
+3. Add contract addresses in src/sdk_hybrid/addresses.ts
+   1. CONVERTER_ADDRESS
+   2. FACTORY_ADDRESS
+   3. ROUTER_ADDRESS
+   4. QUOTER_ADDRESS
+   5. NONFUNGIBLE_POSITION_MANAGER_ADDRESS
+   6. POOL_INIT_CODE_HASH
+4. Add WETH9 token in src/sdk_hybrid/entities.ts
+5. Add default tokenlist in src/db/lists/index.ts
+6. Add subrgaph url in src/graphql/thegraph/apollo.ts

@@ -10,6 +10,9 @@ const emptyStateIconUrlMap = {
   pool: "/empty/empty-pool.svg",
   search: "/empty/empty-search.svg",
   wallet: "/empty/empty-wallet.svg",
+  custom: "/empty/empty-custom-tokens.svg",
+  tokens: "/empty/empty-tokens.svg",
+  warning: "/empty/empty-warning.svg",
 };
 
 type EmptyIconName = keyof typeof emptyStateIconUrlMap;

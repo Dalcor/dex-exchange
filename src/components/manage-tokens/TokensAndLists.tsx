@@ -3,6 +3,7 @@ import { AutoSizer, List } from "react-virtualized";
 
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
+import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Input from "@/components/atoms/Input";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import TabButton from "@/components/buttons/TabButton";
@@ -112,7 +113,12 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
             </Button>
 
             <div className="flex justify-between items-center my-3">
-              <div>Total: {filteredTokens.length}</div>
+              <div>
+                Total: {filteredTokens.length}{" "}
+                {onlyCustom && (
+                  <>{filteredTokens.length === 1 ? "custom token" : "custom tokens"}</>
+                )}
+              </div>
               <div>
                 <Checkbox
                   checked={onlyCustom}
@@ -125,38 +131,46 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
 
             <div className="flex flex-col overflow-scroll flex-grow">
               <div style={{ flex: "1 1 auto" }} className="pb-[1px]">
-                <AutoSizer>
-                  {({ width, height }) => {
-                    if (filteredTokens.length) {
-                      return (
-                        <List
-                          width={width}
-                          height={height}
-                          rowCount={filteredTokens.length}
-                          rowHeight={60}
-                          rowRenderer={({ key, index, isScrolling, isVisible, style }) => {
-                            return (
-                              <div key={key} style={style}>
-                                <ManageTokenItem
-                                  setTokenForPortfolio={setTokenForPortfolio}
-                                  token={filteredTokens[index]}
-                                />
-                              </div>
-                            );
-                          }}
-                        />
-                      );
-                    }
-
-                    if (!filteredTokens.length && onlyCustom) {
-                      return <div>No custom tokens yet</div>;
-                    }
-
-                    if (!filteredTokens.length) {
-                      return <div>No tokens yet</div>;
-                    }
-                  }}
-                </AutoSizer>
+                {Boolean(filteredTokens.length) && (
+                  <AutoSizer>
+                    {({ width, height }) => {
+                      if (filteredTokens.length) {
+                        return (
+                          <List
+                            width={width}
+                            height={height}
+                            rowCount={filteredTokens.length}
+                            rowHeight={60}
+                            rowRenderer={({ key, index, isScrolling, isVisible, style }) => {
+                              return (
+                                <div key={key} style={style}>
+                                  <ManageTokenItem
+                                    setTokenForPortfolio={setTokenForPortfolio}
+                                    token={filteredTokens[index]}
+                                  />
+                                </div>
+                              );
+                            }}
+                          />
+                        );
+                      }
+                    }}
+                  </AutoSizer>
+                )}
+                {Boolean(!filteredTokens.length && onlyCustom) && (
+                  <div className="flex items-center justify-center gap-2 flex-col h-full">
+                    <EmptyStateIcon iconName="custom" />
+                    <span className="text-secondary-text">
+                      You don&apos;t have any custom tokens yet
+                    </span>
+                  </div>
+                )}
+                {Boolean(!filteredTokens.length && !onlyCustom) && (
+                  <div className="flex items-center justify-center gap-2 flex-col h-full">
+                    <EmptyStateIcon iconName="tokens" />
+                    <span className="text-secondary-text">You don&apos;t have any tokens yet</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

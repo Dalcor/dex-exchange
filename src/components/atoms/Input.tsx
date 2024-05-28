@@ -14,7 +14,7 @@ export default function Input({ isError = false, isWarning = false, ...props }: 
         !isError &&
           !isWarning &&
           "border-transparent hover:shadow-checkbox focus:shadow-checkbox focus:border-green",
-        isError && "border-red hover:shadow-error focus:shadow-error",
+        isError && "border-red-input hover:shadow-error focus:shadow-error",
         isWarning && "border-orange hover:shadow-warning focus:shadow-warning",
         props.disabled && "opacity-50 pointer-events-none",
       )}

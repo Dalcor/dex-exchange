@@ -25,16 +25,18 @@ export default function SelectedTokensInfo({ tokenA, tokenB }: Props) {
   );
 }
 
-function AddressPair({ token }: { token: Token | undefined }) {
+function AddressPair({ token }: { token: Token }) {
   return (
     <div className="flex gap-2 items-center">
       <TokenAddressWithStandard
-        tokenAddress={token?.address0 as Address | undefined}
+        tokenAddress={token.address0}
         standard="ERC-20"
+        chainId={token?.chainId}
       />
       <TokenAddressWithStandard
-        tokenAddress={token?.address1 as Address | undefined}
+        tokenAddress={token.address1}
         standard="ERC-223"
+        chainId={token.chainId}
       />
     </div>
   );

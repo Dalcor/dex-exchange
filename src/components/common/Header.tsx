@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Container from "@/components/atoms/Container";
 import LocaleSwitcher from "@/components/atoms/LocaleSwitcher";

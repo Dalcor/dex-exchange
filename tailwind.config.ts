@@ -104,6 +104,8 @@ const config: Config = {
       "white-hover": "rgba(255, 255, 255, 0.1)", // changed
       "tertiary-hover": "#3A3A3A", // changed
 
+      "red-input": "#FF8F8F",
+
       "primary-text": "#F5FFF9", // changed
       "secondary-text": "#BCC3C2", // changed
       "tertiary-text": "#798180", // changed

@@ -3,20 +3,19 @@ import { useEffect } from "react";
 import { db } from "@/db/db";
 import { defaultLists } from "@/db/lists";
 import { IIFE } from "@/functions/iife";
-import { DexChainId } from "@/sdk_hybrid/chains";
+import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
 
-const dexChainIds = [DexChainId.CALLISTO, DexChainId.SEPOLIA];
 export default function useInitializeDB() {
   useEffect(() => {
     IIFE(async () => {
-      for (let i = 0; i < dexChainIds.length; i++) {
-        const defaultList = await db.tokenLists.get(`default-${dexChainIds[i]}`);
+      for (let i = 0; i < DEX_SUPPORTED_CHAINS.length; i++) {
+        const defaultList = await db.tokenLists.get(`default-${DEX_SUPPORTED_CHAINS[i]}`);
 
         if (!defaultList) {
           await db.tokenLists.add({
-            id: `default-${dexChainIds[i]}`,
-            list: defaultLists[dexChainIds[i]],
-            chainId: dexChainIds[i],
+            id: `default-${DEX_SUPPORTED_CHAINS[i]}`,
+            list: defaultLists[DEX_SUPPORTED_CHAINS[i]],
+            chainId: DEX_SUPPORTED_CHAINS[i],
             enabled: true,
           });
         } else {
@@ -25,14 +24,14 @@ export default function useInitializeDB() {
             major: _major,
             minor: _minor,
             patch: _patch,
-          } = defaultLists[dexChainIds[i]].version;
+          } = defaultLists[DEX_SUPPORTED_CHAINS[i]].version;
           if (
             major < _major ||
             (major === major && minor < _minor) ||
             (major === _major && minor === _minor && patch < _patch)
           ) {
-            await (db.tokenLists as any).update(`default-${dexChainIds[i]}`, {
-              list: defaultLists[dexChainIds[i]],
+            await (db.tokenLists as any).update(`default-${DEX_SUPPORTED_CHAINS[i]}`, {
+              list: defaultLists[DEX_SUPPORTED_CHAINS[i]],
               enabled: true,
             });
           }

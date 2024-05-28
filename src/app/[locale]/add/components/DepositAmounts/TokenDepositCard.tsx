@@ -2,12 +2,21 @@ import clsx from "clsx";
 import Image from "next/image";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
-import { Address, formatUnits } from "viem";
+import { Address, formatEther, formatGwei, formatUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
+import Dialog from "@/components/atoms/Dialog";
+import DialogHeader from "@/components/atoms/DialogHeader";
+import Preloader from "@/components/atoms/Preloader";
+import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
+import Button from "@/components/buttons/Button";
 import { RevokeDialog } from "@/components/dialogs/RevokeDialog";
 import { formatFloat } from "@/functions/formatFloat";
+import useAllowance, { AllowanceStatus } from "@/hooks/useAllowance";
+import useDeposit from "@/hooks/useDeposit";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
 export const InputRange = ({
@@ -111,21 +120,23 @@ function InputTotalAmount({
 function InputStandardAmount({
   standard,
   value,
-  onChange,
-  currentAllowance,
   token,
-  onRevoke,
-  isRevoking,
+  status,
+  currentAllowance,
+  revokeHandler,
+  estimatedGas,
+  gasPrice,
 }: {
   standard: TokenStandard;
   value?: number;
-  onChange?: (value: number) => void;
-  currentAllowance: bigint; // currentAllowance or currentDeposit
   token?: Token;
-  onRevoke: () => void; // onWithdraw or onWithdraw
-  isRevoking: boolean; // isRevoking or isWithdrawing
+  currentAllowance: bigint; // currentAllowance or currentDeposit
+  status: AllowanceStatus;
+  revokeHandler: () => void; // onWithdraw or onWithdraw
+  gasPrice?: bigint;
+  estimatedGas: bigint | null;
 }) {
-  const { address } = useAccount();
+  const { address, chain } = useAccount();
   const { data: blockNumber } = useBlockNumber({ watch: true });
   const tokenAddress = standard === "ERC-20" ? token?.address0 : token?.address1;
   const { data: tokenBalance, refetch: refetchBalance } = useBalance({
@@ -138,9 +149,6 @@ function InputStandardAmount({
   }, [blockNumber, refetchBalance]);
 
   const [isOpenedRevokeDialog, setIsOpenedRevokeDialog] = useState(false);
-  const revokeHandler = useCallback(() => {
-    onRevoke();
-  }, [onRevoke]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -184,15 +192,68 @@ function InputStandardAmount({
         ) : null}
       </div>
       {token && (
-        <RevokeDialog
-          standard={standard}
-          amount={currentAllowance}
-          token={token}
-          revokeHandler={revokeHandler}
-          isOpen={isOpenedRevokeDialog}
-          setIsOpen={setIsOpenedRevokeDialog}
-          isRevoking={isRevoking}
-        />
+        <Dialog isOpen={isOpenedRevokeDialog} setIsOpen={setIsOpenedRevokeDialog}>
+          <DialogHeader
+            onClose={() => setIsOpenedRevokeDialog(false)}
+            title={standard === "ERC-20" ? "Revoke" : "Withdraw"}
+          />
+          <div className="w-full md:w-[570px] px-4 pb-4 md:px-10 md:pb-10">
+            <div className="flex justify-between items-center">
+              <div className="flex gap-2 py-2 items-center">
+                <span>{`${standard === "ERC-20" ? "Revoke" : "Withdraw"} ${token.symbol}`}</span>
+                <Badge color="green" text={standard} />
+              </div>
+              <div className="flex items-center gap-2 justify-end">
+                {status === AllowanceStatus.PENDING && (
+                  <>
+                    <Preloader type="linear" />
+                    <span className="text-secondary-text text-14">Proceed in your wallet</span>
+                  </>
+                )}
+                {status === AllowanceStatus.LOADING && <Preloader size={20} />}
+                {(currentAllowance === BigInt(0) || status === AllowanceStatus.SUCCESS) && (
+                  <Svg className="text-green" iconName="done" size={20} />
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
+              <span>{formatUnits(currentAllowance || BigInt(0), token.decimals)}</span>
+              <span>{`Amount ${token.symbol}`}</span>
+            </div>
+            <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
+              <div className="flex flex-col">
+                <span className="text-14 text-secondary-text">Gas price</span>
+                <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-14 text-secondary-text">Gas limit</span>
+                <span>{estimatedGas?.toString()}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-14 text-secondary-text">Fee</span>
+                <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
+              </div>
+            </div>
+            {[AllowanceStatus.INITIAL].includes(status) ? (
+              <Button onClick={revokeHandler} fullWidth>
+                {standard === "ERC-20" ? "Revoke" : "Withdraw"}
+              </Button>
+            ) : null}
+            {[AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
+              <Button fullWidth disabled>
+                <span className="flex items-center gap-2">
+                  <Preloader size={20} color="black" />
+                </span>
+              </Button>
+            ) : null}
+            {[AllowanceStatus.SUCCESS].includes(status) ? (
+              <Button onClick={() => setIsOpenedRevokeDialog(false)} fullWidth>
+                Close
+              </Button>
+            ) : null}
+          </div>
+        </Dialog>
       )}
     </div>
   );
@@ -202,31 +263,22 @@ export default function TokenDepositCard({
   token,
   value,
   onChange,
-  currentAllowance,
-  currentDeposit,
-  revokeHandler,
-  withdrawHandler,
   isDisabled,
   isOutOfRange,
-  isRevoking,
-  isWithdrawing,
   tokenStandardRatio,
   setTokenStandardRatio,
+  gasPrice,
 }: {
   token?: Token;
   value: string;
   onChange: (value: string) => void;
-  currentAllowance?: bigint;
-  currentDeposit?: bigint;
-  revokeHandler: () => void;
-  withdrawHandler: () => void;
   isDisabled: boolean;
   isOutOfRange: boolean;
-  isWithdrawing: boolean;
-  isRevoking: boolean;
   tokenStandardRatio: 0 | 100;
   setTokenStandardRatio: (ratio: 0 | 100) => void;
+  gasPrice?: bigint;
 }) {
+  const { chainId } = useAccount();
   // TODO BigInt
   const ERC223Value =
     typeof value !== "undefined" && value !== ""
@@ -236,6 +288,28 @@ export default function TokenDepositCard({
     typeof value !== "undefined" && value !== "" && typeof ERC223Value !== "undefined"
       ? parseFloat(value) - ERC223Value
       : undefined;
+
+  const {
+    writeTokenRevoke: revokeHandler,
+    currentAllowance: currentAllowance,
+    revokeStatus,
+    estimatedGas: allowanceEstimatedGas,
+  } = useAllowance({
+    token,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
+    amountToCheck: BigInt(0),
+  });
+
+  const {
+    writeTokenWithdraw: withdrawHandler,
+    currentDeposit: currentDeposit,
+    estimatedGas: depositEstimatedGas,
+    withdrawStatus,
+  } = useDeposit({
+    token,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
+    amountToCheck: BigInt(0),
+  });
 
   if (isOutOfRange) {
     return (
@@ -263,16 +337,20 @@ export default function TokenDepositCard({
             value={ERC20Value}
             currentAllowance={currentAllowance || BigInt(0)}
             token={token}
-            onRevoke={revokeHandler}
-            isRevoking={isRevoking}
+            revokeHandler={revokeHandler}
+            status={revokeStatus}
+            estimatedGas={allowanceEstimatedGas}
+            gasPrice={gasPrice}
           />
           <InputStandardAmount
             standard="ERC-223"
             value={ERC223Value}
             token={token}
             currentAllowance={currentDeposit || BigInt(0)}
-            onRevoke={withdrawHandler}
-            isRevoking={isWithdrawing}
+            revokeHandler={withdrawHandler}
+            estimatedGas={depositEstimatedGas}
+            status={withdrawStatus}
+            gasPrice={gasPrice}
           />
         </div>
       </div>

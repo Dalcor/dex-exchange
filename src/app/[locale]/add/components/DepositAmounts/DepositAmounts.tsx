@@ -1,4 +1,4 @@
-import { formatEther, formatGwei } from "viem";
+import { formatEther, formatGwei, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import TokenDepositCard from "@/app/[locale]/add/components/DepositAmounts/TokenDepositCard";
@@ -18,43 +18,19 @@ import { FeeDetailsButton } from "../FeeDetailsButton";
 export const DepositAmounts = ({
   parsedAmounts,
   currencies,
-  currentAllowanceA,
-  currentAllowanceB,
-  currentDepositA,
-  currentDepositB,
-  revokeA,
-  revokeB,
-  withdrawA,
-  withdrawB,
   depositADisabled,
   depositBDisabled,
-  isRevokingA,
-  isRevokingB,
-  isWithdrawingA,
-  isWithdrawingB,
   approveTransactions,
   gasPrice,
   isFormDisabled,
 }: {
-  currentAllowanceA?: bigint;
-  currentAllowanceB?: bigint;
-  currentDepositA?: bigint;
-  currentDepositB?: bigint;
   parsedAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined };
   currencies: {
     CURRENCY_A: Token | undefined;
     CURRENCY_B: Token | undefined;
   };
-  revokeA: () => void;
-  revokeB: () => void;
-  withdrawA: () => void;
-  withdrawB: () => void;
   depositADisabled: boolean;
   depositBDisabled: boolean;
-  isWithdrawingA: boolean;
-  isWithdrawingB: boolean;
-  isRevokingA: boolean;
-  isRevokingB: boolean;
   approveTransactions: ApproveTransaction[];
   gasPrice?: bigint;
   isFormDisabled: boolean;
@@ -87,16 +63,11 @@ export const DepositAmounts = ({
         value={formattedAmounts[Field.CURRENCY_A]}
         onChange={(value) => setTypedValue({ field: Field.CURRENCY_A, typedValue: value })}
         token={currencies[Field.CURRENCY_A]}
-        currentAllowance={currentAllowanceA}
-        currentDeposit={currentDepositA}
-        revokeHandler={revokeA}
-        withdrawHandler={withdrawA}
         isDisabled={isFormDisabled}
         isOutOfRange={depositADisabled}
-        isRevoking={isRevokingA}
-        isWithdrawing={isWithdrawingA}
         tokenStandardRatio={tokenAStandardRatio}
         setTokenStandardRatio={setTokenAStandardRatio}
+        gasPrice={gasPrice}
       />
       <div className="flex flex-col items-center gap-2 md:flex-row px-5 py-2 bg-tertiary-bg rounded-3">
         <div className="flex w-full justify-between">
@@ -126,14 +97,8 @@ export const DepositAmounts = ({
         value={formattedAmounts[Field.CURRENCY_B]}
         onChange={(value) => setTypedValue({ field: Field.CURRENCY_B, typedValue: value })}
         token={currencies[Field.CURRENCY_B]}
-        currentAllowance={currentAllowanceB}
-        currentDeposit={currentDepositB}
-        revokeHandler={revokeB}
-        withdrawHandler={withdrawB}
         isDisabled={isFormDisabled}
         isOutOfRange={depositBDisabled}
-        isRevoking={isRevokingB}
-        isWithdrawing={isWithdrawingB}
         tokenStandardRatio={tokenBStandardRatio}
         setTokenStandardRatio={setTokenBStandardRatio}
       />

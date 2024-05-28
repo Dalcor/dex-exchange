@@ -24,7 +24,13 @@ import { Field, useTokensStandards } from "../stores/useAddLiquidityAmountsStore
 import { useAddLiquidityTokensStore } from "../stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "../stores/useLiquidityTierStore";
 
-export const MintButton = () => {
+export const MintButton = ({
+  increase = false,
+  tokenId,
+}: {
+  increase?: boolean;
+  tokenId?: string;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const { chainId, chain } = useAccount();
   const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
@@ -58,7 +64,11 @@ export const MintButton = () => {
     refetchGasPrice();
   }, [block, refetchGasPrice]);
 
-  const buttonText = noLiquidity ? "Create Pool & Mint liquidity" : "Mint liquidity";
+  const buttonText = increase
+    ? "Add liquidity"
+    : noLiquidity
+      ? "Create Pool & Mint liquidity"
+      : "Mint liquidity";
   const { inRange, removed } = usePositionRangeStatus({ position });
 
   const { minPriceString, maxPriceString, currentPriceString, ratio } = usePositionPrices({
@@ -74,7 +84,7 @@ export const MintButton = () => {
       </Button>
       <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
         <DialogHeader onClose={() => setIsOpen(false)} title="Add liquidity" />
-        <div className="px-4 md:px-10 md:w-[570px] pb-4 md:pb-10">
+        <div className="px-4 md:px-10 md:w-[570px] pb-4 md:pb-10 h-[80dvh] md:h-auto overflow-y-auto">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <div className="flex items-center relative w-12 h-[34px]">
@@ -227,8 +237,9 @@ export const MintButton = () => {
               onClick={() => {
                 handleAddLiquidity({
                   position,
-                  increase: false,
+                  increase,
                   createPool: noLiquidity ? true : false,
+                  tokenId,
                 });
               }}
               fullWidth

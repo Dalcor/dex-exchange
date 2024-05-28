@@ -57,7 +57,7 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
   return (
     <div
       role="button"
-      className="px-5 py-4 border-t border-secondary-border hover:bg-secondary-bg duration-200 cursor-pointer"
+      className="px-5 py-4 rounded-2 bg-secondary-bg hover:bg-secondary-bg duration-200 cursor-pointer"
       onClick={onClick}
     >
       <div className="justify-between flex items-center mb-2">
@@ -79,12 +79,26 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
           }
         />
       </div>
-      <div className="flex gap-2 items-center">
+      <div className="hidden md:flex gap-2 items-center">
         <span className="text-secondary-text">Min:</span> {minTokenAPerTokenB} {tokenA?.symbol} per{" "}
         {tokenB?.symbol}
         <Svg iconName="double-arrow" />
         <span className="text-secondary-text">Max:</span> {maxTokenAPerTokenB} {tokenA?.symbol} per{" "}
         {tokenB?.symbol}
+      </div>
+      <div className="flex md:hidden gap-2 items-center">
+        <Svg iconName="double-arrow" className="rotate-90 text-secondary-text" size={40} />
+        <div className="flex flex-col text-14 gap-1">
+          <div>
+            {" "}
+            <span className="text-secondary-text">Min:</span> {minTokenAPerTokenB} {tokenA?.symbol}{" "}
+            per {tokenB?.symbol}
+          </div>
+          <div>
+            <span className="text-secondary-text">Max:</span> {maxTokenAPerTokenB} {tokenA?.symbol}{" "}
+            per {tokenB?.symbol}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -100,7 +114,7 @@ export default function PoolsPage() {
     <Container>
       <div className="py-[80px] flex justify-center">
         <div className="w-full">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5 px-4 md:px-0 gap-2">
             <h1 className="text-24">Pools</h1>
             <Button size={ButtonSize.MEDIUM} onClick={() => router.push("/add")}>
               <span className="flex items-center gap-2">
@@ -119,9 +133,9 @@ export default function PoolsPage() {
               </div>
             </div>
           ) : (
-            <div className="border rounded-2 border-secondary-border bg-primary-bg w-full overflow-hidden">
-              <div className="flex justify-between px-5 py-3">
-                <span>Your positions</span>
+            <div className="rounded-3 w-full overflow-hidden bg-primary-bg md:px-10 px-5">
+              <div className="flex justify-between py-3">
+                <span className="text-secondary-text">Your positions</span>
                 <span className="text-green">Hide closed positions</span>
               </div>
               {loading ? (
@@ -129,7 +143,7 @@ export default function PoolsPage() {
                   <Preloader size={50} type="awaiting" />
                 </div>
               ) : (
-                <>
+                <div className="flex flex-col gap-3 pb-10">
                   {positions ? (
                     positions.map((position) => {
                       return (
@@ -145,7 +159,7 @@ export default function PoolsPage() {
                   ) : (
                     <div>You have no positions yet</div>
                   )}
-                </>
+                </div>
               )}
             </div>
           )}

@@ -59,7 +59,7 @@ export default function PoolPage({
 
   return (
     <Container>
-      <div className="w-[800px] mx-auto mt-[80px] mb-5 bg-primary-bg px-10 pb-10">
+      <div className="w-full md:w-[800px] md:mx-auto md:mt-[80px] mb-5 bg-primary-bg px-10 pb-10">
         <div className="flex justify-between items-center py-1.5 -mx-3">
           <button
             onClick={() => router.push("/pools")}
@@ -95,7 +95,7 @@ export default function PoolPage({
             />
           </div>
         </div>
-        <div className="flex items-center gap-3 mb-5">
+        <div className="flex items-center gap-3 mb-5 flex-wrap">
           <div className="flex items-center gap-1 px-3 py-2 rounded-2 bg-tertiary-bg">
             <Tooltip text="Tooltip text" />
             <span className="text-secondary-text">NFT ID:</span>
@@ -156,7 +156,7 @@ export default function PoolPage({
         </div>
         <div className="p-5 bg-tertiary-bg mb-5 rounded-3">
           <div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-14">Unclaimed fees</h3>
                 <p className="text-20 font-bold mb-3 text-green">$0.00</p>

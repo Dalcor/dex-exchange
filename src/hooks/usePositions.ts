@@ -238,6 +238,7 @@ export function usePositionFees(
 
   const latestBlockNumber = useBlockNumber();
 
+  // TODO: is this result cached? wrong numbers in UI, but in metamask — ok
   const { data: collectResult } = useSimulateContract({
     address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,

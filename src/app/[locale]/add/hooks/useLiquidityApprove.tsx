@@ -62,59 +62,47 @@ export const useLiquidityApprove = () => {
   const {
     isAllowed: isAllowedA,
     writeTokenApprove: approveA,
-    writeTokenRevoke: revokeA,
     currentAllowance: currentAllowanceA,
-    isRevoking: isRevokingA,
     estimatedGas: estimatedGasAllowanceA,
     status: statusAllowanceA,
   } = useAllowance({
     token: tokenA,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: amountToCheckA,
   });
 
   const {
     isAllowed: isAllowedB,
     writeTokenApprove: approveB,
-    writeTokenRevoke: revokeB,
     currentAllowance: currentAllowanceB,
-    isRevoking: isRevokingB,
     estimatedGas: estimatedGasAllowanceB,
     status: statusAllowanceB,
   } = useAllowance({
     token: tokenB,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: amountToCheckB,
   });
 
   const {
     isDeposited: isDepositedA,
     writeTokenDeposit: depositA,
-    writeTokenWithdraw: withdrawA,
     currentDeposit: currentDepositA,
-    isWithdrawing: isWithdrawingA,
     status: statusDepositA,
     estimatedGas: estimatedGasDepositA,
   } = useDeposit({
     token: tokenA,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: amountToCheckA,
   });
   const {
     isDeposited: isDepositedB,
     writeTokenDeposit: depositB,
-    writeTokenWithdraw: withdrawB,
     currentDeposit: currentDepositB,
-    isWithdrawing: isWithdrawingB,
     status: statusDepositB,
     estimatedGas: estimatedGasDepositB,
   } = useDeposit({
     token: tokenB,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
     amountToCheck: amountToCheckB,
   });
 

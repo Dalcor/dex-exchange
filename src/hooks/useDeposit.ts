@@ -32,6 +32,8 @@ export default function useDeposit({
   amountToCheck: bigint | null;
 }) {
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
+  const [withdrawStatus, setWithdrawStatus] = useState(AllowanceStatus.INITIAL);
+
   const { address } = useAccount();
 
   const publicClient = usePublicClient();
@@ -154,8 +156,6 @@ export default function useDeposit({
     addRecentTransaction,
   ]);
 
-  const [isWithdrawing, setIsWithdrawing] = useState(false);
-
   const writeTokenWithdraw = useCallback(async () => {
     if (
       !currentDeposit?.data ||
@@ -170,7 +170,7 @@ export default function useDeposit({
     }
     const amountToWithdraw = currentDeposit.data as bigint;
 
-    setIsWithdrawing(true);
+    setWithdrawStatus(AllowanceStatus.PENDING);
 
     if (!token) return;
     try {
@@ -225,13 +225,13 @@ export default function useDeposit({
       );
 
       if (hash) {
+        setWithdrawStatus(AllowanceStatus.LOADING);
         await publicClient.waitForTransactionReceipt({ hash });
-        setIsWithdrawing(false);
+        setWithdrawStatus(AllowanceStatus.SUCCESS);
       }
     } catch (e) {
       console.log(e);
-      // setClose();
-      setIsWithdrawing(false);
+      setWithdrawStatus(AllowanceStatus.INITIAL);
       addToast("Unexpected error, please contact support", "error");
     }
   }, [
@@ -273,6 +273,8 @@ export default function useDeposit({
         setEstimatedGas(estimatedGas);
       } catch (error) {
         console.error("~ estimatedGas ~ error:", error);
+        console.log("🚀 ~ IIFE ~ params:", params);
+
         setEstimatedGas(null);
       }
     });
@@ -281,9 +283,9 @@ export default function useDeposit({
   return {
     isDeposited,
     status,
+    withdrawStatus,
     isLoading: status === AllowanceStatus.LOADING,
     isPending: status === AllowanceStatus.PENDING,
-    isWithdrawing,
     writeTokenDeposit,
     writeTokenWithdraw,
     currentDeposit: currentDeposit.data as bigint,

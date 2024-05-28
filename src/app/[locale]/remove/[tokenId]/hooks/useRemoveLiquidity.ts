@@ -1,6 +1,6 @@
 import JSBI from "jsbi";
 import { useCallback } from "react";
-import { encodeFunctionData, formatUnits, getAbiItem } from "viem";
+import { Address, encodeFunctionData, formatUnits, getAbiItem } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
@@ -71,26 +71,25 @@ export default function useRemoveLiquidity({
         const amount0Min = toHex(minimumAmounts.amount0);
         const amount1Min = toHex(minimumAmounts.amount1);
 
-        const decreaseParams = {
-          tokenId: toHex(JSBI.BigInt(tokenId)),
-          liquidity: toHex(partialPosition.liquidity),
-          amount0Min,
-          amount1Min,
+        const decreaseParams: {
+          tokenId: any;
+          liquidity: any;
+          amount0Min: any;
+          amount1Min: any;
+          deadline: bigint;
+        } = {
+          tokenId: toHex(JSBI.BigInt(tokenId)) as any,
+          liquidity: toHex(partialPosition.liquidity) as any,
+          amount0Min: amount0Min as any,
+          amount1Min: amount1Min as any,
           deadline,
         };
-
-        const encodedDecreaseParams = encodeFunctionData({
-          abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-          functionName: "decreaseLiquidity",
-          args: [decreaseParams as any],
-        });
-
         const params = {
-          account: accountAddress,
+          account: accountAddress as Address,
           abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-          functionName: "multicall" as const,
+          functionName: "decreaseLiquidity" as const,
           address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-          args: [[encodedDecreaseParams]] as any,
+          args: [decreaseParams] as [typeof decreaseParams],
         };
 
         const estimatedGas = await publicClient.estimateContractGas(params);
@@ -158,6 +157,7 @@ export default function useRemoveLiquidity({
       percentage,
       publicClient,
       walletClient,
+      tokenId,
     ],
   );
 

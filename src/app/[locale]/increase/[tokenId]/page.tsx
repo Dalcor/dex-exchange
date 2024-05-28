@@ -2,7 +2,6 @@
 
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
-import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { Bound } from "@/app/[locale]/add/components/PriceRange/LiquidityChartRangeInput/types";
@@ -15,15 +14,12 @@ import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/Pos
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
-import Button, { ButtonVariant } from "@/components/buttons/Button";
 import IconButton, { IconButtonSize, IconSize } from "@/components/buttons/IconButton";
 import RecentTransactions from "@/components/common/RecentTransactions";
 import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import TokensPair from "@/components/common/TokensPair";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
-import useAllowance from "@/hooks/useAllowance";
-import useDeposit from "@/hooks/useDeposit";
 import {
   usePositionFromPositionInfo,
   usePositionFromTokenId,
@@ -32,12 +28,12 @@ import {
 } from "@/hooks/usePositions";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useRouter } from "@/navigation";
-import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
-import { DexChainId } from "@/sdk_hybrid/chains";
 
+import { ApproveButton } from "../../add/components/ApproveButton";
 import { DepositAmounts } from "../../add/components/DepositAmounts/DepositAmounts";
+import { MintButton } from "../../add/components/MintButton";
+import { useLiquidityApprove } from "../../add/hooks/useLiquidityApprove";
 import { usePriceRange } from "../../add/hooks/usePrice";
-import { Field } from "../../swap/stores/useSwapAmountsStore";
 
 export default function IncreaseLiquidityPage({
   params,
@@ -124,76 +120,10 @@ export default function IncreaseLiquidityPage({
     price,
   });
 
-  const {
-    isAllowed: isAllowedA,
-    writeTokenApprove: approveA,
-    isPending: isPendingA,
-    isLoading: isLoadingA,
-    currentAllowance: currentAllowanceA,
-    writeTokenRevoke: revokeA,
-    isRevoking: isRevokingA,
-  } = useAllowance({
-    token: tokenA,
-    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
-    amountToCheck: parseUnits(
-      parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
-      tokenA?.decimals || 18,
-    ),
-  });
-
-  const {
-    isAllowed: isAllowedB,
-    writeTokenApprove: approveB,
-    writeTokenRevoke: revokeB,
-    isPending: isPendingB,
-    isLoading: isLoadingB,
-    currentAllowance: currentAllowanceB,
-    isRevoking: isRevokingB,
-  } = useAllowance({
-    token: tokenB,
-    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
-    amountToCheck: parseUnits(
-      parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
-      tokenB?.decimals || 18,
-    ),
-  });
-
-  const {
-    isDeposited: isDepositedA,
-    writeTokenDeposit: depositA,
-    writeTokenWithdraw: withdrawA,
-    isLoading: isDepositingA,
-    currentDeposit: currentDepositA,
-    isWithdrawing: isWithdrawingA,
-  } = useDeposit({
-    token: tokenA,
-    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
-    amountToCheck: parseUnits(
-      parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
-      tokenA?.decimals || 18,
-    ),
-  });
-  const {
-    isDeposited: isDepositedB,
-    writeTokenDeposit: depositB,
-    writeTokenWithdraw: withdrawB,
-    isLoading: isDepositingB,
-    currentDeposit: currentDepositB,
-    isWithdrawing: isWithdrawingB,
-  } = useDeposit({
-    token: tokenB,
-    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
-    amountToCheck: parseUnits(
-      parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
-      tokenB?.decimals || 18,
-    ),
-  });
-
   // Deposit Amounts END
+
+  const { approveTransactions, handleApprove, approveTransactionsType, gasPrice } =
+    useLiquidityApprove();
 
   return (
     <Container>
@@ -237,21 +167,9 @@ export default function IncreaseLiquidityPage({
             <DepositAmounts
               parsedAmounts={parsedAmounts}
               currencies={currencies}
-              currentAllowanceA={currentAllowanceA}
-              currentAllowanceB={currentAllowanceB}
-              currentDepositA={currentDepositA}
-              currentDepositB={currentDepositB}
-              revokeA={revokeA}
-              revokeB={revokeB}
-              withdrawA={withdrawA}
-              withdrawB={withdrawB}
               depositADisabled={depositADisabled}
               depositBDisabled={depositBDisabled}
-              isRevokingA={isRevokingA}
-              isRevokingB={isRevokingB}
-              isWithdrawingA={isWithdrawingA}
-              isWithdrawingB={isWithdrawingB}
-              approveTransactions={[]}
+              approveTransactions={approveTransactions}
               isFormDisabled={false}
             />
             <div className="rounded-3 p-5 bg-tertiary-bg h-min">
@@ -341,41 +259,11 @@ export default function IncreaseLiquidityPage({
               </div>
             </div>
           </div>
-          <div className="grid gap-2 mb-5 grid-cols-2">
-            {!isAllowedA && (
-              <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => approveA()}>
-                {isPendingA || isLoadingA ? "Loading..." : <span>Approve {tokenA?.symbol}</span>}
-              </Button>
-            )}
-            {!isAllowedB && (
-              <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => approveB()}>
-                {isPendingB || isLoadingB ? "Loading..." : <span>Approve {tokenB?.symbol}</span>}
-              </Button>
-            )}
-          </div>
-          <div className="grid gap-2 mb-5 grid-cols-2">
-            {!isDepositedA && (
-              <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => depositA()}>
-                {isDepositingA ? "Loading..." : <span>Deposit {tokenA?.symbol}</span>}
-              </Button>
-            )}
-            {!isDepositedB && (
-              <Button variant={ButtonVariant.OUTLINED} fullWidth onClick={() => depositB()}>
-                {isDepositingB ? "Loading..." : <span>Deposit {tokenB?.symbol}</span>}
-              </Button>
-            )}
-          </div>
-
-          <Button
-            onClick={() => {
-              if (position) {
-                handleAddLiquidity({ position, increase: true, tokenId: params.tokenId });
-              }
-            }}
-            fullWidth
-          >
-            Add liquidity
-          </Button>
+          {approveTransactions?.length ? (
+            <ApproveButton />
+          ) : (
+            <MintButton increase tokenId={params.tokenId} />
+          )}
         </div>
         <div className="flex flex-col gap-5">
           <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />

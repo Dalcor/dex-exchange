@@ -102,72 +102,6 @@ export default function AddPoolPage() {
     price,
   });
 
-  const {
-    isAllowed: isAllowedA,
-    writeTokenApprove: approveA,
-    writeTokenRevoke: revokeA,
-    isPending: isPendingA,
-    isLoading: isLoadingA,
-    currentAllowance: currentAllowanceA,
-    isRevoking: isRevokingA,
-  } = useAllowance({
-    token: tokenA,
-    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
-    amountToCheck: parseUnits(
-      parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
-      tokenA?.decimals || 18,
-    ),
-  });
-
-  const {
-    isAllowed: isAllowedB,
-    writeTokenApprove: approveB,
-    writeTokenRevoke: revokeB,
-    isPending: isPendingB,
-    isLoading: isLoadingB,
-    currentAllowance: currentAllowanceB,
-    isRevoking: isRevokingB,
-  } = useAllowance({
-    token: tokenB,
-    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
-    amountToCheck: parseUnits(
-      parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
-      tokenB?.decimals || 18,
-    ),
-  });
-
-  const {
-    isDeposited: isDepositedA,
-    writeTokenDeposit: depositA,
-    writeTokenWithdraw: withdrawA,
-    currentDeposit: currentDepositA,
-    isWithdrawing: isWithdrawingA,
-  } = useDeposit({
-    token: tokenA,
-    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
-    amountToCheck: parseUnits(
-      parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
-      tokenA?.decimals || 18,
-    ),
-  });
-  const {
-    isDeposited: isDepositedB,
-    writeTokenDeposit: depositB,
-    writeTokenWithdraw: withdrawB,
-    currentDeposit: currentDepositB,
-    isWithdrawing: isWithdrawingB,
-  } = useDeposit({
-    token: tokenB,
-    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    // TODO: mb better way to convert CurrencyAmount to bigint
-    amountToCheck: parseUnits(
-      parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
-      tokenB?.decimals || 18,
-    ),
-  });
   // Deposit Amounts END
 
   const { approveTransactions, handleApprove, approveTransactionsType, gasPrice } =
@@ -280,20 +214,8 @@ export default function AddPoolPage() {
             <DepositAmounts
               parsedAmounts={parsedAmounts}
               currencies={currencies}
-              currentAllowanceA={currentAllowanceA}
-              currentAllowanceB={currentAllowanceB}
-              currentDepositA={currentDepositA}
-              currentDepositB={currentDepositB}
-              revokeA={revokeA}
-              revokeB={revokeB}
-              withdrawA={withdrawA}
-              withdrawB={withdrawB}
               depositADisabled={depositADisabled}
               depositBDisabled={depositBDisabled}
-              isRevokingA={isRevokingA}
-              isRevokingB={isRevokingB}
-              isWithdrawingA={isWithdrawingA}
-              isWithdrawingB={isWithdrawingB}
               approveTransactions={approveTransactions}
               gasPrice={gasPrice}
               isFormDisabled={isFormDisabled}

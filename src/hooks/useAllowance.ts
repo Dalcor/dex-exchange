@@ -35,6 +35,7 @@ export default function useAllowance({
   amountToCheck: bigint | null;
 }) {
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
+  const [revokeStatus, setRevokeStatus] = useState(AllowanceStatus.INITIAL);
 
   const { address, chainId } = useAccount();
   const publicClient = usePublicClient();
@@ -193,16 +194,13 @@ export default function useAllowance({
     addRecentTransaction,
   ]);
 
-  const [isRevoking, setIsRevoking] = useState(false);
-
   const writeTokenRevoke = useCallback(async () => {
     const amountToRevoke = BigInt(0);
     if (!contractAddress || !token || !walletClient || !address || !chainId || !publicClient) {
       return;
     }
 
-    setIsRevoking(true);
-    // setOpened(`Approve ${formatUnits(amountToRevoke, token.decimals)} ${token.symbol} tokens`)
+    setRevokeStatus(AllowanceStatus.PENDING);
 
     const params: {
       address: Address;
@@ -258,12 +256,13 @@ export default function useAllowance({
       );
 
       if (hash) {
+        setRevokeStatus(AllowanceStatus.LOADING);
         await publicClient.waitForTransactionReceipt({ hash });
-        setIsRevoking(false);
+        setRevokeStatus(AllowanceStatus.SUCCESS);
       }
     } catch (e) {
       console.log(e);
-      setIsRevoking(false);
+      setStatus(AllowanceStatus.INITIAL);
       addToast("Unexpected error, please contact support", "error");
     }
   }, [contractAddress, token, walletClient, address, chainId, publicClient, addRecentTransaction]);
@@ -310,9 +309,9 @@ export default function useAllowance({
   return {
     isAllowed,
     status,
+    revokeStatus,
     isLoading: status === AllowanceStatus.LOADING,
     isPending: status === AllowanceStatus.PENDING,
-    isRevoking,
     writeTokenApprove,
     writeTokenRevoke,
     currentAllowance: currentAllowanceData,

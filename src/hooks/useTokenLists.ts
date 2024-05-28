@@ -24,8 +24,44 @@ function getTokenRate(token: Token, tokenLists: TokenList[], chainId: DexChainId
 
   const defaultTokenList = tokenLists.find((t) => t.id === `default-${chainId}`);
 
-  if (defaultTokenList && defaultTokenList.list.tokens.find((t) => t.address0 === token.address0)) {
+  const isTokenInDefaultList =
+    defaultTokenList && defaultTokenList.list.tokens.find((t) => t.address0 === token.address0);
+
+  if (isTokenInDefaultList) {
     rate[Check.DEFAULT_LIST] = TrustRateCheck.TRUE;
+  }
+
+  const otherTokenLists = tokenLists.filter((t) => t.id !== `default-${chainId}`);
+  const tokensFromOtherLists = otherTokenLists.map((t) => t.list.tokens).flat();
+
+  const tokenFoundInOtherLists = tokensFromOtherLists.filter(
+    (t) => t.address0 === token.address0,
+  ).length;
+
+  if (!tokenFoundInOtherLists) {
+    rate[Check.OTHER_LIST] = OtherListCheck.NOT_FOUND;
+  } else {
+    if (tokenFoundInOtherLists >= tokenLists.length / 2) {
+      rate[Check.OTHER_LIST] = OtherListCheck.FOUND_IN_MORE_THAN_A_HALF;
+    } else {
+      rate[Check.OTHER_LIST] = OtherListCheck.FOUND_IN_ONE;
+    }
+  }
+
+  const isDifferentTokenWithSameNameInDefaultList =
+    tokensFromOtherLists.find((t) => t.address0 !== token.address0 && t.name === t.name) !==
+    undefined;
+
+  if (isDifferentTokenWithSameNameInDefaultList) {
+    rate[Check.SAME_NAME_IN_DEFAULT_LIST] = TrustRateCheck.TRUE;
+  }
+
+  const isDifferentTokenWithSameNameInOtherList = tokensFromOtherLists.filter(
+    (t) => t.name === token.name && t.address0 !== t.address0,
+  ).length;
+
+  if (isDifferentTokenWithSameNameInOtherList) {
+    rate[Check.SAME_NAME_IN_OTHER_LIST] = TrustRateCheck.TRUE;
   }
 
   if (token.address1) {

@@ -2,11 +2,11 @@ import clsx from "clsx";
 import Image from "next/image";
 import React, { ButtonHTMLAttributes, PropsWithChildren } from "react";
 
-import Preloader, { CircularProgress } from "@/components/atoms/Preloader";
+import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
-import Button from "@/components/buttons/Button";
 import { useTransactionSpeedUpDialogStore } from "@/components/dialogs/stores/useTransactionSpeedUpDialogStore";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import {
   IRecentTransaction,
   IRecentTransactionTitle,
@@ -186,10 +186,10 @@ export default function RecentTransaction({
         <div className="hidden items-center gap-3 @[620px]:flex">
           {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && (
             <>
-              <RecentTransactionActionButton color="secondary">
+              <RecentTransactionActionButton disabled color="secondary">
                 Cancel
               </RecentTransactionActionButton>
-              <RecentTransactionActionButton onClick={() => handleSpeedUp(transaction)}>
+              <RecentTransactionActionButton disabled onClick={() => handleSpeedUp(transaction)}>
                 Speed up
               </RecentTransactionActionButton>
             </>
@@ -206,7 +206,11 @@ export default function RecentTransaction({
         <a
           className="w-10 h-10 flex items-center justify-center"
           target="_blank"
-          href={`https://sepolia.etherscan.io/tx/${transaction.hash}`}
+          href={getExplorerLink(
+            ExplorerLinkType.TRANSACTION,
+            transaction.hash,
+            transaction.chainId,
+          )}
         >
           <Svg iconName="forward" />
         </a>
@@ -216,8 +220,10 @@ export default function RecentTransaction({
       </div>
       {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && (
         <div className="@[620px]:hidden w-full grid grid-cols-2 gap-3 mt-3">
-          <RecentTransactionActionButton color="secondary">Cancel</RecentTransactionActionButton>
-          <RecentTransactionActionButton onClick={() => handleSpeedUp(transaction)}>
+          <RecentTransactionActionButton disabled color="secondary">
+            Cancel
+          </RecentTransactionActionButton>
+          <RecentTransactionActionButton disabled onClick={() => handleSpeedUp(transaction)}>
             Speed up
           </RecentTransactionActionButton>
         </div>

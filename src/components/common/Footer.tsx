@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
-import { formatGwei, parseGwei } from "viem";
-import { useAccount, useBlockNumber, useEstimateFeesPerGas, useGasPrice } from "wagmi";
+import { formatGwei } from "viem";
+import { useBlockNumber, useGasPrice } from "wagmi";
 
 import Container from "@/components/atoms/Container";
 import Svg from "@/components/atoms/Svg";
 import { IconName } from "@/config/types/IconName";
 import { formatFloat } from "@/functions/formatFloat";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 
 type SocialLink = {
   title: string;
@@ -54,7 +56,7 @@ function FooterLink({ href, title, icon }: SocialLink) {
 }
 
 export default function Footer() {
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
 
   const { data: gasData, refetch } = useGasPrice({
     chainId: chainId || 1,
@@ -75,7 +77,11 @@ export default function Footer() {
               <Svg size={16} className="text-secondary-text" iconName="gas" />
               <span>
                 Gas:{" "}
-                <a target="_blank" className="text-green" href="https://etherscan.io/gastracker">
+                <a
+                  target="_blank"
+                  className="text-green"
+                  href={getExplorerLink(ExplorerLinkType.GAS_TRACKER, "", chainId)}
+                >
                   {gasData ? formatFloat(formatGwei(gasData)) : ""} GWEI
                 </a>
               </span>
@@ -86,11 +92,7 @@ export default function Footer() {
                 <a
                   target="_blank"
                   className="text-green"
-                  href={
-                    chainId === 1
-                      ? `https://etherscan.io/block/${blockNumber.toString()}`
-                      : `https://sepolia.etherscan.io/block/${blockNumber.toString()}`
-                  }
+                  href={getExplorerLink(ExplorerLinkType.BLOCK, blockNumber.toString(), chainId)}
                 >
                   {blockNumber.toString()}
                 </a>

@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
-import React, { ButtonHTMLAttributes, PropsWithChildren, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -9,31 +9,19 @@ import Popover from "@/components/atoms/Popover";
 import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
 import Button, { ButtonSize } from "@/components/buttons/Button";
+import IconButton from "@/components/buttons/IconButton";
 import TabButton from "@/components/buttons/TabButton";
 import RecentTransaction from "@/components/common/RecentTransaction";
 import { wallets } from "@/config/wallets";
 import { copyToClipboard } from "@/functions/copyToClipboard";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
+import addToast from "@/other/toast";
 import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
 
 interface Props {
   setOpenedWallet: (isOpen: boolean) => void;
   isMobile?: boolean;
-}
-
-function IconButton({
-  children,
-  ...props
-}: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>) {
-  return (
-    <button
-      className={clsx(
-        "w-10 h-10 flex justify-center items-center p-0 duration-200 text-primary-text rounded-full bg-transparent hover:bg-green-bg border-0 outline-0 cursor-pointer",
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
 }
 
 export default function AccountDialog({ setOpenedWallet, isMobile = false }: Props) {
@@ -44,6 +32,8 @@ export default function AccountDialog({ setOpenedWallet, isMobile = false }: Pro
   const { data } = useBalance({ address });
 
   const { transactions, clearTransactions } = useRecentTransactionsStore();
+
+  const chainId = useCurrentChainId();
 
   const _transactions = useMemo(() => {
     if (address && transactions[address]) {
@@ -103,12 +93,19 @@ export default function AccountDialog({ setOpenedWallet, isMobile = false }: Pro
                     </div>
 
                     <div className="flex gap-1">
-                      <IconButton onClick={() => copyToClipboard(address || "")}>
-                        <Svg iconName="copy" />
-                      </IconButton>
-                      <IconButton onClick={() => copyToClipboard(address || "")}>
-                        <Svg iconName="forward" />
-                      </IconButton>
+                      <IconButton
+                        iconName="copy"
+                        onClick={async () => {
+                          await copyToClipboard(address || "");
+                          addToast("Successfully copied!");
+                        }}
+                      />
+                      <a
+                        target="_blank"
+                        href={getExplorerLink(ExplorerLinkType.ADDRESS, address, chainId)}
+                      >
+                        <IconButton iconName="forward" />
+                      </a>
                     </div>
                   </div>
                   <button

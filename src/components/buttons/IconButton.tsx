@@ -36,7 +36,7 @@ function IconButtonFrame({
         buttonSize === IconButtonSize.SMALL && "w-8 h-8",
         buttonSize === IconButtonSize.REGULAR && "w-10 h-10",
         buttonSize === IconButtonSize.LARGE && "w-12 h-12",
-        "flex justify-center items-center",
+        "flex justify-center items-center disabled:opacity-50 disabled:pointer-events-none",
         className,
       )}
       {...props}

@@ -18,10 +18,8 @@ import {
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapRecentTransactionsStore } from "@/app/[locale]/swap/stores/useSwapRecentTransactions";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
-import Collapse from "@/components/atoms/Collapse";
 import Container from "@/components/atoms/Container";
 import Preloader from "@/components/atoms/Preloader";
-import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import IconButton from "@/components/buttons/IconButton";
@@ -285,7 +283,7 @@ export default function SwapPage() {
                       iconName="recent-transactions"
                       onClick={() => setShowRecentTransactions(!showRecentTransactions)}
                     />
-                    <IconButton iconName="gas-edit" onClick={() => setIsOpenedFee(true)} />
+                    <IconButton disabled iconName="gas-edit" onClick={() => setIsOpenedFee(true)} />
                     <IconButton iconSize={24} iconName="settings" onClick={() => setIsOpen(true)} />
                   </div>
                 </div>
@@ -360,7 +358,7 @@ export default function SwapPage() {
                   className={clsx(
                     "rounded-3 py-3.5 flex flex-col md:flex-row justify-between duration-200 px-5 bg-tertiary-bg my-5 md:items-center",
                   )}
-                  role="button"
+                  // role="button"
                 >
                   <div className="flex items-center gap-1">
                     <Tooltip text="Tooltip" />
@@ -381,7 +379,8 @@ export default function SwapPage() {
                     </span>
 
                     <button
-                      className="border border-green flex px-4 rounded-5"
+                      disabled //TODO: Remove disabled
+                      className="border border-green flex px-4 rounded-5 opacity-50"
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsOpenedFee(true);

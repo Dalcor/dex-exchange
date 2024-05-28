@@ -1,19 +1,19 @@
 import clsx from "clsx";
-import React, { PropsWithChildren } from "react";
+import React, { ButtonHTMLAttributes, PropsWithChildren } from "react";
 
-interface Props {
+interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   isActive: boolean;
   onClick: () => void;
 }
 
-export default function RadioButton({ isActive, children, onClick }: PropsWithChildren<Props>) {
+export default function RadioButton({ isActive, children, ...props }: PropsWithChildren<Props>) {
   return (
     <button
       className={clsx(
-        "duration-200 h-10 flex px-5 items-center rounded-2 group hover:shadow-checkbox gap-2 bg-secondary-bg hover:text-primary-text",
+        "duration-200 h-10 flex px-5 items-center rounded-2 group hover:shadow-checkbox gap-2 bg-secondary-bg hover:text-primary-text disabled:pointer-events-none disabled:opacity-50",
         isActive ? "text-primary-text" : "text-secondary-text",
       )}
-      onClick={onClick}
+      {...props}
     >
       <span
         className={clsx(

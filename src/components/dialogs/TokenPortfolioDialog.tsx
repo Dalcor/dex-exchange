@@ -25,7 +25,7 @@ function TokenListInfo({ listId }: { listId: TokenListId }) {
   }, [listId, tokenLists]);
 
   return (
-    <div className="flex justify-between py-1.5 w-full min-h-[60px]">
+    <div className="flex justify-between w-full">
       <div className="flex gap-3 items-center">
         {tokenList?.id?.toString()?.startsWith("default") && (
           <TokenListLogo type={TokenListLogoType.DEFAULT} chainId={tokenList.chainId} />

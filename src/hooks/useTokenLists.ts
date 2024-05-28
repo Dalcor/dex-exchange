@@ -46,8 +46,6 @@ export function useTokenLists(onlyCustom: boolean = false) {
     return db.tokenLists.where("id").equals(`custom-${chainId}`).toArray();
   }, [chainId]);
 
-  console.log(allTokenLists);
-
   const tokenLists = useMemo(() => {
     return onlyCustom ? customTokenLists : allTokenLists;
   }, [allTokenLists, customTokenLists, onlyCustom]);

@@ -1,6 +1,8 @@
 import { Address } from "viem";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
+
+import { db } from "@/db/db";
 
 export enum RecentTransactionStatus {
   PENDING,
@@ -122,104 +124,77 @@ export function stringifyObject(object: { [key: string]: any }) {
     ),
   );
 }
+
+const storage: StateStorage = {
+  getItem: async (key) => {
+    const item = await db.recentTransactions.get({ key });
+    return item ? JSON.stringify(item.value) : null;
+  },
+  setItem: async (key, value) => {
+    await db.recentTransactions.put({ key, value: JSON.parse(value) });
+  },
+  removeItem: async (key) => {
+    await db.recentTransactions.delete(key);
+  },
+};
+
 export const useRecentTransactionsStore = create<RecentTransactions>()(
   persist(
     (set) => ({
       transactions: {},
       addRecentTransaction: (transaction, accountAddress) =>
         set((state) => {
-          const pendingTransactions = state.transactions[accountAddress]?.find(
-            (t) => t.status === RecentTransactionStatus.PENDING,
-          );
           const updatedTransactions = { ...state.transactions };
+          const accountTransactions = updatedTransactions[accountAddress] || [];
+          const status = accountTransactions.some(
+            (t) => t.status === RecentTransactionStatus.PENDING,
+          )
+            ? RecentTransactionStatus.QUEUED
+            : RecentTransactionStatus.PENDING;
 
-          const currentAccountTransactions = updatedTransactions[accountAddress];
+          const newTransaction = {
+            ...transaction,
+            status,
+            id: transaction.hash,
+          };
 
-          if (!currentAccountTransactions) {
-            updatedTransactions[accountAddress] = [];
-          }
-
-          // use initial transaction hash as unique ID. Hash field
-          // could be rewrited with speed up or cancel functionality,
-          // so we need one more field to avoid losing transaction reference
-          const uid = transaction.hash;
-
-          if (!pendingTransactions) {
-            updatedTransactions[accountAddress] = [
-              {
-                ...transaction,
-                status: RecentTransactionStatus.PENDING,
-                id: uid,
-              },
-              ...updatedTransactions[accountAddress],
-            ];
-            return { transactions: updatedTransactions, isViewed: false };
-          } else {
-            updatedTransactions[accountAddress] = [
-              {
-                ...transaction,
-                status: RecentTransactionStatus.QUEUED,
-                id: uid,
-              },
-              ...updatedTransactions[accountAddress],
-            ];
-            return { transactions: updatedTransactions, isViewed: false };
-          }
+          updatedTransactions[accountAddress] = [newTransaction, ...accountTransactions];
+          return { transactions: updatedTransactions, isViewed: false };
         }),
       updateTransactionStatus: (id, status, account) =>
         set((state) => {
-          const transactionIndex = state.transactions[account].findIndex((_transaction) => {
-            return _transaction.id === id;
-          });
+          const updatedTransactions = { ...state.transactions };
+          const accountTransactions = updatedTransactions[account];
+          const transactionIndex = accountTransactions.findIndex((t) => t.id === id);
 
-          if (transactionIndex !== -1) {
-            const updatedTransactions = { ...state.transactions };
-            const queuedTransactions = state.transactions[account].filter((t) => {
-              return t.status === RecentTransactionStatus.QUEUED;
-            });
+          if (transactionIndex === -1) return {};
 
-            if (queuedTransactions.length) {
-              const nextQueuedTransaction = queuedTransactions.reduce((prev, curr) => {
-                return prev.nonce < curr.nonce ? prev : curr;
-              });
-              const nextQueuedTransactionIndex = updatedTransactions[account].findIndex(
-                (t) => t.hash === nextQueuedTransaction.hash,
-              );
+          accountTransactions[transactionIndex].status = status;
 
-              updatedTransactions[account][nextQueuedTransactionIndex] = {
-                ...state.transactions[account][nextQueuedTransactionIndex],
-                status: RecentTransactionStatus.PENDING,
-              };
+          if (
+            status === RecentTransactionStatus.SUCCESS ||
+            status === RecentTransactionStatus.ERROR
+          ) {
+            const nextQueuedTransaction = accountTransactions.find(
+              (t) => t.status === RecentTransactionStatus.QUEUED,
+            );
+            if (nextQueuedTransaction) {
+              nextQueuedTransaction.status = RecentTransactionStatus.PENDING;
             }
-
-            updatedTransactions[account][transactionIndex] = {
-              ...state.transactions[account][transactionIndex],
-              status,
-            };
-
-            return { transactions: updatedTransactions };
           }
 
-          return {};
+          return { transactions: updatedTransactions };
         }),
       updateTransactionHash: (id, newHash, account) =>
         set((state) => {
-          const transactionIndex = state.transactions[account].findIndex((_transaction) => {
-            return _transaction.id === id;
-          });
+          const updatedTransactions = { ...state.transactions };
+          const accountTransactions = updatedTransactions[account];
+          const transaction = accountTransactions.find((t) => t.id === id);
 
-          if (transactionIndex !== -1) {
-            const updatedTransactions = { ...state.transactions };
+          if (!transaction) return {};
 
-            updatedTransactions[account][transactionIndex] = {
-              ...state.transactions[account][transactionIndex],
-              hash: newHash,
-            };
-
-            return { transactions: updatedTransactions };
-          }
-
-          return {};
+          transaction.hash = newHash;
+          return { transactions: updatedTransactions };
         }),
       clearTransactions: () =>
         set(() => {
@@ -227,7 +202,8 @@ export const useRecentTransactionsStore = create<RecentTransactions>()(
         }),
     }),
     {
-      name: localStorageKey,
+      name: "transactions",
+      storage: createJSONStorage(() => storage),
     },
   ),
 );

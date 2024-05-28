@@ -116,7 +116,6 @@ export default function FeedbackDialog() {
                 values: Values,
                 { setSubmitting, resetForm }: FormikHelpers<Values>,
               ) => {
-                console.log("Submitting...");
                 setSubmitting(true);
                 try {
                   const data = await fetch("https://api.dex223.io/v1/feedback", {

@@ -234,10 +234,9 @@ export default function useSwap() {
 
   const handleSwap = useCallback(async () => {
     if (!isAllowedA && tokenA?.address0 === tokenAAddress) {
-      try {
-        await approveA();
-      } catch (e) {
-        console.log("Approve failed");
+      const result = await approveA();
+
+      if (!result?.success) {
         return;
       }
     }
@@ -279,7 +278,15 @@ export default function useSwap() {
     setSwapStatus(SwapStatus.PENDING);
     openConfirmInWalletAlert("Confirm action in your wallet");
 
-    const hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
+    let hash;
+
+    try {
+      hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
+    } catch (e) {
+      setSwapStatus(SwapStatus.INITIAL);
+
+      console.log(e);
+    }
 
     closeConfirmInWalletAlert();
 

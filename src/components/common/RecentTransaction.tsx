@@ -38,7 +38,7 @@ function RecentTransactionActionButton({
   );
 }
 
-function RecentTransactionTitle({ title }: { title: IRecentTransactionTitle }) {
+export function RecentTransactionTitle({ title }: { title: IRecentTransactionTitle }) {
   switch (title.template) {
     case RecentTransactionTitleTemplate.APPROVE:
       return (
@@ -95,7 +95,7 @@ function RecentTransactionTitle({ title }: { title: IRecentTransactionTitle }) {
   }
 }
 
-function RecentTransactionSubTitle({ title }: { title: IRecentTransactionTitle }) {
+export function RecentTransactionSubTitle({ title }: { title: IRecentTransactionTitle }) {
   switch (title.template) {
     case RecentTransactionTitleTemplate.APPROVE:
     case RecentTransactionTitleTemplate.DEPOSIT:
@@ -117,7 +117,7 @@ function RecentTransactionSubTitle({ title }: { title: IRecentTransactionTitle }
   }
 }
 
-function RecentTransactionLogo({ title }: { title: IRecentTransactionTitle }) {
+export function RecentTransactionLogo({ title }: { title: IRecentTransactionTitle }) {
   switch (title.template) {
     case RecentTransactionTitleTemplate.APPROVE:
     case RecentTransactionTitleTemplate.DEPOSIT:
@@ -148,7 +148,7 @@ function RecentTransactionLogo({ title }: { title: IRecentTransactionTitle }) {
   }
 }
 
-function RecentTransactionStatusIcon({ status }: { status: RecentTransactionStatus }) {
+export function RecentTransactionStatusIcon({ status }: { status: RecentTransactionStatus }) {
   switch (status) {
     case RecentTransactionStatus.PENDING:
     case RecentTransactionStatus.QUEUED:

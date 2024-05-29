@@ -11,10 +11,12 @@ import NetworkPicker from "@/components/common/NetworkPicker";
 import TokenListsSettings from "@/components/common/TokenListsSettings";
 import AccountDialog from "@/components/dialogs/AccountDialog";
 import ConnectWalletDialog from "@/components/dialogs/ConnectWalletDialog";
+import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import { Link } from "@/navigation";
 
 export default function Header() {
-  const [isOpenedWallet, setOpenedWallet] = useState(false);
+  const { isOpened: isOpenedWallet, setIsOpened: setOpenedWallet } =
+    useConnectWalletDialogStateStore();
 
   return (
     <header className="md:mb-3 md:before:hidden before:h-[1px] before:bg-footer-border before:w-full before:absolute relative before:bottom-0 before:left-0">

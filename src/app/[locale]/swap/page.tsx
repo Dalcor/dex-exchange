@@ -29,6 +29,7 @@ import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import TokenInput from "@/components/common/TokenInput";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
+import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
@@ -44,12 +45,31 @@ enum Standard {
   ERC223 = "ERC-223",
 }
 
-function OpenConfirmDialogButton({ isSufficientBalance }: { isSufficientBalance: boolean }) {
+function OpenConfirmDialogButton({
+  isSufficientBalance,
+  isTradeReady,
+  isTradeLoading,
+}: {
+  isSufficientBalance: boolean;
+  isTradeReady: boolean;
+  isTradeLoading: boolean;
+}) {
+  const { isConnected } = useAccount();
+
   const { tokenA, tokenB } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
 
   const { isLoadingSwap, isLoadingApprove, isPendingApprove, isPendingSwap } = useSwap();
+  const { setIsOpened: setWalletConnectOpened } = useConnectWalletDialogStateStore();
+
+  if (!isConnected) {
+    return (
+      <Button onClick={() => setWalletConnectOpened(true)} fullWidth>
+        Connect wallet
+      </Button>
+    );
+  }
 
   if (isLoadingSwap) {
     return (
@@ -96,6 +116,22 @@ function OpenConfirmDialogButton({ isSufficientBalance }: { isSufficientBalance:
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
         Enter amount
+      </Button>
+    );
+  }
+
+  if (isTradeLoading) {
+    return (
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+        Looking for best trade...
+      </Button>
+    );
+  }
+
+  if (!isTradeReady) {
+    return (
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+        Swap is unavailable for this pair
       </Button>
     );
   }
@@ -171,7 +207,7 @@ export default function SwapPage() {
     [currentlyPicking, setTokenA, setTokenAAddress, setTokenB, setTokenBAddress],
   );
 
-  const { trade } = useTrade();
+  const { trade, isLoading: isLoadingTrade } = useTrade();
 
   const { setTypedValue, independentField, dependentField, typedValue } = useSwapAmountsStore();
 
@@ -216,13 +252,8 @@ export default function SwapPage() {
     refetchBalanceB1();
   }, [blockNumber, refetchBalanceA0, refetchBalanceB0, refetchBalanceA1, refetchBalanceB1]);
 
-  const output = useMemo(() => {
-    if (!trade) {
-      return "";
-    }
-
-    return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
-  }, [slippage, trade]);
+  console.log("Trade");
+  console.log(trade);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
   const { data: baseFee } = useGasPrice();
@@ -424,6 +455,8 @@ export default function SwapPage() {
                         ? tokenA1Balance?.value >= parseUnits(typedValue, tokenA.decimals)
                         : false))
                   }
+                  isTradeReady={Boolean(trade)}
+                  isTradeLoading={isLoadingTrade}
                 />
 
                 {trade && tokenA && tokenB && (

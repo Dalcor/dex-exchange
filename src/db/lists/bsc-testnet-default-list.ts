@@ -2,7 +2,7 @@ export const bscTestnetDefaultList = {
   version: {
     major: 1,
     minor: 0,
-    patch: 1,
+    patch: 2,
   },
   logoURI: "/token-list-placeholder.svg",
   name: "DEX223 BSC Testnet Default",
@@ -23,7 +23,7 @@ export const bscTestnetDefaultList = {
       logoURI: "/tokens/placeholder.svg",
       chainId: 97,
       decimals: 6,
-      symbol: "TBS1",
+      symbol: "TBS2",
     },
     {
       address0: "0x0684F8A7cC01aD4a253Df7d55340688F8173d520", // ERC-20
@@ -32,7 +32,7 @@ export const bscTestnetDefaultList = {
       logoURI: "/tokens/placeholder.svg",
       chainId: 97,
       decimals: 0,
-      symbol: "TBS1",
+      symbol: "TBS3",
     },
     {
       address0: "0x1DE8Af2178561AC2e8Fe081feA57b020ddE6e81a", // ERC-20
@@ -41,7 +41,7 @@ export const bscTestnetDefaultList = {
       logoURI: "/tokens/placeholder.svg",
       chainId: 97,
       decimals: 18,
-      symbol: "TBS1",
+      symbol: "TBS4",
     },
     {
       address0: "0xeAAfD389039229BB850F8F3a9CA5e5E1d53f3BeE", // ERC-20
@@ -50,7 +50,7 @@ export const bscTestnetDefaultList = {
       logoURI: "/tokens/placeholder.svg",
       chainId: 97,
       decimals: 10,
-      symbol: "TBS1",
+      symbol: "TBS5",
     },
   ],
 };

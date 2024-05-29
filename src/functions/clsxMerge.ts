@@ -3,6 +3,9 @@ import { extendTailwindMerge, twMerge } from "tailwind-merge";
 
 const customTwMerge = extendTailwindMerge({
   extend: {
+    theme: {
+      spacing: ["sm", "md", "lg", "xl", "2xl"],
+    },
     classGroups: {
       "font-size": [
         "text-8",

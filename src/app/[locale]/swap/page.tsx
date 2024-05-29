@@ -287,23 +287,25 @@ export default function SwapPage() {
       <Container>
         <div
           className={clsx(
-            "grid py-4 md:py-[80px] grid-cols-1",
+            "grid py-4 lg:py-[80px] grid-cols-1 mx-auto",
             showRecentTransactions
-              ? "md:grid-cols-2 gap-4 md:grid-areas-[left_right] grid-areas-[right,left]"
-              : "grid-areas-[right]",
+              ? "xl:grid-cols-[580px_600px] xl:max-w-[1200px] gap-4 xl:grid-areas-[left_right] grid-areas-[right,left]"
+              : "xl:grid-cols-[600px] xl:max-w-[600px] grid-areas-[right]",
           )}
         >
           {showRecentTransactions && (
-            <div className="grid-in-[left]">
-              <RecentTransactions
-                showRecentTransactions={showRecentTransactions}
-                handleClose={() => setShowRecentTransactions(false)}
-              />
+            <div className="grid-in-[left] flex justify-center">
+              <div className="w-full sm:max-w-[600px] xl:max-w-full">
+                <RecentTransactions
+                  showRecentTransactions={showRecentTransactions}
+                  handleClose={() => setShowRecentTransactions(false)}
+                />
+              </div>
             </div>
           )}
 
           <div className="flex justify-center grid-in-[right]">
-            <div className="flex flex-col gap-5 w-full md:w-[640px]">
+            <div className="flex flex-col gap-5 w-full sm:max-w-[600px] xl:max-w-full">
               <TwoVersionsInfo />
               <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
                 <div className="flex justify-between items-center mb-2.5">

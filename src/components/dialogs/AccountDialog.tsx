@@ -71,6 +71,7 @@ export default function AccountDialog({ setOpenedWallet, isMobile = false }: Pro
             placement={"bottom-start"}
             trigger={
               <SelectButton
+                className="py-1 xl:py-2 text-14 xl:text-16"
                 isOpen={isOpenedAccount}
                 fullWidth={isMobile}
                 onClick={() => setIsOpenedAccount(!isOpenedAccount)}
@@ -185,9 +186,18 @@ export default function AccountDialog({ setOpenedWallet, isMobile = false }: Pro
           </Popover>
         </div>
       ) : (
-        <Button fullWidth={isMobile} size={ButtonSize.MEDIUM} onClick={() => setOpenedWallet(true)}>
-          Connect wallet
-        </Button>
+        <div className={clsx(!isMobile && "hidden md:block")}>
+          <Button
+            fullWidth={isMobile}
+            size={ButtonSize.MEDIUM}
+            tabletSize={ButtonSize.SMALL}
+            mobileSize={ButtonSize.SMALL}
+            className="md:rounded-2 md:font-normal"
+            onClick={() => setOpenedWallet(true)}
+          >
+            Connect wallet
+          </Button>
+        </div>
       )}
     </>
   );

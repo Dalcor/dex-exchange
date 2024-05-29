@@ -7,6 +7,7 @@ import LocaleSwitcher from "@/components/atoms/LocaleSwitcher";
 import Svg from "@/components/atoms/Svg";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import IconButton, { IconButtonSize } from "@/components/buttons/IconButton";
+import { useFeedbackDialogStore } from "@/components/dialogs/stores/useFeedbackDialogStore";
 import { IconName } from "@/config/types/IconName";
 import { Link, usePathname } from "@/navigation";
 
@@ -73,9 +74,10 @@ export default function MobileMenu() {
   const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
   const [moreOpened, setMoreOpened] = useState(false);
   const pathname = usePathname();
+  const { setIsOpen: setOpenFeedbackDialog } = useFeedbackDialogStore();
 
   return (
-    <div className="md:hidden">
+    <div className="xl:hidden">
       <Drawer placement="left" isOpen={mobileMenuOpened} setIsOpen={setMobileMenuOpened}>
         <div className="flex flex-col justify-between h-full">
           <div className="py-6 grid gap-1">
@@ -147,6 +149,10 @@ export default function MobileMenu() {
               fullWidth
               variant={ButtonVariant.OUTLINED}
               endIcon="star"
+              onClick={() => {
+                setMobileMenuOpened(false);
+                setOpenFeedbackDialog(true);
+              }}
             >
               Feedback
             </Button>

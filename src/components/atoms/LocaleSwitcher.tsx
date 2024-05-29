@@ -45,7 +45,7 @@ export default function LocaleSwitcher({ isMobile = false }: { isMobile?: boolea
   };
 
   return (
-    <div className={clsx(!isMobile && "hidden md:block", "flex-shrink-0")}>
+    <div className={clsx(!isMobile && "hidden xl:block", "flex-shrink-0")}>
       <Popover
         isOpened={isOpened}
         setIsOpened={setIsOpened}

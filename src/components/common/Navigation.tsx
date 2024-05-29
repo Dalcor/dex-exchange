@@ -81,7 +81,7 @@ export default function Navigation() {
   const pathname = usePathname();
 
   return (
-    <ul className="hidden md:flex items-center">
+    <ul className="hidden xl:flex items-center">
       {menuItems.map((menuItem, index) => {
         if ("submenu" in menuItem) {
           return (

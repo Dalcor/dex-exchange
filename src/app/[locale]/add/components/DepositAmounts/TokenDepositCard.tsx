@@ -11,7 +11,6 @@ import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
-import { RevokeDialog } from "@/components/dialogs/RevokeDialog";
 import { formatFloat } from "@/functions/formatFloat";
 import useAllowance, { AllowanceStatus } from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";

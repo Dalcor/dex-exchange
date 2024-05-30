@@ -5,11 +5,11 @@ export const networks: Array<{
   name: string;
   logo: string;
 }> = [
-  {
-    chainId: DexChainId.CALLISTO,
-    name: "Callisto",
-    logo: "/chains/callisto.svg",
-  },
+  // {
+  //   chainId: DexChainId.CALLISTO,
+  //   name: "Callisto",
+  //   logo: "/chains/callisto.svg",
+  // },
   {
     chainId: DexChainId.SEPOLIA,
     name: "Sepolia",

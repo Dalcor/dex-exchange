@@ -19,7 +19,7 @@ export const useConnectWalletStore = create<ConnectWalletStore>((set, get) => ({
   walletName: "metamask",
   setName: (walletName) => set({ walletName }),
 
-  chainToConnect: DexChainId.CALLISTO,
+  chainToConnect: DexChainId.SEPOLIA,
   setChainToConnect: (chainToConnect) => set({ chainToConnect }),
 
   wcChainsToConnect: DEX_SUPPORTED_CHAINS,

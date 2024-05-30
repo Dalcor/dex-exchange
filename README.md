@@ -42,16 +42,20 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 1. Add new network to src/config/wagmi/config.ts 
    1. Networks
    2. Transports
-2. Modify DexChainId to src/sdk_hybrid/chains.ts
+2. Add new network to src/config/networks/index.ts 
+   1. Networks
+   2. Transports
+3. Modify DexChainId to src/sdk_hybrid/chains.ts
    1. Add new chain to DexChainId enum with [chainId] as value
    2. Add chain to DEX_SUPPORTED_CHAINS array
-3. Add contract addresses in src/sdk_hybrid/addresses.ts
+4. Add contract addresses in src/sdk_hybrid/addresses.ts
    1. CONVERTER_ADDRESS
    2. FACTORY_ADDRESS
    3. ROUTER_ADDRESS
    4. QUOTER_ADDRESS
    5. NONFUNGIBLE_POSITION_MANAGER_ADDRESS
    6. POOL_INIT_CODE_HASH
-4. Add WETH9 token in src/sdk_hybrid/entities.ts
-5. Add default tokenlist in src/db/lists/index.ts
-6. Add subrgaph url in src/graphql/thegraph/apollo.ts
+5. Add WETH9 token in src/sdk_hybrid/entities.ts
+6. Add default tokenlist in src/db/lists/index.ts
+7. Add subrgaph url in src/graphql/thegraph/apollo.ts
+8. Add explorer links in src/functions/getExplorerLink.ts

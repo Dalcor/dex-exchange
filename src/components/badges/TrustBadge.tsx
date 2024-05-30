@@ -61,9 +61,9 @@ export enum Check {
 
 export type Rate = {
   [Check.DEFAULT_LIST]: TrustRateCheck;
-  [Check.OTHER_LIST]: OtherListCheck;
+  [Check.OTHER_LIST]?: OtherListCheck;
   [Check.SAME_NAME_IN_DEFAULT_LIST]: TrustRateCheck;
-  [Check.SAME_NAME_IN_OTHER_LIST]: TrustRateCheck;
+  [Check.SAME_NAME_IN_OTHER_LIST]?: TrustRateCheck;
   [Check.ERC223_VERSION_EXIST]: TrustRateCheck;
 };
 
@@ -176,6 +176,7 @@ function InternalTrustBadge({ rateRange }: { rateRange: BadgeTrustRate }) {
 }
 
 function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps) {
+  console.log("Rate:", rate);
   const internalTokenScore = useMemo(() => {
     if (totalScore > 100) {
       return 100;
@@ -225,7 +226,7 @@ function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps)
       </div>
       <div className="p-5 rounded-3 bg-tertiary-bg flex flex-col gap-2 text-14">
         {getEntries(rate).map(([key, value]) => {
-          if (key === Check.OTHER_LIST) {
+          if (key === Check.OTHER_LIST && Boolean(value)) {
             const rateValueMap = rateMap[key as RateKey] as RateValueMap<typeof key>;
             const { text, score } = rateValueMap[value as OtherListCheck];
             return (
@@ -321,7 +322,7 @@ export default function TrustBadge({ rate, logoURI }: Props) {
     const totalScore = getEntries(rate).reduce((acc, [key, value]) => {
       if (key === Check.OTHER_LIST) {
         const rateValueMap = rateMap[key as RateKey] as RateValueMap<typeof key>;
-        return acc + rateValueMap[value as OtherListCheck].score;
+        return value ? acc + rateValueMap[value as OtherListCheck].score : 0;
       } else {
         const rateValueMap = rateMap[key as RateKey] as RateValueMap<typeof key>;
         return acc + rateValueMap[value as TrustRateCheck].score;

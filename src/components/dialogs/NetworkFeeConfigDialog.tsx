@@ -8,6 +8,7 @@ import {
   GasOption,
   useSwapGasSettingsStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
+import Alert from "@/components/atoms/Alert";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
@@ -287,13 +288,11 @@ function NetworkFeeDialogContent({
                                 }
                               />
                             </div>
-                            <div className="border-l-4 border-l-blue rounded-2 bg-primary-bg pl-4 pr-2 pt-2 pb-2.5 flex mt-4 gap-2">
-                              <Svg className="text-blue flex-shrink-0" iconName="info" />
-                              <span className="text-secondary-text text-14 text-left pt-0.5">
-                                Сhanging Priority Fee only in order to make transaction cheaper or
-                                speed it up at a cost of paying higher fee.
-                              </span>
-                            </div>
+                            <Alert
+                              text="Сhanging Priority Fee only in order to make transaction cheaper or
+                                speed it up at a cost of paying higher fee."
+                              type="info-border"
+                            />
                           </>
                         )}
                         {unsavedGasPriceModel === GasFeeModel.LEGACY && (

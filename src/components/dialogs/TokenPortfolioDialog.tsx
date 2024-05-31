@@ -13,6 +13,7 @@ import IconButton, {
 import { useTokenPortfolioDialogStore } from "@/components/dialogs/stores/useTokenPortfolioDialogStore";
 import { TokenListId } from "@/db/db";
 import { copyToClipboard } from "@/functions/copyToClipboard";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import { useTokenLists } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -44,7 +45,7 @@ function TokenListInfo({ listId }: { listId: TokenListId }) {
           </div>
         </div>
       </div>
-      <ExternalTextLink text="View list" href="#" />
+      <ExternalTextLink className="opacity-50 pointer-events-none" text="View list" href="#" />
     </div>
   );
 }
@@ -64,7 +65,7 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
           <ExternalTextLink
             color="white"
             text={`${token.address0.slice(0, 6)}...${token.address0.slice(-6)}`}
-            href={""}
+            href={getExplorerLink(ExplorerLinkType.ADDRESS, token.address0, token.chainId)}
             className="justify-between"
           />
           <IconButton
@@ -83,7 +84,7 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
           <ExternalTextLink
             color="white"
             text={`${token.address1.slice(0, 6)}...${token.address1.slice(-6)}`}
-            href={""}
+            href={getExplorerLink(ExplorerLinkType.ADDRESS, token.address1, token.chainId)}
             className="justify-between"
           />
           <IconButton

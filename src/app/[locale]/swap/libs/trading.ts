@@ -25,9 +25,6 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
   const { typedValue } = useSwapAmountsStore();
   const [poolState, pool] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
 
-  console.log("POOL STATE");
-  console.log(poolState);
-
   const swapRoute = useMemo(() => {
     if (pool && tokenA && tokenB) {
       return new Route([pool], tokenA, tokenB);

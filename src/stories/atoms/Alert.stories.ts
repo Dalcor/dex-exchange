@@ -41,3 +41,10 @@ export const Info: Story = {
     type: "info",
   },
 };
+
+export const InfoBorder: Story = {
+  args: {
+    text: "Max base fee can not be lower than current base fee",
+    type: "info-border",
+  },
+};

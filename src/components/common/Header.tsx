@@ -30,18 +30,22 @@ export default function Header() {
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             <LocaleSwitcher />
-            <TokenListsSettings />
+            <div className="fixed w-[calc(50%-24px)] bottom-2 left-4 md:static md:w-auto md:bottom-unset z-[98] md:z-15">
+              <TokenListsSettings />
+            </div>
             <NetworkPicker />
 
-            <AccountDialog setOpenedWallet={setOpenedWallet} />
+            <div className="fixed w-[calc(50%-24px)] bottom-2 right-4 md:static md:w-auto md:bottom-unset z-[98] md:z-15">
+              <AccountDialog />
+            </div>
             <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet} />
 
             <MobileMenu />
           </div>
 
-          <div className="md:hidden grid grid-cols-2 fixed bottom-0 left-0 bg-secondary-bg z-[98] gap-2 w-full px-4 py-2">
-            <TokenListsSettings isMobile={true} />
-            <AccountDialog setOpenedWallet={setOpenedWallet} isMobile={true} />
+          <div className="md:hidden grid grid-cols-2 fixed bottom-0 left-0 bg-secondary-bg z-[97] gap-2 w-full h-12">
+            {/*<TokenListsSettings isMobile={true} />*/}
+            {/*<AccountDialog />*/}
           </div>
         </div>
       </Container>

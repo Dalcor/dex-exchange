@@ -44,6 +44,13 @@ export default function Popover({
     },
   });
 
+  console.log("CONTEXT");
+  console.log(context);
+
+  React.useEffect(() => {
+    console.log("Popover isOpened:", isOpened);
+  }, [isOpened]);
+
   const click = useClick(context);
   const dismiss = useDismiss(context);
   const role = useRole(context);

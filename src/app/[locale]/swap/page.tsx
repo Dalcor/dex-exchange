@@ -193,18 +193,37 @@ export default function SwapPage() {
   const handlePick = useCallback(
     (token: Token) => {
       if (currentlyPicking === "tokenA") {
+        if (token === tokenB) {
+          setTokenB(tokenA);
+          setTokenBAddress(tokenAAddress);
+        }
+
         setTokenA(token);
         setTokenAAddress(token.address0);
       }
 
       if (currentlyPicking === "tokenB") {
+        if (token === tokenA) {
+          setTokenA(tokenB);
+          setTokenAAddress(tokenBAddress);
+        }
         setTokenB(token);
         setTokenBAddress(token.address0);
       }
 
       setIsOpenedTokenPick(false);
     },
-    [currentlyPicking, setTokenA, setTokenAAddress, setTokenB, setTokenBAddress],
+    [
+      currentlyPicking,
+      setTokenA,
+      setTokenAAddress,
+      setTokenB,
+      setTokenBAddress,
+      tokenA,
+      tokenAAddress,
+      tokenB,
+      tokenBAddress,
+    ],
   );
 
   const { trade, isLoading: isLoadingTrade } = useTrade();

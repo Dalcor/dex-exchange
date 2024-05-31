@@ -86,15 +86,15 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
             <div className="px-4 md:px-10 pb-3">
               <Input placeholder="Search name or paste address" />
               <div className="mt-3 grid grid-cols-3 gap-3">
-                <button className="items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
+                <button className="opacity-50 pointer-events-none items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
                   <Image width={24} height={24} src="/tokens/ETH.svg" alt="" />
                   ETH
                 </button>
-                <button className="items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
+                <button className="opacity-50 pointer-events-none items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
                   <Image width={24} height={24} src="/tokens/USDT.svg" alt="" />
                   USDT
                 </button>
-                <button className="items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
+                <button className="opacity-50 pointer-events-none items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
                   <Image width={24} height={24} src="/tokens/DEX.svg" alt="" />
                   DEX223
                 </button>

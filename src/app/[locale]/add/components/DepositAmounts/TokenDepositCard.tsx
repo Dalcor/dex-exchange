@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
 import { Address, formatEther, formatGwei, formatUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber } from "wagmi";
@@ -11,10 +11,10 @@ import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
-import { RevokeDialog } from "@/components/dialogs/RevokeDialog";
 import { formatFloat } from "@/functions/formatFloat";
-import useAllowance, { AllowanceStatus } from "@/hooks/useAllowance";
-import useDeposit from "@/hooks/useDeposit";
+import { AllowanceStatus } from "@/hooks/useAllowance";
+import useRevoke from "@/hooks/useRevoke";
+import useWithdraw from "@/hooks/useWithdraw";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
@@ -41,10 +41,6 @@ export const InputRange = ({
         className="pointer-events-none absolute bg-green h-2 rounded-1 left-0 top-2"
         style={{ width: value === 1 ? 0 : `calc(${value}% - 2px)` }}
       />
-      {/* <div
-        className="pointer-events-none absolute bg-purple h-2 rounded-1 right-0 top-2"
-        style={{ width: value === 1 ? 0 : `calc(${100 - value}% - 2px)` }}
-      /> */}
     </div>
   );
 };
@@ -163,6 +159,7 @@ function InputStandardAmount({
             placeholder="0"
             type="text"
             value={value || ""}
+            disabled
             // onChange={(e) => onChange(e.target.value)}
             onChange={() => {}}
           />
@@ -290,25 +287,23 @@ export default function TokenDepositCard({
       : undefined;
 
   const {
-    writeTokenRevoke: revokeHandler,
+    revokeHandler,
     currentAllowance: currentAllowance,
     revokeStatus,
-    estimatedGas: allowanceEstimatedGas,
-  } = useAllowance({
+    revokeEstimatedGas,
+  } = useRevoke({
     token,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    amountToCheck: BigInt(0),
   });
 
   const {
-    writeTokenWithdraw: withdrawHandler,
+    withdrawHandler,
     currentDeposit: currentDeposit,
     estimatedGas: depositEstimatedGas,
     withdrawStatus,
-  } = useDeposit({
+  } = useWithdraw({
     token,
     contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
-    amountToCheck: BigInt(0),
   });
 
   if (isOutOfRange) {
@@ -339,7 +334,7 @@ export default function TokenDepositCard({
             token={token}
             revokeHandler={revokeHandler}
             status={revokeStatus}
-            estimatedGas={allowanceEstimatedGas}
+            estimatedGas={revokeEstimatedGas}
             gasPrice={gasPrice}
           />
           <InputStandardAmount

@@ -2,8 +2,7 @@
 
 import clsx from "clsx";
 import Image from "next/image";
-import React, { useCallback, useEffect, useState } from "react";
-import { parseUnits } from "viem";
+import React, { useCallback, useState } from "react";
 import { useAccount } from "wagmi";
 
 import FeeAmountSettings from "@/app/[locale]/add/components/FeeAmountSettings";
@@ -20,36 +19,29 @@ import RecentTransactions from "@/components/common/RecentTransactions";
 import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
-import useAllowance from "@/hooks/useAllowance";
-import useDeposit from "@/hooks/useDeposit";
 import { usePoolsSearchParams } from "@/hooks/usePoolsSearchParams";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
-import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
-import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
-import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 import { ApproveButton } from "./components/ApproveButton";
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
 import { MintButton } from "./components/MintButton";
 import { PriceRange } from "./components/PriceRange/PriceRange";
-import { useAddLiquidity, useV3DerivedMintInfo } from "./hooks/useAddLiquidity";
+import { useV3DerivedMintInfo } from "./hooks/useAddLiquidity";
 import { useLiquidityApprove } from "./hooks/useLiquidityApprove";
 import { usePriceRange } from "./hooks/usePrice";
-import { Field, useTokensStandards } from "./stores/useAddLiquidityAmountsStore";
 
 export default function AddPoolPage() {
   usePoolsSearchParams();
   useRecentTransactionTracking();
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
-  const { chainId } = useAccount();
 
   const router = useRouter();
 
   const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
-  const { tier, setTier } = useLiquidityTierStore();
+  const { tier } = useLiquidityTierStore();
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
@@ -104,8 +96,7 @@ export default function AddPoolPage() {
 
   // Deposit Amounts END
 
-  const { approveTransactions, handleApprove, approveTransactionsType, gasPrice } =
-    useLiquidityApprove();
+  const { approveTransactions, gasPrice } = useLiquidityApprove();
 
   const isFormDisabled = !tokenA || !tokenB;
 
@@ -131,12 +122,12 @@ export default function AddPoolPage() {
               active={showRecentTransactions}
               onClick={() => setShowRecentTransactions(!showRecentTransactions)}
             />
-            <IconButton
+            {/* <IconButton
               variant={IconButtonVariant.DEFAULT}
               buttonSize={IconButtonSize.LARGE}
               iconName="settings"
               onClick={() => setIsOpen(true)}
-            />
+            /> */}
           </div>
         </div>
         <div className="rounded-b-5 border-t-0 p-4 md:p-10 bg-primary-bg mb-4 md:mb-5">

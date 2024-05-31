@@ -85,11 +85,17 @@ export default function PriceRangeInput({
         <span className="text-12 text-secondary-text">DAI per ETH</span>
       </div>
       <div className="flex flex-col gap-2">
-        <IconButton variant={IconButtonVariant.CONTROL} iconName="add" onClick={handleIncrement} />
+        <IconButton
+          variant={IconButtonVariant.CONTROL}
+          iconName="add"
+          onClick={handleIncrement}
+          className="rounded-2 bg-secondary-bg hover:bg-green-bg duration-200 text-primary-text"
+        />
         <IconButton
           variant={IconButtonVariant.CONTROL}
           iconName="minus"
           onClick={handleDecrement}
+          className="rounded-2 bg-secondary-bg hover:bg-green-bg duration-200 text-primary-text"
         />
       </div>
     </div>

@@ -144,7 +144,7 @@ export const ApproveButton = () => {
     },
   ].filter(({ transaction }) => !!transaction);
   return (
-    <div className="my-5">
+    <div className="mt-5">
       {/* TODO */}
       {isOpen ? (
         <Button fullWidth disabled>

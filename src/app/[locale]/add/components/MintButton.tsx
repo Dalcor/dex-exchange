@@ -78,7 +78,7 @@ export const MintButton = ({
 
   if (!tokenA || !tokenB || !position) return null;
   return (
-    <div className="my-5">
+    <div className="mt-5">
       <Button onClick={() => setIsOpen(true)} fullWidth>
         {buttonText}
       </Button>

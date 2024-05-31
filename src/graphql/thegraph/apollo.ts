@@ -25,7 +25,7 @@ const CHAIN_SUBGRAPH_URL: Record<DexChainId, string> = {
   //   "https://api.studio.thegraph.com/query/48211/uniswap-v3-base/version/latest?source=uniswap",
   [DexChainId.SEPOLIA]:
     "https://api.studio.thegraph.com/proxy/56540/dex223-v1-sepolia/version/latest",
-  [DexChainId.CALLISTO]: "",
+  // [DexChainId.CALLISTO]: "",
   [DexChainId.BSC_TESTNET]: "",
 };
 
@@ -56,7 +56,7 @@ export const apolloClient = new ApolloClient({
   link: concat(authMiddleware, httpLink),
 });
 
-export const chainToApolloClient: Record<number, ApolloClient<NormalizedCacheObject>> = {
+export const chainToApolloClient: Record<DexChainId, ApolloClient<NormalizedCacheObject>> = {
   // [ChainId.MAINNET]: new ApolloClient({
   //   cache: new InMemoryCache(),
   //   uri: CHAIN_SUBGRAPH_URL[ChainId.MAINNET],
@@ -89,8 +89,12 @@ export const chainToApolloClient: Record<number, ApolloClient<NormalizedCacheObj
     cache: new InMemoryCache(),
     uri: CHAIN_SUBGRAPH_URL[DexChainId.SEPOLIA],
   }),
-  [DexChainId.CALLISTO]: new ApolloClient({
+  [DexChainId.BSC_TESTNET]: new ApolloClient({
     cache: new InMemoryCache(),
-    uri: CHAIN_SUBGRAPH_URL[DexChainId.CALLISTO],
+    uri: CHAIN_SUBGRAPH_URL[DexChainId.SEPOLIA],
   }),
+  // [DexChainId.CALLISTO]: new ApolloClient({
+  //   cache: new InMemoryCache(),
+  //   uri: CHAIN_SUBGRAPH_URL[DexChainId.CALLISTO],
+  // }),
 };

@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
-import React, { PropsWithChildren, useCallback, useMemo } from "react";
-import { useAccount } from "wagmi";
+import React, { PropsWithChildren, useMemo } from "react";
 
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
@@ -22,7 +21,6 @@ import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
-import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
 function ApproveRow({
   logoURI = "",
@@ -118,8 +116,6 @@ function SwapActionButton() {
   const { typedValue } = useSwapAmountsStore();
 
   const {
-    isAllowedA,
-    handleApprove,
     isPendingApprove,
     isLoadingApprove,
 
@@ -128,7 +124,6 @@ function SwapActionButton() {
     isLoadingSwap,
     isSuccessSwap,
   } = useSwap();
-  const { chainId } = useAccount();
 
   if (!tokenA || !tokenB) {
     return (

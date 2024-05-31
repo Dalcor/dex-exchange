@@ -5,6 +5,6 @@ import { DexChainId } from "@/sdk_hybrid/chains";
 
 export const defaultLists: Record<DexChainId, any> = {
   [DexChainId.SEPOLIA]: sepoliaDefaultList,
-  [DexChainId.CALLISTO]: callistoDefaultList,
+  // [DexChainId.CALLISTO]: callistoDefaultList,
   [DexChainId.BSC_TESTNET]: bscTestnetDefaultList,
 };

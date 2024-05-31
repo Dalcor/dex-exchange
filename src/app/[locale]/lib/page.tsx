@@ -17,6 +17,7 @@ import { ERC20_ABI } from "@/config/abis/erc20";
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { networks } from "@/config/networks";
 import { IIFE } from "@/functions/iife";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import addToast from "@/other/toast";
 import { DexChainId } from "@/sdk_hybrid/chains";
 
@@ -38,11 +39,13 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
 
   const { data: walletClient } = useWalletClient();
 
+  const chainId = useCurrentChainId();
+
   const { data: decimals } = useReadContract({
     abi: ERC20_ABI,
     functionName: "decimals",
     address: addressToMint! as Address,
-    chainId: networks.find((n) => n.chainId === DexChainId.SEPOLIA)?.chainId,
+    chainId,
     query: {
       enabled: !!addressToMint && isAddress(addressToMint),
     },
@@ -52,7 +55,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
     abi: ERC20_ABI,
     functionName: "balanceOf",
     address: addressToMint! as Address,
-    chainId: networks.find((n) => n.chainId === DexChainId.SEPOLIA)?.chainId,
+    chainId,
     args: [address as Address],
     query: {
       enabled: !!addressToMint && isAddress(addressToMint),
@@ -63,7 +66,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
     abi: ERC20_ABI,
     functionName: "symbol",
     address: addressToMint! as Address,
-    chainId: networks.find((n) => n.chainId === DexChainId.SEPOLIA)?.chainId,
+    chainId,
     query: {
       enabled: !!addressToMint && isAddress(addressToMint),
     },

@@ -23,7 +23,6 @@ import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
 import useAllowance from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
-import addToast from "@/other/toast";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
@@ -136,7 +135,7 @@ export default function useSwap() {
         args: [
           {
             tokenIn: tokenAAddress,
-            tokenOut: tokenBAddress,
+            tokenOut: tokenB.address0,
             fee: FeeAmount.MEDIUM,
             recipient: address as Address,
             deadline,
@@ -234,10 +233,9 @@ export default function useSwap() {
 
   const handleSwap = useCallback(async () => {
     if (!isAllowedA && tokenA?.address0 === tokenAAddress) {
-      try {
-        await approveA();
-      } catch (e) {
-        console.log("Approve failed");
+      const result = await approveA();
+
+      if (!result?.success) {
         return;
       }
     }
@@ -279,7 +277,15 @@ export default function useSwap() {
     setSwapStatus(SwapStatus.PENDING);
     openConfirmInWalletAlert("Confirm action in your wallet");
 
-    const hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
+    let hash;
+
+    try {
+      hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
+    } catch (e) {
+      setSwapStatus(SwapStatus.INITIAL);
+
+      console.log(e);
+    }
 
     closeConfirmInWalletAlert();
 

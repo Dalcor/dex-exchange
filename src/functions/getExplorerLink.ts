@@ -9,7 +9,7 @@ export enum ExplorerLinkType {
 
 const explorerMap: Record<DexChainId, string> = {
   [DexChainId.SEPOLIA]: "https://sepolia.etherscan.io",
-  [DexChainId.CALLISTO]: "https://explorer.callisto.network",
+  // [DexChainId.CALLISTO]: "https://explorer.callisto.network",
   [DexChainId.BSC_TESTNET]: "https://testnet.bscscan.com",
 };
 export default function getExplorerLink(

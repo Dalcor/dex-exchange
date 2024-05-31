@@ -3,11 +3,15 @@ import { bscTestnet } from "viem/chains";
 import { cookieStorage, createConfig, createStorage } from "wagmi";
 import { coinbaseWallet, walletConnect } from "wagmi/connectors";
 
-import { callisto } from "@/config/chains/callisto";
+// import { callisto } from "@/config/chains/callisto";
 import { sepolia } from "@/config/chains/sepolia";
 
 export const config = createConfig({
-  chains: [callisto, sepolia, bscTestnet],
+  chains: [
+    // callisto,
+    sepolia,
+    bscTestnet,
+  ],
   connectors: [
     walletConnect({
       projectId: "0af4613ea1c747c660416c4a7a114616",
@@ -22,7 +26,7 @@ export const config = createConfig({
     storage: cookieStorage,
   }),
   transports: {
-    [callisto.id]: http(),
+    // [callisto.id]: http(),
     [sepolia.id]: http(),
     [bscTestnet.id]: http(),
   },

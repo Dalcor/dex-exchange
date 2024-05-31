@@ -1,0 +1,20 @@
+{
+    "version": {
+      "patch": 1,
+      "minor": 0,
+      "major": 0
+    },
+    "logoURI": "/token-list-placeholder.svg",
+    "name": "List with fake token",
+    "tokens": [
+        {
+          "address0": "0x4D2D54436afa2B1ee5B7BaaBbBA72E7D6a54BE17",
+          "address1": "0x4D2D54436afa2B1ee5B7BaaBbBA72E7D6a54BE17",
+          "name": "Test Sep 1",
+          "symbol": "TSP1",
+          "logoURI": "/tokens/placeholder.svg",
+          "chainId": 11155111,
+          "decimals": 18
+        }
+    ]
+}

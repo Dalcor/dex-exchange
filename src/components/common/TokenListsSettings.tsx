@@ -10,6 +10,7 @@ export default function TokenListsSettings({ isMobile = false }: { isMobile?: bo
   return (
     <div className={clsx(!isMobile && "hidden md:block")}>
       <SelectButton
+        className="py-1 xl:py-2 text-14 xl:text-16 min-h-8"
         fullWidth={isMobile}
         withArrow={false}
         size="regular"

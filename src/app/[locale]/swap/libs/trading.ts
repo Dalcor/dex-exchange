@@ -6,7 +6,7 @@ import { useAccount, useSimulateContract } from "wagmi";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { QUOTER_ABI } from "@/config/abis/quoter";
-import { usePool } from "@/hooks/usePools";
+import { PoolState, usePool } from "@/hooks/usePools";
 import { QUOTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount, TradeType } from "@/sdk_hybrid/constants";
@@ -17,13 +17,16 @@ import { Trade } from "@/sdk_hybrid/entities/trade";
 
 export type TokenTrade = Trade<Currency, Currency, TradeType>;
 
-export function useTrade(): { trade: TokenTrade | null } {
+export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
   const { tokenA, tokenB, tokenAAddress, tokenBAddress, setTokenA, setTokenB } =
     useSwapTokensStore();
   // const { typedValue, independentField, dependentField, setTypedValue } = useSwapAmountsStore();
   const { chainId } = useAccount();
   const { typedValue } = useSwapAmountsStore();
-  const [, pool] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
+  const [poolState, pool] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
+
+  console.log("POOL STATE");
+  console.log(poolState);
 
   const swapRoute = useMemo(() => {
     if (pool && tokenA && tokenB) {
@@ -94,5 +97,6 @@ export function useTrade(): { trade: TokenTrade | null } {
   }, [amountOut, swapRoute, tokenA, tokenB, typedValue]);
   return {
     trade,
+    isLoading: poolState === PoolState.LOADING,
   };
 }

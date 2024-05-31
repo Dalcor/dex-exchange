@@ -34,7 +34,7 @@ export class Route<TInput extends Currency, TOutput extends Currency> {
     const wrappedInput = input.wrapped;
     invariant(pools[0].involvesToken(wrappedInput), "INPUT");
 
-    invariant(pools[pools.length - 1].involvesToken(output.wrapped), "OUTPUT");
+    invariant(pools[pools.length - 1].involvesToken(output.wrapped), "OUTPUT"); // TODO: check why error on second token re-pick
 
     /**
      * Normalizes token0-token1 order and selects the next token/fee step to add to the path

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 
+import { addNotification } from "@/other/notification";
 import {
+  IRecentTransactionTitle,
   RecentTransactionStatus,
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
@@ -47,7 +49,7 @@ export function useRecentTransactionTracking() {
   // }, [address, transactions]);
 
   const waitForTransaction = useCallback(
-    async (hash: `0x${string}`, id: string) => {
+    async (hash: `0x${string}`, id: string, title: IRecentTransactionTitle) => {
       if (!publicClient || !address) {
         return;
       }
@@ -61,13 +63,14 @@ export function useRecentTransactionTracking() {
         });
         if (transaction.status === "success") {
           updateTransactionStatus(id, RecentTransactionStatus.SUCCESS, address);
-        }
-
-        if (transaction.status === "reverted") {
+          addNotification(title, RecentTransactionStatus.SUCCESS);
+        } else if (transaction.status === "reverted") {
           updateTransactionStatus(id, RecentTransactionStatus.ERROR, address);
+          addNotification(title, RecentTransactionStatus.ERROR);
         }
       } catch (e) {
         updateTransactionStatus(id, RecentTransactionStatus.ERROR, address);
+        addNotification(title, RecentTransactionStatus.ERROR);
       }
 
       // setIsViewed(id, address, false);
@@ -78,7 +81,7 @@ export function useRecentTransactionTracking() {
   useEffect(() => {
     for (const transaction of transactionsForAddress) {
       if (transaction.status === RecentTransactionStatus.PENDING) {
-        waitForTransaction(transaction.hash, transaction.id);
+        waitForTransaction(transaction.hash, transaction.id, transaction.title);
       }
     }
   }, [transactionsForAddress, waitForTransaction]);

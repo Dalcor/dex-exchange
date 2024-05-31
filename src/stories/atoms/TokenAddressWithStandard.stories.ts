@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Address } from "viem";
 
 import TokenAddressWithStandard from "@/components/atoms/TokenAddressWithStandard";
+import { DexChainId } from "@/sdk_hybrid/chains";
 
 const meta = {
   title: "Atoms/Token Address With Standard",
@@ -20,5 +21,6 @@ export const Default: Story = {
   args: {
     tokenAddress: testTokenAddress,
     standard: "ERC-20",
+    chainId: DexChainId.SEPOLIA,
   },
 };

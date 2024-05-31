@@ -13,26 +13,145 @@ export async function fetchTokenList(url: string) {
   return await data.json();
 }
 
-function getTokenRate(token: Token, tokenLists: TokenList[], chainId: DexChainId): Rate {
-  const rate: Rate = {
-    [Check.DEFAULT_LIST]: TrustRateCheck.FALSE,
-    [Check.OTHER_LIST]: OtherListCheck.NOT_FOUND,
-    [Check.SAME_NAME_IN_DEFAULT_LIST]: TrustRateCheck.FALSE,
-    [Check.SAME_NAME_IN_OTHER_LIST]: TrustRateCheck.FALSE,
-    [Check.ERC223_VERSION_EXIST]: TrustRateCheck.FALSE,
-  };
-
+function getDefaultListCheckResult(
+  token: Token,
+  tokenLists: TokenList[],
+  chainId: DexChainId,
+): Pick<Rate, Check.DEFAULT_LIST> {
   const defaultTokenList = tokenLists.find((t) => t.id === `default-${chainId}`);
 
-  if (defaultTokenList && defaultTokenList.list.tokens.find((t) => t.address0 === token.address0)) {
-    rate[Check.DEFAULT_LIST] = TrustRateCheck.TRUE;
+  const isTokenInDefaultList =
+    defaultTokenList && defaultTokenList.list.tokens.find((t) => t.address0 === token.address0);
+  return {
+    [Check.DEFAULT_LIST]: isTokenInDefaultList ? TrustRateCheck.TRUE : TrustRateCheck.FALSE,
+  };
+}
+
+function getOtherListCheckResult(
+  token: Token,
+  tokenLists: TokenList[],
+  chainId: DexChainId,
+): Pick<Rate, Check.OTHER_LIST> | undefined {
+  if (tokenLists.length === 1) {
+    return;
   }
 
+  let timesTokenFoundInAllLists = 0;
+
+  tokenLists.forEach((tokenList) => {
+    if (
+      tokenList.list.tokens.find(
+        (t) =>
+          t.address0 === token.address0 && t.address1 === token.address1 && t.name === token.name,
+      )
+    ) {
+      timesTokenFoundInAllLists++;
+    }
+  });
+
+  if (timesTokenFoundInAllLists > tokenLists.length / 2) {
+    return { [Check.OTHER_LIST]: OtherListCheck.FOUND_IN_MORE_THAN_A_HALF };
+  }
+
+  if (timesTokenFoundInAllLists >= 2) {
+    return { [Check.OTHER_LIST]: OtherListCheck.FOUND_IN_ONE };
+  }
+
+  return { [Check.OTHER_LIST]: OtherListCheck.NOT_FOUND };
+}
+
+function getSameNameInDefaultListCheckResult(
+  token: Token,
+  tokenLists: TokenList[],
+  chainId: DexChainId,
+): Pick<Rate, Check.SAME_NAME_IN_DEFAULT_LIST> {
+  const defaultTokenList = tokenLists.find((t) => t.id === `default-${chainId}`);
+
+  if (defaultTokenList) {
+    const isDifferentTokenWithSameNameInDefaultList = defaultTokenList.list.tokens.find(
+      (t) => t.address0 !== token.address0 && t.name === token.name,
+    );
+
+    if (isDifferentTokenWithSameNameInDefaultList) {
+      return { [Check.SAME_NAME_IN_DEFAULT_LIST]: TrustRateCheck.TRUE };
+    }
+  }
+
+  return {
+    [Check.SAME_NAME_IN_DEFAULT_LIST]: TrustRateCheck.FALSE,
+  };
+}
+
+function getSameNameInOtherListsCheckResult(
+  token: Token,
+  tokenLists: TokenList[],
+  chainId: DexChainId,
+): Pick<Rate, Check.SAME_NAME_IN_OTHER_LIST> | undefined {
+  const tokensWithSameAddress: Token[] = [];
+  const defaultTokenList = tokenLists.find((t) => t.id === `default-${chainId}`);
+  if (
+    defaultTokenList?.list.tokens.find(
+      (t) => t.address0 === token.address0 && t.name === token.name,
+    )
+  ) {
+    return;
+  }
+
+  const otherTokenLists = tokenLists.filter((t) => t.id !== `default-${chainId}`);
+
+  otherTokenLists.map((otherTokenList) => {
+    const tokenWithSameAddress = otherTokenList.list.tokens.find(
+      (t) => t.address0 === token.address0,
+    );
+    if (tokenWithSameAddress) {
+      tokensWithSameAddress.push(tokenWithSameAddress);
+    }
+  });
+
+  const isDifferentTokenWithSameNameInOtherList = tokensWithSameAddress.find(
+    (t) => t.name !== token.name,
+  );
+
+  if (isDifferentTokenWithSameNameInOtherList) {
+    return { [Check.SAME_NAME_IN_OTHER_LIST]: TrustRateCheck.TRUE };
+  }
+
+  return {
+    [Check.SAME_NAME_IN_OTHER_LIST]: TrustRateCheck.FALSE,
+  };
+}
+
+function getERC223VersionExistsCheckResult(token: Token): Pick<Rate, Check.ERC223_VERSION_EXIST> {
   if (token.address1) {
-    rate[Check.ERC223_VERSION_EXIST] = TrustRateCheck.TRUE;
+    return { [Check.ERC223_VERSION_EXIST]: TrustRateCheck.TRUE };
   }
 
-  return rate;
+  return {
+    [Check.ERC223_VERSION_EXIST]: TrustRateCheck.FALSE,
+  };
+}
+
+function getTokenRate(token: Token, tokenLists: TokenList[], chainId: DexChainId): Rate {
+  const defaultListCheck = getDefaultListCheckResult(token, tokenLists, chainId);
+  const otherListCheck = getOtherListCheckResult(token, tokenLists, chainId);
+  const sameNameInDefaultListCheck = getSameNameInDefaultListCheckResult(
+    token,
+    tokenLists,
+    chainId,
+  );
+  const sameNameInOtherListsCheck = getSameNameInOtherListsCheckResult(token, tokenLists, chainId);
+  const erc223VersionExists = getERC223VersionExistsCheckResult(token);
+
+  console.log("Other list check");
+  console.log(otherListCheck);
+
+  return {
+    ...defaultListCheck,
+    ...otherListCheck,
+    ...sameNameInDefaultListCheck,
+    ...sameNameInOtherListsCheck,
+    ...erc223VersionExists,
+  };
 }
 
 export function useTokenLists(onlyCustom: boolean = false) {
@@ -77,6 +196,10 @@ export function useTokens(onlyCustom: boolean = false) {
           array.forEach((item) => {
             const lowercaseAddress = item.address0.toLowerCase() as Address;
 
+            const rate = getTokenRate(item, tokenLists, item.chainId);
+
+            console.log(rate);
+
             map.set(
               lowercaseAddress,
               new Token(
@@ -90,7 +213,7 @@ export function useTokens(onlyCustom: boolean = false) {
                 map.has(lowercaseAddress)
                   ? Array.from(new Set([...(map.get(lowercaseAddress)?.lists || []), id]))
                   : [id],
-                getTokenRate(item, tokenLists, item.chainId),
+                rate,
               ),
             );
           });

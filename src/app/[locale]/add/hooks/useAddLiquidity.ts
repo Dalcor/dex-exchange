@@ -6,6 +6,7 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/stores/useLiquidityTierStore";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
 import { AllowanceStatus } from "@/hooks/useAllowance";
@@ -398,13 +399,11 @@ export const useAddLiquidity = () => {
                 template: RecentTransactionTitleTemplate.ADD,
                 symbol0: position.pool.token0.symbol!,
                 symbol1: position.pool.token1.symbol!,
-                amount0: formatUnits(
-                  BigInt(JSBI.toNumber(amount0Desired)),
-                  position.pool.token0.decimals,
+                amount0: formatFloat(
+                  formatUnits(BigInt(JSBI.toNumber(amount0Desired)), position.pool.token0.decimals),
                 ),
-                amount1: formatUnits(
-                  BigInt(JSBI.toNumber(amount1Desired)),
-                  position.pool.token1.decimals,
+                amount1: formatFloat(
+                  formatUnits(BigInt(JSBI.toNumber(amount1Desired)), position.pool.token1.decimals),
                 ),
                 logoURI0: position.pool.token0?.logoURI || "/tokens/placeholder.svg",
                 logoURI1: position.pool.token1?.logoURI || "/tokens/placeholder.svg",

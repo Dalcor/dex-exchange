@@ -29,6 +29,7 @@ import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import TokenInput from "@/components/common/TokenInput";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
+import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
@@ -44,12 +45,31 @@ enum Standard {
   ERC223 = "ERC-223",
 }
 
-function OpenConfirmDialogButton({ isSufficientBalance }: { isSufficientBalance: boolean }) {
+function OpenConfirmDialogButton({
+  isSufficientBalance,
+  isTradeReady,
+  isTradeLoading,
+}: {
+  isSufficientBalance: boolean;
+  isTradeReady: boolean;
+  isTradeLoading: boolean;
+}) {
+  const { isConnected } = useAccount();
+
   const { tokenA, tokenB } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
 
   const { isLoadingSwap, isLoadingApprove, isPendingApprove, isPendingSwap } = useSwap();
+  const { setIsOpened: setWalletConnectOpened } = useConnectWalletDialogStateStore();
+
+  if (!isConnected) {
+    return (
+      <Button onClick={() => setWalletConnectOpened(true)} fullWidth>
+        Connect wallet
+      </Button>
+    );
+  }
 
   if (isLoadingSwap) {
     return (
@@ -96,6 +116,22 @@ function OpenConfirmDialogButton({ isSufficientBalance }: { isSufficientBalance:
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
         Enter amount
+      </Button>
+    );
+  }
+
+  if (isTradeLoading) {
+    return (
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+        Looking for best trade...
+      </Button>
+    );
+  }
+
+  if (!isTradeReady) {
+    return (
+      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+        Swap is unavailable for this pair
       </Button>
     );
   }
@@ -171,7 +207,7 @@ export default function SwapPage() {
     [currentlyPicking, setTokenA, setTokenAAddress, setTokenB, setTokenBAddress],
   );
 
-  const { trade } = useTrade();
+  const { trade, isLoading: isLoadingTrade } = useTrade();
 
   const { setTypedValue, independentField, dependentField, typedValue } = useSwapAmountsStore();
 
@@ -216,13 +252,8 @@ export default function SwapPage() {
     refetchBalanceB1();
   }, [blockNumber, refetchBalanceA0, refetchBalanceB0, refetchBalanceA1, refetchBalanceB1]);
 
-  const output = useMemo(() => {
-    if (!trade) {
-      return "";
-    }
-
-    return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
-  }, [slippage, trade]);
+  console.log("Trade");
+  console.log(trade);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
   const { data: baseFee } = useGasPrice();
@@ -256,23 +287,25 @@ export default function SwapPage() {
       <Container>
         <div
           className={clsx(
-            "grid py-4 md:py-[80px] grid-cols-1",
+            "grid py-4 lg:py-[80px] grid-cols-1 mx-auto",
             showRecentTransactions
-              ? "md:grid-cols-2 gap-4 md:grid-areas-[left_right] grid-areas-[right,left]"
-              : "grid-areas-[right]",
+              ? "xl:grid-cols-[580px_600px] xl:max-w-[1200px] gap-4 xl:grid-areas-[left_right] grid-areas-[right,left]"
+              : "xl:grid-cols-[600px] xl:max-w-[600px] grid-areas-[right]",
           )}
         >
           {showRecentTransactions && (
-            <div className="grid-in-[left]">
-              <RecentTransactions
-                showRecentTransactions={showRecentTransactions}
-                handleClose={() => setShowRecentTransactions(false)}
-              />
+            <div className="grid-in-[left] flex justify-center">
+              <div className="w-full sm:max-w-[600px] xl:max-w-full">
+                <RecentTransactions
+                  showRecentTransactions={showRecentTransactions}
+                  handleClose={() => setShowRecentTransactions(false)}
+                />
+              </div>
             </div>
           )}
 
           <div className="flex justify-center grid-in-[right]">
-            <div className="flex flex-col gap-5 w-full md:w-[640px]">
+            <div className="flex flex-col gap-5 w-full sm:max-w-[600px] xl:max-w-full">
               <TwoVersionsInfo />
               <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
                 <div className="flex justify-between items-center mb-2.5">
@@ -424,6 +457,8 @@ export default function SwapPage() {
                         ? tokenA1Balance?.value >= parseUnits(typedValue, tokenA.decimals)
                         : false))
                   }
+                  isTradeReady={Boolean(trade)}
+                  isTradeLoading={isLoadingTrade}
                 />
 
                 {trade && tokenA && tokenB && (

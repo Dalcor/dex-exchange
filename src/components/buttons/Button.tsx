@@ -28,6 +28,7 @@ type CommonProps = {
   size?: ButtonSize;
   colorScheme?: ButtonColor;
   mobileSize?: ButtonSize;
+  tabletSize?: ButtonSize;
   fullWidth?: boolean;
 };
 
@@ -54,7 +55,15 @@ const buttonVariantClassnameMap: Record<ButtonVariant, Record<ButtonColor, strin
 };
 
 const buttonSizeClassnameMap: Record<ButtonSize, string> = {
-  [ButtonSize.EXTRA_SMALL]: "md:text-12 min-h-5 md:rounded-20 md:px-4",
+  [ButtonSize.EXTRA_SMALL]: "xl:text-12 xl:min-h-5 xl:rounded-20 xl:px-4",
+  [ButtonSize.SMALL]: "xl:text-14 xl:font-medium xl:min-h-8 xl:rounded-20 xl:px-6",
+  [ButtonSize.MEDIUM]: "xl:text-16 xl:font-medium xl:min-h-10 xl:rounded-2 xl:px-6",
+  [ButtonSize.LARGE]: "xl:text-16 xl:font-medium xl:min-h-12 xl:rounded-2 xl:px-6",
+  [ButtonSize.EXTRA_LARGE]: "xl:text-18 xl:font-medium xl:min-h-[60px] xl:rounded-2 xl:px-6",
+};
+
+const tabletButtonSizeClassnameMap: Record<ButtonSize, string> = {
+  [ButtonSize.EXTRA_SMALL]: "md:text-12 md:min-h-5 md:rounded-20 md:px-4",
   [ButtonSize.SMALL]: "md:text-14 md:font-medium md:min-h-8 md:rounded-20 md:px-6",
   [ButtonSize.MEDIUM]: "md:text-16 md:font-medium md:min-h-10 md:px-6",
   [ButtonSize.LARGE]: "md:text-16 md:font-medium md:min-h-12 md:px-6",
@@ -73,6 +82,7 @@ export default function Button({
   variant = ButtonVariant.CONTAINED,
   size = ButtonSize.LARGE,
   mobileSize,
+  tabletSize,
   startIcon,
   endIcon,
   fullWidth,
@@ -82,6 +92,7 @@ export default function Button({
   ...props
 }: Props) {
   const _mobileSize = mobileSize || size;
+  const _tabletSize = tabletSize || size;
 
   return (
     <button
@@ -89,6 +100,7 @@ export default function Button({
         "rounded-2 flex items-center justify-center gap-2 duration-200",
         buttonVariantClassnameMap[variant][colorScheme],
         buttonSizeClassnameMap[size],
+        tabletButtonSizeClassnameMap[_tabletSize],
         mobileButtonSizeClassnameMap[_mobileSize],
         fullWidth && "w-full",
         props.disabled && "opacity-50 pointer-events-none",

@@ -33,6 +33,7 @@ import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/us
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { formatFloat } from "@/functions/formatFloat";
 import { tryParseCurrencyAmount } from "@/functions/tryParseTick";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
@@ -157,7 +158,6 @@ const gasOptionTitle: Record<GasOption, string> = {
   [GasOption.CUSTOM]: "Custom",
 };
 
-const PAGE_SIZE = 10;
 export default function SwapPage() {
   useRecentTransactionTracking();
 
@@ -171,11 +171,10 @@ export default function SwapPage() {
 
   const { setIsOpen } = useTransactionSettingsDialogStore();
 
-  const { slippage, deadline: _deadline } = useTransactionSettingsStore();
-
   const { address } = useAccount();
 
   const lang = useLocale();
+  const chainId = useCurrentChainId();
 
   const {
     tokenA,
@@ -186,7 +185,12 @@ export default function SwapPage() {
     tokenBAddress,
     setTokenAAddress,
     setTokenBAddress,
+    reset,
   } = useSwapTokensStore();
+
+  useEffect(() => {
+    reset();
+  }, [chainId, reset]);
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
@@ -246,10 +250,12 @@ export default function SwapPage() {
   }, [trade?.outputAmount]);
 
   const { data: blockNumber } = useBlockNumber({ watch: true });
+
   const { data: tokenA0Balance, refetch: refetchBalanceA0 } = useBalance({
     address: tokenA ? address : undefined,
     token: tokenA ? (tokenA.address0 as Address) : undefined,
   });
+
   const { data: tokenA1Balance, refetch: refetchBalanceA1 } = useBalance({
     address: tokenA ? address : undefined,
     token: tokenA ? (tokenA.address1 as Address) : undefined,
@@ -270,9 +276,6 @@ export default function SwapPage() {
     refetchBalanceB0();
     refetchBalanceB1();
   }, [blockNumber, refetchBalanceA0, refetchBalanceB0, refetchBalanceA1, refetchBalanceB1]);
-
-  console.log("Trade");
-  console.log(trade);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
   const { data: baseFee } = useGasPrice();
@@ -296,8 +299,7 @@ export default function SwapPage() {
     return "Loading...";
   }, [baseFee, gasPrice]);
 
-  const { isSuccessSwap, isLoadingSwap, isPendingSwap, isLoadingApprove, isPendingApprove } =
-    useSwap();
+  const { isLoadingSwap, isPendingSwap, isLoadingApprove, isPendingApprove } = useSwap();
 
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
 

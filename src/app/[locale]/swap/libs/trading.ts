@@ -26,11 +26,17 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
   const [poolState, pool] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
 
   const swapRoute = useMemo(() => {
-    if (pool && tokenA && tokenB) {
-      return new Route([pool], tokenA, tokenB);
+    if (!pool || !tokenA || !tokenB) {
+      return null;
     }
 
-    return null;
+    const [_tokenA, _tokenB] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA];
+
+    if (pool.token0.address0 !== _tokenA.address0 || pool.token1.address0 !== _tokenB.address0) {
+      return null;
+    }
+
+    return new Route([pool], tokenA, tokenB);
   }, [pool, tokenA, tokenB]);
 
   const amountOutData = useSimulateContract({
@@ -55,20 +61,6 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
     },
   });
 
-  // const amountOutData = useSimulateContract({
-  //   address: QUOTER_ADDRESS_V0[chainId as DexChainId],
-  //   abi: QUOTER_ABI_V0,
-  //   functionName: "quoteExactInputSingle",
-  //   args: [
-  //     tokenA?.address0 as Address,
-  //     tokenB?.address0 as Address,
-  //     FeeAmount.MEDIUM, //3000
-  //     parseUnits(typedValue, tokenA?.decimals || 18),
-  //     BigInt(0),
-  //   ],
-  //   query: { enabled: Boolean(tokenA) && Boolean(tokenB) },
-  // });
-
   const amountOut = useMemo(() => {
     if (amountOutData.data) {
       return amountOutData.data.result;
@@ -78,7 +70,16 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
   }, [amountOutData.data]);
 
   const trade = useMemo(() => {
-    if (!swapRoute || !tokenA || !tokenB || !amountOut || !typedValue || !Boolean(+typedValue)) {
+    if (
+      !swapRoute ||
+      !tokenA ||
+      !tokenB ||
+      !amountOut ||
+      !typedValue ||
+      !Boolean(+typedValue) ||
+      swapRoute.input.address0 !== tokenA.address0 ||
+      swapRoute.output.address0 !== tokenB.address0
+    ) {
       return null;
     }
 

@@ -92,6 +92,7 @@ export const svgIconsNames = [
   "gas",
   "question",
   "pin",
+  "pin-fill",
   "double-arrow",
   "closed",
   "forward",

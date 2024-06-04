@@ -17,6 +17,7 @@ const config: Config = {
         error: "0px 0px 10px 0px #D13B3B99",
         warning: "0px 0px 10px 0px #D9A25199",
         notification: "0px -8px 24px 0px #B3FFE24D",
+        "warning-alert": "0px -8px 24px 0px #D9A2514D",
       },
       backgroundImage: {
         "account-card-pattern": "url('/account-bg.svg')",

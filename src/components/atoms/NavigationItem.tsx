@@ -15,7 +15,7 @@ export default function NavigationItem({ href, title, active }: Props) {
   return (
     <Link
       className={clsx(
-        "px-3 py-5 duration-200",
+        "px-3 py-5 duration-200 inline-flex",
         active ? "bg-navigation-active" : "hover:bg-navigation-hover",
       )}
       href={href}
@@ -28,9 +28,11 @@ export default function NavigationItem({ href, title, active }: Props) {
 export function NavigationItemWithSubmenu({
   title,
   submenu,
+  active,
 }: {
   title: string;
   submenu: (handleClose: () => void) => ReactNode;
+  active: boolean;
 }) {
   const [isSubmenuOpened, setSubmenuOpened] = useState(false);
 
@@ -45,7 +47,7 @@ export function NavigationItemWithSubmenu({
           onClick={() => setSubmenuOpened(!isSubmenuOpened)}
           className={clsx(
             "px-3 py-5 inline-flex items-center gap-1 duration-200",
-            isSubmenuOpened ? "bg-navigation-active" : "hover:bg-navigation-hover",
+            isSubmenuOpened || active ? "bg-navigation-active" : "hover:bg-navigation-hover",
           )}
         >
           {title ? <span>{title}</span> : null}

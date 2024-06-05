@@ -1,5 +1,6 @@
 import { Address } from "viem";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
 
@@ -12,46 +13,54 @@ interface PinnedTokensStore {
 }
 
 const f = DEX_SUPPORTED_CHAINS.map((chainId) => [chainId, []]);
-export const usePinnedTokensStore = create<PinnedTokensStore>((set, get) => ({
-  tokens: Object.fromEntries(f),
-  pinToken: (address, chainId) => {
-    const currentPinned = get().tokens[chainId];
-    set({
-      tokens: {
-        ...get().tokens,
-        [chainId]: [address, ...currentPinned],
+
+export const usePinnedTokensStore = create<PinnedTokensStore>()(
+  persist(
+    (set, get) => ({
+      tokens: Object.fromEntries(f),
+      pinToken: (address, chainId) => {
+        const currentPinned = get().tokens[chainId];
+        set({
+          tokens: {
+            ...get().tokens,
+            [chainId]: [address, ...currentPinned],
+          },
+        });
       },
-    });
-  },
-  toggleToken: (address, chainId) => {
-    const currentPinned = get().tokens[chainId];
-    if (currentPinned.includes(address)) {
-      set({
-        tokens: {
-          ...get().tokens,
-          [chainId]: currentPinned.filter((a) => a !== address),
-        },
-      });
-    } else {
-      set({
-        tokens: {
-          ...get().tokens,
-          [chainId]: [...currentPinned, address],
-        },
-      });
-    }
-  },
-  unpinToken: (address, chainId) => {
-    const currentPinned = get().tokens[chainId];
-    set({
-      tokens: {
-        ...get().tokens,
-        [chainId]: currentPinned.filter((a) => a !== address),
+      toggleToken: (address, chainId) => {
+        const currentPinned = get().tokens[chainId];
+        if (currentPinned.includes(address)) {
+          set({
+            tokens: {
+              ...get().tokens,
+              [chainId]: currentPinned.filter((a) => a !== address),
+            },
+          });
+        } else {
+          set({
+            tokens: {
+              ...get().tokens,
+              [chainId]: [...currentPinned, address],
+            },
+          });
+        }
       },
-    });
-  },
-  getPinnedTokens: (chainId) => get().tokens[chainId],
-}));
+      unpinToken: (address, chainId) => {
+        const currentPinned = get().tokens[chainId];
+        set({
+          tokens: {
+            ...get().tokens,
+            [chainId]: currentPinned.filter((a) => a !== address),
+          },
+        });
+      },
+      getPinnedTokens: (chainId) => get().tokens[chainId],
+    }),
+    {
+      name: "d223-pinned-tokens", // name of the item in the storage (must be unique)
+    },
+  ),
+);
 
 type PoolAddress = {
   isLoading: boolean;

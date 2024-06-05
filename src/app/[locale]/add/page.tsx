@@ -3,7 +3,6 @@
 import clsx from "clsx";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
-import { useAccount } from "wagmi";
 
 import FeeAmountSettings from "@/app/[locale]/add/components/FeeAmountSettings";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";

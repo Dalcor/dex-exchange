@@ -9,6 +9,7 @@ const menuItems: Array<
   | {
       label: any;
       submenu: (handleClose: () => void) => ReactNode;
+      activeFlags: string[];
     }
   | { label: any; href: string }
 > = [
@@ -25,6 +26,7 @@ const menuItems: Array<
         />
       </div>
     ),
+    activeFlags: ["/swap", "/margin-trading"],
   },
   {
     label: "pools",
@@ -102,6 +104,7 @@ const menuItems: Array<
         </div>
       </div>
     ),
+    activeFlags: [],
   },
 ];
 
@@ -119,6 +122,7 @@ export default function Navigation() {
               <NavigationItemWithSubmenu
                 title={menuItem.label ? t(menuItem.label) : ""}
                 submenu={menuItem.submenu}
+                active={pathname.includes(menuItem.activeFlags[0])}
               />
             </li>
           );

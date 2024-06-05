@@ -8,6 +8,9 @@ import Svg from "@/components/atoms/Svg";
 export default function TwoVersionsInfo() {
   const { isOpened, setIsOpened } = useTwoVersionsInfoStore();
 
+  console.log("IN COMPONENTS");
+  console.log(isOpened);
+
   return (
     <div className="bg-standard-gradient border-l-4 border-green rounded-2 overflow-hidden text-14">
       <button

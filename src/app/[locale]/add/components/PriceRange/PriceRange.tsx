@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useCallback, useEffect } from "react";
 
 import Svg from "@/components/atoms/Svg";
@@ -32,6 +33,7 @@ export const PriceRange = ({
   token0,
   token1,
   outOfRange,
+  isFormDisabled,
 }: {
   noLiquidity: boolean;
   price: Price<Token, Token> | undefined;
@@ -56,6 +58,7 @@ export const PriceRange = ({
     UPPER: number | undefined;
   };
   outOfRange: boolean;
+  isFormDisabled: boolean;
 }) => {
   const { tokenA, tokenB, setBothTokens } = useAddLiquidityTokensStore();
   const {
@@ -140,7 +143,12 @@ export const PriceRange = ({
   ]);
 
   return (
-    <div className="flex flex-col gap-5 bg-secondary-bg px-5 py-6 rounded-3">
+    <div
+      className={clsx(
+        "flex flex-col gap-5 bg-secondary-bg px-5 py-6 rounded-3",
+        isFormDisabled && "opacity-20",
+      )}
+    >
       <PriceRangeHeader
         isSorted={!!isSorted}
         isFullRange={isFullRange}
@@ -176,6 +184,9 @@ export const PriceRange = ({
         title="Low price"
         decrement={isSorted ? getDecrementLower : getIncrementUpper}
         increment={isSorted ? getIncrementLower : getDecrementUpper}
+        tokenA={tokenA}
+        tokenB={tokenB}
+        noLiquidity={noLiquidity}
       />
       <PriceRangeInput
         title="High price"
@@ -187,6 +198,9 @@ export const PriceRange = ({
         onUserInput={setRightRangeTypedValue}
         decrement={isSorted ? getDecrementUpper : getIncrementLower}
         increment={isSorted ? getIncrementUpper : getDecrementLower}
+        tokenA={tokenA}
+        tokenB={tokenB}
+        noLiquidity={noLiquidity}
       />
       {outOfRange ? (
         <span className="text-14 border border-orange rounded-3 px-4 py-2 bg-orange-bg">

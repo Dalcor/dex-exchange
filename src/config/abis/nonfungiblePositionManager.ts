@@ -101,6 +101,11 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
       {
         components: [
           {
+            internalType: "address",
+            name: "pool",
+            type: "address",
+          },
+          {
             internalType: "uint256",
             name: "tokenId",
             type: "uint256",
@@ -119,6 +124,11 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
             internalType: "uint128",
             name: "amount1Max",
             type: "uint128",
+          },
+          {
+            internalType: "uint8",
+            name: "tokensOutCode",
+            type: "uint8",
           },
         ],
         internalType: "struct INonfungiblePositionManager.CollectParams",

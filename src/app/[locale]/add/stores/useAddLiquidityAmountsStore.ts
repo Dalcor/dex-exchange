@@ -23,7 +23,7 @@ interface LiquidityAmountsStore {
 export const useLiquidityAmountsStore = create<LiquidityAmountsStore>((set, get) => ({
   independentField: Field.CURRENCY_A,
   dependentField: Field.CURRENCY_B,
-  typedValue: "1",
+  typedValue: "",
   tokenAStandardRatio: 0,
   tokenBStandardRatio: 0,
   setTokenAStandardRatio: (ratio) => {

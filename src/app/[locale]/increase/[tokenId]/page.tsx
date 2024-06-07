@@ -29,9 +29,8 @@ import {
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useRouter } from "@/navigation";
 
-import { ApproveButton } from "../../add/components/ApproveButton";
 import { DepositAmounts } from "../../add/components/DepositAmounts/DepositAmounts";
-import { MintButton } from "../../add/components/MintButton";
+import { LiquidityActionButton } from "../../add/components/LiquidityActionButton/LiquidityActionButton";
 import { useLiquidityApprove } from "../../add/hooks/useLiquidityApprove";
 import { usePriceRange } from "../../add/hooks/usePrice";
 
@@ -230,8 +229,8 @@ export default function IncreaseLiquidityPage({
               <div className="grid grid-cols-[1fr_12px_1fr] mb-3">
                 <PositionPriceRangeCard
                   showFirst={showFirst}
-                  token0={tokenA}
-                  token1={tokenB}
+                  tokenA={tokenA}
+                  tokenB={tokenB}
                   price={minPriceString}
                 />
                 <div className="relative">
@@ -241,8 +240,8 @@ export default function IncreaseLiquidityPage({
                 </div>
                 <PositionPriceRangeCard
                   showFirst={showFirst}
-                  token0={tokenA}
-                  token1={tokenB}
+                  tokenA={tokenA}
+                  tokenB={tokenB}
                   price={maxPriceString}
                   isMax
                 />
@@ -259,11 +258,7 @@ export default function IncreaseLiquidityPage({
               </div>
             </div>
           </div>
-          {approveTransactions?.length ? (
-            <ApproveButton />
-          ) : (
-            <MintButton increase tokenId={params.tokenId} />
-          )}
+          <LiquidityActionButton increase tokenId={params.tokenId} />
         </div>
         <div className="flex flex-col gap-5">
           <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />

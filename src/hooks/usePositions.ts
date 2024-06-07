@@ -212,11 +212,17 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
 
 const MAX_UINT128 = BigInt(2) ** BigInt(128) - BigInt(1);
 
-export function usePositionFees(
-  pool?: Pool,
-  tokenId?: bigint,
-  asWETH: boolean = false,
-): {
+export function usePositionFees({
+  poolAddress,
+  pool,
+  tokenId,
+  asWETH = false,
+}: {
+  pool?: Pool;
+  tokenId?: bigint;
+  asWETH?: boolean;
+  poolAddress?: Address;
+}): {
   fees: [CurrencyAmount<Currency>, CurrencyAmount<Currency>] | [undefined, undefined];
   handleCollectFees: () => void;
 } {
@@ -235,20 +241,27 @@ export function usePositionFees(
       enabled: Boolean(tokenId),
     },
   });
-
+  const recipient = result.data! || address;
   const latestBlockNumber = useBlockNumber();
 
   // TODO: is this result cached? wrong numbers in UI, but in metamask — ok
-  const { data: collectResult } = useSimulateContract({
+  const { data: collectResult, error } = useSimulateContract({
     address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
     abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
     functionName: "collect",
     args: [
       {
+        pool: poolAddress!,
         tokenId: tokenId!,
-        recipient: result.data!,
+        recipient: recipient,
         amount0Max: MAX_UINT128,
         amount1Max: MAX_UINT128,
+        // Коды токенов:
+        // 0 >> оба ERC-20
+        // 1 >> первый ERC-20, второй ERC-223
+        // 2 >> первый ERC-223, второй ERC-20
+        // 3 >> оба ERC-223
+        tokensOutCode: 0,
       },
     ],
     query: {
@@ -266,15 +279,22 @@ export function usePositionFees(
     const params = {
       address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
       abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
-      functionName: "collect" as "collect",
+      functionName: "collect" as const,
       args: [
         {
+          pool: poolAddress!,
           tokenId: tokenId!,
-          recipient: result.data!,
+          recipient: recipient,
           amount0Max: MAX_UINT128,
           amount1Max: MAX_UINT128,
+          // Коды токенов:
+          // 0 >> оба ERC-20
+          // 1 >> первый ERC-20, второй ERC-223
+          // 2 >> первый ERC-223, второй ERC-20
+          // 3 >> оба ERC-223
+          tokensOutCode: 1,
         },
-      ] as any,
+      ] as const,
     };
 
     const estimatedGas = await publicClient.estimateContractGas(params);
@@ -385,19 +405,19 @@ export function usePositionPrices({
 }) {
   const minPrice = useMemo(() => {
     if (showFirst) {
-      return position?.token0PriceLower.invert();
-    }
-
-    return position?.token0PriceLower;
-  }, [position?.token0PriceLower, showFirst]);
-
-  const maxPrice = useMemo(() => {
-    if (showFirst) {
       return position?.token0PriceUpper.invert();
     }
 
+    return position?.token0PriceLower;
+  }, [position?.token0PriceLower, position?.token0PriceUpper, showFirst]);
+
+  const maxPrice = useMemo(() => {
+    if (showFirst) {
+      return position?.token0PriceLower.invert();
+    }
+
     return position?.token0PriceUpper;
-  }, [position?.token0PriceUpper, showFirst]);
+  }, [position?.token0PriceLower, position?.token0PriceUpper, showFirst]);
 
   const currentPrice = useMemo(() => {
     if (showFirst) {

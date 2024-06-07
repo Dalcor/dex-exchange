@@ -4,24 +4,24 @@ import { Token } from "@/sdk_hybrid/entities/token";
 
 export default function PositionPriceRangeCard({
   price,
-  token0,
-  token1,
+  tokenA,
+  tokenB,
   showFirst,
   isMax = false,
 }: {
   price?: string;
-  token0: Token | undefined;
-  token1: Token | undefined;
+  tokenA: Token | undefined;
+  tokenB: Token | undefined;
   showFirst: boolean;
   isMax?: boolean;
 }) {
   const symbol = useMemo(() => {
     if (isMax) {
-      return showFirst ? token0?.symbol : token1?.symbol;
+      return showFirst ? tokenA?.symbol : tokenB?.symbol;
     }
 
-    return showFirst ? token1?.symbol : token0?.symbol;
-  }, [isMax, showFirst, token0?.symbol, token1?.symbol]);
+    return showFirst ? tokenB?.symbol : tokenA?.symbol;
+  }, [isMax, showFirst, tokenA?.symbol, tokenB?.symbol]);
 
   return (
     <div className="rounded-3 overflow-hidden">
@@ -30,8 +30,8 @@ export default function PositionPriceRangeCard({
         <div className="text-18">{price}</div>
         <div className="text-14 text-secondary-text">
           {showFirst
-            ? `${token0?.symbol} per ${token1?.symbol}`
-            : `${token1?.symbol} per ${token0?.symbol}`}
+            ? `${tokenB?.symbol} per ${tokenA?.symbol}`
+            : `${tokenA?.symbol} per ${tokenB?.symbol}`}
         </div>
       </div>
       <div className="bg-quaternary-bg py-3 px-5 text-14 border-t-2 border-tertiary-bg text-secondary-text text-center">

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Address, formatUnits, getAbiItem } from "viem";
 import {
   useAccount,
@@ -8,7 +8,6 @@ import {
   useWalletClient,
 } from "wagmi";
 
-import { ERC223_ABI } from "@/config/abis/erc223";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
@@ -22,14 +21,12 @@ import {
 
 import { AllowanceStatus } from "./useAllowance";
 
-export default function useDeposit({
+export default function useWithdraw({
   token,
   contractAddress,
-  amountToCheck,
 }: {
   token: Token | undefined;
   contractAddress: Address | undefined;
-  amountToCheck: bigint | null;
 }) {
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
 
@@ -50,6 +47,7 @@ export default function useDeposit({
       enabled: Boolean(address) && Boolean(token?.address1),
     },
   });
+  const amountToWithdraw = currentDeposit.data as bigint;
 
   const { data: blockNumber } = useBlockNumber({ watch: true });
 
@@ -57,24 +55,9 @@ export default function useDeposit({
     currentDeposit.refetch();
   }, [currentDeposit, blockNumber]);
 
-  const isDeposited = useMemo(() => {
-    if (!token) {
-      return false;
-    }
-    // if (isNativeToken(token.address)) {
-    //   return true;
-    // }
-
-    if (currentDeposit?.data && amountToCheck) {
-      return (currentDeposit.data as bigint) >= amountToCheck;
-    }
-
-    return false;
-  }, [amountToCheck, currentDeposit?.data, token]);
-
-  const writeTokenDeposit = useCallback(async () => {
+  const writeTokenWithdraw = useCallback(async () => {
     if (
-      !amountToCheck ||
+      !amountToWithdraw ||
       !contractAddress ||
       !token ||
       !walletClient ||
@@ -87,13 +70,18 @@ export default function useDeposit({
 
     setStatus(AllowanceStatus.PENDING);
 
+    if (!token) return;
     try {
       const params = {
         account: address as Address,
-        abi: ERC223_ABI,
-        functionName: "transfer" as "transfer",
-        address: token.address1 as Address,
-        args: [contractAddress, amountToCheck] as any,
+        abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+        functionName: "withdraw" as "withdraw",
+        address: contractAddress,
+        args: [token.address1 as Address, address as Address, amountToWithdraw] as [
+          Address,
+          Address,
+          bigint,
+        ],
       };
 
       const estimatedGas = await publicClient.estimateContractGas(params);
@@ -122,12 +110,12 @@ export default function useDeposit({
           },
           params: {
             ...stringifyObject(params),
-            abi: [getAbiItem({ name: "transfer", abi: ERC223_ABI })],
+            abi: [getAbiItem({ name: "withdraw", abi: NONFUNGIBLE_POSITION_MANAGER_ABI })],
           },
           title: {
             symbol: token.symbol!,
-            template: RecentTransactionTitleTemplate.DEPOSIT,
-            amount: formatUnits(amountToCheck, token.decimals),
+            template: RecentTransactionTitleTemplate.WITHDRAW,
+            amount: formatUnits(amountToWithdraw, token.decimals),
             logoURI: token?.logoURI || "/tokens/placeholder.svg",
           },
         },
@@ -145,7 +133,7 @@ export default function useDeposit({
       addToast("Unexpected error, please contact support", "error");
     }
   }, [
-    amountToCheck,
+    amountToWithdraw,
     contractAddress,
     token,
     walletClient,
@@ -159,7 +147,7 @@ export default function useDeposit({
   useEffect(() => {
     IIFE(async () => {
       if (
-        !amountToCheck ||
+        !amountToWithdraw ||
         !contractAddress ||
         !token ||
         !walletClient ||
@@ -172,29 +160,30 @@ export default function useDeposit({
 
       const params = {
         account: address as Address,
-        abi: ERC223_ABI,
-        functionName: "transfer" as const,
-        address: token.address1 as Address,
-        args: [contractAddress, amountToCheck] as any,
+        abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
+        functionName: "withdraw" as "withdraw",
+        address: contractAddress,
+        args: [token.address1 as Address, address as Address, amountToWithdraw] as [
+          Address,
+          Address,
+          bigint,
+        ],
       };
 
       try {
         const estimatedGas = await publicClient.estimateContractGas(params);
         setEstimatedGas(estimatedGas);
       } catch (error) {
-        console.warn("🚀 ~ useDeposit ~ estimatedGas ~ error:", error, "params:", params);
+        console.warn("🚀 ~ useWithdraw ~ estimatedGas ~ error:", error, "params:", params);
         setEstimatedGas(null);
       }
     });
-  }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
+  }, [amountToWithdraw, contractAddress, token, walletClient, address, chainId, publicClient]);
 
   return {
-    isDeposited,
-    status,
-    isLoading: status === AllowanceStatus.LOADING,
-    isPending: status === AllowanceStatus.PENDING,
-    writeTokenDeposit,
-    currentDeposit: currentDeposit.data as bigint,
+    withdrawStatus: status,
+    withdrawHandler: writeTokenWithdraw,
     estimatedGas,
+    currentDeposit: currentDeposit.data as bigint,
   };
 }

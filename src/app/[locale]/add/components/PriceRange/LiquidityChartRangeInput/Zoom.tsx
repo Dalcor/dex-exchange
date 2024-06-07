@@ -104,7 +104,7 @@ export default function Zoom({
   }, [zoomInitial, zoomLevels]);
 
   return (
-    <div className="flex gap-2 justify-end w-100">
+    <div className="flex gap-2 justify-end items-center w-100">
       <IconButton variant={IconButtonVariant.CONTROL} iconName="zoom-in" onClick={zoomIn} />
       <IconButton variant={IconButtonVariant.CONTROL} iconName="zoom-out" onClick={zoomOut} />
       <div
@@ -112,6 +112,7 @@ export default function Zoom({
           resetBrush();
           zoomReset();
         }}
+        className="cursor-pointer rounded-2 hover:bg-green-bg bg-transparent duration-200 text-primary-text px-3 py-1"
       >
         Refresh
       </div>

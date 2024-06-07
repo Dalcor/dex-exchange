@@ -2,10 +2,9 @@ import clsx from "clsx";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { formatEther, formatGwei } from "viem";
-import { useAccount, useBlock, useGasPrice } from "wagmi";
+import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
 
 import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Preloader from "@/components/atoms/Preloader";
@@ -18,11 +17,11 @@ import { formatFloat } from "@/functions/formatFloat";
 import { AllowanceStatus } from "@/hooks/useAllowance";
 import { usePositionPrices, usePositionRangeStatus } from "@/hooks/usePositions";
 
-import { useAddLiquidity, useV3DerivedMintInfo } from "../hooks/useAddLiquidity";
-import { usePriceRange } from "../hooks/usePrice";
-import { Field, useTokensStandards } from "../stores/useAddLiquidityAmountsStore";
-import { useAddLiquidityTokensStore } from "../stores/useAddLiquidityTokensStore";
-import { useLiquidityTierStore } from "../stores/useLiquidityTierStore";
+import { useAddLiquidity, useV3DerivedMintInfo } from "../../hooks/useAddLiquidity";
+import { usePriceRange } from "../../hooks/usePrice";
+import { Field, useTokensStandards } from "../../stores/useAddLiquidityAmountsStore";
+import { useAddLiquidityTokensStore } from "../../stores/useAddLiquidityTokensStore";
+import { useLiquidityTierStore } from "../../stores/useLiquidityTierStore";
 
 export const MintButton = ({
   increase = false,
@@ -32,24 +31,16 @@ export const MintButton = ({
   tokenId?: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { chainId, chain } = useAccount();
-  const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
-  const { tier, setTier } = useLiquidityTierStore();
+  const { chain } = useAccount();
+  const { tokenA, tokenB } = useAddLiquidityTokensStore();
+  const { tier } = useLiquidityTierStore();
   const { price } = usePriceRange();
   const { tokenAStandard, tokenBStandard } = useTokensStandards();
   const [showFirst, setShowFirst] = useState(true);
 
   const { handleAddLiquidity, estimatedGas, status } = useAddLiquidity();
 
-  const {
-    parsedAmounts,
-    position,
-    currencies,
-    noLiquidity,
-    outOfRange,
-    depositADisabled,
-    depositBDisabled,
-  } = useV3DerivedMintInfo({
+  const { parsedAmounts, position, noLiquidity } = useV3DerivedMintInfo({
     tokenA,
     tokenB,
     tier,
@@ -58,11 +49,11 @@ export const MintButton = ({
 
   // Gas price
   const { data: gasPrice, refetch: refetchGasPrice } = useGasPrice();
-  const { data: block } = useBlock({ watch: true, blockTag: "latest" });
+  const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {
     refetchGasPrice();
-  }, [block, refetchGasPrice]);
+  }, [blockNumber, refetchGasPrice]);
 
   const buttonText = increase
     ? "Add liquidity"
@@ -76,9 +67,13 @@ export const MintButton = ({
     showFirst,
   });
 
-  if (!tokenA || !tokenB || !position) return null;
+  // TODO? !position? return ?
+  if (!tokenA || !tokenB) {
+    return null;
+  }
+
   return (
-    <div className="my-5">
+    <div>
       <Button onClick={() => setIsOpen(true)} fullWidth>
         {buttonText}
       </Button>
@@ -117,9 +112,7 @@ export const MintButton = ({
               )}
             </div>
           </div>
-
           {/* Amounts */}
-
           <div className="flex flex-col rounded-3 bg-tertiary-bg p-5 mt-4">
             <div className="flex gap-3">
               <div className="flex flex-col items-center w-full rounded-3 bg-quaternary-bg px-5 py-3">
@@ -180,8 +173,8 @@ export const MintButton = ({
             <div className="grid grid-cols-[1fr_20px_1fr] mb-3">
               <PositionPriceRangeCard
                 showFirst={showFirst}
-                token0={tokenA}
-                token1={tokenB}
+                tokenA={tokenA}
+                tokenB={tokenB}
                 price={minPriceString}
               />
               <div className="relative">
@@ -191,8 +184,8 @@ export const MintButton = ({
               </div>
               <PositionPriceRangeCard
                 showFirst={showFirst}
-                token0={tokenA}
-                token1={tokenB}
+                tokenA={tokenA}
+                tokenB={tokenB}
                 price={maxPriceString}
                 isMax
               />
@@ -203,8 +196,8 @@ export const MintButton = ({
                 <div className="text-18">{currentPriceString}</div>
                 <div className="text-14 text-secondary-text">
                   {showFirst
-                    ? `${tokenA?.symbol} per ${tokenB?.symbol}`
-                    : `${tokenB?.symbol} per ${tokenA?.symbol}`}
+                    ? `${tokenB?.symbol} per ${tokenA?.symbol}`
+                    : `${tokenA?.symbol} per ${tokenB?.symbol}`}
                 </div>
               </div>
             </div>

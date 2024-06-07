@@ -151,7 +151,6 @@ export function RecentTransactionLogo({ title }: { title: IRecentTransactionTitl
 export function RecentTransactionStatusIcon({ status }: { status: RecentTransactionStatus }) {
   switch (status) {
     case RecentTransactionStatus.PENDING:
-    case RecentTransactionStatus.QUEUED:
       return <Preloader />;
     case RecentTransactionStatus.SUCCESS:
       return <Svg className="text-green" iconName="done" />;
@@ -163,8 +162,10 @@ export function RecentTransactionStatusIcon({ status }: { status: RecentTransact
 export default function RecentTransaction({
   transaction,
   showSpeedUp = true,
+  isLowestNonce = false,
 }: {
   transaction: IRecentTransaction;
+  isLowestNonce?: boolean;
   showSpeedUp?: boolean;
 }) {
   const { handleSpeedUp } = useTransactionSpeedUpDialogStore();
@@ -184,23 +185,27 @@ export default function RecentTransaction({
 
       <div className="flex items-center gap-3">
         <div className="hidden items-center gap-3 @[620px]:flex">
-          {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && (
-            <>
-              <RecentTransactionActionButton disabled color="secondary">
-                Cancel
-              </RecentTransactionActionButton>
-              <RecentTransactionActionButton disabled onClick={() => handleSpeedUp(transaction)}>
-                Speed up
-              </RecentTransactionActionButton>
-            </>
-          )}
-          {transaction.status === RecentTransactionStatus.QUEUED && (
-            <>
-              <RecentTransactionActionButton disabled color="secondary">
-                Queue
-              </RecentTransactionActionButton>
-            </>
-          )}
+          {transaction.status === RecentTransactionStatus.PENDING &&
+            showSpeedUp &&
+            isLowestNonce && (
+              <>
+                <RecentTransactionActionButton disabled color="secondary">
+                  Cancel
+                </RecentTransactionActionButton>
+                <RecentTransactionActionButton disabled onClick={() => handleSpeedUp(transaction)}>
+                  Speed up
+                </RecentTransactionActionButton>
+              </>
+            )}
+          {transaction.status === RecentTransactionStatus.PENDING &&
+            showSpeedUp &&
+            !isLowestNonce && (
+              <>
+                <RecentTransactionActionButton disabled color="secondary">
+                  Queue
+                </RecentTransactionActionButton>
+              </>
+            )}
         </div>
 
         <a
@@ -218,7 +223,7 @@ export default function RecentTransaction({
           <RecentTransactionStatusIcon status={transaction.status} />
         </span>
       </div>
-      {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && (
+      {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && isLowestNonce && (
         <div className="@[620px]:hidden w-full grid grid-cols-2 gap-3 mt-3">
           <RecentTransactionActionButton disabled color="secondary">
             Cancel
@@ -228,7 +233,7 @@ export default function RecentTransaction({
           </RecentTransactionActionButton>
         </div>
       )}
-      {transaction.status === RecentTransactionStatus.QUEUED && (
+      {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && !isLowestNonce && (
         <div className="@[620px]:hidden w-full mt-3 grid grid-cols-1">
           <RecentTransactionActionButton disabled color="secondary">
             Queue

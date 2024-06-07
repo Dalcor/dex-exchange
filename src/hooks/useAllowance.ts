@@ -141,10 +141,11 @@ export default function useAllowance({
       });
       const hash = await walletClient.writeContract(request);
 
-      const nonce = await publicClient.getTransactionCount({
-        address,
-        blockTag: "pending",
+      const transaction = await publicClient.getTransaction({
+        hash,
       });
+
+      const nonce = transaction.nonce;
 
       addRecentTransaction(
         {

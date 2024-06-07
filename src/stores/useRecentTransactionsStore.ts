@@ -8,7 +8,6 @@ export enum RecentTransactionStatus {
   PENDING,
   SUCCESS,
   ERROR,
-  QUEUED,
 }
 
 export enum GasFeeModel {
@@ -146,15 +145,10 @@ export const useRecentTransactionsStore = create<RecentTransactions>()(
         set((state) => {
           const updatedTransactions = { ...state.transactions };
           const accountTransactions = updatedTransactions[accountAddress] || [];
-          const status = accountTransactions.some(
-            (t) => t.status === RecentTransactionStatus.PENDING,
-          )
-            ? RecentTransactionStatus.QUEUED
-            : RecentTransactionStatus.PENDING;
 
           const newTransaction = {
             ...transaction,
-            status,
+            status: RecentTransactionStatus.PENDING,
             id: transaction.hash,
           };
 
@@ -170,18 +164,6 @@ export const useRecentTransactionsStore = create<RecentTransactions>()(
           if (transactionIndex === -1) return {};
 
           accountTransactions[transactionIndex].status = status;
-
-          if (
-            status === RecentTransactionStatus.SUCCESS ||
-            status === RecentTransactionStatus.ERROR
-          ) {
-            const nextQueuedTransaction = accountTransactions.find(
-              (t) => t.status === RecentTransactionStatus.QUEUED,
-            );
-            if (nextQueuedTransaction) {
-              nextQueuedTransaction.status = RecentTransactionStatus.PENDING;
-            }
-          }
 
           return { transactions: updatedTransactions };
         }),

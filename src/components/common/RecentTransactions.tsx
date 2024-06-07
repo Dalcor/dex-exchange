@@ -5,7 +5,10 @@ import { useAccount } from "wagmi";
 import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
 import Pagination from "@/components/common/Pagination";
 import RecentTransaction from "@/components/common/RecentTransaction";
-import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
+import {
+  RecentTransactionStatus,
+  useRecentTransactionsStore,
+} from "@/stores/useRecentTransactionsStore";
 
 const PAGE_SIZE = 10;
 
@@ -21,6 +24,26 @@ export default function RecentTransactions({
 }: Props) {
   const { transactions } = useRecentTransactionsStore();
   const { address } = useAccount();
+
+  console.log(transactions);
+
+  const lowestPendingNonce = useMemo(() => {
+    if (address) {
+      const accountPendingTransactions = transactions[address]?.filter(
+        (v) => v.status === RecentTransactionStatus.PENDING,
+      );
+
+      if (!accountPendingTransactions) {
+        return -1;
+      }
+
+      return accountPendingTransactions.reduce((lowest, obj) => {
+        return obj.nonce < lowest ? obj.nonce : lowest;
+      }, accountPendingTransactions[0]?.nonce || -1);
+    }
+
+    return -1;
+  }, [address, transactions]);
 
   const _transactions = useMemo(() => {
     if (address && transactions[address]) {
@@ -54,7 +77,13 @@ export default function RecentTransactions({
                 <>
                   <div className="pb-5 flex flex-col gap-1">
                     {currentTableData.map((transaction) => {
-                      return <RecentTransaction transaction={transaction} key={transaction.hash} />;
+                      return (
+                        <RecentTransaction
+                          isLowestNonce={transaction.nonce === lowestPendingNonce}
+                          transaction={transaction}
+                          key={transaction.hash}
+                        />
+                      );
                     })}
                   </div>
                   <Pagination

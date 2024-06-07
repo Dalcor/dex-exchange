@@ -32,12 +32,6 @@ export function Providers({ children, initialState, messages, locale }: Props) {
     }, 50); // Small delay to ensure initial render completes
     return () => clearTimeout(timer);
   }, []);
-  //
-  // if (!loaded) {
-  //   return (
-  //
-  //   );
-  // }
 
   return (
     <>

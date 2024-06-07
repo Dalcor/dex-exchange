@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
+import { Address } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 
 import { addNotification } from "@/other/notification";
@@ -8,6 +9,7 @@ import {
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 
+const trackingTransactions: Address[] = [];
 export function useRecentTransactionTracking() {
   const { transactions, updateTransactionStatus } = useRecentTransactionsStore();
   const { address } = useAccount();
@@ -72,19 +74,19 @@ export function useRecentTransactionTracking() {
         updateTransactionStatus(id, RecentTransactionStatus.ERROR, address);
         addNotification(title, RecentTransactionStatus.ERROR);
       }
-
-      // setIsViewed(id, address, false);
     },
     [address, publicClient, updateTransactionStatus],
   );
 
   useEffect(() => {
     for (const transaction of transactionsForAddress) {
-      if (transaction.status === RecentTransactionStatus.PENDING) {
+      if (
+        transaction.status === RecentTransactionStatus.PENDING &&
+        !trackingTransactions.includes(transaction.id)
+      ) {
         waitForTransaction(transaction.hash, transaction.id, transaction.title);
+        trackingTransactions.push(transaction.id);
       }
     }
   }, [transactionsForAddress, waitForTransaction]);
-
-  // return isUnViewedTransactions;
 }

@@ -3,7 +3,6 @@
 import clsx from "clsx";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
-import { useAccount } from "wagmi";
 
 import FeeAmountSettings from "@/app/[locale]/add/components/FeeAmountSettings";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
@@ -24,13 +23,13 @@ import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracki
 import { useRouter } from "@/navigation";
 import { Token } from "@/sdk_hybrid/entities/token";
 
-import { ApproveButton } from "./components/ApproveButton";
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
-import { MintButton } from "./components/MintButton";
+import { LiquidityActionButton } from "./components/LiquidityActionButton/LiquidityActionButton";
 import { PriceRange } from "./components/PriceRange/PriceRange";
 import { useV3DerivedMintInfo } from "./hooks/useAddLiquidity";
 import { useLiquidityApprove } from "./hooks/useLiquidityApprove";
 import { usePriceRange } from "./hooks/usePrice";
+import { useLiquidityPriceRangeStore } from "./stores/useLiquidityPriceRangeStore";
 
 export default function AddPoolPage() {
   usePoolsSearchParams();
@@ -99,6 +98,12 @@ export default function AddPoolPage() {
   const { approveTransactions, gasPrice } = useLiquidityApprove();
 
   const isFormDisabled = !tokenA || !tokenB;
+
+  // User need to provide values to price range & Starting price on pool creating
+  const { ticks } = useLiquidityPriceRangeStore();
+  const { LOWER: tickLower, UPPER: tickUpper } = ticks;
+  const isCreatePoolFormFilled =
+    !!price && typeof tickLower === "number" && typeof tickUpper === "number";
 
   return (
     <Container>
@@ -201,7 +206,7 @@ export default function AddPoolPage() {
             </SelectButton>
           </div>
           <FeeAmountSettings />
-          <div className={clsx("gap-5 md:grid md:grid-cols-2", isFormDisabled && "opacity-20")}>
+          <div className="gap-5 md:grid md:grid-cols-2 mb-5">
             <DepositAmounts
               parsedAmounts={parsedAmounts}
               currencies={currencies}
@@ -209,7 +214,7 @@ export default function AddPoolPage() {
               depositBDisabled={depositBDisabled}
               approveTransactions={approveTransactions}
               gasPrice={gasPrice}
-              isFormDisabled={isFormDisabled}
+              isFormDisabled={isFormDisabled || !isCreatePoolFormFilled}
             />
             <PriceRange
               noLiquidity={noLiquidity}
@@ -226,9 +231,10 @@ export default function AddPoolPage() {
               token0={token0}
               token1={token1}
               outOfRange={outOfRange}
+              isFormDisabled={isFormDisabled}
             />
           </div>
-          {approveTransactions?.length ? <ApproveButton /> : <MintButton />}
+          <LiquidityActionButton />
         </div>
         <div className="flex flex-col gap-5">
           <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />

@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { formatEther, formatGwei, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -50,7 +51,7 @@ export const DepositAmounts = ({
   // get formatted amounts
   const formattedAmounts = {
     [independentField]: typedValue,
-    [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? "",
+    [dependentField]: parsedAmounts[dependentField]?.toSignificant() ?? "",
   };
 
   const totalGasLimit = approveTransactions.reduce((acc, { estimatedGas }) => {
@@ -58,7 +59,7 @@ export const DepositAmounts = ({
   }, BigInt(0));
 
   return (
-    <div className="flex flex-col gap-4 md:gap-5">
+    <div className={clsx("flex flex-col gap-4 md:gap-5", isFormDisabled && "opacity-20")}>
       <TokenDepositCard
         value={formattedAmounts[Field.CURRENCY_A]}
         onChange={(value) => setTypedValue({ field: Field.CURRENCY_A, typedValue: value })}

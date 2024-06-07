@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 import { NumericalInput } from "./NumericalInput";
 
@@ -12,6 +13,9 @@ interface Props {
   increment: () => string;
   prependSymbol?: string;
   maxDecimals?: number;
+  tokenA?: Token | undefined;
+  tokenB?: Token | undefined;
+  noLiquidity?: boolean;
 }
 export default function PriceRangeInput({
   title,
@@ -21,6 +25,9 @@ export default function PriceRangeInput({
   increment,
   prependSymbol,
   maxDecimals,
+  tokenA,
+  tokenB,
+  noLiquidity,
 }: Props) {
   //  for focus state, styled components doesnt let you select input parent container
   const [active, setActive] = useState(false);
@@ -82,7 +89,9 @@ export default function PriceRangeInput({
           prependSymbol={prependSymbol}
           maxDecimals={maxDecimals}
         />
-        <span className="text-12 text-secondary-text">DAI per ETH</span>
+        <span className="text-12 text-secondary-text">
+          {tokenA && tokenB ? `${tokenB.symbol} per ${tokenA.symbol}` : ""}
+        </span>
       </div>
       <div className="flex flex-col gap-2">
         <IconButton
@@ -90,12 +99,14 @@ export default function PriceRangeInput({
           iconName="add"
           onClick={handleIncrement}
           className="rounded-2 bg-secondary-bg hover:bg-green-bg duration-200 text-primary-text"
+          disabled={noLiquidity}
         />
         <IconButton
           variant={IconButtonVariant.CONTROL}
           iconName="minus"
           onClick={handleDecrement}
           className="rounded-2 bg-secondary-bg hover:bg-green-bg duration-200 text-primary-text"
+          disabled={noLiquidity}
         />
       </div>
     </div>

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { parseUnits } from "viem";
-import { useAccount, useBlock, useGasPrice } from "wagmi";
+import { useAccount, useBlock, useBlockNumber, useGasPrice } from "wagmi";
 
 import useAllowance, { AllowanceStatus } from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
@@ -49,15 +48,12 @@ export const useLiquidityApprove = () => {
     price,
   });
 
-  const amountToCheckA = parseUnits(
-    parsedAmounts[Field.CURRENCY_A]?.toSignificant() || "",
-    tokenA?.decimals || 18,
-  );
-
-  const amountToCheckB = parseUnits(
-    parsedAmounts[Field.CURRENCY_B]?.toSignificant() || "",
-    tokenB?.decimals || 18,
-  );
+  const amountToCheckA = parsedAmounts[Field.CURRENCY_A]
+    ? BigInt(parsedAmounts[Field.CURRENCY_A].quotient.toString())
+    : BigInt(0);
+  const amountToCheckB = parsedAmounts[Field.CURRENCY_B]
+    ? BigInt(parsedAmounts[Field.CURRENCY_B].quotient.toString())
+    : BigInt(0);
 
   const {
     isAllowed: isAllowedA,
@@ -266,11 +262,11 @@ export const useLiquidityApprove = () => {
 
   // Gas price
   const { data: gasPrice, refetch: refetchGasPrice } = useGasPrice();
-  const { data: block } = useBlock({ watch: true, blockTag: "latest" });
+  const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {
     refetchGasPrice();
-  }, [block, refetchGasPrice]);
+  }, [blockNumber, refetchGasPrice]);
 
   return {
     approveTransactions,

@@ -16,11 +16,11 @@ import {
   ApproveTransactionType,
   TestApproveTransaction,
   useLiquidityApprove,
-} from "../hooks/useLiquidityApprove";
+} from "../../hooks/useLiquidityApprove";
 
 const APPROVE_BUTTON_TEXT = {
   [ApproveTransactionType.ERC20_AND_ERC223]: "Approve & Deposit",
-  [ApproveTransactionType.ERC20]: "Approve ",
+  [ApproveTransactionType.ERC20]: "Approve",
   [ApproveTransactionType.ERC223]: "Deposit",
 };
 
@@ -144,7 +144,7 @@ export const ApproveButton = () => {
     },
   ].filter(({ transaction }) => !!transaction);
   return (
-    <div className="mt-5">
+    <div>
       {/* TODO */}
       {isOpen ? (
         <Button fullWidth disabled>

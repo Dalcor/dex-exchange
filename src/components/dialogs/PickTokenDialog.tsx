@@ -1,15 +1,17 @@
+import clsx from "clsx";
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
+import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Input from "@/components/atoms/Input";
-import Svg from "@/components/atoms/Svg";
 import IconButton from "@/components/buttons/IconButton";
 import { TokenPortfolioDialogContent } from "@/components/dialogs/TokenPortfolioDialog";
 import { useTokens } from "@/hooks/useTokenLists";
+import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { usePinnedTokensStore } from "@/stores/usePinnedTokensStore";
 
 interface Props {
   isOpen: boolean;
@@ -26,6 +28,12 @@ function TokenRow({
   handlePick: (token: Token) => void;
   setTokenForPortfolio: (token: Token) => void;
 }) {
+  const { toggleToken, isTokenPinned, pinnedTokens } = usePinnedTokensStore((s) => ({
+    toggleToken: s.toggleToken,
+    pinnedTokens: s.tokens,
+    isTokenPinned: s.tokens[token.chainId].includes(token.address0),
+  }));
+
   return (
     <div
       role="button"
@@ -48,7 +56,14 @@ function TokenRow({
             setTokenForPortfolio(token);
           }}
         />
-        <Svg iconName="pin" />
+        <IconButton
+          className={clsx("duration-200", isTokenPinned ? "text-green" : "hover:text-green")}
+          iconName={isTokenPinned ? "pin-fill" : "pin"}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleToken(token.address0, token.chainId);
+          }}
+        />
       </div>
     </div>
   );
@@ -82,35 +97,45 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
       ) : (
         <>
           <DialogHeader onClose={handleClose} title="Select a token" />
-          <div className="w-full md:w-[570px]">
-            <div className="px-4 md:px-10 pb-3">
-              <Input placeholder="Search name or paste address" />
-              <div className="mt-3 grid grid-cols-3 gap-3">
-                <button className="items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
-                  <Image width={24} height={24} src="/tokens/ETH.svg" alt="" />
-                  ETH
-                </button>
-                <button className="items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
-                  <Image width={24} height={24} src="/tokens/USDT.svg" alt="" />
-                  USDT
-                </button>
-                <button className="items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
-                  <Image width={24} height={24} src="/tokens/DEX.svg" alt="" />
-                  DEX223
-                </button>
+
+          {tokens.length ? (
+            <>
+              <div className="w-full md:w-[570px]">
+                <div className="px-4 md:px-10 pb-3">
+                  <Input placeholder="Search name or paste address" />
+                  <div className="mt-3 grid grid-cols-3 gap-3">
+                    <button className="opacity-50 pointer-events-none items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
+                      <Image width={24} height={24} src="/tokens/ETH.svg" alt="" />
+                      ETH
+                    </button>
+                    <button className="opacity-50 pointer-events-none items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
+                      <Image width={24} height={24} src="/tokens/USDT.svg" alt="" />
+                      USDT
+                    </button>
+                    <button className="opacity-50 pointer-events-none items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
+                      <Image width={24} height={24} src="/tokens/DEX.svg" alt="" />
+                      DEX223
+                    </button>
+                  </div>
+                </div>
+                <div className="h-[420px] overflow-scroll">
+                  {tokens.map((token) => (
+                    <TokenRow
+                      setTokenForPortfolio={setTokenForPortfolio}
+                      handlePick={handlePick}
+                      key={token.address0}
+                      token={token}
+                    />
+                  ))}
+                </div>
               </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center gap-2 flex-col h-full min-h-[520px] w-full md:w-[570px]">
+              <EmptyStateIcon iconName="tokens" />
+              <span className="text-secondary-text">There are no tokens here</span>
             </div>
-            <div className="h-[420px] overflow-scroll">
-              {tokens.map((token) => (
-                <TokenRow
-                  setTokenForPortfolio={setTokenForPortfolio}
-                  handlePick={handlePick}
-                  key={token.address0}
-                  token={token}
-                />
-              ))}
-            </div>
-          </div>
+          )}
         </>
       )}
     </DrawerDialog>

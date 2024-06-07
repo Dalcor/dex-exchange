@@ -3,19 +3,19 @@ import { ReactNode } from "react";
 
 import Svg from "@/components/atoms/Svg";
 
-export type AlertType = "success" | "info" | "error" | "warning";
+export type AlertType = "success" | "info" | "error" | "warning" | "info-border";
 
 interface Props {
   text: string;
-  onDismiss: any;
   type?: AlertType;
 }
 
 const iconsMap: Record<AlertType, ReactNode> = {
-  success: <Svg iconName="done" />,
-  info: <Svg iconName="info" />,
-  error: <Svg iconName="warning" />,
-  warning: <Svg iconName="warning" />,
+  success: <Svg className=" flex-shrink-0" iconName="done" />,
+  info: <Svg className=" flex-shrink-0" iconName="info" />,
+  error: <Svg className=" flex-shrink-0" iconName="warning" />,
+  warning: <Svg className=" flex-shrink-0" iconName="warning" />,
+  "info-border": <Svg className=" flex-shrink-0" iconName="info" />,
 };
 
 export default function Alert({ text, type = "success" }: Props) {
@@ -39,6 +39,7 @@ export default function Alert({ text, type = "success" }: Props) {
         type === "error" && "outline-red bg-red-bg",
         type === "warning" && "outline-orange bg-orange-bg",
         type === "info" && "outline-blue bg-blue-bg",
+        type === "info-border" && "border-l-4 border-l-blue outline-0 bg-primary-bg",
       )}
     >
       <div
@@ -48,6 +49,7 @@ export default function Alert({ text, type = "success" }: Props) {
           type === "error" && "text-red",
           type === "warning" && "text-orange",
           type === "info" && "text-blue",
+          type === "info-border" && "text-blue",
         )}
       >
         {iconsMap[type]}

@@ -58,7 +58,13 @@ function ListPopoverOption(props: Props) {
       );
     case ListActionOption.VIEW:
       return (
-        <a className={clsx(commonClassName, "text-green hover:text-green-hover")} href={props.href}>
+        <a
+          className={clsx(
+            commonClassName,
+            "text-green hover:text-green-hover opacity-50 pointer-events-none",
+          )}
+          href={props.href}
+        >
           View list
           <Svg iconName="next" />
         </a>

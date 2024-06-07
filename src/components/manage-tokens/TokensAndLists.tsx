@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AutoSizer, List } from "react-virtualized";
 
 import Checkbox from "@/components/atoms/Checkbox";
@@ -14,6 +14,7 @@ import { db } from "@/db/db";
 import { useTokenLists, useTokens } from "@/hooks/useTokenLists";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
+import { useNoTokenListsEnabledWarningStore } from "@/stores/useNoTokenListsEnabledWarningStore";
 
 interface Props {
   setContent: (content: ManageTokensDialogContent) => void;
@@ -79,7 +80,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
                 ?.map((tokenList) => {
                   return (
                     <TokenListItem
-                      toggle={() => {
+                      toggle={async () => {
                         (db.tokenLists as any).update(tokenList.id, {
                           enabled: !tokenList.enabled,
                         });

@@ -9,7 +9,7 @@ interface Props {
   setIsOpen: (isOpen: boolean) => void;
 }
 export default function DrawerDialog({ isOpen, children, setIsOpen }: PropsWithChildren<Props>) {
-  const isMobile = useMediaQuery({ query: "(max-width: 600px)" });
+  const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
 
   return (
     <>

@@ -1,22 +1,33 @@
 import React, { useMemo, useState } from "react";
 import { Address, isAddress } from "viem";
-import { useAccount, useReadContract } from "wagmi";
+import { useReadContract } from "wagmi";
 
+import Alert from "@/components/atoms/Alert";
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
-import Input from "@/components/atoms/Input";
+import ExternalTextLink from "@/components/atoms/ExternalTextLink";
 import Svg from "@/components/atoms/Svg";
 import TextField from "@/components/atoms/TextField";
+import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import Button, { ButtonSize } from "@/components/buttons/Button";
+import IconButton, {
+  IconButtonSize,
+  IconButtonVariant,
+  IconSize,
+} from "@/components/buttons/IconButton";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { TOKEN_CONVERTER_ABI } from "@/config/abis/tokenConverter";
-import { db, TokenList } from "@/db/db";
+import { db } from "@/db/db";
+import { copyToClipboard } from "@/functions/copyToClipboard";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
+import truncateMiddle from "@/functions/truncateMiddle";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { useTokenLists } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
 import { CONVERTER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { ADDRESS_ZERO } from "@/sdk_hybrid/constants";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 interface Props {
@@ -107,6 +118,17 @@ export default function ImportToken({ setContent, handleClose }: Props) {
     },
   });
 
+  const { data: predictedErc223Address } = useReadContract({
+    abi: TOKEN_CONVERTER_ABI,
+    functionName: "predictWrapperAddress",
+    address: CONVERTER_ADDRESS[chainId],
+    args: [tokenAddressToImport as Address, true],
+    chainId,
+    query: {
+      enabled: !!tokenAddressToImport && isAddress(tokenAddressToImport),
+    },
+  });
+
   const [checkedUnderstand, setCheckedUnderstand] = useState<boolean>(false);
 
   const custom = useTokenLists(true);
@@ -114,6 +136,22 @@ export default function ImportToken({ setContent, handleClose }: Props) {
   const alreadyImported = useMemo(() => {
     return !!(custom && custom?.[0]?.list.tokens.find((v) => v.address0 === tokenAddressToImport));
   }, [custom, tokenAddressToImport]);
+
+  const isERC223TokenExists = useMemo(() => {
+    return !!(erc223Address?.[0] && erc223Address[0] !== ADDRESS_ZERO);
+  }, [erc223Address]);
+
+  const erc223AddressToShow = useMemo(() => {
+    if (isERC223TokenExists) {
+      return erc223Address![0];
+    }
+
+    if (predictedErc223Address) {
+      return predictedErc223Address;
+    }
+
+    return;
+  }, [erc223Address, isERC223TokenExists, predictedErc223Address]);
 
   return (
     <>
@@ -160,12 +198,62 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                   </span>
                 </div>
               </div>
-              {!alreadyImported && (
+              {!alreadyImported && erc223AddressToShow && (
                 <>
-                  <div className="mb-4">
-                    <span className="text-primary-text">
-                      <b>ERC223:</b> {erc223Address[0]}
-                    </span>
+                  <div className="mb-4 flex flex-col gap-4 px-5 pb-5 pt-4 bg-tertiary-bg rounded-3">
+                    <div className="grid grid-cols-[1fr_auto_32px] gap-x-2">
+                      <span className="text-secondary-text flex items-center gap-1">
+                        Address <Badge variant={BadgeVariant.COLORED} text="ERC-20" />{" "}
+                      </span>
+                      <ExternalTextLink
+                        color="white"
+                        text={truncateMiddle(tokenAddressToImport)}
+                        href={getExplorerLink(
+                          ExplorerLinkType.ADDRESS,
+                          tokenAddressToImport,
+                          chainId,
+                        )}
+                        className="justify-between"
+                      />
+                      <IconButton
+                        iconSize={IconSize.SMALL}
+                        variant={IconButtonVariant.DEFAULT}
+                        buttonSize={IconButtonSize.SMALL}
+                        iconName="copy"
+                        onClick={async () => {
+                          await copyToClipboard(tokenAddressToImport);
+                          addToast("Successfully copied!");
+                        }}
+                      />
+                      <span className="text-secondary-text flex items-center gap-1">
+                        Address{" "}
+                        <Badge
+                          variant={BadgeVariant.COLORED}
+                          text="ERC-223"
+                          color={isERC223TokenExists ? "green" : "blue"}
+                        />{" "}
+                      </span>
+                      <div className="h-8 flex items-center">
+                        {truncateMiddle(erc223AddressToShow)}
+                      </div>
+                      <IconButton
+                        iconSize={IconSize.SMALL}
+                        variant={IconButtonVariant.DEFAULT}
+                        buttonSize={IconButtonSize.SMALL}
+                        iconName="copy"
+                        onClick={async () => {
+                          await copyToClipboard(erc223AddressToShow);
+                          addToast("Successfully copied!");
+                        }}
+                      />
+                    </div>
+
+                    {predictedErc223Address && !isERC223TokenExists && (
+                      <Alert
+                        text="The token with the ERC-223 standard doesn’t exist yet. Converter contracts predict the address that you see."
+                        type="info-border"
+                      />
+                    )}
                   </div>
                   <div className="px-5 py-3 flex gap-2 rounded-1 border border-orange bg-orange-bg">
                     <Svg className="text-orange shrink-0" iconName="warning" />
@@ -180,7 +268,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
               )}
             </div>
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 mt-5">
               {!alreadyImported && (
                 <Checkbox
                   checked={checkedUnderstand}
@@ -194,13 +282,20 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                 size={ButtonSize.MEDIUM}
                 disabled={!checkedUnderstand || alreadyImported}
                 onClick={async () => {
-                  if (chainId && tokenName && tokenDecimals && tokenSymbol && erc223Address?.[0]) {
+                  if (
+                    chainId &&
+                    tokenName &&
+                    tokenDecimals &&
+                    tokenSymbol &&
+                    erc223Address?.[0] &&
+                    predictedErc223Address
+                  ) {
                     const currentCustomList = tokenLists?.find((t) => t.id === `custom-${chainId}`);
 
                     const token = new Token(
                       chainId,
                       tokenAddressToImport as Address,
-                      erc223Address[0] as Address,
+                      isERC223TokenExists ? erc223Address[0] : predictedErc223Address,
                       tokenDecimals,
                       tokenSymbol,
                       tokenName,

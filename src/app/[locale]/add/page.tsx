@@ -48,16 +48,23 @@ export default function AddPoolPage() {
   const handlePick = useCallback(
     (token: Token) => {
       if (currentlyPicking === "tokenA") {
+        if (token === tokenB) {
+          setTokenB(tokenA);
+        }
+
         setTokenA(token);
       }
 
       if (currentlyPicking === "tokenB") {
+        if (token === tokenA) {
+          setTokenA(tokenB);
+        }
         setTokenB(token);
       }
 
       setIsOpenedTokenPick(false);
     },
-    [currentlyPicking, setTokenA, setTokenB],
+    [currentlyPicking, setTokenA, setTokenB, tokenA, tokenB],
   );
 
   // PRICE RANGE HOOK START
@@ -78,20 +85,13 @@ export default function AddPoolPage() {
   // PRICE RANGE HOOK END
 
   // Deposit Amounts START
-  const {
-    parsedAmounts,
-    position,
-    currencies,
-    noLiquidity,
-    outOfRange,
-    depositADisabled,
-    depositBDisabled,
-  } = useV3DerivedMintInfo({
-    tokenA,
-    tokenB,
-    tier,
-    price,
-  });
+  const { parsedAmounts, currencies, noLiquidity, outOfRange, depositADisabled, depositBDisabled } =
+    useV3DerivedMintInfo({
+      tokenA,
+      tokenB,
+      tier,
+      price,
+    });
 
   // Deposit Amounts END
 

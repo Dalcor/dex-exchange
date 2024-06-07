@@ -1,24 +1,23 @@
-import clsx from "clsx";
 import { useState } from "react";
 
 import SelectButton from "@/components/atoms/SelectButton";
 import ManageTokensDialog from "@/components/manage-tokens/ManageTokensDialog";
+import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
 
-export default function TokenListsSettings({ isMobile = false }: { isMobile?: boolean }) {
-  const [isOpened, setIsOpened] = useState(false);
+export default function TokenListsSettings() {
+  const { isOpen, setIsOpen } = useManageTokensDialogStore();
 
   return (
-    <div className={clsx(!isMobile && "hidden md:block")}>
+    <div>
       <SelectButton
-        className="py-1 xl:py-2 text-14 xl:text-16 min-h-8"
-        fullWidth={isMobile}
+        className="py-1 xl:py-2 text-14 xl:text-16 min-h-8 w-full md:w-auto flex items-center justify-center"
         withArrow={false}
         size="regular"
-        onClick={() => setIsOpened(true)}
+        onClick={() => setIsOpen(!isOpen)}
       >
         Manage tokens
       </SelectButton>
-      <ManageTokensDialog isOpen={isOpened} setIsOpen={setIsOpened} />
+      <ManageTokensDialog isOpen={isOpen} setIsOpen={setIsOpen} />
     </div>
   );
 }

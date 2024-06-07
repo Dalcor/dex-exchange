@@ -7,6 +7,7 @@ import { db, TokenList, TokenListId } from "@/db/db";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { usePinnedTokensStore } from "@/stores/usePinnedTokensStore";
 
 export async function fetchTokenList(url: string) {
   const data = await fetch(url);
@@ -142,9 +143,6 @@ function getTokenRate(token: Token, tokenLists: TokenList[], chainId: DexChainId
   const sameNameInOtherListsCheck = getSameNameInOtherListsCheckResult(token, tokenLists, chainId);
   const erc223VersionExists = getERC223VersionExistsCheckResult(token);
 
-  console.log("Other list check");
-  console.log(otherListCheck);
-
   return {
     ...defaultListCheck,
     ...otherListCheck,
@@ -185,6 +183,9 @@ export function useTokenLists(onlyCustom: boolean = false) {
 
 export function useTokens(onlyCustom: boolean = false) {
   const tokenLists = useTokenLists(onlyCustom);
+  const chainId = useCurrentChainId();
+
+  const pinnedTokens = usePinnedTokensStore((s) => s.tokens?.[chainId] || []);
 
   return useMemo(() => {
     if (tokenLists && tokenLists.length >= 1) {
@@ -197,8 +198,6 @@ export function useTokens(onlyCustom: boolean = false) {
             const lowercaseAddress = item.address0.toLowerCase() as Address;
 
             const rate = getTokenRate(item, tokenLists, item.chainId);
-
-            console.log(rate);
 
             map.set(
               lowercaseAddress,
@@ -231,14 +230,33 @@ export function useTokens(onlyCustom: boolean = false) {
 
       const tokensArrays = tokenLists.filter((list) => list.enabled);
 
-      return inspect(...tokensArrays);
+      const _t = inspect(...tokensArrays);
+
+      const pinned = _t.filter((t) => pinnedTokens.includes(t.address0));
+      const unpinned = _t.filter((t) => !pinnedTokens.includes(t.address0));
+
+      // Sort pinned tokens according to the order in pinnedTokens array
+      const sortedPinned = pinned.sort((a, b) => {
+        return pinnedTokens.indexOf(b.address0) - pinnedTokens.indexOf(a.address0);
+      });
+
+      return [...sortedPinned, ...unpinned];
     }
 
-    return (
+    const tokens =
       tokenLists
         ?.filter((list) => list.enabled)
         .map((l) => l.list.tokens)
-        .flat() || []
-    );
-  }, [tokenLists]);
+        .flat() || [];
+
+    const pinned = tokens.filter((t) => pinnedTokens.includes(t.address0));
+    const unpinned = tokens.filter((t) => !pinnedTokens.includes(t.address0));
+
+    // Sort pinned tokens according to the order in pinnedTokens array
+    const sortedPinned = pinned.sort((a, b) => {
+      return pinnedTokens.indexOf(b.address0) - pinnedTokens.indexOf(a.address0);
+    });
+
+    return [...sortedPinned, ...unpinned];
+  }, [pinnedTokens, tokenLists]);
 }

@@ -12,6 +12,7 @@ interface SwapTokensStore {
   tokenBAddress: Address | undefined;
   setTokenAAddress: (address: Address | undefined) => void;
   setTokenBAddress: (address: Address | undefined) => void;
+  reset: () => void;
 }
 
 export const useSwapTokensStore = create<SwapTokensStore>((set, get) => ({
@@ -25,4 +26,11 @@ export const useSwapTokensStore = create<SwapTokensStore>((set, get) => ({
 
   setTokenAAddress: (tokenAAddress) => set({ tokenAAddress }),
   setTokenBAddress: (tokenBAddress) => set({ tokenBAddress }),
+  reset: () =>
+    set({
+      tokenA: undefined,
+      tokenB: undefined,
+      tokenAAddress: undefined,
+      tokenBAddress: undefined,
+    }),
 }));

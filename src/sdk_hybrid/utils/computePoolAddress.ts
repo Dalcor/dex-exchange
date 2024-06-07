@@ -12,7 +12,7 @@ import { ADDRESS_ZERO, FeeAmount } from "@/sdk_hybrid/constants";
 import { usePoolAddresses } from "@/stores/usePoolsStore";
 
 import { FACTORY_ADDRESS, POOL_INIT_CODE_HASH } from "../addresses";
-import { DexChainId } from "../chains";
+import { DEX_SUPPORTED_CHAINS, DexChainId } from "../chains";
 import { Token, TokenStandard } from "../entities/token";
 
 /**
@@ -79,7 +79,7 @@ const computePoolAddressDex = async ({
     tier,
   });
 
-  if (cachedKeys.has(key)) return undefined;
+  if (cachedKeys.has(key) || !DEX_SUPPORTED_CHAINS.includes(chainId)) return undefined;
   cachedKeys.add(key);
 
   const poolContract = await readContract(config, {

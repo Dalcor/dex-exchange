@@ -25,6 +25,7 @@ import {
 } from "@/hooks/usePositions";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useRouter } from "@/navigation";
+import { useComputePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 
 export default function PoolPage({
   params,
@@ -43,13 +44,24 @@ export default function PoolPage({
 
   const { position: positionInfo, loading } = usePositionFromTokenId(BigInt(params.tokenId));
   const position = usePositionFromPositionInfo(positionInfo);
-  const { fees, handleCollectFees } = usePositionFees(position?.pool, positionInfo?.tokenId);
 
   const [tokenA, tokenB, fee] = useMemo(() => {
     return position?.pool.token0 && position?.pool.token1 && position?.pool.fee
       ? [position.pool.token0, position.pool.token1, position.pool.fee]
       : [undefined, undefined];
   }, [position?.pool.fee, position?.pool.token0, position?.pool.token1]);
+
+  const { poolAddress, poolAddressLoading } = useComputePoolAddressDex({
+    tokenA,
+    tokenB,
+    tier: fee,
+  });
+
+  const { fees, handleCollectFees } = usePositionFees({
+    pool: position?.pool,
+    poolAddress,
+    tokenId: positionInfo?.tokenId,
+  });
 
   const { inRange, removed } = usePositionRangeStatus({ position });
   const { minPriceString, maxPriceString, currentPriceString, ratio } = usePositionPrices({
@@ -222,8 +234,8 @@ export default function PoolPage({
           <div className="grid grid-cols-[1fr_20px_1fr] mb-5">
             <PositionPriceRangeCard
               showFirst={showFirst}
-              token0={tokenA}
-              token1={tokenB}
+              tokenA={tokenA}
+              tokenB={tokenB}
               price={minPriceString}
             />
             <div className="relative">
@@ -233,8 +245,8 @@ export default function PoolPage({
             </div>
             <PositionPriceRangeCard
               showFirst={showFirst}
-              token0={tokenA}
-              token1={tokenB}
+              tokenA={tokenA}
+              tokenB={tokenB}
               price={maxPriceString}
               isMax
             />

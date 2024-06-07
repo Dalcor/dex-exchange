@@ -139,18 +139,22 @@ export const useComputePoolAddressDex = ({
     if (poolAddressFromStore || !tokenA || !tokenB || !tier || !chainId) {
       return;
     }
+    const key = getPoolAddressKey({
+      addressTokenA: tokenA.address0,
+      addressTokenB: tokenB.address0,
+      tier,
+      chainId,
+    });
+    addPoolAddress(key, {
+      address: undefined,
+      isLoading: true,
+    });
     computePoolAddressDex({
       addressTokenA: tokenA.address0,
       addressTokenB: tokenB.address0,
       tier,
       chainId,
     }).then((address) => {
-      const key = getPoolAddressKey({
-        addressTokenA: tokenA.address0,
-        addressTokenB: tokenB.address0,
-        tier,
-        chainId,
-      });
       addPoolAddress(key, {
         address,
         isLoading: false,

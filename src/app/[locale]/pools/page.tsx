@@ -57,7 +57,7 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
   return (
     <div
       role="button"
-      className="px-5 py-4 rounded-2 bg-secondary-bg hover:bg-secondary-bg duration-200 cursor-pointer"
+      className="px-5 py-4 rounded-3 bg-secondary-bg hover:bg-secondary-bg duration-200 cursor-pointer"
       onClick={onClick}
     >
       <div className="justify-between flex items-center mb-2">
@@ -108,11 +108,11 @@ export default function PoolsPage() {
   const { isConnected } = useAccount();
   const router = useRouter();
 
-  const { loading, positions } = usePositions();
+  const { loading, positions: positions } = usePositions();
 
   return (
     <Container>
-      <div className="py-[80px] flex justify-center">
+      <div className="py-[80px] px-10 flex justify-center">
         <div className="w-full">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5 px-4 md:px-0 gap-2">
             <h1 className="text-24">Pools</h1>
@@ -123,9 +123,17 @@ export default function PoolsPage() {
               </span>
             </Button>
           </div>
+          {loading && (
+            <div className="w-full">
+              <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
+                <Preloader size={50} type="awaiting" />
+              </div>
+            </div>
+          )}
+
           {!isConnected ? (
             <div className="w-full">
-              <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-4">
+              <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
                 <EmptyStateIcon iconName="wallet" />
                 <p className="text-16 text-secondary-text">
                   Connect to a wallet to see your liquidity
@@ -133,35 +141,42 @@ export default function PoolsPage() {
               </div>
             </div>
           ) : (
-            <div className="rounded-3 w-full overflow-hidden bg-primary-bg md:px-10 px-5">
-              <div className="flex justify-between py-3">
-                <span className="text-secondary-text">Your positions</span>
-                <span className="text-green">Hide closed positions</span>
-              </div>
-              {loading ? (
-                <div className="py-10 flex justify-center items-center">
-                  <Preloader size={50} type="awaiting" />
+            <>
+              {positions?.length ? (
+                <div className="rounded-5 w-full overflow-hidden bg-primary-bg md:px-10 px-5">
+                  <div className="flex justify-between py-3">
+                    <span className="text-secondary-text">Your positions</span>
+                    <span className="text-green">Hide closed positions</span>
+                  </div>
+                  <div className="flex flex-col gap-3 pb-10">
+                    {positions?.length ? (
+                      positions.map((position) => {
+                        return (
+                          <PoolPosition
+                            positionInfo={position}
+                            key={(position as any).nonce}
+                            onClick={() =>
+                              router.push(`/pool/${(position as any).tokenId.toString()}`)
+                            }
+                          />
+                        );
+                      })
+                    ) : (
+                      <div>You have no positions yet</div>
+                    )}
+                  </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-3 pb-10">
-                  {positions ? (
-                    positions.map((position) => {
-                      return (
-                        <PoolPosition
-                          positionInfo={position}
-                          key={(position as any).nonce}
-                          onClick={() =>
-                            router.push(`/pool/${(position as any).tokenId.toString()}`)
-                          }
-                        />
-                      );
-                    })
-                  ) : (
-                    <div>You have no positions yet</div>
-                  )}
+                <div className="w-full">
+                  <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
+                    <EmptyStateIcon iconName="pool" />
+                    <p className="text-16 text-secondary-text">
+                      Your active liquidity positions will appear here
+                    </p>
+                  </div>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>

@@ -1,10 +1,11 @@
 import JSBI from "jsbi";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Address, encodeFunctionData, formatUnits, getAbiItem } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { AllowanceStatus } from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
@@ -27,6 +28,7 @@ export default function useRemoveLiquidity({
   percentage: number;
   tokenId: string | undefined;
 }) {
+  const [status, setStatus] = useState(AllowanceStatus.INITIAL);
   const { slippage, deadline: _deadline } = useTransactionSettingsStore();
   const deadline = useTransactionDeadline(_deadline);
   const { address: accountAddress } = useAccount();
@@ -51,6 +53,7 @@ export default function useRemoveLiquidity({
       ) {
         return;
       }
+      setStatus(AllowanceStatus.PENDING);
 
       try {
         const percent = new Percent(percentage, 100);
@@ -146,8 +149,15 @@ export default function useRemoveLiquidity({
           },
           accountAddress,
         );
+        if (hash) {
+          setStatus(AllowanceStatus.LOADING);
+          await publicClient.waitForTransactionReceipt({ hash });
+          setStatus(AllowanceStatus.SUCCESS);
+          return { success: true };
+        }
       } catch (e) {
         console.log(e);
+        setStatus(AllowanceStatus.INITIAL);
       }
     },
     [
@@ -162,5 +172,5 @@ export default function useRemoveLiquidity({
     ],
   );
 
-  return { handleRemoveLiquidity };
+  return { handleRemoveLiquidity, status };
 }

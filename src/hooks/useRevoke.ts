@@ -19,12 +19,7 @@ import {
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 
-export enum AllowanceStatus {
-  INITIAL,
-  PENDING,
-  LOADING,
-  SUCCESS,
-}
+import { AllowanceStatus } from "./useAllowance";
 
 const amountToRevoke = BigInt(0);
 

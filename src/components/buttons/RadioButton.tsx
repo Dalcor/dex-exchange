@@ -28,7 +28,7 @@ export default function RadioButton({ isActive, children, ...props }: PropsWithC
           )}
         />
       </span>
-      <span>{children}</span>
+      {children}
     </button>
   );
 }

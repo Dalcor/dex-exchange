@@ -1,19 +1,26 @@
 "use client";
 
 import JSBI from "jsbi";
+import Image from "next/image";
 import { ChangeEvent, useMemo, useState } from "react";
 
 import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
 import useRemoveLiquidity from "@/app/[locale]/remove/[tokenId]/hooks/useRemoveLiquidity";
 import Container from "@/components/atoms/Container";
+import DialogHeader from "@/components/atoms/DialogHeader";
+import DrawerDialog from "@/components/atoms/DrawerDialog";
+import Preloader from "@/components/atoms/Preloader";
+import Svg from "@/components/atoms/Svg";
 import Switch from "@/components/atoms/Switch";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
 import Button from "@/components/buttons/Button";
 import IconButton, { IconButtonSize, IconSize } from "@/components/buttons/IconButton";
 import InputButton from "@/components/buttons/InputButton";
+import RecentTransactions from "@/components/common/RecentTransactions";
 import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import TokensPair from "@/components/common/TokensPair";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import { AllowanceStatus } from "@/hooks/useAllowance";
 import {
   usePositionFromPositionInfo,
   usePositionFromTokenId,
@@ -32,6 +39,7 @@ export default function DecreaseLiquidityPage({
 }) {
   useRecentTransactionTracking();
 
+  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { position: positionInfo, loading } = usePositionFromTokenId(BigInt(params.tokenId));
   const position = usePositionFromPositionInfo(positionInfo);
@@ -43,16 +51,18 @@ export default function DecreaseLiquidityPage({
   }, [position?.pool.fee, position?.pool.token0, position?.pool.token1]);
 
   const { inRange, removed } = usePositionRangeStatus({ position });
-  const { setIsOpen } = useTransactionSettingsDialogStore();
+  const [showRecentTransactions, setShowRecentTransactions] = useState(true);
 
-  const { handleRemoveLiquidity } = useRemoveLiquidity({
+  const { handleRemoveLiquidity, status } = useRemoveLiquidity({
     percentage: value,
     tokenId: params.tokenId,
   });
 
+  if (!tokenA || !tokenB) return <div>Error: Token A or B undefined</div>;
+
   return (
     <Container>
-      <div className="w-[600px] bg-primary-bg mx-auto mt-[80px] mb-5 px-10 pb-10">
+      <div className="w-[600px] bg-primary-bg mx-auto mt-[80px] mb-5 px-10 pb-10 rounded-5">
         <div className="grid grid-cols-3 py-1.5 -mx-3">
           <IconButton
             onClick={() => router.push(`/pool/${params.tokenId}`)}
@@ -63,15 +73,16 @@ export default function DecreaseLiquidityPage({
           <h2 className="text-20 font-bold flex justify-center items-center">Remove liquidity</h2>
           <div className="flex items-center gap-2 justify-end">
             <IconButton
-              onClick={() => setIsOpen(true)}
+              onClick={() => setShowRecentTransactions(true)}
               buttonSize={IconButtonSize.LARGE}
               iconName="recent-transactions"
+              active={showRecentTransactions}
             />
-            <IconButton
+            {/* <IconButton
               onClick={() => setIsOpen(true)}
               buttonSize={IconButtonSize.LARGE}
               iconName="settings"
-            />
+            /> */}
           </div>
         </div>
         <div className="rounded-b-2 bg-primary-bg">
@@ -89,7 +100,7 @@ export default function DecreaseLiquidityPage({
           </div>
 
           <div className="mb-5">
-            <h4 className="mb-2">Amount</h4>
+            <text className="mb-2 text-secondary-text">Amount</text>
             <div className="flex justify-between items-center mb-4">
               <span className="text-32">{value}%</span>
               <div className="flex gap-3">
@@ -140,20 +151,100 @@ export default function DecreaseLiquidityPage({
               />
             </div>
           </div>
-          <div className="mb-5 flex items-center justify-between">
+          {/* <div className="mb-5 flex items-center justify-between">
             Collect as WMATIC
             <Switch checked={false} handleChange={() => null} />
-          </div>
+          </div> */}
           {position && tokenA && tokenB && (
-            <Button onClick={() => handleRemoveLiquidity(tokenA, tokenB, position)} fullWidth>
-              Remove liquidity
+            <Button onClick={() => setIsOpen(true)} fullWidth>
+              Remove
             </Button>
           )}
         </div>
       </div>
-      <div className="w-[600px] mx-auto mb-[80px]">
+      <div className="w-[600px] mx-auto mb-[80px] gap-5 flex flex-col">
         <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
+        <RecentTransactions
+          showRecentTransactions={showRecentTransactions}
+          handleClose={() => setShowRecentTransactions(false)}
+          pageSize={5}
+        />
       </div>
+      <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
+        <DialogHeader onClose={() => setIsOpen(false)} title="Confirm removing liquidity" />
+        <div className="px-4 md:px-10 md:w-[570px] pb-4 md:pb-10 h-[80dvh] md:h-auto overflow-y-auto">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center relative w-12 h-[34px]">
+                <Image
+                  className="absolute left-0 top-0"
+                  width={32}
+                  height={32}
+                  src={tokenA.logoURI as any}
+                  alt=""
+                />
+                <div className="w-[34px] h-[34px] flex absolute right-0 top-0 bg-tertiary-bg rounded-full items-center justify-center">
+                  <Image width={32} height={32} src={tokenB.logoURI as any} alt="" />
+                </div>
+              </div>
+              <span className="text-18 font-bold">{`${tokenA.symbol} and ${tokenB.symbol}`}</span>
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              {status === AllowanceStatus.PENDING && (
+                <>
+                  <Preloader type="linear" />
+                  <span className="text-secondary-text text-14">Proceed in your wallet</span>
+                </>
+              )}
+              {status === AllowanceStatus.LOADING && <Preloader size={20} />}
+              {status === AllowanceStatus.SUCCESS && (
+                <Svg className="text-green" iconName="done" size={20} />
+              )}
+            </div>
+          </div>
+          <div className="border border-secondary-border rounded-3 bg-tertiary-bg my-5 p-5">
+            <div className="grid gap-3">
+              <PositionLiquidityCard
+                token={tokenA}
+                amount={
+                  position?.amount0
+                    .multiply(new Percent(value))
+                    .divide(JSBI.BigInt(100))
+                    .toSignificant() || "Loading..."
+                }
+                standards={["ERC-20", "ERC-223"]}
+              />
+              <PositionLiquidityCard
+                token={tokenB}
+                amount={
+                  position?.amount1
+                    .multiply(new Percent(value))
+                    .divide(JSBI.BigInt(100))
+                    .toSignificant() || "Loading..."
+                }
+                standards={["ERC-20", "ERC-223"]}
+              />
+            </div>
+          </div>
+
+          {[AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
+            <Button fullWidth disabled>
+              <span className="flex items-center gap-2">
+                <Preloader size={20} color="black" />
+              </span>
+            </Button>
+          ) : (
+            <Button
+              onClick={() => {
+                handleRemoveLiquidity(tokenA, tokenB, position);
+              }}
+              fullWidth
+            >
+              Confirm removing liquidity
+            </Button>
+          )}
+        </div>
+      </DrawerDialog>
     </Container>
   );
 }

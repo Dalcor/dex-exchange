@@ -38,7 +38,7 @@ body {
 .drawer-container {
   position: fixed;
   z-index: 88;
-  /*overflow: auto;*/
+  overflow: auto;
 }
 
 @keyframes appear {

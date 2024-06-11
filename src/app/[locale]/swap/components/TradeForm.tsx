@@ -259,7 +259,7 @@ export default function TradeForm() {
       return formatFloat(formatGwei(lowerFeePerGas + gasPrice.maxPriorityFeePerGas));
     }
 
-    return "Loading...";
+    return "0.00";
   }, [baseFee, gasPrice]);
 
   return (

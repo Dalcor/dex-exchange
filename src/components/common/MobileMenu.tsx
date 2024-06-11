@@ -55,6 +55,11 @@ const mobileLinks: {
     title: "Margin trading",
   },
   {
+    href: "/pools",
+    iconName: "pools",
+    title: "Pools",
+  },
+  {
     href: "/borrow",
     iconName: "borrow",
     title: "Borrow/Lend",

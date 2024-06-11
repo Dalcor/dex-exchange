@@ -33,7 +33,7 @@ export default function TextField({
         )}
       >
         {label}
-        {tooltipText && <Tooltip iconSize={20} text={tooltipText} />}
+        {tooltipText && <Tooltip iconSize={24} text={tooltipText} />}
       </p>
       <Input isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
       <div className="text-12 mt-0.5 h-4">

@@ -121,6 +121,7 @@ export const svgIconsNames = [
   "token",
   "import-token",
   "import-list",
+  "reset",
 ] as const;
 
 export const socialIconNames = [""] as const;

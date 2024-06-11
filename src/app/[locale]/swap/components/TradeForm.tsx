@@ -4,7 +4,7 @@ import { Address, formatGwei, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
-import useSwap from "@/app/[locale]/swap/hooks/useSwap";
+import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
@@ -45,7 +45,7 @@ function OpenConfirmDialogButton({
   const { typedValue } = useSwapAmountsStore();
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
 
-  const { isLoadingSwap, isLoadingApprove, isPendingApprove, isPendingSwap } = useSwap();
+  const { isLoadingSwap, isLoadingApprove, isPendingApprove, isPendingSwap } = useSwapStatus();
   const { setIsOpened: setWalletConnectOpened } = useConnectWalletDialogStateStore();
 
   if (!isConnected) {
@@ -237,7 +237,7 @@ export default function TradeForm() {
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
 
-  const { isLoadingSwap, isPendingSwap, isLoadingApprove, isPendingApprove } = useSwap();
+  const { isLoadingSwap, isPendingSwap, isLoadingApprove, isPendingApprove } = useSwapStatus();
 
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
 

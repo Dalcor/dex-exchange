@@ -46,7 +46,7 @@ export default function PickButton({
           <Svg size={19} iconName="success" className="z-10 absolute" />
         </span>
       </div>
-      <span className="text-14">{label}</span>
+      <span className="text-12 sm:text-14">{label}</span>
     </button>
   );
 }

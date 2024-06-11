@@ -1,4 +1,4 @@
-import { http } from "viem";
+import { fallback, http, webSocket } from "viem";
 import { bscTestnet } from "viem/chains";
 import { cookieStorage, createConfig, createStorage } from "wagmi";
 import { coinbaseWallet, walletConnect } from "wagmi/connectors";
@@ -27,7 +27,11 @@ export const config = createConfig({
   }),
   transports: {
     // [callisto.id]: http(),
-    [sepolia.id]: http(),
+    [sepolia.id]: fallback([
+      webSocket("wss://sepolia.infura.io/ws/v3/114e971e806248a0b32aa14b5477286b"),
+      http("https://sepolia.infura.io/v3/114e971e806248a0b32aa14b5477286b"),
+      http(),
+    ]),
     [bscTestnet.id]: http(),
   },
 });

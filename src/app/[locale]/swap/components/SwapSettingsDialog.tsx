@@ -7,13 +7,18 @@ import React, {
   useState,
 } from "react";
 
-import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
-import Dialog from "@/components/atoms/Dialog";
+import {
+  defaultTypes,
+  SlippageType,
+  useSwapSettingsStore,
+  values,
+} from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
-import TextField from "@/components/atoms/TextField";
+import Input from "@/components/atoms/Input";
 import Tooltip from "@/components/atoms/Tooltip";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonVariant } from "@/components/buttons/Button";
+import TextButton from "@/components/buttons/TextButton";
 import addToast from "@/other/toast";
 
 function SettingsButtons({ children }: PropsWithChildren) {
@@ -62,24 +67,6 @@ interface Props {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-enum SlippageType {
-  AUTO,
-  CUSTOM,
-  LOW,
-  MEDIUM,
-  HIGH,
-}
-
-type DefaultType = Exclude<SlippageType, SlippageType.AUTO | SlippageType.CUSTOM>;
-
-const values: Record<DefaultType, number> = {
-  [SlippageType.LOW]: 0.01,
-  [SlippageType.MEDIUM]: 0.5,
-  [SlippageType.HIGH]: 1,
-};
-
-const defaultTypes: DefaultType[] = [SlippageType.LOW, SlippageType.MEDIUM, SlippageType.HIGH];
-
 function getTitle(slippageType: SlippageType, value: string) {
   switch (slippageType) {
     case SlippageType.LOW:
@@ -95,7 +82,14 @@ function getTitle(slippageType: SlippageType, value: string) {
 }
 
 export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
-  const { setSlippage, setDeadline, deadline, slippage } = useSwapSettingsStore();
+  const {
+    setSlippage,
+    setDeadline,
+    deadline,
+    slippage,
+    slippageType: _slippageType,
+    setSlippageType: _setSlippageType,
+  } = useSwapSettingsStore();
 
   const [customSlippage, setCustomSlippage] = useState("");
   const [customDeadline, setCustomDeadline] = useState(deadline);
@@ -122,9 +116,32 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
         break;
     }
 
+    _setSlippageType(slippageType);
+
     setIsOpen(false);
     addToast("Settings applied");
-  }, [customDeadline, customSlippage, setDeadline, setIsOpen, setSlippage, slippageType]);
+  }, [
+    _setSlippageType,
+    customDeadline,
+    customSlippage,
+    setDeadline,
+    setIsOpen,
+    setSlippage,
+    slippageType,
+  ]);
+
+  const handleCancel = useCallback(() => {
+    setIsOpen(false);
+
+    setTimeout(() => {
+      if (_slippageType !== SlippageType.CUSTOM) {
+        setCustomSlippage("");
+      }
+
+      setSlippageType(_slippageType);
+      setCustomDeadline(deadline);
+    }, 400);
+  }, [_slippageType, deadline, setIsOpen]);
 
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -167,20 +184,42 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
         </div>
 
         <div className="mt-5">
-          <TextField
-            value={customDeadline}
-            onChange={(e) => {
-              setCustomDeadline(+e.target.value);
-            }}
-            label="Transaction deadline"
-            tooltipText="Tooltip text"
-            helperText=""
-          />
+          <div className="flex justify-between items-center">
+            <p className={clsx("text-16 font-bold mb-1 flex items-center gap-1")}>
+              Transaction deadline
+              <Tooltip iconSize={24} text={"Tooltip text"} />
+            </p>
+            {customDeadline !== 20 && (
+              <TextButton className="pr-0" endIcon="reset" onClick={() => setCustomDeadline(20)}>
+                Set default
+              </TextButton>
+            )}
+          </div>
+
+          <div className="relative">
+            <Input
+              className="pr-[100px]"
+              value={customDeadline}
+              onChange={(e) => {
+                setCustomDeadline(+e.target.value);
+              }}
+            />
+            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-secondary-text">
+              minutes
+            </span>
+          </div>
+
+          <div className="text-12 mt-0.5 h-4" />
         </div>
 
-        <Button fullWidth onClick={handleSave}>
-          Save settings
-        </Button>
+        <div className="grid grid-cols-2 gap-3">
+          <Button fullWidth variant={ButtonVariant.OUTLINED} onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button fullWidth onClick={handleSave}>
+            Save settings
+          </Button>
+        </div>
       </div>
     </DrawerDialog>
   );

@@ -45,8 +45,13 @@ function StandardOption({
         <Badge color="green" text={standard} />
         <Tooltip iconSize={16} text={`${standard} Tooltip`} />
       </div>
-      <span className="block text-secondary-text">
-        Balance: {balance || "0.0"} {symbol}
+      <span
+        className={clsx("block", standard === active ? "text-primary-text" : "text-tertiary-text")}
+      >
+        Balance:{" "}
+        <span className="whitespace-nowrap">
+          {balance || "0.0"} {symbol}
+        </span>
       </span>
     </div>
   );
@@ -88,7 +93,7 @@ export default function TokenInput({
             }}
             allowNegative={false}
           />
-          <span className="text-12 block -mt-1 text-secondary-text">$3,220.40</span>
+          <span className="text-12 block -mt-1 text-secondary-text">$0.00</span>
           <div className="duration-200 rounded-3 pointer-events-none absolute w-full h-full border border-transparent peer-hover:shadow-checkbox peer-focus:shadow-checkbox peer-focus:border-green top-0 left-0" />
         </div>
         <SelectButton
@@ -121,13 +126,13 @@ export default function TokenInput({
           symbol={token?.symbol}
           balance={balance0}
         />
-        <div className="relative mx-auto md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-10 text-10 h-[28px] rounded-20 border-green border p-1 flex gap-1 items-center">
+        <div className="relative mx-auto md:absolute md:left-1/2 md:top-[14px] md:-translate-x-1/2 z-10 text-10 h-[32px] rounded-20 border-green border p-1 flex gap-1 items-center">
           {[Standard.ERC20, Standard.ERC223].map((st) => {
             return (
               <button
                 key={st}
                 className={clsx(
-                  "h-5 rounded-3 duration-200 px-2 min-w-[58px]",
+                  "h-6 rounded-3 duration-200 px-2 min-w-[58px]",
                   standard === st ? "bg-green text-black shadow-checkbox" : "hover:bg-green-bg",
                 )}
                 onClick={() => setStandard(st)}

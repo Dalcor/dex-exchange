@@ -38,7 +38,7 @@ export default function ConnectWalletDialog({ isOpen, setIsOpen }: Props) {
         <DialogHeader onClose={() => setIsOpen(false)} title="Connect wallet" />
         <div className="pb-4 px-4 md:pb-10 md:px-10">
           <StepLabel step="1" label="Choose network" />
-          <div className="grid grid-cols-4 gap-3 mt-3 mb-5">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-3 mb-5">
             {networks.map(({ name, chainId, logo }) => {
               return (
                 <PickButton
@@ -57,7 +57,7 @@ export default function ConnectWalletDialog({ isOpen, setIsOpen }: Props) {
             })}
           </div>
           <StepLabel step="2" label="Choose wallet" />
-          <div className="grid grid-cols-4 gap-3 mt-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-3">
             <MetamaskCard />
             <WalletConnectCard />
             <CoinbaseCard />

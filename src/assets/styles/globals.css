@@ -32,12 +32,12 @@ body {
   background: rgba(0, 0, 0, 0.7);
   display: grid;
   place-items: center;
-  z-index: 98;
+  z-index: 88;
 }
 
 .drawer-container {
   position: fixed;
-  z-index: 98;
+  z-index: 88;
   /*overflow: auto;*/
 }
 

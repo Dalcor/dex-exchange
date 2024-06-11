@@ -18,7 +18,7 @@ export default function SelectedTokensInfo({ tokenA, tokenB }: Props) {
   }
 
   return (
-    <div className="w-full bg-primary-bg p-10 grid gap-3 rounded-5">
+    <div className="w-full bg-primary-bg p-4 md:p-10 grid gap-3 rounded-5">
       {tokenA && <SelectedTokenInfoItem token={tokenA} />}
       {tokenB && <SelectedTokenInfoItem token={tokenB} />}
     </div>
@@ -27,7 +27,7 @@ export default function SelectedTokensInfo({ tokenA, tokenB }: Props) {
 
 function AddressPair({ token }: { token: Token }) {
   return (
-    <div className="flex gap-2 items-center">
+    <div className="flex gap-2 flex-col min-[450px]:flex-row">
       <TokenAddressWithStandard
         tokenAddress={token.address0}
         standard="ERC-20"

@@ -25,8 +25,6 @@ export default function RecentTransactions({
   const { transactions } = useRecentTransactionsStore();
   const { address } = useAccount();
 
-  console.log(transactions);
-
   const lowestPendingNonce = useMemo(() => {
     if (address) {
       const accountPendingTransactions = transactions[address]?.filter(

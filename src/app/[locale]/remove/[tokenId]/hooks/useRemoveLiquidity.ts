@@ -101,10 +101,11 @@ export default function useRemoveLiquidity({
 
         const hash = await walletClient.writeContract(request);
 
-        const nonce = await publicClient.getTransactionCount({
-          address: accountAddress,
-          blockTag: "pending",
+        const transaction = await publicClient.getTransaction({
+          hash,
         });
+
+        const nonce = transaction.nonce;
 
         addRecentTransaction(
           {

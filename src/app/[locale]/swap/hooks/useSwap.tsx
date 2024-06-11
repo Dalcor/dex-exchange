@@ -1,5 +1,5 @@
 import JSBI from "jsbi";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   Address,
   encodeAbiParameters,
@@ -8,12 +8,13 @@ import {
   getAbiItem,
   parseUnits,
 } from "viem";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, useBlockNumber, usePublicClient, useWalletClient } from "wagmi";
 
 import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
+import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
@@ -23,6 +24,8 @@ import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
 import useAllowance from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
+import useDeepEffect from "@/hooks/useDeepEffect";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
@@ -38,19 +41,172 @@ import {
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 
+export function useSwapStatus() {
+  const { status: swapStatus } = useSwapStatusStore();
+
+  return {
+    isPendingApprove: swapStatus === SwapStatus.PENDING_APPROVE,
+    isLoadingApprove: swapStatus === SwapStatus.LOADING_APPROVE,
+    isPendingSwap: swapStatus === SwapStatus.PENDING,
+    isLoadingSwap: swapStatus === SwapStatus.LOADING,
+    isSuccessSwap: swapStatus === SwapStatus.SUCCESS,
+    isRevertedSwap: swapStatus === SwapStatus.ERROR,
+    isSettledSwap: swapStatus === SwapStatus.SUCCESS || swapStatus === SwapStatus.ERROR,
+  };
+}
+
+export function useSwapParams() {
+  const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
+  const chainId = useCurrentChainId();
+  const { address } = useAccount();
+
+  const { typedValue } = useSwapAmountsStore();
+
+  const { deadline: _deadline } = useSwapSettingsStore();
+  const deadline = useTransactionDeadline(_deadline);
+
+  const poolAddress = useComputePoolAddressDex({
+    tokenA,
+    tokenB,
+    tier: FeeAmount.MEDIUM,
+  });
+
+  const swapParams = useMemo(() => {
+    if (
+      !tokenA ||
+      !tokenB ||
+      !chainId ||
+      !DEX_SUPPORTED_CHAINS.includes(chainId) ||
+      !tokenAAddress ||
+      !tokenBAddress ||
+      !poolAddress ||
+      !typedValue
+    ) {
+      return null;
+    }
+
+    const zeroForOne = tokenA.address0 < tokenB.address0;
+
+    const sqrtPriceLimitX96 = zeroForOne
+      ? JSBI.add(TickMath.MIN_SQRT_RATIO, ONE)
+      : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE);
+
+    if (tokenAAddress === tokenA.address0) {
+      // mean we are sending ERC-20 token with approve + funcName
+
+      return {
+        address: ROUTER_ADDRESS[chainId as DexChainId],
+        abi: ROUTER_ABI,
+        functionName: "exactInputSingle" as "exactInputSingle",
+        args: [
+          {
+            tokenIn: tokenAAddress,
+            tokenOut: tokenB.address0,
+            fee: FeeAmount.MEDIUM,
+            recipient: address as Address,
+            deadline,
+            amountIn: parseUnits(typedValue, tokenA.decimals),
+            amountOutMinimum: BigInt(0),
+            sqrtPriceLimitX96: BigInt(sqrtPriceLimitX96.toString()),
+            prefer223Out: tokenBAddress === tokenB.address1,
+          },
+        ],
+      };
+    }
+
+    if (tokenAAddress === tokenA.address1) {
+      return {
+        address: tokenA.address1,
+        abi: ERC223_ABI,
+        functionName: "transfer",
+        args: [
+          poolAddress.poolAddress,
+          parseUnits(typedValue, tokenA.decimals), // amountSpecified
+          encodeFunctionData({
+            abi: POOL_ABI,
+            functionName: "swap",
+            args: [
+              address as Address, //account address
+              zeroForOne, //zeroForOne
+              parseUnits(typedValue, tokenA.decimals), // amountSpecified
+              BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
+              tokenBAddress === tokenB.address1, // prefer223Out
+              encodeAbiParameters(
+                [
+                  { name: "path", type: "bytes" },
+                  { name: "payer", type: "address" },
+                ],
+                [
+                  encodePacked(
+                    ["address", "uint24", "address"],
+                    [tokenA.address0, FeeAmount.MEDIUM, tokenB.address0],
+                  ),
+                  "0x0000000000000000000000000000000000000000",
+                ],
+              ),
+            ],
+          }),
+        ],
+      };
+    }
+  }, [
+    address,
+    chainId,
+    deadline,
+    poolAddress,
+    tokenA,
+    tokenAAddress,
+    tokenB,
+    tokenBAddress,
+    typedValue,
+  ]);
+
+  return { swapParams };
+}
+
+export function useSwapEstimatedGas() {
+  const { address } = useAccount();
+  const { swapParams } = useSwapParams();
+  const { setEstimatedGas } = useSwapEstimatedGasStore();
+  const publicClient = usePublicClient();
+  const { data: blockNumber } = useBlockNumber({ watch: true });
+
+  useDeepEffect(() => {
+    IIFE(async () => {
+      if (!swapParams || !address) {
+        return;
+      }
+
+      try {
+        console.log("Trying to estimate");
+        const estimated = await publicClient?.estimateContractGas({
+          account: address,
+          ...swapParams,
+        } as any);
+        if (estimated) {
+          setEstimatedGas(estimated);
+        }
+        console.log(estimated);
+      } catch (e) {
+        console.log(e);
+        setEstimatedGas(BigInt(195000));
+      }
+    });
+  }, [publicClient, address, swapParams, blockNumber]);
+}
 export default function useSwap() {
   const { data: walletClient } = useWalletClient();
   const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
   const { trade } = useTrade();
-  const { address, chainId } = useAccount();
+  const { address } = useAccount();
   const publicClient = usePublicClient();
 
-  const [estimatedGas, setEstimatedGas] = useState<bigint>(BigInt(0));
+  const chainId = useCurrentChainId();
+  const { estimatedGas } = useSwapEstimatedGasStore();
 
   const { gasPrice } = useSwapGas();
 
-  const { slippage, deadline: _deadline } = useSwapSettingsStore();
-  const deadline = useTransactionDeadline(_deadline);
+  const { slippage } = useSwapSettingsStore();
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
 
@@ -102,141 +258,18 @@ export default function useSwap() {
     return (+trade.outputAmount.toSignificant() * (100 - slippage)) / 100;
   }, [slippage, trade]);
 
-  const poolAddress = useComputePoolAddressDex({
-    tokenA,
-    tokenB,
-    tier: FeeAmount.MEDIUM,
-  });
-
-  const swapParams = useMemo(() => {
-    if (
-      !tokenA ||
-      !tokenB ||
-      !chainId ||
-      !DEX_SUPPORTED_CHAINS.includes(chainId) ||
-      !tokenAAddress ||
-      !tokenBAddress ||
-      !poolAddress
-    ) {
-      return null;
-    }
-
-    if (tokenAAddress === tokenA.address0) {
-      // mean we are sending ERC-20 token with approve + funcName
-      const zeroForOne = tokenA.address0 < tokenB.address0;
-
-      const sqrtPriceLimitX96 = zeroForOne
-        ? JSBI.add(TickMath.MIN_SQRT_RATIO, ONE)
-        : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE);
-
-      return {
-        address: ROUTER_ADDRESS[chainId as DexChainId],
-        abi: ROUTER_ABI,
-        functionName: "exactInputSingle" as "exactInputSingle",
-        args: [
-          {
-            tokenIn: tokenAAddress,
-            tokenOut: tokenB.address0,
-            fee: FeeAmount.MEDIUM,
-            recipient: address as Address,
-            deadline,
-            amountIn: parseUnits(typedValue, tokenA.decimals),
-            amountOutMinimum: BigInt(0),
-            sqrtPriceLimitX96: BigInt(sqrtPriceLimitX96.toString()),
-            prefer223Out: tokenBAddress === tokenB.address1,
-          },
-        ],
-      };
-    }
-
-    if (tokenAAddress === tokenA.address1) {
-      const zeroForOne = tokenA.address0 < tokenB.address0;
-
-      const sqrtPriceLimitX96 = zeroForOne
-        ? JSBI.add(TickMath.MIN_SQRT_RATIO, ONE)
-        : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE);
-
-      return {
-        address: tokenA.address1,
-        abi: ERC223_ABI,
-        functionName: "transfer",
-        args: [
-          poolAddress.poolAddress,
-          parseUnits(typedValue, tokenA.decimals), // amountSpecified
-          encodeFunctionData({
-            abi: POOL_ABI,
-            functionName: "swap",
-            args: [
-              address as Address, //account address
-              zeroForOne, //zeroForOne
-              parseUnits(typedValue, tokenA.decimals), // amountSpecified
-              BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
-              tokenBAddress === tokenB.address1, // prefer223Out
-              encodeAbiParameters(
-                [
-                  { name: "path", type: "bytes" },
-                  { name: "payer", type: "address" },
-                ],
-                [
-                  encodePacked(
-                    ["address", "uint24", "address"],
-                    [tokenA.address0, FeeAmount.MEDIUM, tokenB.address0],
-                  ),
-                  "0x0000000000000000000000000000000000000000",
-                ],
-              ),
-            ],
-          }),
-        ],
-      };
-    }
-  }, [
-    address,
-    chainId,
-    deadline,
-    poolAddress,
-    tokenA,
-    tokenAAddress,
-    tokenB,
-    tokenBAddress,
-    typedValue,
-  ]);
+  const { swapParams } = useSwapParams();
 
   useEffect(() => {
-    if (swapStatus === SwapStatus.SUCCESS && !confirmDialogOpened) {
-      setSwapStatus(SwapStatus.INITIAL);
+    if (
+      (swapStatus === SwapStatus.SUCCESS || swapStatus === SwapStatus.ERROR) &&
+      !confirmDialogOpened
+    ) {
+      setTimeout(() => {
+        setSwapStatus(SwapStatus.INITIAL);
+      }, 400);
     }
   }, [confirmDialogOpened, setSwapStatus, swapStatus]);
-  //
-  // useEffect(() => {
-  //   if (swapStatus === SwapStatus.LOADING && confirmAlertOpened) {
-  //     closeConfirmInWalletAlert();
-  //   }
-  // }, [
-  //   closeConfirmInWalletAlert,
-  //   confirmAlertOpened,
-  //   confirmDialogOpened,
-  //   setSwapStatus,
-  //   swapStatus,
-  // ]);
-
-  useEffect(() => {
-    if (!publicClient || !swapParams) {
-      return;
-    }
-
-    IIFE(async () => {
-      try {
-        const _estimatedGas = await publicClient.estimateContractGas({
-          ...swapParams,
-          account: address,
-        } as any); //TODO: remove any
-        setEstimatedGas(_estimatedGas);
-      } catch (e) {
-        console.log("Error while estimating gas");
-      }
-    });
-  }, [publicClient, swapParams, address]);
 
   const handleSwap = useCallback(async () => {
     if (!isAllowedA && tokenA?.address0 === tokenAAddress) {
@@ -273,14 +306,6 @@ export default function useSwap() {
       return;
     }
 
-    // console.log(swapParams);
-    // const { request } = await publicClient.simulateContract({
-    //   ...swapParams,
-    //   account: address,
-    //   gas: estimatedGas + BigInt(30000),
-    // });
-    // const hash = await walletClient.writeContract(swapParams);
-
     setSwapStatus(SwapStatus.PENDING);
     openConfirmInWalletAlert("Confirm action in your wallet");
 
@@ -296,12 +321,12 @@ export default function useSwap() {
 
     closeConfirmInWalletAlert();
 
-    const nonce = await publicClient.getTransactionCount({
-      address,
-      blockTag: "pending",
-    });
-
     if (hash) {
+      const transaction = await publicClient.getTransaction({
+        hash,
+      });
+
+      const nonce = transaction.nonce;
       setSwapStatus(SwapStatus.LOADING);
       addRecentTransaction(
         {
@@ -329,8 +354,14 @@ export default function useSwap() {
         address,
       );
 
-      await publicClient.waitForTransactionReceipt({ hash });
-      setSwapStatus(SwapStatus.SUCCESS);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status === "success") {
+        setSwapStatus(SwapStatus.SUCCESS);
+      }
+
+      if (receipt.status === "reverted") {
+        setSwapStatus(SwapStatus.ERROR);
+      }
     }
   }, [
     addRecentTransaction,
@@ -357,12 +388,7 @@ export default function useSwap() {
   return {
     handleSwap,
     isAllowedA: isAllowedA,
-    isPendingApprove: swapStatus === SwapStatus.PENDING_APPROVE,
-    isLoadingApprove: swapStatus === SwapStatus.LOADING_APPROVE,
     handleApprove: () => null,
-    isPendingSwap: swapStatus === SwapStatus.PENDING,
-    isLoadingSwap: swapStatus === SwapStatus.LOADING,
-    isSuccessSwap: swapStatus === SwapStatus.SUCCESS,
     estimatedGas,
   };
 }

@@ -2,20 +2,23 @@ import clsx from "clsx";
 import Image from "next/image";
 import React, { PropsWithChildren, useMemo } from "react";
 
-import useSwap from "@/app/[locale]/swap/hooks/useSwap";
+import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
+import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
+import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import { Standard } from "@/components/common/TokenInput";
+import { clsxMerge } from "@/functions/clsxMerge";
 import { formatFloat } from "@/functions/formatFloat";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
@@ -68,21 +71,33 @@ function SwapRow({
   isPending = false,
   isLoading = false,
   isSuccess = false,
+  isSettled = false,
+  isReverted = false,
   isDisabled = false,
 }: {
   isLoading?: boolean;
   isPending?: boolean;
+  isSettled?: boolean;
   isSuccess?: boolean;
+  isReverted?: boolean;
   isDisabled?: boolean;
 }) {
   return (
     <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
       <div className="flex items-center">
         <div
-          className={clsx("p-1 rounded-full h-8 w-8", isDisabled ? "bg-tertiary-bg" : "bg-green")}
+          className={clsxMerge(
+            "p-1 rounded-full h-8 w-8",
+            isDisabled ? "bg-tertiary-bg" : "bg-green",
+            isReverted && "bg-red-bg",
+          )}
         >
           <Svg
-            className={clsx("rotate-90", isDisabled ? "text-tertiary-text" : "text-secondary-bg")}
+            className={clsxMerge(
+              "rotate-90",
+              isDisabled ? "text-tertiary-text" : "text-secondary-bg",
+              isReverted && "text-red",
+            )}
             iconName="swap"
           />
         </div>
@@ -92,7 +107,7 @@ function SwapRow({
         <span className={clsx("text-14", isDisabled ? "text-tertiary-text" : "text-primary-text")}>
           {isPending ? "Confirm swap" : "Executing swap"}
         </span>
-        {!isSuccess && <span className="text-green text-12">Learn more about swap</span>}
+        {!isSettled && <span className="text-green text-12">Learn more about swap</span>}
       </div>
       <div className="flex items-center gap-2 justify-end">
         {isPending && (
@@ -103,6 +118,7 @@ function SwapRow({
         )}
         {isLoading && <Preloader size={20} />}
         {isSuccess && <Svg className="text-green" iconName="done" size={20} />}
+        {isReverted && <Svg className="text-red" iconName="warning" size={20} />}
       </div>
     </div>
   );
@@ -115,15 +131,17 @@ function SwapActionButton() {
   const { tokenA, tokenB, tokenAAddress } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
 
+  const { handleSwap } = useSwap();
+
   const {
     isPendingApprove,
     isLoadingApprove,
-
-    handleSwap,
     isPendingSwap,
     isLoadingSwap,
     isSuccessSwap,
-  } = useSwap();
+    isSettledSwap,
+    isRevertedSwap,
+  } = useSwapStatus();
 
   if (!tokenA || !tokenB) {
     return (
@@ -183,7 +201,16 @@ function SwapActionButton() {
     return (
       <Rows>
         {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
-        <SwapRow isSuccess />
+        <SwapRow isSettled isSuccess />
+      </Rows>
+    );
+  }
+
+  if (isRevertedSwap) {
+    return (
+      <Rows>
+        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
+        <SwapRow isSettled isReverted />
       </Rows>
     );
   }
@@ -264,24 +291,26 @@ export default function ConfirmSwapDialog() {
 
   const { slippage, deadline: _deadline } = useSwapSettingsStore();
   const {
-    estimatedGas,
     isPendingSwap,
     isLoadingSwap,
     isSuccessSwap,
     isLoadingApprove,
     isPendingApprove,
-  } = useSwap();
+    isRevertedSwap,
+    isSettledSwap,
+  } = useSwapStatus();
+  const { estimatedGas } = useSwapEstimatedGasStore();
 
   const isProcessing = useMemo(() => {
-    return isPendingSwap || isLoadingSwap || isSuccessSwap || isLoadingApprove || isPendingApprove;
-  }, [isLoadingApprove, isLoadingSwap, isPendingApprove, isPendingSwap, isSuccessSwap]);
+    return isPendingSwap || isLoadingSwap || isSettledSwap || isLoadingApprove || isPendingApprove;
+  }, [isLoadingApprove, isLoadingSwap, isPendingApprove, isPendingSwap, isSettledSwap]);
 
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
       <div className="shadow-popup bg-primary-bg rounded-5 w-full md:w-[600px]">
         <DialogHeader onClose={() => setIsOpen(false)} title="Review swap" />
         <div className="px-4 pb-4 md:px-10 md:pb-9">
-          {!isSuccessSwap && (
+          {!isSettledSwap && (
             <div className="flex flex-col gap-3">
               <ReadonlyTokenAmountCard
                 token={tokenA}
@@ -299,19 +328,27 @@ export default function ConfirmSwapDialog() {
               />
             </div>
           )}
-          {isSuccessSwap && (
+          {isSettledSwap && (
             <div>
               <div className="mx-auto w-[80px] h-[80px] flex items-center justify-center relative mb-5">
-                <div className="w-[54px] h-[54px] rounded-full border-[7px] blur-[8px] opacity-80 border-green"></div>
-                <Svg
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-green"
-                  iconName="success"
-                  size={65}
-                />
+                {isRevertedSwap && <EmptyStateIcon iconName="warning" />}
+
+                {isSuccessSwap && (
+                  <>
+                    <div className="w-[54px] h-[54px] rounded-full border-[7px] blur-[8px] opacity-80 border-green" />
+                    <Svg
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-green"
+                      iconName={"success"}
+                      size={65}
+                    />
+                  </>
+                )}
               </div>
 
               <div className="flex justify-center">
-                <span className="text-20 font-bold text-primary-text mb-1">Successful swap</span>
+                <span className="text-20 font-bold text-primary-text mb-1">
+                  {isRevertedSwap ? "Swap failed" : "Successful swap"}
+                </span>
               </div>
 
               <div className="flex justify-center gap-2 items-center">

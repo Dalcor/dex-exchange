@@ -8,6 +8,7 @@ import { useGasPrice } from "wagmi";
 import ConfirmSwapDialog from "@/app/[locale]/swap/components/ConfirmSwapDialog";
 import TradeForm from "@/app/[locale]/swap/components/TradeForm";
 import TwoVersionsInfo from "@/app/[locale]/swap/components/TwoVersionsInfo";
+import { useSwapEstimatedGas } from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
@@ -31,6 +32,7 @@ enum Standard {
 
 export default function SwapPage() {
   useRecentTransactionTracking();
+  useSwapEstimatedGas();
 
   const t = useTranslations("Trade");
 
@@ -40,26 +42,14 @@ export default function SwapPage() {
   const lang = useLocale();
   const chainId = useCurrentChainId();
 
-  const { tokenA, tokenB, reset } = useSwapTokensStore();
+  const { tokenA, tokenB, reset: resetTokens } = useSwapTokensStore();
+
+  const { reset: resetAmount } = useSwapAmountsStore();
 
   useEffect(() => {
-    reset();
-  }, [chainId, reset]);
-
-  const { trade, isLoading: isLoadingTrade } = useTrade();
-
-  const { setTypedValue, independentField, dependentField, typedValue } = useSwapAmountsStore();
-
-  const currencies = {
-    [Field.CURRENCY_A]: tokenA,
-    [Field.CURRENCY_B]: tokenB,
-  };
-
-  // amounts
-  const independentAmount: CurrencyAmount<Currency> | undefined = tryParseCurrencyAmount(
-    typedValue,
-    currencies[independentField],
-  );
+    resetTokens();
+    resetAmount();
+  }, [chainId, resetAmount, resetTokens]);
 
   return (
     <>

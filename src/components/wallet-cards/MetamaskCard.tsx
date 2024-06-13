@@ -25,7 +25,8 @@ export default function MetamaskCard() {
     <PickButton
       onClick={() => {
         setName("metamask");
-        const connectorToConnect = connectors.find((c) => c.id === rdnsMap.metamask);
+        console.log(connectors);
+        const connectorToConnect = connectors[2];
 
         if (!connectorToConnect) {
           return addToast(t("install_metamask"), "error");

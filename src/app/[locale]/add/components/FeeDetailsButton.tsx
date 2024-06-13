@@ -23,7 +23,6 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
   const { gasPrice, approveTransactions, approveTotalGasLimit, approveTransactionsCount } =
     useLiquidityApprove();
 
-  console.log("🚀 ~ FeeDetailsButton ~ approveTransactions:", approveTransactions);
   const transactionItems = [
     {
       transaction: approveTransactions.approveA,

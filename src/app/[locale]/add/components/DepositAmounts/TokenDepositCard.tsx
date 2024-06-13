@@ -193,7 +193,7 @@ function InputStandardAmount({
               {standard === "ERC-20"
                 ? t("approved", {
                     approved: formatFloat(
-                      formatUnits(tokenBalance?.value || BigInt(0), token.decimals),
+                      formatUnits(currentAllowance || BigInt(0), token.decimals),
                     ),
                     symbol: token.symbol,
                   })

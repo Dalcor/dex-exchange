@@ -54,5 +54,6 @@ export default async function RootLayout({
 
 export const metadata = {
   title: "Dex Exchange",
-  description: "How to do i18n in Next.js 13 within app directory",
+  description:
+    "Next generation decentralized exchange for ERC-223 & ERC-20 tokens with margin trading, 15% cheaper GAS fees and transparent auto-listings for any tokens.",
 };

@@ -28,7 +28,10 @@ export const config = createConfig({
     // [callisto.id]: http(),
     [sepolia.id]: fallback([
       webSocket("wss://sepolia.infura.io/ws/v3/114e971e806248a0b32aa14b5477286b"),
+      webSocket("wss://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
       http("https://sepolia.infura.io/v3/114e971e806248a0b32aa14b5477286b"),
+      http("https://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
+      http("https://rpc.ankr.com/eth_sepolia"),
       http(),
     ]),
     [bscTestnet.id]: http(),

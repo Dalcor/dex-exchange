@@ -40,7 +40,7 @@ export function Providers({ children, initialState, messages, locale }: Props) {
     if (loaded) {
       const timer = setTimeout(() => {
         setMountPreloader(false);
-      }, 600);
+      }, 650);
       return () => clearTimeout(timer);
     }
   }, [loaded]);

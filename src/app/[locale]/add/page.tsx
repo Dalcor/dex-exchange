@@ -26,9 +26,8 @@ import { Token } from "@/sdk_hybrid/entities/token";
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
 import { LiquidityActionButton } from "./components/LiquidityActionButton/LiquidityActionButton";
 import { PriceRange } from "./components/PriceRange/PriceRange";
-import { useV3DerivedMintInfo } from "./hooks/useAddLiquidity";
-import { useLiquidityApprove } from "./hooks/useLiquidityApprove";
 import { usePriceRange } from "./hooks/usePrice";
+import { useV3DerivedMintInfo } from "./hooks/useV3DerivedMintInfo";
 import { useLiquidityPriceRangeStore } from "./stores/useLiquidityPriceRangeStore";
 
 export default function AddPoolPage() {
@@ -94,8 +93,6 @@ export default function AddPoolPage() {
     });
 
   // Deposit Amounts END
-
-  const { approveTransactions, gasPrice } = useLiquidityApprove();
 
   const isFormDisabled = !tokenA || !tokenB;
 
@@ -212,8 +209,6 @@ export default function AddPoolPage() {
               currencies={currencies}
               depositADisabled={depositADisabled}
               depositBDisabled={depositBDisabled}
-              approveTransactions={approveTransactions}
-              gasPrice={gasPrice}
               isFormDisabled={isFormDisabled || !isCreatePoolFormFilled}
             />
             <PriceRange

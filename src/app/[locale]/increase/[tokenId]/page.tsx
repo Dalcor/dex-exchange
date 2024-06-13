@@ -2,10 +2,8 @@
 
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
 
 import { Bound } from "@/app/[locale]/add/components/PriceRange/LiquidityChartRangeInput/types";
-import { useAddLiquidity, useV3DerivedMintInfo } from "@/app/[locale]/add/hooks/useAddLiquidity";
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "@/app/[locale]/add/stores/useLiquidityPriceRangeStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/stores/useLiquidityTierStore";
@@ -31,8 +29,8 @@ import { useRouter } from "@/navigation";
 
 import { DepositAmounts } from "../../add/components/DepositAmounts/DepositAmounts";
 import { LiquidityActionButton } from "../../add/components/LiquidityActionButton/LiquidityActionButton";
-import { useLiquidityApprove } from "../../add/hooks/useLiquidityApprove";
 import { usePriceRange } from "../../add/hooks/usePrice";
+import { useV3DerivedMintInfo } from "../../add/hooks/useV3DerivedMintInfo";
 
 export default function IncreaseLiquidityPage({
   params,
@@ -43,14 +41,11 @@ export default function IncreaseLiquidityPage({
 }) {
   useRecentTransactionTracking();
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
-  const { chainId } = useAccount();
 
   const { setIsOpen } = useTransactionSettingsDialogStore();
   const { setTicks } = useLiquidityPriceRangeStore();
 
   const router = useRouter();
-
-  const { handleAddLiquidity } = useAddLiquidity();
 
   const [showFirst, setShowFirst] = useState(true);
 
@@ -121,9 +116,6 @@ export default function IncreaseLiquidityPage({
 
   // Deposit Amounts END
 
-  const { approveTransactions, handleApprove, approveTransactionsType, gasPrice } =
-    useLiquidityApprove();
-
   return (
     <Container>
       <div className="w-[1200px] mx-auto my-[80px]">
@@ -168,7 +160,6 @@ export default function IncreaseLiquidityPage({
               currencies={currencies}
               depositADisabled={depositADisabled}
               depositBDisabled={depositBDisabled}
-              approveTransactions={approveTransactions}
               isFormDisabled={false}
             />
             <div className="rounded-3 p-5 bg-tertiary-bg h-min">

@@ -1,25 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAccount, useBlock, useBlockNumber, useGasPrice } from "wagmi";
+import { useCallback, useEffect, useMemo } from "react";
+import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
 
 import useAllowance, { AllowanceStatus } from "@/hooks/useAllowance";
 import useDeposit from "@/hooks/useDeposit";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
-import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 import { Field, useTokensStandards } from "../stores/useAddLiquidityAmountsStore";
 import { useAddLiquidityTokensStore } from "../stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "../stores/useLiquidityTierStore";
-import { useV3DerivedMintInfo } from "./useAddLiquidity";
 import { usePriceRange } from "./usePrice";
+import { useV3DerivedMintInfo } from "./useV3DerivedMintInfo";
 
+// TestApproveTransaction
 export type ApproveTransaction = {
-  token: Token;
-  standard: TokenStandard;
-  amount: bigint;
-  estimatedGas: bigint | null;
-};
-export type TestApproveTransaction = {
   token: Token;
   amount: bigint;
   isAllowed: boolean;
@@ -102,11 +97,11 @@ export const useLiquidityApprove = () => {
     amountToCheck: amountToCheckB,
   });
 
-  const testTransactions = useMemo(() => {
-    let approveA = undefined as undefined | TestApproveTransaction;
-    let approveB = undefined as undefined | TestApproveTransaction;
-    let depositA = undefined as undefined | TestApproveTransaction;
-    let depositB = undefined as undefined | TestApproveTransaction;
+  const approveTransactions = useMemo(() => {
+    let approveA = undefined as undefined | ApproveTransaction;
+    let approveB = undefined as undefined | ApproveTransaction;
+    let depositA = undefined as undefined | ApproveTransaction;
+    let depositB = undefined as undefined | ApproveTransaction;
     if (tokenA && tokenAStandard && amountToCheckA) {
       if (tokenAStandard === "ERC-20") {
         approveA = {
@@ -173,53 +168,6 @@ export const useLiquidityApprove = () => {
     isDepositedB,
   ]);
 
-  const [approveTransactions, setApproveTransactions] = useState([] as ApproveTransaction[]);
-
-  useEffect(() => {
-    let transactions: ApproveTransaction[] = [];
-    if (tokenA && tokenAStandard && amountToCheckA) {
-      if (
-        (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountToCheckA) ||
-        (tokenAStandard === "ERC-223" && (currentDepositA || BigInt(0)) < amountToCheckA)
-      ) {
-        transactions.push({
-          token: tokenA,
-          standard: tokenAStandard,
-          amount: amountToCheckA,
-          estimatedGas: estimatedGasAllowanceA,
-        });
-      }
-    }
-    if (tokenB && tokenBStandard && amountToCheckB) {
-      if (
-        (tokenBStandard === "ERC-20" && (currentAllowanceB || BigInt(0)) < amountToCheckB) ||
-        (tokenBStandard === "ERC-223" && (currentDepositB || BigInt(0)) < amountToCheckB)
-      ) {
-        transactions.push({
-          token: tokenB,
-          standard: tokenBStandard,
-          amount: amountToCheckB,
-          estimatedGas: estimatedGasAllowanceB,
-        });
-      }
-    }
-
-    setApproveTransactions(transactions);
-  }, [
-    tokenA,
-    tokenB,
-    tokenAStandard,
-    tokenBStandard,
-    amountToCheckA,
-    amountToCheckB,
-    currentAllowanceA,
-    currentAllowanceB,
-    currentDepositA,
-    currentDepositB,
-    estimatedGasAllowanceA,
-    estimatedGasAllowanceB,
-  ]);
-
   const handleApprove = useCallback(async () => {
     if (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountToCheckA) {
       approveA();
@@ -249,8 +197,8 @@ export const useLiquidityApprove = () => {
   ]);
 
   const approveTransactionsType = useMemo(() => {
-    const isERC20Transaction = testTransactions.approveA || testTransactions.approveB;
-    const isERC223Transaction = testTransactions.depositA || testTransactions.depositB;
+    const isERC20Transaction = approveTransactions.approveA || approveTransactions.approveB;
+    const isERC223Transaction = approveTransactions.depositA || approveTransactions.depositB;
     if (isERC20Transaction && isERC223Transaction) {
       return ApproveTransactionType.ERC20_AND_ERC223;
     } else if (isERC20Transaction) {
@@ -258,7 +206,7 @@ export const useLiquidityApprove = () => {
     } else {
       return ApproveTransactionType.ERC223;
     }
-  }, [testTransactions]);
+  }, [approveTransactions]);
 
   // Gas price
   const { data: gasPrice, refetch: refetchGasPrice } = useGasPrice();
@@ -268,11 +216,25 @@ export const useLiquidityApprove = () => {
     refetchGasPrice();
   }, [blockNumber, refetchGasPrice]);
 
+  const { approveTransactionsCount, approveTotalGasLimit } = useMemo(() => {
+    const approveTransactionsArray = Object.values(approveTransactions).filter(
+      (t) => !!t && !t.isAllowed,
+    ) as ApproveTransaction[];
+
+    const transactionsCount = approveTransactionsArray.length;
+    const totalGasLimit = approveTransactionsArray.reduce((acc, { estimatedGas }) => {
+      return estimatedGas ? acc + estimatedGas : acc;
+    }, BigInt(0));
+
+    return { approveTransactionsCount: transactionsCount, approveTotalGasLimit: totalGasLimit };
+  }, [approveTransactions]);
+
   return {
     approveTransactions,
-    testTransactions,
+    approveTransactionsCount,
     handleApprove,
     approveTransactionsType,
     gasPrice,
+    approveTotalGasLimit,
   };
 };

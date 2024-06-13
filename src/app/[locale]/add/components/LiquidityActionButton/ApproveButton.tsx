@@ -13,8 +13,8 @@ import { AllowanceStatus } from "@/hooks/useAllowance";
 import { TokenStandard } from "@/sdk_hybrid/entities/token";
 
 import {
+  ApproveTransaction,
   ApproveTransactionType,
-  TestApproveTransaction,
   useLiquidityApprove,
 } from "../../hooks/useLiquidityApprove";
 
@@ -32,7 +32,7 @@ const TransactionItem = ({
   index,
   itemsCount,
 }: {
-  transaction?: TestApproveTransaction;
+  transaction?: ApproveTransaction;
   gasPrice: any;
   standard: TokenStandard;
   chain?: Chain;
@@ -100,46 +100,50 @@ export const ApproveButton = () => {
   const { chain } = useAccount();
 
   const {
-    approveTransactions,
     handleApprove,
     approveTransactionsType,
     gasPrice,
-    testTransactions,
+    approveTransactions,
+    approveTotalGasLimit,
   } = useLiquidityApprove();
 
-  const totalGasLimit = approveTransactions.reduce((acc, { estimatedGas }) => {
-    return estimatedGas ? acc + estimatedGas : acc;
-  }, BigInt(0));
-
-  const isLoadingA20 = testTransactions.approveA
-    ? [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(testTransactions.approveA?.status)
+  const isLoadingA20 = approveTransactions.approveA
+    ? [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(
+        approveTransactions.approveA?.status,
+      )
     : false;
-  const isLoadingB20 = testTransactions.approveB
-    ? [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(testTransactions.approveB?.status)
+  const isLoadingB20 = approveTransactions.approveB
+    ? [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(
+        approveTransactions.approveB?.status,
+      )
     : false;
-  const isLoadingA223 = testTransactions.depositA
-    ? [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(testTransactions.depositA?.status)
+  const isLoadingA223 = approveTransactions.depositA
+    ? [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(
+        approveTransactions.depositA?.status,
+      )
     : false;
-  const isLoadingB223 = testTransactions.depositB
-    ? [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(testTransactions.depositB?.status)
+  const isLoadingB223 = approveTransactions.depositB
+    ? [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(
+        approveTransactions.depositB?.status,
+      )
     : false;
   const isLoading = isLoadingA20 || isLoadingB20 || isLoadingA223 || isLoadingB223;
 
   const transactionItems = [
     {
-      transaction: testTransactions.approveA,
+      transaction: approveTransactions.approveA,
       standard: "ERC-20" as TokenStandard,
     },
     {
-      transaction: testTransactions.depositA,
+      transaction: approveTransactions.depositA,
       standard: "ERC-223" as TokenStandard,
     },
     {
-      transaction: testTransactions.approveB,
+      transaction: approveTransactions.approveB,
       standard: "ERC-20" as TokenStandard,
     },
     {
-      transaction: testTransactions.depositB,
+      transaction: approveTransactions.depositB,
       standard: "ERC-223" as TokenStandard,
     },
   ].filter(({ transaction }) => !!transaction);
@@ -178,7 +182,7 @@ export const ApproveButton = () => {
           ))}
           <div className="flex gap-1 justify-center items-center border-t pt-4 border-secondary-border mb-4">
             <span className="text-secondary-text">Total fee</span>
-            <span className="font-bold">{`${gasPrice && totalGasLimit ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
+            <span className="font-bold">{`${gasPrice && approveTotalGasLimit ? formatFloat(formatEther(gasPrice * approveTotalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
           </div>
 
           {isLoading ? (

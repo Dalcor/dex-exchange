@@ -16,9 +16,11 @@ import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import { formatFloat } from "@/functions/formatFloat";
 import { AllowanceStatus } from "@/hooks/useAllowance";
 import { usePositionPrices, usePositionRangeStatus } from "@/hooks/usePositions";
+import { EstimatedGasId, useEstimatedGasStoreById } from "@/stores/useEstimatedGasStore";
 
-import { useAddLiquidity, useV3DerivedMintInfo } from "../../hooks/useAddLiquidity";
+import { useAddLiquidity, useAddLiquidityEstimatedGas } from "../../hooks/useAddLiquidity";
 import { usePriceRange } from "../../hooks/usePrice";
+import { useV3DerivedMintInfo } from "../../hooks/useV3DerivedMintInfo";
 import { Field, useTokensStandards } from "../../stores/useAddLiquidityAmountsStore";
 import { useAddLiquidityTokensStore } from "../../stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "../../stores/useLiquidityTierStore";
@@ -37,8 +39,6 @@ export const MintButton = ({
   const { price } = usePriceRange();
   const { tokenAStandard, tokenBStandard } = useTokensStandards();
   const [showFirst, setShowFirst] = useState(true);
-
-  const { handleAddLiquidity, estimatedGas, status } = useAddLiquidity();
 
   const { parsedAmounts, position, noLiquidity } = useV3DerivedMintInfo({
     tokenA,
@@ -66,6 +66,22 @@ export const MintButton = ({
     position,
     showFirst,
   });
+
+  const { handleAddLiquidity, status } = useAddLiquidity({
+    position,
+    increase,
+    createPool: noLiquidity ? true : false,
+    tokenId,
+  });
+
+  useAddLiquidityEstimatedGas({
+    position,
+    increase,
+    createPool: noLiquidity ? true : false,
+    tokenId,
+  });
+
+  const estimatedMintGas = useEstimatedGasStoreById(EstimatedGasId.mint);
 
   // TODO? !position? return ?
   if (!tokenA || !tokenB) {
@@ -211,11 +227,11 @@ export const MintButton = ({
             </div>
             <div className="flex flex-col">
               <span className="text-14 text-secondary-text">Gas limit</span>
-              <span>{estimatedGas?.toString()}</span>
+              <span>{estimatedMintGas?.toString()}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-14 text-secondary-text">Fee</span>
-              <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : "0"} ${chain?.nativeCurrency.symbol}`}</span>
+              <span>{`${gasPrice && formatFloat(formatEther(gasPrice * estimatedMintGas))} ${chain?.nativeCurrency.symbol}`}</span>
             </div>
           </div>
 
@@ -228,12 +244,7 @@ export const MintButton = ({
           ) : (
             <Button
               onClick={() => {
-                handleAddLiquidity({
-                  position,
-                  increase,
-                  createPool: noLiquidity ? true : false,
-                  tokenId,
-                });
+                handleAddLiquidity();
               }}
               fullWidth
             >

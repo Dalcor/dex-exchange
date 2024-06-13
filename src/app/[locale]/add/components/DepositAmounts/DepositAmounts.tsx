@@ -12,8 +12,9 @@ import { formatFloat } from "@/functions/formatFloat";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { EstimatedGasId, useEstimatedGasStoreById } from "@/stores/useEstimatedGasStore";
 
-import { ApproveTransaction } from "../../hooks/useLiquidityApprove";
+import { useLiquidityApprove } from "../../hooks/useLiquidityApprove";
 import { FeeDetailsButton } from "../FeeDetailsButton";
 
 export const DepositAmounts = ({
@@ -21,8 +22,6 @@ export const DepositAmounts = ({
   currencies,
   depositADisabled,
   depositBDisabled,
-  approveTransactions,
-  gasPrice,
   isFormDisabled,
 }: {
   parsedAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined };
@@ -32,8 +31,6 @@ export const DepositAmounts = ({
   };
   depositADisabled: boolean;
   depositBDisabled: boolean;
-  approveTransactions: ApproveTransaction[];
-  gasPrice?: bigint;
   isFormDisabled: boolean;
 }) => {
   const {
@@ -48,15 +45,16 @@ export const DepositAmounts = ({
   } = useLiquidityAmountsStore();
   const { chain } = useAccount();
 
+  const { gasPrice, approveTotalGasLimit, approveTransactionsCount } = useLiquidityApprove();
+  const estimatedMintGas = useEstimatedGasStoreById(EstimatedGasId.mint);
+
   // get formatted amounts
   const formattedAmounts = {
     [independentField]: typedValue,
     [dependentField]: parsedAmounts[dependentField]?.toSignificant() ?? "",
   };
 
-  const totalGasLimit = approveTransactions.reduce((acc, { estimatedGas }) => {
-    return estimatedGas ? acc + estimatedGas : acc;
-  }, BigInt(0));
+  const totalGasLimit = approveTotalGasLimit + estimatedMintGas;
 
   return (
     <div className={clsx("flex flex-col gap-4 md:gap-5", isFormDisabled && "opacity-20")}>
@@ -85,14 +83,10 @@ export const DepositAmounts = ({
           </div>
           <div className="flex flex-col">
             <div className="text-secondary-text text-14">Transactions</div>
-            <div>{approveTransactions.length + 1}</div>
+            <div>{approveTransactionsCount + 1}</div>
           </div>
         </div>
-        <FeeDetailsButton
-          approveTransactions={approveTransactions}
-          gasPrice={gasPrice}
-          isDisabled={isFormDisabled}
-        />
+        <FeeDetailsButton isDisabled={isFormDisabled} />
       </div>
       <TokenDepositCard
         value={formattedAmounts[Field.CURRENCY_B]}
@@ -102,6 +96,7 @@ export const DepositAmounts = ({
         isOutOfRange={depositBDisabled}
         tokenStandardRatio={tokenBStandardRatio}
         setTokenStandardRatio={setTokenBStandardRatio}
+        gasPrice={gasPrice}
       />
     </div>
   );

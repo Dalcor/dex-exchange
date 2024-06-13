@@ -4,9 +4,9 @@ import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 
-import { useV3DerivedMintInfo } from "../../hooks/useAddLiquidity";
 import { useLiquidityApprove } from "../../hooks/useLiquidityApprove";
 import { usePriceRange } from "../../hooks/usePrice";
+import { useV3DerivedMintInfo } from "../../hooks/useV3DerivedMintInfo";
 import {
   Field,
   useLiquidityAmountsStore,
@@ -30,7 +30,7 @@ export const LiquidityActionButton = ({
   const { tokenAStandard, tokenBStandard } = useTokensStandards();
   const { address } = useAccount();
 
-  const { approveTransactions } = useLiquidityApprove();
+  const { approveTransactionsCount } = useLiquidityApprove();
 
   const { typedValue } = useLiquidityAmountsStore();
 
@@ -119,7 +119,7 @@ export const LiquidityActionButton = ({
     );
   }
 
-  if (approveTransactions?.length) {
+  if (approveTransactionsCount) {
     return <ApproveButton />;
   }
 

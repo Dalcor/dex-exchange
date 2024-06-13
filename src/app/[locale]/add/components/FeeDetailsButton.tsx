@@ -2,30 +2,46 @@ import { useState } from "react";
 import { formatEther, formatGwei, formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Badge from "@/components/badges/Badge";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
+import { TokenStandard } from "@/sdk_hybrid/entities/token";
+import { EstimatedGasId, useEstimatedGasStoreById } from "@/stores/useEstimatedGasStore";
 
-import { ApproveTransaction } from "../hooks/useLiquidityApprove";
+import { ApproveTransaction, useLiquidityApprove } from "../hooks/useLiquidityApprove";
 
-export const FeeDetailsButton = ({
-  approveTransactions,
-  gasPrice,
-  isDisabled,
-}: {
-  approveTransactions: ApproveTransaction[];
-  gasPrice?: bigint;
-  isDisabled: boolean;
-}) => {
+export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { chain } = useAccount();
 
-  const totalGasLimit = approveTransactions.reduce((acc, { estimatedGas }) => {
-    return estimatedGas ? acc + estimatedGas : acc;
-  }, BigInt(0));
+  const estimatedMintGas = useEstimatedGasStoreById(EstimatedGasId.mint);
+
+  const { gasPrice, approveTransactions, approveTotalGasLimit, approveTransactionsCount } =
+    useLiquidityApprove();
+
+  const transactionItems = [
+    {
+      transaction: approveTransactions.approveA,
+      standard: "ERC-20" as TokenStandard,
+    },
+    {
+      transaction: approveTransactions.depositA,
+      standard: "ERC-223" as TokenStandard,
+    },
+    {
+      transaction: approveTransactions.approveB,
+      standard: "ERC-20" as TokenStandard,
+    },
+    {
+      transaction: approveTransactions.depositB,
+      standard: "ERC-223" as TokenStandard,
+    },
+  ].filter(({ transaction }) => !!transaction && !transaction.isAllowed);
+
+  const totalGasLimit = approveTotalGasLimit + estimatedMintGas;
+
   return (
     <div className="w-full md:w-auto">
       <Button
@@ -42,9 +58,9 @@ export const FeeDetailsButton = ({
       <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
         <DialogHeader onClose={() => setIsOpen(false)} title="Fee details" />
         <div className="w-full md:w-[570px] px-4 md:px-10 pb-4 md:pb-10">
-          {approveTransactions.map(({ token, standard, amount, estimatedGas }, index) => {
-            return (
-              <div key="1" className="flex gap-2">
+          {(transactionItems as { transaction: ApproveTransaction; standard: TokenStandard }[]).map(
+            ({ transaction, standard }, index) => (
+              <div key={`${transaction.token.address0}_${standard}`} className="flex gap-2">
                 <div className="flex flex-col items-center">
                   <div className="flex justify-center items-center rounded-full min-h-10 min-w-10 w-10 h-10 bg-green-bg">
                     {index + 1}
@@ -53,12 +69,14 @@ export const FeeDetailsButton = ({
                 </div>
                 <div className="w-full">
                   <div className="flex gap-2 py-2 items-center">
-                    <span>{`${standard === "ERC-20" ? "Approve" : "Deposit"} for ${token.symbol}`}</span>
+                    <span>{`${standard === "ERC-20" ? "Approve" : "Deposit"} for ${transaction.token.symbol}`}</span>
                     <Badge color="green" text={standard} />
                   </div>
                   <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
-                    <span>{formatUnits(amount || BigInt(0), token.decimals)}</span>
-                    <span>{`Amount ${token.symbol}`}</span>
+                    <span>
+                      {formatUnits(transaction.amount || BigInt(0), transaction.token.decimals)}
+                    </span>
+                    <span>{`Amount ${transaction.token.symbol}`}</span>
                   </div>
                   <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
                     <div className="flex flex-col">
@@ -67,21 +85,22 @@ export const FeeDetailsButton = ({
                     </div>
                     <div className="flex flex-col">
                       <span className="text-14 text-secondary-text">Gas limit</span>
-                      <span>{estimatedGas?.toString()}</span>
+                      <span>{transaction.estimatedGas?.toString()}</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-14 text-secondary-text">Fee</span>
-                      <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
+                      <span>{`${gasPrice && transaction.estimatedGas ? formatFloat(formatEther(gasPrice * transaction.estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
                     </div>
                   </div>
                 </div>
               </div>
-            );
-          })}
-          <div key="1" className="flex gap-2">
+            ),
+          )}
+
+          <div key="10" className="flex gap-2">
             <div className="flex flex-col items-center">
               <div className="flex justify-center items-center rounded-full min-h-10 min-w-10 w-10 h-10 bg-green-bg">
-                {approveTransactions.length + 1}
+                {approveTransactionsCount + 1}
               </div>
             </div>
             <div className="w-full">
@@ -95,11 +114,11 @@ export const FeeDetailsButton = ({
                 </div>
                 <div className="flex flex-col">
                   <span className="text-14 text-secondary-text">Gas limit</span>
-                  <span>{0}</span>
+                  <span>{estimatedMintGas.toString()}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-14 text-secondary-text">Fee</span>
-                  <span>{`${gasPrice ? formatFloat(formatEther(gasPrice * BigInt(0))) : ""} ${chain?.nativeCurrency.symbol}`}</span>
+                  <span>{`${gasPrice ? formatFloat(formatEther(gasPrice * estimatedMintGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
                 </div>
               </div>
             </div>

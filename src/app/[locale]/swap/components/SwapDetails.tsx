@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 import React, { useMemo, useState } from "react";
 
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
@@ -42,6 +43,7 @@ export default function SwapDetails({
   tokenA: Token;
   tokenB: Token;
 }) {
+  const t = useTranslations("Swap");
   const [expanded, setExpanded] = useState(false);
   const { typedValue } = useSwapAmountsStore();
 
@@ -63,7 +65,7 @@ export default function SwapDetails({
           role="button"
           onClick={() => setExpanded(!expanded)}
         >
-          <div className="text-secondary-text text-14 flex items-center">Swap details</div>
+          <div className="text-secondary-text text-14 flex items-center">{t("swap_details")}</div>
           <span className="text-secondary-text">
             <Svg
               className={clsx("duration-200", expanded && "-rotate-180")}
@@ -75,58 +77,42 @@ export default function SwapDetails({
       <Collapse open={expanded}>
         <div className="flex flex-col gap-2 pb-4 px-5 bg-tertiary-bg rounded-b-3 text-14">
           <SwapDetailsRow
-            title={`${tokenA?.symbol} Price`}
-            value={
-              trade ? `${trade.executionPrice.toSignificant()} ${tokenB?.symbol}` : "Loading..."
-            }
-            tooltipText="Minimum received tooltip"
-          />
-          <SwapDetailsRow
-            title={`${tokenB?.symbol} Price`}
-            value={
-              trade
-                ? `${trade.executionPrice.invert().toSignificant()} ${tokenA?.symbol}`
-                : "Loading..."
-            }
-            tooltipText="Minimum received tooltip"
-          />
-          <SwapDetailsRow
-            title="Min. received"
+            title={t("minimum_received")}
             value={
               trade
                 ?.minimumAmountOut(new Percent(slippage * 100, 10000), dependentAmount)
                 .toSignificant() || "Loading..."
             }
-            tooltipText="Minimum received tooltip"
+            tooltipText={t("minimum_received_tooltip")}
           />
           <SwapDetailsRow
-            title="Price impact"
+            title={t("price_impact")}
             value={trade ? `${formatFloat(trade.priceImpact.toSignificant())}%` : "Loading..."}
-            tooltipText="Minimum received tooltip"
+            tooltipText={t("price_impact_tooltip")}
           />
           <SwapDetailsRow
-            title="Trading fee"
+            title={t("trading_fee")}
             value={
-              typedValue && Boolean(+typedValue)
+              typedValue && Boolean(+typedValue) && tokenA
                 ? `${(+typedValue * 0.3) / 100} ${tokenA.symbol}`
                 : "Loading..."
             }
-            tooltipText="Minimum received tooltip"
+            tooltipText={t("trading_fee_tooltip")}
           />
           <SwapDetailsRow
-            title="Order routing"
-            value="Direct swap"
-            tooltipText="Minimum received tooltip"
+            title={t("order_routing")}
+            value={t("direct_swap")}
+            tooltipText={t("route_tooltip")}
           />
           <SwapDetailsRow
-            title="Max. slippage"
+            title={t("maximum_slippage")}
             value={`${slippage}%`}
-            tooltipText="Minimum received tooltip"
+            tooltipText={t("maximum_slippage_tooltip")}
           />
           <SwapDetailsRow
-            title="Gas limit"
+            title={t("gas_limit")}
             value={estimatedGas?.toString() || "Loading..."}
-            tooltipText="Minimum received tooltip"
+            tooltipText={t("gas_limit_tooltip")}
           />
         </div>
       </Collapse>

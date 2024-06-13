@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Address, formatGwei, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
@@ -24,7 +25,9 @@ import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog"
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import { networks } from "@/config/networks";
 import { formatFloat } from "@/functions/formatFloat";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -39,6 +42,8 @@ function OpenConfirmDialogButton({
   isTradeReady: boolean;
   isTradeLoading: boolean;
 }) {
+  const tWallet = useTranslations("Wallet");
+  const t = useTranslations("Swap");
   const { isConnected } = useAccount();
 
   const { tokenA, tokenB } = useSwapTokensStore();
@@ -51,7 +56,7 @@ function OpenConfirmDialogButton({
   if (!isConnected) {
     return (
       <Button onClick={() => setWalletConnectOpened(true)} fullWidth>
-        Connect wallet
+        {tWallet("connect_wallet")}
       </Button>
     );
   }
@@ -60,7 +65,7 @@ function OpenConfirmDialogButton({
     return (
       <Button fullWidth disabled>
         <span className="flex items-center gap-2">
-          <span>Processing swap</span>
+          <span>{t("processing_swap")}</span>
           <Preloader size={20} color="black" />
         </span>
       </Button>
@@ -71,7 +76,7 @@ function OpenConfirmDialogButton({
     return (
       <Button fullWidth disabled>
         <span className="flex items-center gap-2">
-          <span>Approval in progress</span>
+          <span>{t("approving_in_progress")}</span>
           <Preloader size={20} color="black" />
         </span>
       </Button>
@@ -82,7 +87,7 @@ function OpenConfirmDialogButton({
     return (
       <Button fullWidth disabled>
         <span className="flex items-center gap-2">
-          <span>Waiting for confirmation</span>
+          <span>{t("waiting_for_confirmation")}</span>
           <Preloader size={20} color="black" />
         </span>
       </Button>
@@ -92,7 +97,7 @@ function OpenConfirmDialogButton({
   if (!tokenA || !tokenB) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Select tokens
+        {t("select_tokens")}
       </Button>
     );
   }
@@ -100,7 +105,7 @@ function OpenConfirmDialogButton({
   if (!typedValue) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Enter amount
+        {t("enter_amount")}
       </Button>
     );
   }
@@ -108,7 +113,7 @@ function OpenConfirmDialogButton({
   if (isTradeLoading) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Looking for best trade...
+        {t("looking_for_the_best_trade")}
       </Button>
     );
   }
@@ -116,7 +121,7 @@ function OpenConfirmDialogButton({
   if (!isTradeReady) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Swap is unavailable for this pair
+        {t("swap_is_unavailable_for_this_pair")}
       </Button>
     );
   }
@@ -124,26 +129,28 @@ function OpenConfirmDialogButton({
   if (!isSufficientBalance) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Insufficient balance
+        {t("insufficient_balance")}
       </Button>
     );
   }
 
   return (
     <Button onClick={() => setConfirmSwapDialogOpen(true)} fullWidth>
-      Swap
+      {t("swap")}
     </Button>
   );
 }
 
-const gasOptionTitle: Record<GasOption, string> = {
-  [GasOption.CHEAP]: "Cheap",
-  [GasOption.FAST]: "Fast",
-  [GasOption.CUSTOM]: "Custom",
+const gasOptionTitle: Record<GasOption, any> = {
+  [GasOption.CHEAP]: "cheap",
+  [GasOption.FAST]: "fast",
+  [GasOption.CUSTOM]: "custom",
 };
 export default function TradeForm() {
-  const { address } = useAccount();
+  const t = useTranslations("Swap");
 
+  const { address } = useAccount();
+  const chainId = useCurrentChainId();
   const [isOpenedFee, setIsOpenedFee] = useState(false);
   const { isOpened: showRecentTransactions, setIsOpened: setShowRecentTransactions } =
     useSwapRecentTransactionsStore();
@@ -265,7 +272,7 @@ export default function TradeForm() {
   return (
     <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
       <div className="flex justify-between items-center mb-2.5">
-        <h3 className="font-bold text-20">Swap</h3>
+        <h3 className="font-bold text-20">{t("swap")}</h3>
         <div className="flex items-center">
           <IconButton
             active={showRecentTransactions}
@@ -286,7 +293,7 @@ export default function TradeForm() {
         token={tokenA}
         balance0={tokenA0Balance ? formatFloat(tokenA0Balance.formatted) : "0.0"}
         balance1={tokenA1Balance ? formatFloat(tokenA1Balance.formatted) : "0.0"}
-        label="You pay"
+        label={t("you_pay")}
         standard={
           Boolean(tokenAAddress) && tokenAAddress === tokenA?.address1
             ? Standard.ERC223
@@ -325,7 +332,7 @@ export default function TradeForm() {
         token={tokenB}
         balance0={tokenB0Balance ? formatFloat(tokenB0Balance.formatted) : "0.0"}
         balance1={tokenB1Balance ? formatFloat(tokenB1Balance.formatted) : "0.0"}
-        label="You receive"
+        label={t("you_receive")}
         standard={
           Boolean(tokenBAddress) && tokenBAddress === tokenB?.address1
             ? Standard.ERC223
@@ -348,14 +355,18 @@ export default function TradeForm() {
         // role="button"
       >
         <div className="flex items-center gap-1">
-          <Tooltip text="Tooltip" />
-          <div className="text-secondary-text text-14 flex items-center">Network fee</div>
+          <Tooltip
+            text={t("network_fee_tooltip", {
+              networkName: networks.find((n) => n.chainId === chainId)?.name,
+            })}
+          />
+          <div className="text-secondary-text text-14 flex items-center">{t("network_fee")}</div>
         </div>
 
         <div className="flex items-center gap-2 justify-between md:justify-end">
           <span className="flex gap-2 items-center">
             <span className="flex items-center justify-center px-2 text-14 rounded-20 font-500 text-secondary-text bg-quaternary-bg">
-              {gasOptionTitle[gasOption]}
+              {t(gasOptionTitle[gasOption])}
             </span>
             <div>
               <span className="text-secondary-text mr-1 text-14">{computedGasSpending} GWEI</span>{" "}
@@ -371,7 +382,7 @@ export default function TradeForm() {
               setIsOpenedFee(true);
             }}
           >
-            Edit
+            {t("edit")}
           </button>
         </div>
       </div>
@@ -381,10 +392,10 @@ export default function TradeForm() {
           <div className="flex items-center gap-2 text-14">
             <Preloader size={20} />
 
-            {isLoadingSwap && <span>Processing swap</span>}
-            {isPendingSwap && <span>Waiting for confirmation</span>}
-            {isLoadingApprove && <span>Approving in progress</span>}
-            {isPendingApprove && <span>Waiting for confirmation</span>}
+            {isLoadingSwap && <span>{t("processing_swap")}</span>}
+            {isPendingSwap && <span>{t("waiting_for_confirmation")}</span>}
+            {isLoadingApprove && <span>{t("approving_in_progress")}</span>}
+            {isPendingApprove && <span>{t("waiting_for_confirmation")}</span>}
           </div>
 
           <Button
@@ -393,7 +404,7 @@ export default function TradeForm() {
             }}
             size={ButtonSize.EXTRA_SMALL}
           >
-            Review swap
+            {t("review_swap")}
           </Button>
         </div>
       )}

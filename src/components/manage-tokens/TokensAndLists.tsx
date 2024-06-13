@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import React, { useEffect, useMemo, useState } from "react";
 import { AutoSizer, List } from "react-virtualized";
 
@@ -14,7 +15,6 @@ import { db } from "@/db/db";
 import { useTokenLists, useTokens } from "@/hooks/useTokenLists";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
-import { useNoTokenListsEnabledWarningStore } from "@/stores/useNoTokenListsEnabledWarningStore";
 
 interface Props {
   setContent: (content: ManageTokensDialogContent) => void;
@@ -22,6 +22,7 @@ interface Props {
   setTokenForPortfolio: (token: Token) => void;
 }
 export default function TokensAndLists({ setContent, handleClose, setTokenForPortfolio }: Props) {
+  const t = useTranslations("ManageTokens");
   const { activeTab, setActiveTab } = useManageTokensDialogStore();
 
   const lists = useTokenLists();
@@ -37,10 +38,10 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
 
   return (
     <>
-      <DialogHeader onClose={handleClose} title="Manage tokens" />
+      <DialogHeader onClose={handleClose} title={t("manage_tokens")} />
       <div className="w-full md:w-[600px] h-[580px] flex flex-col px-4 md:px-10">
         <div className="grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3  mb-3">
-          {["Lists", "Tokens"].map((title, index) => {
+          {[t("lists"), t("tokens")].map((title, index) => {
             return (
               <TabButton
                 key={title}
@@ -61,7 +62,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               <Input
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="Search name or paste address"
+                placeholder={t("search_list_name")}
               />
             </div>
 
@@ -71,7 +72,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               onClick={() => setContent("import-list")}
               className="mt-3"
             >
-              Import list
+              {t("import_list")}
             </Button>
 
             <div className="flex flex-col mt-3 overflow-scroll flex-grow">
@@ -100,7 +101,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               <Input
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="Search name or paste address"
+                placeholder={t("search_name_or_paste_address")}
               />
             </div>
 
@@ -110,14 +111,16 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               onClick={() => setContent("import-token")}
               className="mt-3"
             >
-              Import token
+              {t("import_token")}
             </Button>
 
             <div className="flex justify-between items-center my-3">
               <div>
-                Total: {filteredTokens.length}{" "}
-                {onlyCustom && (
-                  <>{filteredTokens.length === 1 ? "custom token" : "custom tokens"}</>
+                {t("total")}{" "}
+                {onlyCustom ? (
+                  <>{t("custom_tokens_amount", { amount: filteredTokens.length })}</>
+                ) : (
+                  filteredTokens.length
                 )}
               </div>
               <div>
@@ -125,7 +128,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
                   checked={onlyCustom}
                   handleChange={() => setOnlyCustom(!onlyCustom)}
                   id="only-custom"
-                  label="Only custom"
+                  label={t("only_custom")}
                 />
               </div>
             </div>
@@ -161,15 +164,13 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
                 {Boolean(!filteredTokens.length && onlyCustom) && (
                   <div className="flex items-center justify-center gap-2 flex-col h-full">
                     <EmptyStateIcon iconName="custom" />
-                    <span className="text-secondary-text">
-                      You don&apos;t have any custom tokens yet
-                    </span>
+                    <span className="text-secondary-text">{t("no_custom_yet")}</span>
                   </div>
                 )}
                 {Boolean(!filteredTokens.length && !onlyCustom) && (
                   <div className="flex items-center justify-center gap-2 flex-col h-full">
                     <EmptyStateIcon iconName="tokens" />
-                    <span className="text-secondary-text">You don&apos;t have any tokens yet</span>
+                    <span className="text-secondary-text">{t("no_tokens_yet")}</span>
                   </div>
                 )}
               </div>

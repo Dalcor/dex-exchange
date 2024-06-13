@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import Collapse from "@/components/atoms/Collapse";
@@ -42,40 +43,43 @@ export function MobileLink({
 const mobileLinks: {
   href: string;
   iconName: IconName;
-  title: string;
+  title: any;
 }[] = [
   {
     href: "/swap",
     iconName: "swap",
-    title: "Swap",
+    title: "swap",
   },
   {
     href: "/margin-trading",
     iconName: "margin-trading",
-    title: "Margin trading",
+    title: "margin_trading",
   },
   {
     href: "/pools",
     iconName: "pools",
-    title: "Pools",
+    title: "pools",
   },
   {
     href: "/borrow",
     iconName: "borrow",
-    title: "Borrow/Lend",
+    title: "borrow_lend",
   },
   {
     href: "/portfolio",
     iconName: "portfolio",
-    title: "Portfolio",
+    title: "portfolio",
   },
   {
     href: "#",
     iconName: "token",
-    title: "Token",
+    title: "token",
   },
 ];
 export default function MobileMenu() {
+  const t = useTranslations("Navigation");
+  const tFeedback = useTranslations("Feedback");
+
   const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
   const [moreOpened, setMoreOpened] = useState(false);
   const pathname = usePathname();
@@ -93,7 +97,7 @@ export default function MobileMenu() {
                     key={href}
                     href={href}
                     iconName={iconName}
-                    title={title}
+                    title={t(title)}
                     handleClose={() => setMobileMenuOpened(false)}
                     isActive={pathname.includes(href)}
                   />
@@ -110,7 +114,7 @@ export default function MobileMenu() {
               >
                 <span className="flex gap-2">
                   <Svg iconName="more" />
-                  More
+                  {t("more")}
                 </span>
                 <Svg
                   className={clsx(moreOpened && "-rotate-180", "duration-200")}
@@ -120,63 +124,63 @@ export default function MobileMenu() {
               <Collapse open={moreOpened}>
                 <div className="flex flex-col py-4 px-5 bg-primary-bg rounded-2 shadow-popover gap-5">
                   <div className="flex flex-col text-16 text-primary-text gap-2">
-                    <div className="text-secondary-text">Token</div>
-                    <div className="opacity-50 pointer-events-none">Statistics</div>
-                    <div className="opacity-50 pointer-events-none">Token lists</div>
+                    <div className="text-secondary-text">{t("token")}</div>
+                    <div className="opacity-50 pointer-events-none">{t("token_statistics")}</div>
+                    <div className="opacity-50 pointer-events-none">{t("token_lists")}</div>
                   </div>
                   <div className="flex flex-col text-16 text-primary-text gap-2">
-                    <div className="text-secondary-text">Social media</div>
+                    <div className="text-secondary-text">{t("social_media")}</div>
                     <a className="hover:text-green duration-200" href="https://t.me/Dex223_Defi">
-                      Telegram discussions
+                      {t("social_telegram_discussions")}
                     </a>
                     <a className="hover:text-green duration-200" href="https://t.me/Dex_223">
-                      Telegram announcements channel
+                      {t("social_telegram_announcements")}
                     </a>
                     <a className="hover:text-green duration-200" href="https://x.com/Dex_223">
-                      DEX223 X account
+                      {t("social_x_account")}
                     </a>
                     <a
                       className="hover:text-green duration-200"
                       href="https://discord.gg/t5bdeGC5Jk"
                     >
-                      Discord
+                      {t("social_discord")}
                     </a>
                     <a className="hover:text-green duration-200" href="https://x.com/Dexaran">
-                      Dexaran’s X account
+                      {t("social_dex_x_account")}
                     </a>
                   </div>
                   <div className="flex flex-col text-16 text-primary-text gap-2">
-                    <div className="text-secondary-text">Useful links</div>
+                    <div className="text-secondary-text">{t("useful_links")}</div>
 
                     <a
                       className="hover:text-green duration-200"
                       href="https://dexaran.github.io/token-converter/"
                     >
-                      ERC20 & ERC223 token converter
+                      {t("useful_converter")}
                     </a>
                     <a
                       className="hover:text-green duration-200"
                       href="https://dexaran.github.io/erc20-losses/"
                     >
-                      ERC-20 live losses calculator
+                      {t("useful_losses_calculator")}
                     </a>
                     <a
                       className="hover:text-green duration-200"
                       href="https://dexaran.github.io/erc223/"
                     >
-                      ERC223 front page
+                      {t("useful_front_page")}
                     </a>
                     <a
                       className="hover:text-green duration-200"
                       href="https://github.com/Dalcor/dex-exchange"
                     >
-                      Page source codes
+                      {t("useful_page_source_codes")}
                     </a>
                   </div>
                   <div className="flex flex-col text-16 text-primary-text gap-2">
-                    <div className="text-secondary-text">Partners</div>
+                    <div className="text-secondary-text">{t("partners")}</div>
                     <a className="hover:text-green duration-200" href="https://eossupport.io/">
-                      EOS support
+                      {t("partners_eos_support")}
                     </a>
                   </div>
                 </div>
@@ -195,7 +199,7 @@ export default function MobileMenu() {
                 setOpenFeedbackDialog(true);
               }}
             >
-              Feedback
+              {tFeedback("feedback")}
             </Button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { Form, Formik, FormikHelpers } from "formik";
+import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useState } from "react";
 import * as Yup from "yup";
 
@@ -15,11 +16,17 @@ import {
 } from "@/components/dialogs/stores/useFeedbackDialogStore";
 import addToast from "@/other/toast";
 
-const feedbackTagLabelsMap: Record<FeedbackTag, string> = {
-  [FeedbackTag.COMMENT]: "Comment",
-  [FeedbackTag.BUG]: "Bug",
-  [FeedbackTag.FEATURE_REQUEST]: "Feature request",
-  [FeedbackTag.OTHER]: "Other",
+type FeedbackTagTranslationTag =
+  | "category_comment"
+  | "category_feature"
+  | "category_bug"
+  | "category_other";
+
+const feedbackTagLabelsMap: Record<FeedbackTag, FeedbackTagTranslationTag> = {
+  [FeedbackTag.COMMENT]: "category_comment",
+  [FeedbackTag.BUG]: "category_bug",
+  [FeedbackTag.FEATURE_REQUEST]: "category_feature",
+  [FeedbackTag.OTHER]: "category_other",
 };
 
 interface Values {
@@ -44,6 +51,8 @@ const FeedbackSchema = Yup.object().shape({
 });
 
 function SuccessFeedback() {
+  const t = useTranslations("Feedback");
+
   return (
     <div className="px-4 pb-4 md:pb-10 md:px-10 w-full md:w-[600px]">
       <div className="mx-auto w-[80px] h-[80px] flex items-center justify-center relative mb-5">
@@ -54,22 +63,27 @@ function SuccessFeedback() {
           size={65}
         />
       </div>
-      <h3 className="text-20 font-bold mb-2 text-center">Feedback sent successfully</h3>
+      <h3 className="text-20 font-bold mb-2 text-center">{t("sent_successfully")}</h3>
       <h3 className="text-secondary-text text-center">
-        Thank you for your feedback! We&apos;ll be in touch soon. Feel free to reach us via{" "}
-        <a href="#" className="text-green underline">
-          Telegram
-        </a>{" "}
-        or{" "}
-        <a href="#" className="text-green underline">
-          Discord
-        </a>
-        .
+        {t.rich("thank_you_for_the_feedback", {
+          telegram: (chunks) => (
+            <a href="#" className="text-green hover:underline">
+              {chunks}
+            </a>
+          ),
+          discord: (chunks) => (
+            <a href="#" className="text-green hover:underline">
+              {chunks}
+            </a>
+          ),
+        })}
       </h3>
     </div>
   );
 }
 export default function FeedbackDialog() {
+  const t = useTranslations("Feedback");
+
   const { isOpen, setIsOpen } = useFeedbackDialogStore();
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -92,22 +106,24 @@ export default function FeedbackDialog() {
         style={{ transform: "rotate(-90deg) translateX(50%)" }}
         className="hidden xl:flex px-5 h-10 origin-bottom-right fixed right-0 bottom-1/2 bg-green hover:bg-green-hover duration-200 rounded-t-2 shadow-checkbox text-secondary-bg items-center gap-2"
       >
-        Feedback
+        {t("feedback")}
         <Svg iconName="star" />
       </button>
       <DrawerDialog isOpen={isOpen} setIsOpen={handleClose}>
-        <DialogHeader onClose={handleClose} title="Feedback" />
+        <DialogHeader onClose={handleClose} title={t("feedback")} />
 
         {isSubmitted ? (
           <SuccessFeedback />
         ) : (
           <div className="w-full md:w-[600px] px-4 pb-4 md:px-10 md:pb-10">
             <p className="text-secondary-text text-16 mb-5">
-              Feel free to share your thoughts either by leaving a comment here or by opening an
-              issue on{" "}
-              <a href="#" className="text-green underline">
-                Github
-              </a>
+              {t.rich("feel_free_to_share", {
+                github: (chunks) => (
+                  <a href="#" className="text-green hover:underline">
+                    {chunks}
+                  </a>
+                ),
+              })}
             </p>
             <Formik
               initialValues={initialValues}
@@ -132,15 +148,15 @@ export default function FeedbackDialog() {
                   });
                   if (data.ok) {
                     setIsSubmitted(true);
-                    addToast("Feedback sent successfully");
+                    addToast(t("sent_successfully"));
                     setSubmitting(false);
                     resetForm();
                   } else {
-                    addToast("Something went wrong, try again later", "error");
+                    addToast(t("something_went_wrong"), "error");
                   }
                 } catch (e) {
                   console.log(e);
-                  addToast("Something went wrong, try again later", "error");
+                  addToast(t("something_went_wrong"), "error");
                 } finally {
                   setSubmitting(false);
                 }
@@ -163,9 +179,9 @@ export default function FeedbackDialog() {
                       name="description"
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      label="Describe your issue *"
+                      label={`${t("describe_your_issue")} *`}
                       rows={4}
-                      placeholder="Describe your issue"
+                      placeholder={t("describe_your_issue")}
                       value={values.description}
                       error={touched.description && errors.description ? errors.description : ""}
                     />
@@ -175,15 +191,15 @@ export default function FeedbackDialog() {
                     <TextField
                       id="email"
                       name="email"
-                      placeholder="Email, wallet address or nickname "
-                      label="Email, wallet address or nickname"
+                      placeholder={t("email_wallet_address_or_nickname")}
+                      label={t("email_wallet_address_or_nickname")}
                       onChange={handleChange}
                       onBlur={handleBlur}
                       value={values.email}
                     />
 
                     <h3 className="text-16 font-bold mb-1 flex items-center gap-1 mt-5">
-                      Feedback category
+                      {t("feedback_category")}
                     </h3>
                     <div className="grid gap-2 grid-cols-2 mb-5">
                       {[
@@ -208,7 +224,7 @@ export default function FeedbackDialog() {
                               }
                             }}
                             id={feedbackTag + "_feedback_tag"}
-                            label={feedbackTagLabelsMap[feedbackTag]}
+                            label={t(feedbackTagLabelsMap[feedbackTag])}
                           />
                         );
                       })}
@@ -219,7 +235,7 @@ export default function FeedbackDialog() {
                       fullWidth
                       onClick={submitForm}
                     >
-                      {isSubmitting ? "Submitting" : "Send feedback"}
+                      {isSubmitting ? t("submitting") : t("send_feedback")}
                     </Button>
                   </Form>
                 );

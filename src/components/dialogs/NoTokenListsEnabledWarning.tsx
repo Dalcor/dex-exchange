@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
 import Container from "@/components/atoms/Container";
@@ -11,6 +12,7 @@ import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore"
 import { useNoTokenListsEnabledWarningStore } from "@/stores/useNoTokenListsEnabledWarningStore";
 
 export default function NoTokenListsEnabledWarning() {
+  const t = useTranslations("ManageTokens");
   const { isOpened, title, closeNoTokenListsEnabledWarning, openNoTokenListsEnabledWarning } =
     useNoTokenListsEnabledWarningStore();
 
@@ -48,7 +50,7 @@ export default function NoTokenListsEnabledWarning() {
                     size={ButtonSize.SMALL}
                     variant={ButtonVariant.OUTLINED}
                   >
-                    Manage lists
+                    {t("manage_lists")}
                   </Button>
                 )}
                 <IconButton

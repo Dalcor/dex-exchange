@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import React, { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 
@@ -22,6 +23,8 @@ export default function RecentTransactions({
   handleClose,
   pageSize = PAGE_SIZE,
 }: Props) {
+  const t = useTranslations("RecentTransactions");
+
   const { transactions } = useRecentTransactionsStore();
   const { address } = useAccount();
 
@@ -65,7 +68,7 @@ export default function RecentTransactions({
         <div>
           <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
             <div className="flex justify-between items-center mb-2.5">
-              <h3 className="font-bold text-20">Transactions</h3>
+              <h3 className="font-bold text-20">{t("transactions")}</h3>
               <div className="flex items-center">
                 <IconButton variant={IconButtonVariant.CLOSE} handleClose={handleClose} />
               </div>
@@ -96,7 +99,7 @@ export default function RecentTransactions({
                 <div className="flex flex-col items-center justify-center min-h-[324px] gap-2">
                   <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
                   <span className="text-secondary-text">
-                    All transaction will be displayed here.
+                    {t("transactions_will_be_displayed_here")}
                   </span>
                 </div>
               )}

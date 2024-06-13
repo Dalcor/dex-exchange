@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 import { ReactNode, useState } from "react";
 
 import Popover from "@/components/atoms/Popover";
@@ -31,9 +32,11 @@ export function NavigationItemWithSubmenu({
   active,
 }: {
   title: string;
-  submenu: (handleClose: () => void) => ReactNode;
+  submenu: (handleClose: () => void, t: any) => ReactNode;
   active: boolean;
 }) {
+  const t = useTranslations("Navigation");
+
   const [isSubmenuOpened, setSubmenuOpened] = useState(false);
 
   return (
@@ -55,7 +58,7 @@ export function NavigationItemWithSubmenu({
         </button>
       }
     >
-      {submenu(() => setSubmenuOpened(false))}
+      {submenu(() => setSubmenuOpened(false), t)}
     </Popover>
   );
 }

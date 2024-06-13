@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import download from "downloadjs";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -35,6 +36,8 @@ type Props =
 
 const commonClassName = "flex items-center gap-2 py-2 duration-200";
 function ListPopoverOption(props: Props) {
+  const t = useTranslations("ManageTokens");
+
   switch (props.variant) {
     case ListActionOption.DOWNLOAD:
       return (
@@ -42,7 +45,7 @@ function ListPopoverOption(props: Props) {
           className={clsx(commonClassName, "text-primary-text hover:text-green-hover")}
           onClick={() => props.handleDownload()}
         >
-          Download
+          {t("download")}
           <Svg iconName="download" />
         </button>
       );
@@ -52,7 +55,7 @@ function ListPopoverOption(props: Props) {
           className={clsx(commonClassName, "text-red hover:text-red-hover")}
           onClick={() => props.handleRemove()}
         >
-          Remove
+          {t("remove")}
           <Svg iconName="delete" />
         </button>
       );
@@ -65,7 +68,7 @@ function ListPopoverOption(props: Props) {
           )}
           href={props.href}
         >
-          View list
+          {t("view_list")}
           <Svg iconName="next" />
         </a>
       );
@@ -78,6 +81,7 @@ export default function TokenListItem({
   tokenList: TokenList;
   toggle: any;
 }) {
+  const t = useTranslations("ManageTokens");
   const [isPopoverOpened, setPopoverOpened] = useState(false);
   const [deleteOpened, setDeleteOpened] = useState(false);
 
@@ -140,7 +144,7 @@ export default function TokenListItem({
                         <div className="w-full md:w-[600px]">
                           <DialogHeader
                             onClose={() => setDeleteOpened(false)}
-                            title="Removing list"
+                            title={t("removing_list")}
                           />
                           <div className="px-4 pb-4 md:px-10 md:pb-10">
                             <Image
@@ -151,15 +155,19 @@ export default function TokenListItem({
                               height={60}
                             />
                             <p className="mb-5 text-center">
-                              Please confirm you would like to remove the
-                              <b className="whitespace-nowrap">“{tokenList.list.name}”</b> list
+                              {t.rich("confirm_removing_list_text", {
+                                list: tokenList.list.name,
+                                bold: (chunks) => (
+                                  <b className="whitespace-nowrap">&quot;{chunks}&quot;</b>
+                                ),
+                              })}
                             </p>
                             <div className="grid grid-cols-2 gap-2">
                               <Button
                                 variant={ButtonVariant.OUTLINED}
                                 onClick={() => setDeleteOpened(false)}
                               >
-                                Cancel
+                                {t("cancel")}
                               </Button>
                               <Button
                                 colorScheme={ButtonColor.RED}
@@ -168,7 +176,7 @@ export default function TokenListItem({
                                   setDeleteOpened(false);
                                 }}
                               >
-                                Remove
+                                {t("confirm_removing")}
                               </Button>
                             </div>
                           </div>

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import React, { ButtonHTMLAttributes, PropsWithChildren } from "react";
 
 import Preloader from "@/components/atoms/Preloader";
@@ -39,12 +40,16 @@ function RecentTransactionActionButton({
 }
 
 export function RecentTransactionTitle({ title }: { title: IRecentTransactionTitle }) {
+  const t = useTranslations("RecentTransactions");
+
   switch (title.template) {
     case RecentTransactionTitleTemplate.APPROVE:
       return (
         <div className="flex items-center gap-1">
           <Svg iconName="check" />
-          <span className="text-16 font-medium block mr-1">Approve {title.symbol}</span>
+          <span className="text-16 font-medium block mr-1">
+            {t("approve_title", { symbol: title.symbol })}
+          </span>
           <Badge color="green" text="ERC-20" />
         </div>
       );
@@ -52,7 +57,9 @@ export function RecentTransactionTitle({ title }: { title: IRecentTransactionTit
       return (
         <div className="flex items-center gap-1">
           <Svg iconName="deposit" />
-          <span className="text-16 font-medium block mr-1">Deposit {title.symbol}</span>
+          <span className="text-16 font-medium block mr-1">
+            {t("deposit_title", { symbol: title.symbol })}
+          </span>
           <Badge color="green" text="ERC-223" />
         </div>
       );
@@ -60,7 +67,9 @@ export function RecentTransactionTitle({ title }: { title: IRecentTransactionTit
       return (
         <div className="flex items-center gap-1">
           <Svg iconName="withdraw" />
-          <span className="text-16 font-medium block mr-1">Withdraw {title.symbol}</span>
+          <span className="text-16 font-medium block mr-1">
+            {t("withdraw_title", { symbol: title.symbol })}
+          </span>
           <Badge color="green" text="ERC-223" />
         </div>
       );
@@ -68,41 +77,46 @@ export function RecentTransactionTitle({ title }: { title: IRecentTransactionTit
       return (
         <div className="flex items-center gap-1">
           <Svg iconName="swap" />
-          <span className="text-16 font-medium">Swap</span>
+          <span className="text-16 font-medium">{t("swap_title")}</span>
         </div>
       );
     case RecentTransactionTitleTemplate.COLLECT:
       return (
         <div className="flex items-center gap-1">
           <Svg iconName="collect" />
-          <span className="text-16 font-medium">Collect fees</span>
+          <span className="text-16 font-medium">{t("collect_fees_title")}</span>
         </div>
       );
     case RecentTransactionTitleTemplate.REMOVE:
       return (
         <div className="flex items-center gap-1">
           <Svg iconName="minus" />
-          <span className="text-16 font-medium">Remove liquidity</span>
+          <span className="text-16 font-medium">{t("remove_liquidity_title")}</span>
         </div>
       );
     case RecentTransactionTitleTemplate.ADD:
       return (
         <div className="flex items-center gap-1">
           <Svg iconName="add" />
-          <span className="text-16 font-medium">Add liquidity</span>
+          <span className="text-16 font-medium">{t("add_liquidity_title")}</span>
         </div>
       );
   }
 }
 
 export function RecentTransactionSubTitle({ title }: { title: IRecentTransactionTitle }) {
+  const t = useTranslations("RecentTransactions");
+
   switch (title.template) {
     case RecentTransactionTitleTemplate.APPROVE:
     case RecentTransactionTitleTemplate.DEPOSIT:
     case RecentTransactionTitleTemplate.WITHDRAW:
       return (
         <span className="text-14 text-secondary-text">
-          {title.amount} {title.symbol}
+          {t("single_subtitle", {
+            amount: title.amount,
+            symbol: title.symbol,
+          })}
         </span>
       );
     case RecentTransactionTitleTemplate.SWAP:
@@ -111,7 +125,12 @@ export function RecentTransactionSubTitle({ title }: { title: IRecentTransaction
     case RecentTransactionTitleTemplate.ADD:
       return (
         <span className="text-14 text-secondary-text">
-          {title.amount0} {title.symbol0} and {title.amount1} {title.symbol1}
+          {t("double_tokens_subtitle", {
+            amount0: title.amount0,
+            amount1: title.amount1,
+            symbol0: title.symbol0,
+            symbol1: title.symbol1,
+          })}
         </span>
       );
   }
@@ -168,6 +187,7 @@ export default function RecentTransaction({
   isLowestNonce?: boolean;
   showSpeedUp?: boolean;
 }) {
+  const t = useTranslations("RecentTransactions");
   const { handleSpeedUp } = useTransactionSpeedUpDialogStore();
 
   return (
@@ -190,10 +210,10 @@ export default function RecentTransaction({
             isLowestNonce && (
               <>
                 <RecentTransactionActionButton disabled color="secondary">
-                  Cancel
+                  {t("cancel")}
                 </RecentTransactionActionButton>
                 <RecentTransactionActionButton disabled onClick={() => handleSpeedUp(transaction)}>
-                  Speed up
+                  {t("speed_up")}
                 </RecentTransactionActionButton>
               </>
             )}
@@ -202,7 +222,7 @@ export default function RecentTransaction({
             !isLowestNonce && (
               <>
                 <RecentTransactionActionButton disabled color="secondary">
-                  Queue
+                  {t("queue")}
                 </RecentTransactionActionButton>
               </>
             )}
@@ -226,17 +246,17 @@ export default function RecentTransaction({
       {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && isLowestNonce && (
         <div className="@[620px]:hidden w-full grid grid-cols-2 gap-3 mt-3">
           <RecentTransactionActionButton disabled color="secondary">
-            Cancel
+            {t("cancel")}
           </RecentTransactionActionButton>
           <RecentTransactionActionButton disabled onClick={() => handleSpeedUp(transaction)}>
-            Speed up
+            {t("speed_up")}
           </RecentTransactionActionButton>
         </div>
       )}
       {transaction.status === RecentTransactionStatus.PENDING && showSpeedUp && !isLowestNonce && (
         <div className="@[620px]:hidden w-full mt-3 grid grid-cols-1">
           <RecentTransactionActionButton disabled color="secondary">
-            Queue
+            {t("queue")}
           </RecentTransactionActionButton>
         </div>
       )}

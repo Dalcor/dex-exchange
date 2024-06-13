@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ChangeEvent, useRef, useState } from "react";
 import { useConnect } from "wagmi";
 
@@ -17,6 +18,8 @@ interface Props {
 }
 
 export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
+  const t = useTranslations("Wallet");
+
   const fileInput = useRef<HTMLInputElement | null>(null);
   const { chainToConnect } = useConnectWalletStore();
 
@@ -43,7 +46,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
             setKeystore(parsedJson);
           }
         } catch (e) {
-          setFileError("Unsupported file format");
+          setFileError(t("unsupported_file_format"));
         }
       };
       reader.readAsText(file);
@@ -66,7 +69,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
 
         setIsOpen(false);
       } else {
-        setError("Wrong password");
+        setError(t("wrong_password"));
       }
     } catch (error) {
       console.log("importKeystoreFileHandler ~ error:", error);
@@ -78,7 +81,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
       <div className="min-w-[440px]">
-        <DialogHeader onClose={() => setIsOpen(false)} title="Import wallet with JSON file" />
+        <DialogHeader onClose={() => setIsOpen(false)} title={t("import_wallet_with_JSON")} />
 
         <div className="p-10">
           <input
@@ -97,14 +100,14 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
                 }}
                 variant={ButtonVariant.OUTLINED}
               >
-                Browse...
+                {t("browse")}
               </Button>
             </div>
             <p className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">
               {selectedFile?.name ? (
                 `${selectedFile?.name}`
               ) : (
-                <span className="text-secondary-text">Select keystore file</span>
+                <span className="text-secondary-text">{t("select_keystore_file")}</span>
               )}
             </p>
           </div>
@@ -112,7 +115,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
           <div>
             <TextField
               disabled={!selectedFile || Boolean(fileError)}
-              label="Key store password"
+              label={t("keystore_password")}
               value={password}
               type="password"
               required
@@ -120,9 +123,9 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
                 setPassword(e.target.value);
                 setError(null);
               }}
-              placeholder="Key store password"
+              placeholder={t("keystore_password")}
               error={error || undefined}
-              helperText="Helper text"
+              helperText={t("helper_text")}
             />
             <div className="mt-6">
               <Button
@@ -130,7 +133,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
                 fullWidth
                 onClick={() => importKeystoreFileHandler()}
               >
-                {!isUnlockingKeystore ? "Unlock" : <Preloader size={30} type="awaiting" />}
+                {!isUnlockingKeystore ? t("unlock") : <Preloader size={30} type="awaiting" />}
               </Button>
             </div>
           </div>

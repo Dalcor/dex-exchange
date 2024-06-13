@@ -34,12 +34,9 @@ export default function SwapPage() {
   useRecentTransactionTracking();
   useSwapEstimatedGas();
 
-  const t = useTranslations("Trade");
-
   const { isOpened: showRecentTransactions, setIsOpened: setShowRecentTransactions } =
     useSwapRecentTransactionsStore();
 
-  const lang = useLocale();
   const chainId = useCurrentChainId();
 
   const { tokenA, tokenB, reset: resetTokens } = useSwapTokensStore();

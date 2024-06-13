@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -19,6 +20,7 @@ import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 function TokenListInfo({ listId }: { listId: TokenListId }) {
+  const t = useTranslations("ManageTokens");
   const tokenLists = useTokenLists();
 
   const tokenList = useMemo(() => {
@@ -41,26 +43,28 @@ function TokenListInfo({ listId }: { listId: TokenListId }) {
         <div className="flex flex-col">
           <span>{tokenList?.list.name}</span>
           <div className="flex gap-1 items-cente text-secondary-text">
-            {tokenList?.list.tokens.length} tokens
+            {t("tokens_amount", { amount: tokenList?.list.tokens.length })}
           </div>
         </div>
       </div>
-      <ExternalTextLink className="opacity-50 pointer-events-none" text="View list" href="#" />
+      <ExternalTextLink className="opacity-50 pointer-events-none" text={t("view_list")} href="#" />
     </div>
   );
 }
 
 export function TokenPortfolioDialogContent({ token }: { token: Token }) {
+  const t = useTranslations("ManageTokens");
+  const tToast = useTranslations("Toast");
   return (
     <div className="w-full md:w-[600px]">
       <div className="px-4 pb-5 md:px-10 border-b border-primary-border flex flex-col gap-2">
         <div className="flex justify-between">
-          <span className="text-secondary-text">Symbol</span>
+          <span className="text-secondary-text">{t("symbol")}</span>
           <span>{token.symbol}</span>
         </div>
         <div className="grid grid-cols-[1fr_auto_32px] gap-x-2">
           <span className="text-secondary-text flex items-center gap-1">
-            Address <Badge variant={BadgeVariant.COLORED} text="ERC-20" />{" "}
+            {t("address")} <Badge variant={BadgeVariant.COLORED} text="ERC-20" />{" "}
           </span>
           <ExternalTextLink
             color="white"
@@ -75,11 +79,11 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
             iconName="copy"
             onClick={async () => {
               await copyToClipboard(token.address0);
-              addToast("Successfully copied!");
+              addToast(tToast("successfully_copied"));
             }}
           />
           <span className="text-secondary-text flex items-center gap-1">
-            Address <Badge variant={BadgeVariant.COLORED} text="ERC-223" />{" "}
+            {t("address")} <Badge variant={BadgeVariant.COLORED} text="ERC-223" />{" "}
           </span>
           <ExternalTextLink
             color="white"
@@ -94,17 +98,17 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
             iconName="copy"
             onClick={async () => {
               await copyToClipboard(token.address1);
-              addToast("Successfully copied!");
+              addToast(tToast("successfully_copied"));
             }}
           />
         </div>
         <div className="flex justify-between">
-          <span className="text-secondary-text">Decimals</span>
+          <span className="text-secondary-text">{t("decimals")}</span>
           <span>{token.decimals}</span>
         </div>
       </div>
       <p className="text-secondary-text px-4 md:px-10 py-3">
-        Found in {token.lists?.length} token-list
+        {t("found_in", { amount: token.lists?.length })}
         {token.lists?.length.toString().endsWith("1") ? "" : "s"}:
       </p>
       <div className="flex flex-col gap-3 pb-4 md:pb-10 px-4 md:px-10">

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import { useAccount, useDisconnect } from "wagmi";
@@ -23,6 +24,10 @@ import addToast from "@/other/toast";
 import { useRecentTransactionsStore } from "@/stores/useRecentTransactionsStore";
 
 function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: any) {
+  const tToast = useTranslations("Toast");
+  const tRecentTransactions = useTranslations("RecentTransactions");
+  const t = useTranslations("Wallet");
+
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
 
@@ -40,19 +45,21 @@ function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: a
 
   return (
     <>
-      <DialogHeader onClose={() => setIsOpenedAccount(false)} title="My wallet" />
+      <DialogHeader onClose={() => setIsOpenedAccount(false)} title={t("my_wallet")} />
       <div className="md:px-10 px-4 md:w-[600px] w-full">
         <div className="flex justify-between items-center mb-5">
           <div className="flex items-center gap-2">
             <Image src={wallets.metamask.image} alt="" width={48} height={48} />
-            <div>{address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Not connected"}</div>
+            <div>
+              {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : t("not_connected")}
+            </div>
 
             <div className="flex gap-1">
               <IconButton
                 iconName="copy"
                 onClick={async () => {
                   await copyToClipboard(address || "");
-                  addToast("Successfully copied!");
+                  addToast(tToast("successfully_copied"));
                 }}
               />
               {address && (
@@ -69,7 +76,7 @@ function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: a
             onClick={() => disconnect()}
             className="flex items-center gap-2 hover:text-green duration-200"
           >
-            Disconnect
+            {t("disconnect")}
             <Svg iconName="logout" />
           </button>
         </div>
@@ -77,13 +84,13 @@ function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: a
           <div className="absolute right-0 top-0 bottom-0 bg-account-card-pattern mix-blend-screen bg-no-repeat bg-right w-full h-full" />
           <div className="relative mb-5 px-5 pt-4 pb-3 grid gap-3 z-10">
             <div>
-              <div className="text-12 text-secondary-text">Total Balance</div>
+              <div className="text-12 text-secondary-text">{t("total_balance")}</div>
               <div className="text-32 text-primary-text font-medium">$0.00</div>
             </div>
           </div>
         </div>
         <div className="grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3 mb-3">
-          {["Tokens", "Transactions"].map((title, index) => {
+          {[t("tokens"), t("transactions")].map((title, index) => {
             return (
               <TabButton
                 key={title}
@@ -101,7 +108,7 @@ function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: a
         {activeTab == 0 && (
           <div className="flex flex-col items-center justify-center h-[408px] overflow-scroll gap-2">
             <EmptyStateIcon iconName="assets" />
-            <span className="text-secondary-text">All assets will be displayed here.</span>
+            <span className="text-secondary-text">{t("assets_will_be_displayed_here")}</span>
           </div>
         )}
 
@@ -110,12 +117,14 @@ function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: a
             {_transactions.length ? (
               <>
                 <div className="flex justify-between items-center mb-3">
-                  <span>Total transactions: {_transactions.length}</span>
+                  <span>
+                    {tRecentTransactions("total_transactions")} {_transactions.length}
+                  </span>
                   <button
                     onClick={clearTransactions}
                     className="border-primary-border flex items-center rounded-5 border text-14 py-1.5 pl-6 gap-2 pr-[18px] hover:bg-white/20 duration-200 hover:border-primary-text"
                   >
-                    Clear all
+                    {tRecentTransactions("clear_all")}
                     <Svg iconName="delete" />
                   </button>
                 </div>
@@ -128,7 +137,9 @@ function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: a
             ) : (
               <div className="flex flex-col items-center justify-center h-full gap-2">
                 <Image src="/empty/empty-history.svg" width={80} height={80} alt="" />
-                <span className="text-secondary-text">All transaction will be displayed here.</span>
+                <span className="text-secondary-text">
+                  {tRecentTransactions("transactions_will_be_displayed_here")}
+                </span>
               </div>
             )}
           </div>

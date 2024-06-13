@@ -31,7 +31,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
   const [isCheckboxChecked, setCheckboxChecked] = useState(false);
   const [isSwitchOn, setSwitchOn] = useState(false);
 
-  const t = useTranslations("Trade");
+  const t = useTranslations("Navigation");
 
   const [addressToMint, setAddressToMint] = useState<string>("");
   const [amountToMint, setAmountToMint] = useState<string>("");

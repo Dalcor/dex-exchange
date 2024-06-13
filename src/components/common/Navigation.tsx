@@ -8,20 +8,20 @@ import { usePathname } from "@/navigation";
 const menuItems: Array<
   | {
       label: any;
-      submenu: (handleClose: () => void) => ReactNode;
+      submenu: (handleClose: () => void, t: any) => ReactNode;
       activeFlags: string[];
     }
   | { label: any; href: string }
 > = [
   {
     label: "trade",
-    submenu: (handleClose) => (
+    submenu: (handleClose, t) => (
       <div className="flex flex-col py-1 bg-primary-bg rounded-2 shadow-popover">
-        <MobileLink href="/swap" iconName="swap" title="Swap" handleClose={handleClose} />
+        <MobileLink href="/swap" iconName="swap" title={t("swap")} handleClose={handleClose} />
         <MobileLink
           href="/margin-trading"
           iconName="margin-trading"
-          title="Margin trading"
+          title={t("margin_trading")}
           handleClose={handleClose}
         />
       </div>
@@ -33,7 +33,7 @@ const menuItems: Array<
     href: "/pools",
   },
   {
-    label: "lending-and-borrowing",
+    label: "borrow_lend",
     href: "#",
   },
   {
@@ -41,65 +41,65 @@ const menuItems: Array<
     href: "/portfolio",
   },
   {
-    label: "token-listing",
+    label: "token_listing",
     href: "#",
   },
   {
     label: "",
-    submenu: (handleClose) => (
+    submenu: (handleClose, t) => (
       <div className="flex flex-col py-4 px-5 bg-primary-bg rounded-2 shadow-popover gap-5">
         <div className="flex flex-col text-16 text-primary-text gap-2">
-          <div className="text-secondary-text">Token</div>
-          <div className="opacity-50 pointer-events-none">Statistics</div>
-          <div className="opacity-50 pointer-events-none">Token lists</div>
+          <div className="text-secondary-text">{t("token")}</div>
+          <div className="opacity-50 pointer-events-none">{t("token_statistics")}</div>
+          <div className="opacity-50 pointer-events-none">{t("token_lists")}</div>
         </div>
         <div className="flex flex-col text-16 text-primary-text gap-2">
-          <div className="text-secondary-text">Social media</div>
+          <div className="text-secondary-text">{t("social_media")}</div>
           <a className="hover:text-green duration-200" href="https://t.me/Dex223_Defi">
-            Telegram discussions
+            {t("social_telegram_discussions")}
           </a>
           <a className="hover:text-green duration-200" href="https://t.me/Dex_223">
-            Telegram announcements channel
+            {t("social_telegram_announcements")}
           </a>
           <a className="hover:text-green duration-200" href="https://x.com/Dex_223">
-            DEX223 X account
+            {t("social_x_account")}
           </a>
           <a className="hover:text-green duration-200" href="https://discord.gg/t5bdeGC5Jk">
-            Discord
+            {t("social_discord")}
           </a>
           <a className="hover:text-green duration-200" href="https://x.com/Dexaran">
-            Dexaran’s X account
+            {t("social_dex_x_account")}
           </a>
         </div>
         <div className="flex flex-col text-16 text-primary-text gap-2">
-          <div className="text-secondary-text">Useful links</div>
+          <div className="text-secondary-text">{t("useful_links")}</div>
 
           <a
             className="hover:text-green duration-200"
             href="https://dexaran.github.io/token-converter/"
           >
-            ERC20 & ERC223 token converter
+            {t("useful_converter")}
           </a>
           <a
             className="hover:text-green duration-200"
             href="https://dexaran.github.io/erc20-losses/"
           >
-            ERC-20 live losses calculator
+            {t("useful_losses_calculator")}
           </a>
           <a className="hover:text-green duration-200" href="https://dexaran.github.io/erc223/">
-            ERC223 front page
+            {t("useful_front_page")}
           </a>
           <a
             className="hover:text-green duration-200"
             href="https://github.com/Dalcor/dex-exchange"
           >
-            Page source codes
+            {t("useful_page_source_codes")}
           </a>
         </div>
         <div className="flex flex-col text-16 text-primary-text gap-2">
-          <div className="text-secondary-text">Partners</div>
+          <div className="text-secondary-text">{t("partners")}</div>
           <a className="hover:text-green duration-200" href="https://eossupport.io/">
-            EOS support
+            {t("partners_eos_support")}
           </a>
         </div>
       </div>
@@ -109,7 +109,7 @@ const menuItems: Array<
 ];
 
 export default function Navigation() {
-  const t = useTranslations("Trade");
+  const t = useTranslations("Navigation");
 
   const pathname = usePathname();
 

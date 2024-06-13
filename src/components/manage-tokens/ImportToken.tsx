@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import React, { useMemo, useState } from "react";
 import { Address, isAddress } from "viem";
 import { useReadContract } from "wagmi";
@@ -42,13 +43,13 @@ function EmptyState({
   tokenAddressToImport: string;
   isFound: boolean;
 }) {
+  const t = useTranslations("ManageTokens");
+
   if (!tokenAddressToImport) {
     return (
       <div className="flex-grow flex justify-center items-center flex-col gap-2">
         <EmptyStateIcon iconName="imported" />
-        <p className="text-secondary-text text-center">
-          To import a token, enter a token address in the format 0x...
-        </p>
+        <p className="text-secondary-text text-center">{t("to_import_a_token")}</p>
       </div>
     );
   }
@@ -57,7 +58,7 @@ function EmptyState({
     return (
       <div className="flex items-center justify-center gap-2 flex-col flex-grow">
         <EmptyStateIcon iconName="warning" />
-        <span className="text-red-input">Enter valid token address</span>
+        <span className="text-red-input">{t("enter_valid")}</span>
       </div>
     );
   }
@@ -66,13 +67,15 @@ function EmptyState({
     return (
       <div className="flex items-center justify-center gap-2 flex-col flex-grow">
         <EmptyStateIcon iconName="search" />
-        <span className="text-secondary-text">Token not found</span>
+        <span className="text-secondary-text">{t("token_not_found")}</span>
       </div>
     );
   }
 }
 
 export default function ImportToken({ setContent, handleClose }: Props) {
+  const t = useTranslations("ManageTokens");
+  const tToast = useTranslations("Toast");
   const [tokenAddressToImport, setTokenAddressToImport] = useState("");
   const chainId = useCurrentChainId();
   const tokenLists = useTokenLists();
@@ -158,17 +161,17 @@ export default function ImportToken({ setContent, handleClose }: Props) {
       <DialogHeader
         onBack={() => setContent("default")}
         onClose={handleClose}
-        title="Import token"
+        title={t("import_token")}
       />
       <div className="w-full md:w-[600px] px-4 pb-4 md:px-10 md:pb-10 min-h-[580px] flex flex-col">
         <TextField
-          label="Import token"
+          label={t("import_token")}
           value={tokenAddressToImport}
           onChange={(e) => setTokenAddressToImport(e.target.value)}
-          placeholder="Token address (0x...)"
+          placeholder={t("token_address_placeholder")}
           error={
             Boolean(tokenAddressToImport) && !isAddress(tokenAddressToImport)
-              ? "Enter token address in correct format"
+              ? t("enter_in_correct_format")
               : ""
           }
         />
@@ -194,7 +197,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                 <div className="flex flex-col text-16">
                   <span className="text-primary-text">{tokenSymbol}</span>
                   <span className="text-secondary-text">
-                    {tokenName} ({tokenDecimals} decimals)
+                    {tokenName} ({t("decimals_amount", { decimals: tokenDecimals })})
                   </span>
                 </div>
               </div>
@@ -203,7 +206,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                   <div className="mb-4 flex flex-col gap-4 px-5 pb-5 pt-4 bg-tertiary-bg rounded-3">
                     <div className="grid grid-cols-[1fr_auto_32px] gap-x-2">
                       <span className="text-secondary-text flex items-center gap-1">
-                        Address <Badge variant={BadgeVariant.COLORED} text="ERC-20" />{" "}
+                        {t("address")} <Badge variant={BadgeVariant.COLORED} text="ERC-20" />{" "}
                       </span>
                       <ExternalTextLink
                         color="white"
@@ -222,11 +225,11 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                         iconName="copy"
                         onClick={async () => {
                           await copyToClipboard(tokenAddressToImport);
-                          addToast("Successfully copied!");
+                          addToast(tToast("successfully_copied"));
                         }}
                       />
                       <span className="text-secondary-text flex items-center gap-1">
-                        Address{" "}
+                        {t("address")}{" "}
                         <Badge
                           variant={BadgeVariant.COLORED}
                           text="ERC-223"
@@ -243,25 +246,19 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                         iconName="copy"
                         onClick={async () => {
                           await copyToClipboard(erc223AddressToShow);
-                          addToast("Successfully copied!");
+                          addToast(tToast("successfully_copied"));
                         }}
                       />
                     </div>
 
                     {predictedErc223Address && !isERC223TokenExists && (
-                      <Alert
-                        text="The token with the ERC-223 standard doesn’t exist yet. Converter contracts predict the address that you see."
-                        type="info-border"
-                      />
+                      <Alert text={t("predicted_alert")} type="info-border" />
                     )}
                   </div>
                   <div className="px-5 py-3 flex gap-2 rounded-1 border border-orange bg-orange-bg">
                     <Svg className="text-orange shrink-0" iconName="warning" />
                     <p className="text-16 text-primary-text flex-grow">
-                      Create tokens with caution, as including fake versions of existing tokens is
-                      possible. Be aware that certain tokens may not align with DEX223 services.
-                      Importing custom tokens acknowledges and accepts associated risks. Learn more
-                      about potential risks before proceeding
+                      {t("import_token_warning")}
                     </p>
                   </div>
                 </>
@@ -274,7 +271,7 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                   checked={checkedUnderstand}
                   handleChange={() => setCheckedUnderstand(!checkedUnderstand)}
                   id="approve-list-import"
-                  label="I understand"
+                  label={t("i_understand")}
                 />
               )}
               <Button
@@ -325,10 +322,12 @@ export default function ImportToken({ setContent, handleClose }: Props) {
                     }
                   }
                   setContent("default");
-                  addToast("Token imported");
+                  addToast(t("imported_successfully"));
                 }}
               >
-                {alreadyImported ? "Token is already imported" : `Import ${tokenSymbol}`}
+                {alreadyImported
+                  ? t("already_imported")
+                  : t("import_symbol", { symbol: tokenSymbol })}
               </Button>
             </div>
           </>

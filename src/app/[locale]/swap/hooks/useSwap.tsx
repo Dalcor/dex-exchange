@@ -1,4 +1,5 @@
 import JSBI from "jsbi";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo } from "react";
 import {
   Address,
@@ -195,6 +196,7 @@ export function useSwapEstimatedGas() {
   }, [publicClient, address, swapParams, blockNumber]);
 }
 export default function useSwap() {
+  const t = useTranslations("Swap");
   const { data: walletClient } = useWalletClient();
   const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
   const { trade } = useTrade();
@@ -307,7 +309,7 @@ export default function useSwap() {
     }
 
     setSwapStatus(SwapStatus.PENDING);
-    openConfirmInWalletAlert("Confirm action in your wallet");
+    openConfirmInWalletAlert(t("confirm_action_in_your_wallet_alert"));
 
     let hash;
 

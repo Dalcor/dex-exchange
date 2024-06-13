@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -17,6 +18,8 @@ export default function ManageTokenItem({
   token: Token;
   setTokenForPortfolio: (token: Token) => void;
 }) {
+  const t = useTranslations("ManageTokens");
+
   const [open, setOpen] = useState(false);
   const [deleteOpened, setDeleteOpened] = useState(false);
 
@@ -43,7 +46,7 @@ export default function ManageTokenItem({
                 <div className="w-full md:w-[600px]">
                   <DialogHeader
                     onClose={() => setDeleteOpened(false)}
-                    title="Removing custom token"
+                    title={t("removing_custom_token")}
                   />
                   <div className="px-4 pb-4 md:px-10 md:pb-10">
                     <Image
@@ -54,16 +57,17 @@ export default function ManageTokenItem({
                       height={60}
                     />
                     <p className="mb-5 text-center">
-                      Please confirm you would like to remove the{" "}
-                      <b className="whitespace-nowrap">“{token.name}”</b> custom token. It will be
-                      removed only from custom list.
+                      {t.rich("confirm_removing_token_text", {
+                        token: token.name,
+                        bold: (chunks) => <b className="whitespace-nowrap">&quot;{chunks}&quot;</b>,
+                      })}
                     </p>
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant={ButtonVariant.OUTLINED}
                         onClick={() => setDeleteOpened(false)}
                       >
-                        Cancel
+                        {t("cancel")}
                       </Button>
                       <Button
                         colorScheme={ButtonColor.RED}
@@ -80,7 +84,7 @@ export default function ManageTokenItem({
                           setDeleteOpened(false);
                         }}
                       >
-                        Remove
+                        {t("remove")}
                       </Button>
                     </div>
                   </div>

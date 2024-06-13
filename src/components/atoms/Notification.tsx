@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import React from "react";
 
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
@@ -30,14 +31,16 @@ function NotificationTitle({
   title: IRecentTransactionTitle;
   status: NotificationTransactionStatus;
 }) {
+  const t = useTranslations("RecentTransactions");
+
   switch (title.template) {
     case RecentTransactionTitleTemplate.APPROVE:
       return (
         <div className="flex items-center gap-1">
           <span className="text-16 font-medium block mr-1">
             {status === RecentTransactionStatus.SUCCESS
-              ? `${title.symbol} approved`
-              : `Failed to approve ${title.symbol}`}
+              ? t("approve_success_notification", { symbol: title.symbol })
+              : t("approve_revert_notification", { symbol: title.symbol })}
           </span>
           <Badge color="green" text="ERC-20" />
         </div>
@@ -47,8 +50,8 @@ function NotificationTitle({
         <div className="flex items-center gap-1">
           <span className="text-16 font-medium block mr-1">
             {status === RecentTransactionStatus.SUCCESS
-              ? `${title.symbol} deposited`
-              : `FFailed to deposit ${title.symbol}`}
+              ? t("deposit_success_notification", { symbol: title.symbol })
+              : t("deposit_revert_notification", { symbol: title.symbol })}
           </span>
           <Badge color="green" text="ERC-223" />
         </div>
@@ -58,8 +61,8 @@ function NotificationTitle({
         <div className="flex items-center gap-1">
           <span className="text-16 font-medium block mr-1">
             {status === RecentTransactionStatus.SUCCESS
-              ? `${title.symbol} withdrew`
-              : `Failed to withdraw ${title.symbol}`}
+              ? t("withdraw_success_notification", { symbol: title.symbol })
+              : t("withdraw_revert_notification", { symbol: title.symbol })}
           </span>
           <Badge color="green" text="ERC-223" />
         </div>
@@ -68,30 +71,34 @@ function NotificationTitle({
       return (
         <div className="flex items-center gap-1">
           <span className="text-16 font-medium block mr-1">
-            {status === RecentTransactionStatus.SUCCESS ? "Swap successful" : "Failed to swap"}
+            {status === RecentTransactionStatus.SUCCESS
+              ? t("swap_success_notification")
+              : t("swap_revert_notification")}
           </span>
         </div>
       );
     case RecentTransactionTitleTemplate.COLLECT:
       return (
         <div className="flex items-center gap-1">
-          {status === RecentTransactionStatus.SUCCESS ? "Fees collected" : "Failed to collect fees"}
+          {status === RecentTransactionStatus.SUCCESS
+            ? t("collect_success_notification")
+            : t("collect_revert_notification")}
         </div>
       );
     case RecentTransactionTitleTemplate.REMOVE:
       return (
         <div className="flex items-center gap-1">
           {status === RecentTransactionStatus.SUCCESS
-            ? "Liquidity removed"
-            : "Failed to remove liquidity"}
+            ? t("remove_liquidity_success_notification")
+            : t("remove_liquidity_revert_notification")}
         </div>
       );
     case RecentTransactionTitleTemplate.ADD:
       return (
         <div className="flex items-center gap-1">
           {status === RecentTransactionStatus.SUCCESS
-            ? "Liquidity added"
-            : "Failed to add liquidity"}
+            ? t("add_liquidity_success_notification")
+            : t("remove_liquidity_revert_notification")}
         </div>
       );
   }

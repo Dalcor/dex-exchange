@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { formatGwei } from "viem";
 import { useBlockNumber, useGasPrice } from "wagmi";
@@ -12,35 +13,37 @@ import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 
 type SocialLink = {
-  title: string;
+  title: any;
   href: string;
   icon: Extract<IconName, "telegram" | "x" | "discord">;
 };
 
 const socialLinks: SocialLink[] = [
   {
-    title: "Discussion",
+    title: "discussions",
     href: "https://t.me/Dex223_defi",
     icon: "telegram",
   },
   {
-    title: "Announcements",
+    title: "announcements",
     href: "https://t.me/Dex_223",
     icon: "telegram",
   },
   {
-    title: "DEX223 X",
+    title: "x",
     href: "https://twitter.com/Dex_223",
     icon: "x",
   },
   {
-    title: "Discord",
+    title: "discord",
     href: "https://discord.gg/t5bdeGC5Jk",
     icon: "discord",
   },
 ];
 
 function FooterLink({ href, title, icon }: SocialLink) {
+  const t = useTranslations("Footer");
+
   return (
     <>
       <a
@@ -48,7 +51,7 @@ function FooterLink({ href, title, icon }: SocialLink) {
         href={href}
         className="lg:w-auto flex gap-2 bg-primary-bg rounded-5 py-2 pr-4 pl-5 hover:bg-green-bg duration-200 w-full whitespace-nowrap justify-center"
       >
-        {title}
+        {t(title)}
         <Svg iconName={icon} />
       </a>
     </>
@@ -56,6 +59,8 @@ function FooterLink({ href, title, icon }: SocialLink) {
 }
 
 export default function Footer() {
+  const t = useTranslations("Footer");
+
   const chainId = useCurrentChainId();
 
   const { data: gasData, refetch } = useGasPrice({
@@ -76,7 +81,7 @@ export default function Footer() {
             <div className="flex items-center gap-1 text-12">
               <Svg size={16} className="text-secondary-text" iconName="gas" />
               <span>
-                Gas:{" "}
+                {t("gas")}{" "}
                 <a
                   target="_blank"
                   className="text-green"
@@ -100,8 +105,8 @@ export default function Footer() {
               <div className="w-1.5 h-1.5 rounded-full bg-green" />
 
               <div className="whitespace-nowrap text-14 opacity-0 pointer-events-none px-5 py-4 absolute group-hover:opacity-100 duration-200 bottom-9 rounded-3 right-0 bg-primary-bg border border-secondary-border before:w-2.5 before:h-2.5 before:-bottom-[6px] before:bg-primary-bg before:absolute before:right-9 before:rotate-45 before:border-secondary-border before:border-r before:border-b">
-                <p>The most recent block number on this network. </p>
-                <p>Prices update on every block.</p>
+                <p>{t("most_recent_block")}</p>
+                <p>{t("prices_update_on_every_block")}</p>
               </div>
             </div>
           </div>

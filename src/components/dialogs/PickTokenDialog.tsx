@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import React, { useCallback, useState } from "react";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -9,7 +10,6 @@ import Input from "@/components/atoms/Input";
 import IconButton from "@/components/buttons/IconButton";
 import { TokenPortfolioDialogContent } from "@/components/dialogs/TokenPortfolioDialog";
 import { useTokens } from "@/hooks/useTokenLists";
-import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { usePinnedTokensStore } from "@/stores/usePinnedTokensStore";
 
@@ -71,6 +71,7 @@ function TokenRow({
 
 export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props) {
   const tokens = useTokens();
+  const t = useTranslations("ManageTokens");
 
   const [tokenForPortfolio, setTokenForPortfolio] = useState<Token | null>(null);
 
@@ -96,13 +97,13 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
         </>
       ) : (
         <>
-          <DialogHeader onClose={handleClose} title="Select a token" />
+          <DialogHeader onClose={handleClose} title={t("select_token")} />
 
           {tokens.length ? (
             <>
               <div className="w-full md:w-[570px]">
                 <div className="px-4 md:px-10 pb-3">
-                  <Input placeholder="Search name or paste address" />
+                  <Input placeholder={t("search_name_or_paste_address")} />
                   <div className="mt-3 grid grid-cols-3 gap-3">
                     <button className="opacity-50 pointer-events-none items-center justify-center duration-200 h-10 rounded-1 border border-primary-border hover:border-green flex gap-2">
                       <Image width={24} height={24} src="/tokens/ETH.svg" alt="" />
@@ -133,7 +134,7 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
           ) : (
             <div className="flex items-center justify-center gap-2 flex-col h-full min-h-[520px] w-full md:w-[570px]">
               <EmptyStateIcon iconName="tokens" />
-              <span className="text-secondary-text">There are no tokens here</span>
+              <span className="text-secondary-text">{t("no_tokens_here")}</span>
             </div>
           )}
         </>

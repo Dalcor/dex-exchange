@@ -43,10 +43,7 @@ export default function Header() {
             <MobileMenu />
           </div>
 
-          <div className="md:hidden grid grid-cols-2 fixed bottom-0 left-0 bg-secondary-bg z-[87] gap-2 w-full h-12">
-            {/*<TokenListsSettings isMobile={true} />*/}
-            {/*<AccountDialog />*/}
-          </div>
+          <div className="md:hidden grid grid-cols-2 fixed bottom-0 left-0 bg-secondary-bg z-[87] gap-2 w-full h-12" />
         </div>
       </Container>
     </header>

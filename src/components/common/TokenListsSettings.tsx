@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import SelectButton from "@/components/atoms/SelectButton";
@@ -5,6 +6,7 @@ import ManageTokensDialog from "@/components/manage-tokens/ManageTokensDialog";
 import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
 
 export default function TokenListsSettings() {
+  const t = useTranslations("ManageTokens");
   const { isOpen, setIsOpen } = useManageTokensDialogStore();
 
   return (
@@ -15,7 +17,7 @@ export default function TokenListsSettings() {
         size="regular"
         onClick={() => setIsOpen(!isOpen)}
       >
-        Manage tokens
+        {t("manage_tokens")}
       </SelectButton>
       <ManageTokensDialog isOpen={isOpen} setIsOpen={setIsOpen} />
     </div>

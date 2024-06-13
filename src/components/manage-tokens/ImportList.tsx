@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 import { ChangeEvent, DragEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import Checkbox from "@/components/atoms/Checkbox";
@@ -28,6 +29,7 @@ function getListImage(url: string) {
 }
 
 export default function ImportList({ setContent, handleClose }: Props) {
+  const t = useTranslations("ManageTokens");
   const [tokenListAddressToImport, setTokenListAddressToImport] = useState("");
   const [tokenListFile, setTokenListFile] = useState<File | undefined>();
 
@@ -131,43 +133,41 @@ export default function ImportList({ setContent, handleClose }: Props) {
       <DialogHeader
         onBack={() => setContent("default")}
         onClose={handleClose}
-        title="Import list"
+        title={t("import_list")}
       />
 
       <div className="px-4 pb-4 md:px-10 md:pb-10 w-full md:w-[550px] h-[580px] flex flex-col">
-        <h3 className="text-16 font-bold mb-1">Importing type</h3>
+        <h3 className="text-16 font-bold mb-1">{t("importing_type")}</h3>
         <div className="grid grid-cols-3 gap-3 mb-5">
           <RadioButton isActive={importType === "url"} onClick={() => setImportType("url")}>
-            URL
+            {t("URL")}
           </RadioButton>
           <RadioButton isActive={importType === "json"} onClick={() => setImportType("json")}>
-            JSON
+            {t("JSON")}
           </RadioButton>
           <RadioButton
             disabled
             isActive={importType === "contract"}
             onClick={() => setImportType("contract")}
           >
-            Contract
+            {t("contract")}
           </RadioButton>
         </div>
 
         {importType === "url" && (
           <div className="flex flex-col flex-grow">
-            <h3 className="text-16 font-bold mb-1">Import token list from URL</h3>
+            <h3 className="text-16 font-bold mb-1">{t("import_with_JSON")}</h3>
 
             <Input
               value={tokenListAddressToImport}
               onChange={(e) => setTokenListAddressToImport(e.target.value)}
-              placeholder="https:// or ipfs://"
+              placeholder={t("https_or_ipfs_placeholder")}
             />
 
             {!tokenListToImport && (
               <div className="flex-grow flex justify-center items-center flex-col gap-2">
                 <EmptyStateIcon iconName="imported" />
-                <p className="text-secondary-text text-center">
-                  To import a list through a URL, enter a link in the format https:// or ipfs://
-                </p>
+                <p className="text-secondary-text text-center">{t("to_import_through_URL")}</p>
               </div>
             )}
 
@@ -185,16 +185,14 @@ export default function ImportList({ setContent, handleClose }: Props) {
                     <div className="flex flex-col text-16">
                       <span className="text-primary-text">{tokenListToImport.list.name}</span>
                       <span className="text-secondary-text">
-                        {tokenListToImport.list.tokens.length} tokens
+                        {t("tokens_amount", { amount: tokenListToImport.list.tokens.length })}
                       </span>
                     </div>
                   </div>
                   <div className="px-5 py-3 flex gap-2 rounded-1 border border-orange bg-orange-bg">
                     <Svg className="text-orange shrink-0" iconName="warning" />
                     <p className="text-16 text-primary-text flex-grow">
-                      By adding this list you are implicitly trusting that the data is correct.
-                      Anyone can create a list, including creating fake versions of existing lists
-                      and lists that claim to represent projects that do not have one.
+                      {t("adding_list_warning")}
                     </p>
                   </div>
                 </div>
@@ -204,7 +202,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                     checked={checkedUnderstand}
                     handleChange={() => setCheckedUnderstand(!checkedUnderstand)}
                     id="approve-list-import"
-                    label="I understand"
+                    label={t("i_understand")}
                   />
                   <Button
                     fullWidth
@@ -214,10 +212,10 @@ export default function ImportList({ setContent, handleClose }: Props) {
                       db.tokenLists.add(tokenListToImport);
 
                       setContent("default");
-                      addToast("List imported");
+                      addToast(t("list_imported"));
                     }}
                   >
-                    Import with URL
+                    {t("import_with_URL")}
                   </Button>
                 </div>
               </>
@@ -244,20 +242,20 @@ export default function ImportList({ setContent, handleClose }: Props) {
                   }}
                   variant={ButtonVariant.OUTLINED}
                 >
-                  Browse
+                  {t("browse")}
                 </Button>
               </div>
               <p className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">
                 {tokenListFile?.name ? (
                   `${tokenListFile?.name}`
                 ) : (
-                  <span className="text-secondary-text">Select json file</span>
+                  <span className="text-secondary-text">{t("select_json_file")}</span>
                 )}
               </p>
             </div>
             {!tokenListFileContent && (
               <>
-                <h3 className="text-16 font-bold mt-5 mb-1">Please select JSON file to import</h3>
+                <h3 className="text-16 font-bold mt-5 mb-1">{t("please_select_JSON_to_import")}</h3>
                 <div
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
@@ -268,7 +266,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                     dragEntered ? "bg-green/20" : "bg-secondary-bg",
                   )}
                 >
-                  Import files or Drag & Drop
+                  {t("import_files_or_drag_and_drop")}
                 </div>
               </>
             )}
@@ -286,16 +284,14 @@ export default function ImportList({ setContent, handleClose }: Props) {
                     <div className="flex flex-col text-16">
                       <span className="text-primary-text">{tokenListFileContent.list.name}</span>
                       <span className="text-secondary-text">
-                        {tokenListFileContent.list.tokens.length} tokens
+                        {t("tokens_amount", { amount: tokenListFileContent.list.tokens.length })}
                       </span>
                     </div>
                   </div>
                   <div className="px-5 py-3 flex gap-2 rounded-1 border border-orange bg-orange-bg">
                     <Svg className="text-orange shrink-0" iconName="warning" />
                     <p className="text-16 text-primary-text flex-grow">
-                      By adding this list you are implicitly trusting that the data is correct.
-                      Anyone can create a list, including creating fake versions of existing lists
-                      and lists that claim to represent projects that do not have one.
+                      {t("adding_list_warning")}
                     </p>
                   </div>
                 </div>
@@ -305,7 +301,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                     checked={checkedUnderstand}
                     handleChange={() => setCheckedUnderstand(!checkedUnderstand)}
                     id="approve-list-import"
-                    label="I understand"
+                    label={t("i_understand")}
                   />
                   <Button
                     fullWidth
@@ -314,10 +310,10 @@ export default function ImportList({ setContent, handleClose }: Props) {
                     onClick={() => {
                       handleJSONImport();
                       setContent("default");
-                      addToast("List imported");
+                      addToast(t("list_imported"));
                     }}
                   >
-                    Import with JSON
+                    {t("import_with_JSON")}
                   </Button>
                 </div>
               </>

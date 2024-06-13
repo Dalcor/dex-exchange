@@ -1,12 +1,16 @@
 import clsx from "clsx";
 import Image from "next/image";
-import React, { PropsWithChildren, useMemo } from "react";
+import { useTranslations } from "next-intl";
+import React, { PropsWithChildren, ReactNode, useMemo } from "react";
+import { formatGwei } from "viem";
+import { useGasPrice } from "wagmi";
 
 import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
+import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -18,12 +22,15 @@ import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import { Standard } from "@/components/common/TokenInput";
+import { networks } from "@/config/networks";
 import { clsxMerge } from "@/functions/clsxMerge";
 import { formatFloat } from "@/functions/formatFloat";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 
 function ApproveRow({
   logoURI = "",
@@ -36,6 +43,8 @@ function ApproveRow({
   isPending?: boolean;
   isSuccess?: boolean;
 }) {
+  const t = useTranslations("Swap");
+
   return (
     <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
       <Image
@@ -47,17 +56,15 @@ function ApproveRow({
       />
       <div className="flex flex-col justify-center">
         <span className={isSuccess ? "text-secondary-text text-14" : "text-14"}>
-          {isSuccess ? "Approved" : "Approve"}
+          {isSuccess ? t("approved") : t("approve")}
         </span>
-        {!isSuccess && (
-          <span className="text-green text-12">Why do I have to approve a token?</span>
-        )}
+        {!isSuccess && <span className="text-green text-12">{t("why_do_i_have_to_approve")}</span>}
       </div>
       <div className="flex items-center gap-2 justify-end">
         {isPending && (
           <>
             <Preloader type="linear" />
-            <span className="text-secondary-text text-14">Proceed in your wallet</span>
+            <span className="text-secondary-text text-14">{t("proceed_in_your_wallet")}</span>
           </>
         )}
         {isLoading && <Preloader size={20} />}
@@ -82,6 +89,8 @@ function SwapRow({
   isReverted?: boolean;
   isDisabled?: boolean;
 }) {
+  const t = useTranslations("Swap");
+
   return (
     <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
       <div className="flex items-center">
@@ -105,15 +114,15 @@ function SwapRow({
 
       <div className="flex flex-col justify-center">
         <span className={clsx("text-14", isDisabled ? "text-tertiary-text" : "text-primary-text")}>
-          {isPending ? "Confirm swap" : "Executing swap"}
+          {isPending ? t("confirm_swap") : t("executing_swap")}
         </span>
-        {!isSettled && <span className="text-green text-12">Learn more about swap</span>}
+        {!isSettled && <span className="text-green text-12">{t("learn_more_about_swap")}</span>}
       </div>
       <div className="flex items-center gap-2 justify-end">
         {isPending && (
           <>
             <Preloader type="linear" />
-            <span className="text-secondary-text text-14">Proceed in your wallet</span>
+            <span className="text-secondary-text text-14">{t("proceed_in_your_wallet")}</span>
           </>
         )}
         {isLoading && <Preloader size={20} />}
@@ -128,6 +137,7 @@ function Rows({ children }: PropsWithChildren<{}>) {
 }
 
 function SwapActionButton() {
+  const t = useTranslations("Swap");
   const { tokenA, tokenB, tokenAAddress } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
 
@@ -146,7 +156,7 @@ function SwapActionButton() {
   if (!tokenA || !tokenB) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Select tokens
+        {t("select_tokens")}
       </Button>
     );
   }
@@ -154,7 +164,7 @@ function SwapActionButton() {
   if (!typedValue) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Enter amount
+        {t("enter_amount")}
       </Button>
     );
   }
@@ -217,7 +227,7 @@ function SwapActionButton() {
 
   return (
     <Button onClick={handleSwap} fullWidth>
-      Confirm swap
+      {t("confirm_swap")}
     </Button>
   );
 }
@@ -256,7 +266,7 @@ function SwapDetailsRow({
   tooltipText,
 }: {
   title: string;
-  value: string;
+  value: string | ReactNode;
   tooltipText: string;
 }) {
   return (
@@ -270,8 +280,10 @@ function SwapDetailsRow({
   );
 }
 export default function ConfirmSwapDialog() {
+  const t = useTranslations("Swap");
   const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
+  const chainId = useCurrentChainId();
 
   const { isOpen, setIsOpen } = useConfirmSwapDialogStore();
 
@@ -305,10 +317,33 @@ export default function ConfirmSwapDialog() {
     return isPendingSwap || isLoadingSwap || isSettledSwap || isLoadingApprove || isPendingApprove;
   }, [isLoadingApprove, isLoadingSwap, isPendingApprove, isPendingSwap, isSettledSwap]);
 
+  const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
+
+  const { data: baseFee } = useGasPrice();
+
+  const computedGasSpending = useMemo(() => {
+    if (gasPrice.model === GasFeeModel.LEGACY && gasPrice.gasPrice) {
+      return formatFloat(formatGwei(gasPrice.gasPrice));
+    }
+
+    if (
+      gasPrice.model === GasFeeModel.EIP1559 &&
+      gasPrice.maxFeePerGas &&
+      gasPrice.maxPriorityFeePerGas &&
+      baseFee
+    ) {
+      const lowerFeePerGas = gasPrice.maxFeePerGas > baseFee ? baseFee : gasPrice.maxFeePerGas;
+
+      return formatFloat(formatGwei(lowerFeePerGas + gasPrice.maxPriorityFeePerGas));
+    }
+
+    return "0.00";
+  }, [baseFee, gasPrice]);
+
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
       <div className="shadow-popup bg-primary-bg rounded-5 w-full md:w-[600px]">
-        <DialogHeader onClose={() => setIsOpen(false)} title="Review swap" />
+        <DialogHeader onClose={() => setIsOpen(false)} title={t("review_swap")} />
         <div className="px-4 pb-4 md:px-10 md:pb-9">
           {!isSettledSwap && (
             <div className="flex flex-col gap-3">
@@ -317,14 +352,14 @@ export default function ConfirmSwapDialog() {
                 amount={typedValue}
                 amountUSD={"0.00"}
                 standard={tokenA?.address0 === tokenAAddress ? Standard.ERC20 : Standard.ERC223}
-                title="You pay"
+                title={t("you_pay")}
               />
               <ReadonlyTokenAmountCard
                 token={tokenB}
                 amount={output}
                 amountUSD={"0.00"}
                 standard={tokenB?.address0 === tokenBAddress ? Standard.ERC20 : Standard.ERC223}
-                title="You receive"
+                title={t("you_receive")}
               />
             </div>
           )}
@@ -347,7 +382,7 @@ export default function ConfirmSwapDialog() {
 
               <div className="flex justify-center">
                 <span className="text-20 font-bold text-primary-text mb-1">
-                  {isRevertedSwap ? "Swap failed" : "Successful swap"}
+                  {isRevertedSwap ? t("swap_failed") : t("successful_swap")}
                 </span>
               </div>
 
@@ -366,59 +401,64 @@ export default function ConfirmSwapDialog() {
           )}
           {!isProcessing && (
             <div className="pb-4 flex flex-col gap-2 rounded-b-3 text-14 mt-4">
+              {/*<SwapDetailsRow*/}
+              {/*  title={t("token_price", { symbol: tokenA?.symbol })}*/}
+              {/*  value={*/}
+              {/*    trade ? `${trade.executionPrice.toSignificant()} ${tokenB?.symbol}` : "Loading..."*/}
+              {/*  }*/}
+              {/*  tooltipText={t("minimum_received_tooltip")}*/}
+              {/*/>*/}
               <SwapDetailsRow
-                title={`${tokenA?.symbol} Price`}
+                title={t("network_fee")}
                 value={
-                  trade ? `${trade.executionPrice.toSignificant()} ${tokenB?.symbol}` : "Loading..."
+                  <div>
+                    <span className="text-secondary-text mr-1 text-14">
+                      {computedGasSpending} GWEI
+                    </span>{" "}
+                    <span className="mr-1 text-14">~$0.00</span>
+                  </div>
                 }
-                tooltipText="Minimum received tooltip"
+                tooltipText={t("network_fee_tooltip", {
+                  networkName: networks.find((n) => n.chainId === chainId)?.name,
+                })}
               />
               <SwapDetailsRow
-                title={`${tokenB?.symbol} Price`}
-                value={
-                  trade
-                    ? `${trade.executionPrice.invert().toSignificant()} ${tokenA?.symbol}`
-                    : "Loading..."
-                }
-                tooltipText="Minimum received tooltip"
-              />
-              <SwapDetailsRow
-                title="Min. received"
+                title={t("minimum_received")}
                 value={
                   trade
                     ?.minimumAmountOut(new Percent(slippage * 100, 10000), dependentAmount)
                     .toSignificant() || "Loading..."
                 }
-                tooltipText="Minimum received tooltip"
+                tooltipText={t("minimum_received_tooltip")}
               />
               <SwapDetailsRow
-                title="Price impact"
+                title={t("price_impact")}
                 value={trade ? `${formatFloat(trade.priceImpact.toSignificant())}%` : "Loading..."}
-                tooltipText="Minimum received tooltip"
+                tooltipText={t("price_impact_tooltip")}
               />
               <SwapDetailsRow
-                title="Trading fee"
+                title={t("trading_fee")}
                 value={
                   typedValue && Boolean(+typedValue) && tokenA
                     ? `${(+typedValue * 0.3) / 100} ${tokenA.symbol}`
                     : "Loading..."
                 }
-                tooltipText="Minimum received tooltip"
+                tooltipText={t("trading_fee_tooltip")}
               />
               <SwapDetailsRow
-                title="Order routing"
-                value="Direct swap"
-                tooltipText="Order routing tooltip"
+                title={t("order_routing")}
+                value={t("direct_swap")}
+                tooltipText={t("route_tooltip")}
               />
               <SwapDetailsRow
-                title="Max. slippage"
+                title={t("maximum_slippage")}
                 value={`${slippage}%`}
-                tooltipText="Minimum received tooltip"
+                tooltipText={t("maximum_slippage_tooltip")}
               />
               <SwapDetailsRow
-                title="Gas limit"
+                title={t("gas_limit")}
                 value={estimatedGas?.toString() || "Loading..."}
-                tooltipText="Minimum received tooltip"
+                tooltipText={t("gas_limit_tooltip")}
               />
             </div>
           )}

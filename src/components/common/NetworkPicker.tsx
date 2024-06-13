@@ -49,7 +49,7 @@ export default function NetworkPicker() {
         }
       >
         <div className="py-1 text-16 bg-primary-bg border border-primary-border rounded-1 min-w-[280px]">
-          <div className="border-b-primary-border pb-1 border-b">
+          <div>
             {networks.map(({ chainId: _chainId, name, logo }) => {
               return (
                 <SelectOption
@@ -79,16 +79,16 @@ export default function NetworkPicker() {
               );
             })}
           </div>
-          <div className="pt-1">
-            <div
-              role="button"
-              className="flex gap-2 items-center py-3 px-5 bg-primary-bg hover:bg-tertiary-bg duration-200"
-            >
-              <Svg iconName="add" />
-              Add custom node
-              <span className="text-red block ml-auto">Risky</span>
-            </div>
-          </div>
+          {/*<div className="pt-1">*/}
+          {/*  <div*/}
+          {/*    role="button"*/}
+          {/*    className="flex gap-2 items-center py-3 px-5 bg-primary-bg hover:bg-tertiary-bg duration-200"*/}
+          {/*  >*/}
+          {/*    <Svg iconName="add" />*/}
+          {/*    Add custom node*/}
+          {/*    <span className="text-red block ml-auto">Risky</span>*/}
+          {/*  </div>*/}
+          {/*</div>*/}
         </div>
       </Popover>
     </ClientOnly>

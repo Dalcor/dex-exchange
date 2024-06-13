@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { NumericFormat } from "react-number-format";
 
@@ -25,6 +26,7 @@ function StandardOption({
   active: Standard;
   setIsActive: (isActive: Standard) => void;
 }) {
+  const t = useTranslations("Swap");
   const isActive = useMemo(() => {
     return active === standard;
   }, [active, standard]);
@@ -41,14 +43,17 @@ function StandardOption({
       )}
     >
       <div className="flex items-center gap-1">
-        <span className="text-12">Standard</span>
+        <span className="text-12">{t("standard")}</span>
         <Badge color="green" text={standard} />
-        <Tooltip iconSize={16} text={`${standard} Tooltip`} />
+        <Tooltip
+          iconSize={16}
+          text={standard === Standard.ERC20 ? t("erc20_tooltip") : t("erc223_tooltip")}
+        />
       </div>
       <span
         className={clsx("block", standard === active ? "text-primary-text" : "text-tertiary-text")}
       >
-        Balance:{" "}
+        {t("balance")}{" "}
         <span className="whitespace-nowrap">
           {balance || "0.0"} {symbol}
         </span>
@@ -77,6 +82,8 @@ export default function TokenInput({
   standard: Standard;
   setStandard: (standard: Standard) => void;
 }) {
+  const t = useTranslations("Swap");
+
   return (
     <div className="p-5 bg-secondary-bg rounded-3 relative">
       <span className="text-14 block mb-2 text-secondary-text">{label}</span>
@@ -114,7 +121,7 @@ export default function TokenInput({
               <span>{token.symbol}</span>
             </span>
           ) : (
-            <span className="whitespace-nowrap text-tertiary-text">Select token</span>
+            <span className="whitespace-nowrap text-tertiary-text">{t("select_token")}</span>
           )}
         </SelectButton>
       </div>

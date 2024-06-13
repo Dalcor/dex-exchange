@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 import React, {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -67,7 +68,7 @@ interface Props {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-function getTitle(slippageType: SlippageType, value: string) {
+function getTitle(slippageType: SlippageType, value: string, t: any) {
   switch (slippageType) {
     case SlippageType.LOW:
     case SlippageType.MEDIUM:
@@ -75,13 +76,15 @@ function getTitle(slippageType: SlippageType, value: string) {
       return `${values[slippageType]}%`;
 
     case SlippageType.AUTO:
-      return "Auto";
+      return t("auto");
     case SlippageType.CUSTOM:
-      return `${value}% Custom`;
+      return `${value}% ${t("custom")}`;
   }
 }
 
 export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
+  const t = useTranslations("Swap");
+
   const {
     setSlippage,
     setDeadline,
@@ -119,7 +122,7 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
     _setSlippageType(slippageType);
 
     setIsOpen(false);
-    addToast("Settings applied");
+    addToast(t("settings_applied"));
   }, [
     _setSlippageType,
     customDeadline,
@@ -128,6 +131,7 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
     setIsOpen,
     setSlippage,
     slippageType,
+    t,
   ]);
 
   const handleCancel = useCallback(() => {
@@ -145,21 +149,21 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
 
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
-      <DialogHeader onClose={() => setIsOpen(false)} title="Settings" />
+      <DialogHeader onClose={() => setIsOpen(false)} title={t("settings")} />
       <div className="px-4 md:px-10 pt-4 md:pt-10 pb-4 md:pb-5.5 w-full md:w-[600px]">
         <div className="flex justify-between items-center mb-1">
           <div className="flex gap-1 items-center">
-            <h3 className="font-bold text-16">Max slippage</h3>
+            <h3 className="font-bold text-16">{t("maximum_slippage")}</h3>
             <Tooltip text="Tooltip" />
           </div>
-          <span className="text-secondary-text">{getTitle(slippageType, customSlippage)}</span>
+          <span className="text-secondary-text">{getTitle(slippageType, customSlippage, t)}</span>
         </div>
         <div className="flex gap-5">
           <span>
             <SettingsButton
               onClick={() => setSlippageType(SlippageType.AUTO)}
               isActive={slippageType === SlippageType.AUTO}
-              text="Auto"
+              text={t("auto")}
             />
           </span>
           <SettingsButtons>
@@ -175,7 +179,7 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
             })}
             <SettingsInput
               onFocus={() => setSlippageType(SlippageType.CUSTOM)}
-              placeholder="Custom"
+              placeholder={t("custom")}
               value={customSlippage}
               onChange={(e) => setCustomSlippage(e.target.value)}
               isActive={slippageType === SlippageType.CUSTOM}
@@ -186,12 +190,12 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
         <div className="mt-5">
           <div className="flex justify-between items-center">
             <p className={clsx("text-16 font-bold mb-1 flex items-center gap-1")}>
-              Transaction deadline
+              {t("transaction_deadline")}
               <Tooltip iconSize={24} text={"Tooltip text"} />
             </p>
             {customDeadline !== 20 && (
               <TextButton className="pr-0" endIcon="reset" onClick={() => setCustomDeadline(20)}>
-                Set default
+                {t("set_default")}
               </TextButton>
             )}
           </div>
@@ -205,7 +209,7 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
               }}
             />
             <span className="absolute right-5 top-1/2 -translate-y-1/2 text-secondary-text">
-              minutes
+              {t("minutes")}
             </span>
           </div>
 
@@ -214,10 +218,10 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
 
         <div className="grid grid-cols-2 gap-3">
           <Button fullWidth variant={ButtonVariant.OUTLINED} onClick={handleCancel}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button fullWidth onClick={handleSave}>
-            Save settings
+            {t("save_settings")}
           </Button>
         </div>
       </div>

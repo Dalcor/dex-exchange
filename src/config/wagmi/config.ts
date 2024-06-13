@@ -20,7 +20,6 @@ export const config = createConfig({
       appName: "DEX223",
     }),
   ],
-  multiInjectedProviderDiscovery: true,
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,

@@ -21,12 +21,17 @@ export default function MetamaskCard() {
 
   const loading = usePreloaderTimeout({ isLoading: isPending });
 
+  console.log(connectors);
+
   return (
     <PickButton
       onClick={() => {
         setName("metamask");
+        console.log(connectors);
         const connectorToConnect = connectors.find((c) => c.id === rdnsMap.metamask);
+        // const connectorToConnect = connectors[2];
 
+        console.log(connectorToConnect);
         if (!connectorToConnect) {
           return addToast(t("install_metamask"), "error");
         }

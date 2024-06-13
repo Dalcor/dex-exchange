@@ -1,7 +1,7 @@
 import { fallback, http, webSocket } from "viem";
 import { bscTestnet } from "viem/chains";
 import { cookieStorage, createConfig, createStorage } from "wagmi";
-import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
+import { coinbaseWallet, walletConnect } from "wagmi/connectors";
 
 // import { callisto } from "@/config/chains/callisto";
 import { sepolia } from "@/config/chains/sepolia";
@@ -18,12 +18,6 @@ export const config = createConfig({
     }),
     coinbaseWallet({
       appName: "DEX223",
-    }),
-    metaMask({
-      extensionOnly: false,
-      dappMetadata: {
-        name: "app.dex223.io",
-      },
     }),
   ],
   ssr: true,

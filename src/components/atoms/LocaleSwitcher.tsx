@@ -69,6 +69,7 @@ export default function LocaleSwitcher({ isMobile = false }: { isMobile?: boolea
                   <SelectOption
                     onClick={() => redirectedPathName(locale)}
                     isActive={lang === locale}
+                    disabled={locale !== "en"}
                   >
                     <Image
                       src={localesMap[locale]?.img}

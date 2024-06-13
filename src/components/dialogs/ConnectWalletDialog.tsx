@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
+import { isMobile } from "react-device-detect";
 import { useSwitchChain } from "wagmi";
 
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import PickButton from "@/components/buttons/PickButton";
@@ -61,10 +61,10 @@ export default function ConnectWalletDialog({ isOpen, setIsOpen }: Props) {
           </div>
           <StepLabel step="2" label={t("choose_wallet")} />
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-3">
-            <MetamaskCard />
+            {!isMobile && <MetamaskCard />}
             <WalletConnectCard />
             <CoinbaseCard />
-            <TrustWalletCard />
+            {!isMobile && <TrustWalletCard />}
             <KeystoreCard />
           </div>
         </div>

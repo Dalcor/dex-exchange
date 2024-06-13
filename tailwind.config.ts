@@ -35,6 +35,10 @@ const config: Config = {
           "linear-gradient(270deg, #1D1E1E 13.5%, #283631 97.85%, #70C59E 100%)",
       },
       keyframes: {
+        appear: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
         orbit: {
           "0%": { transform: "rotate(0deg)" },
           "80%, 100%": { transform: "rotate(360deg)" },
@@ -66,6 +70,7 @@ const config: Config = {
         flicker1: "flicker1 ease-in 1.5s infinite",
         flicker2: "flicker2 ease-in 1.5s infinite",
         flicker3: "flicker3 ease-in 1.5s infinite",
+        appear: "appear ease-in 1.3s",
       },
       gridTemplateRows: {
         layout: "auto 1fr auto",

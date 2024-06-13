@@ -7,8 +7,9 @@ import Svg from "@/components/atoms/Svg";
 export default function SelectOption({
   onClick,
   isActive,
+  disabled = false,
   children,
-}: PropsWithChildren<{ onClick: any; isActive: boolean }>) {
+}: PropsWithChildren<{ onClick: any; isActive: boolean; disabled?: boolean }>) {
   return (
     <div
       role="button"
@@ -16,6 +17,7 @@ export default function SelectOption({
       className={clsx(
         "flex gap-2 items-center py-3 px-5 bg-primary-bg hover:bg-tertiary-bg duration-200",
         isActive ? "text-green" : "",
+        disabled && "opacity-50 pointer-events-none",
       )}
     >
       {children}

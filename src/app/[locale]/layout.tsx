@@ -4,7 +4,6 @@ import clsx from "clsx";
 import { Golos_Text, Space_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { NextIntlClientProvider } from "next-intl";
 import { PropsWithChildren } from "react";
 import { cookieToInitialState } from "wagmi";
 
@@ -12,16 +11,8 @@ import { Providers } from "@/app/[locale]/providers";
 import Footer from "@/components/common/Footer";
 import Header from "@/components/common/Header";
 import { config } from "@/config/wagmi/config";
-import useInitializeDB from "@/hooks/useInitializeDB";
 
 const golos_text = Golos_Text({
-  subsets: ["latin"],
-  display: "swap",
-  adjustFontFallback: false,
-});
-
-const mono_space = Space_Mono({
-  weight: "400",
   subsets: ["latin"],
   display: "swap",
   adjustFontFallback: false,

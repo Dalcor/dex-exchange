@@ -186,3 +186,58 @@ input[type="range"]:focus::-moz-range-thumb {
     stroke-dashoffset: -125px;
   }
 }
+
+.main-loader {
+  position: relative;
+  height: 460px;
+  width: 460px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, transparent, transparent 40%, theme("colors.green"));
+  animation: animate 1s linear infinite;
+}
+
+@media screen and (max-width: 768px) {
+  .main-loader {
+    height: 240px;
+    width: 240px;
+  }
+}
+
+.main-loader:before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    right: 2px;
+    background: theme("colors.global-bg");
+    border-radius: 50%;
+    z-index: 99999;
+}
+
+.main-loader:after {
+    transform-origin: center;
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    background: linear-gradient(45deg, transparent, transparent 40%, theme("colors.green"));
+    border-radius: 50%;
+    filter: blur(30px);
+    z-index: 1;
+}
+
+@keyframes animate {
+  0% {
+    transform: rotate(0deg);
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+    filter: hue-rotate(180deg);
+  }
+}

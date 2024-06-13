@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
 import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
@@ -29,6 +30,8 @@ export default function PriceRangeInput({
   tokenB,
   noLiquidity,
 }: Props) {
+  const t = useTranslations("Liquidity");
+
   //  for focus state, styled components doesnt let you select input parent container
   const [active, setActive] = useState(false);
 
@@ -90,7 +93,12 @@ export default function PriceRangeInput({
           maxDecimals={maxDecimals}
         />
         <span className="text-12 text-secondary-text">
-          {tokenA && tokenB ? `${tokenB.symbol} per ${tokenA.symbol}` : ""}
+          {tokenA && tokenB
+            ? t("price_per", {
+                symbol0: tokenB.symbol,
+                symbol1: tokenA.symbol,
+              })
+            : ""}
         </span>
       </div>
       <div className="flex flex-col gap-2">

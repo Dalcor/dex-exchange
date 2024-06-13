@@ -2,6 +2,7 @@
 
 import clsx from "clsx";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import React, { useCallback, useState } from "react";
 
 import FeeAmountSettings from "@/app/[locale]/add/components/FeeAmountSettings";
@@ -35,6 +36,7 @@ export default function AddPoolPage() {
   useRecentTransactionTracking();
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
+  const t = useTranslations("Liquidity");
 
   const router = useRouter();
 
@@ -115,7 +117,7 @@ export default function AddPoolPage() {
               onClick={() => router.push("/pools")}
             />
           </div>
-          <h2 className="text-18 md:text-20 font-bold">Add Liquidity</h2>
+          <h2 className="text-18 md:text-20 font-bold">{t("add_liquidity_title")}</h2>
           <div className="w-[80px] md:w-[104px] flex items-center gap-2 justify-end">
             <IconButton
               variant={IconButtonVariant.DEFAULT}
@@ -133,7 +135,7 @@ export default function AddPoolPage() {
           </div>
         </div>
         <div className="rounded-b-5 border-t-0 p-4 md:p-10 bg-primary-bg mb-4 md:mb-5">
-          <h3 className="text-16 font-bold mb-4">Select pair</h3>
+          <h3 className="text-16 font-bold mb-4">{t("select_pair")}</h3>
           <div className="flex gap-3 mb-4 md:mb-5">
             <SelectButton
               variant="rounded-secondary"
@@ -165,7 +167,7 @@ export default function AddPoolPage() {
                   </span>
                 </span>
               ) : (
-                <span className="text-tertiary-text">Select token</span>
+                <span className="text-tertiary-text">{t("select_token")}</span>
               )}
             </SelectButton>
             <SelectButton
@@ -198,7 +200,7 @@ export default function AddPoolPage() {
                   </span>
                 </span>
               ) : (
-                <span className="text-tertiary-text">Select token</span>
+                <span className="text-tertiary-text">{t("select_token")}</span>
               )}
             </SelectButton>
           </div>

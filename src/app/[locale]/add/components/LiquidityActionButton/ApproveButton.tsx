@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Chain, formatEther, formatGwei, formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -19,9 +20,9 @@ import {
 } from "../../hooks/useLiquidityApprove";
 
 const APPROVE_BUTTON_TEXT = {
-  [ApproveTransactionType.ERC20_AND_ERC223]: "Approve & Deposit",
-  [ApproveTransactionType.ERC20]: "Approve",
-  [ApproveTransactionType.ERC223]: "Deposit",
+  [ApproveTransactionType.ERC20_AND_ERC223]: "button_approve_and_deposit",
+  [ApproveTransactionType.ERC20]: "button_approve",
+  [ApproveTransactionType.ERC223]: "button_deposit",
 };
 
 const TransactionItem = ({
@@ -96,6 +97,7 @@ const TransactionItem = ({
   );
 };
 export const ApproveButton = () => {
+  const t = useTranslations("Liquidity");
   const [isOpen, setIsOpen] = useState(false);
   const { chain } = useAccount();
 
@@ -159,14 +161,14 @@ export const ApproveButton = () => {
         </Button>
       ) : (
         <Button onClick={() => setIsOpen(true)} fullWidth>
-          {APPROVE_BUTTON_TEXT[approveTransactionsType]}
+          {t(APPROVE_BUTTON_TEXT[approveTransactionsType] as any)}
         </Button>
       )}
 
       <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
         <DialogHeader
           onClose={() => setIsOpen(false)}
-          title={`${APPROVE_BUTTON_TEXT[approveTransactionsType]} transactions`}
+          title={`${t(APPROVE_BUTTON_TEXT[approveTransactionsType] as any)} ${t("approve_transaction_modal_title")}`}
         />
         <div className="w-full md:w-[570px] px-4 md:px-10 md:pb-10 pb-4 mx-auto">
           {transactionItems.map(({ transaction, standard }: any, index) => (
@@ -181,7 +183,7 @@ export const ApproveButton = () => {
             />
           ))}
           <div className="flex gap-1 justify-center items-center border-t pt-4 border-secondary-border mb-4">
-            <span className="text-secondary-text">Total fee</span>
+            <span className="text-secondary-text">{t("total_fee")}</span>
             <span className="font-bold">{`${gasPrice && approveTotalGasLimit ? formatFloat(formatEther(gasPrice * approveTotalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
           </div>
 
@@ -193,7 +195,7 @@ export const ApproveButton = () => {
             </Button>
           ) : (
             <Button onClick={handleApprove} fullWidth>
-              {APPROVE_BUTTON_TEXT[approveTransactionsType]}
+              {t(APPROVE_BUTTON_TEXT[approveTransactionsType] as any)}
             </Button>
           )}
         </div>

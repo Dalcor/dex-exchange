@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ReactNode, useCallback, useEffect, useMemo } from "react";
 
 import { FeeAmount } from "@/sdk_hybrid/constants";
@@ -54,6 +55,7 @@ export default function LiquidityChartRangeInput({
   onRightRangeInput: (typedValue: string) => void;
   interactive: boolean;
 }) {
+  const t = useTranslations("Liquidity");
   // const tokenAColor = useColor(currencyA);
   // const tokenBColor = useColor(currencyB);
 
@@ -150,7 +152,7 @@ export default function LiquidityChartRangeInput({
     <div style={{ minHeight: "200px" }}>
       {isUninitialized ? (
         <InfoBox
-          message={<span>Your position will appear here.</span>}
+          message={<span>{t("price_chart_data_will_appear_here")}</span>}
           // icon={<Inbox size={56} stroke={theme.neutral1} />}
           icon={<span>Inbox</span>}
         />
@@ -158,14 +160,14 @@ export default function LiquidityChartRangeInput({
         <InfoBox icon={<span>Loader</span>} />
       ) : error ? (
         <InfoBox
-          message={<span>Liquidity data not available.</span>}
+          message={<span>{t("price_chart_data_not_available")}</span>}
           // icon={<CloudOff size={56} stroke={theme.neutral2} />}
           icon={<span>CloudOff</span>}
         />
       ) : // ) : !formattedData || formattedData.length === 0 || !price ? (
       !price ? (
         <InfoBox
-          message={<span>There is no liquidity data.</span>}
+          message={<span>{t("price_chart_no_data")}</span>}
           // icon={<BarChart2 size={56} stroke={theme.neutral2} />}
           icon={<span>BarChart2 </span>}
         />

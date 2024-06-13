@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 import { formatEther, formatGwei, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -33,6 +34,8 @@ export const DepositAmounts = ({
   depositBDisabled: boolean;
   isFormDisabled: boolean;
 }) => {
+  const t = useTranslations("Liquidity");
+  const tGas = useTranslations("GasSettings");
   const {
     typedValue,
     independentField,
@@ -72,17 +75,17 @@ export const DepositAmounts = ({
         <div className="flex w-full justify-between">
           <div className="flex flex-col">
             <div className="text-secondary-text flex items-center gap-1 text-14">
-              Gas price
-              <Tooltip iconSize={20} text="Tooltip text" />
+              {t("gas_price")}
+              <Tooltip iconSize={20} text={tGas("gas_price_tooltip")} />
             </div>
             <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
           </div>
           <div className="flex flex-col">
-            <div className="text-secondary-text text-14">Total fee</div>
+            <div className="text-secondary-text text-14">{t("total_fee")}</div>
             <div>{`${gasPrice ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</div>
           </div>
           <div className="flex flex-col">
-            <div className="text-secondary-text text-14">Transactions</div>
+            <div className="text-secondary-text text-14">{t("transactions")}</div>
             <div>{approveTransactionsCount + 1}</div>
           </div>
         </div>

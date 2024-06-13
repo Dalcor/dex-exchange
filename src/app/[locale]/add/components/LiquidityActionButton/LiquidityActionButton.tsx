@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { Address } from "viem";
 import { useAccount, useBalance, useBlockNumber } from "wagmi";
@@ -24,6 +25,7 @@ export const LiquidityActionButton = ({
   increase?: boolean;
   tokenId?: string;
 }) => {
+  const t = useTranslations("Liquidity");
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
   const { tier } = useLiquidityTierStore();
   const { price } = usePriceRange();
@@ -98,7 +100,7 @@ export const LiquidityActionButton = ({
   if (!tokenA || !tokenB) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Select tokens
+        {t("select_tokens")}
       </Button>
     );
   }
@@ -106,7 +108,7 @@ export const LiquidityActionButton = ({
   if (!typedValue || typedValue === "0") {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Enter amount
+        {t("button_enter_amount")}
       </Button>
     );
   }
@@ -114,7 +116,7 @@ export const LiquidityActionButton = ({
   if (!isSufficientBalance) {
     return (
       <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
-        Insufficient balance
+        {t("button_insufficient_balance")}
       </Button>
     );
   }

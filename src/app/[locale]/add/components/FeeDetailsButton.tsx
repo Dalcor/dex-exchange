@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { formatEther, formatGwei, formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -13,6 +14,7 @@ import { EstimatedGasId, useEstimatedGasStoreById } from "@/stores/useEstimatedG
 import { ApproveTransaction, useLiquidityApprove } from "../hooks/useLiquidityApprove";
 
 export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
+  const t = useTranslations("Liquidity");
   const [isOpen, setIsOpen] = useState(false);
   const { chain } = useAccount();
 
@@ -21,6 +23,7 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
   const { gasPrice, approveTransactions, approveTotalGasLimit, approveTransactionsCount } =
     useLiquidityApprove();
 
+  console.log("🚀 ~ FeeDetailsButton ~ approveTransactions:", approveTransactions);
   const transactionItems = [
     {
       transaction: approveTransactions.approveA,
@@ -52,7 +55,7 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
         mobileSize={ButtonSize.SMALL}
         fullWidth
       >
-        Details
+        {t("details")}
       </Button>
 
       <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -69,26 +72,30 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
                 </div>
                 <div className="w-full">
                   <div className="flex gap-2 py-2 items-center">
-                    <span>{`${standard === "ERC-20" ? "Approve" : "Deposit"} for ${transaction.token.symbol}`}</span>
+                    <span>
+                      {standard === "ERC-20"
+                        ? t("fee_details_aprove_for", { symbol: transaction.token.symbol })
+                        : t("fee_details_deposit_for", { symbol: transaction.token.symbol })}
+                    </span>
                     <Badge color="green" text={standard} />
                   </div>
                   <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
                     <span>
                       {formatUnits(transaction.amount || BigInt(0), transaction.token.decimals)}
                     </span>
-                    <span>{`Amount ${transaction.token.symbol}`}</span>
+                    <span>{t("fee_details_amount", { symbol: transaction.token.symbol })}</span>
                   </div>
                   <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
                     <div className="flex flex-col">
-                      <span className="text-14 text-secondary-text">Gas price</span>
+                      <span className="text-14 text-secondary-text">{t("gas_price")}</span>
                       <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-14 text-secondary-text">Gas limit</span>
+                      <span className="text-14 text-secondary-text">{t("gas_limit")}</span>
                       <span>{transaction.estimatedGas?.toString()}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-14 text-secondary-text">Fee</span>
+                      <span className="text-14 text-secondary-text">{t("fee")}</span>
                       <span>{`${gasPrice && transaction.estimatedGas ? formatFloat(formatEther(gasPrice * transaction.estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
                     </div>
                   </div>
@@ -105,19 +112,19 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
             </div>
             <div className="w-full">
               <div className="flex gap-2 py-2 items-center">
-                <span>Add liquidity</span>
+                <span>{t("fee_details_add_liquidity")}</span>
               </div>
               <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
                 <div className="flex flex-col">
-                  <span className="text-14 text-secondary-text">Gas price</span>
+                  <span className="text-14 text-secondary-text">{t("gas_price")}</span>
                   <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-14 text-secondary-text">Gas limit</span>
+                  <span className="text-14 text-secondary-text">{t("gas_limit")}</span>
                   <span>{estimatedMintGas.toString()}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-14 text-secondary-text">Fee</span>
+                  <span className="text-14 text-secondary-text">{t("fee")}</span>
                   <span>{`${gasPrice ? formatFloat(formatEther(gasPrice * estimatedMintGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
                 </div>
               </div>
@@ -125,7 +132,7 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
           </div>
 
           <div className="flex gap-1 justify-center items-center border-t pt-4 border-secondary-border">
-            <span className="text-secondary-text">Total fee</span>
+            <span className="text-secondary-text">{t("total_fee")}</span>
             <span className="font-bold">{`${gasPrice && totalGasLimit ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect } from "react";
 
 import Svg from "@/components/atoms/Svg";
@@ -60,6 +61,7 @@ export const PriceRange = ({
   outOfRange: boolean;
   isFormDisabled: boolean;
 }) => {
+  const t = useTranslations("Liquidity");
   const { tokenA, tokenB, setBothTokens } = useAddLiquidityTokensStore();
   const {
     ticks,
@@ -181,7 +183,7 @@ export const PriceRange = ({
             : leftPrice?.toSignificant(8) ?? ""
         }
         onUserInput={setLeftRangeTypedValue}
-        title="Low price"
+        title={t("low_price")}
         decrement={isSorted ? getDecrementLower : getIncrementUpper}
         increment={isSorted ? getIncrementLower : getDecrementUpper}
         tokenA={tokenA}
@@ -189,7 +191,7 @@ export const PriceRange = ({
         noLiquidity={noLiquidity}
       />
       <PriceRangeInput
-        title="High price"
+        title={t("high_price")}
         value={
           ticksAtLimit[isSorted ? Bound.UPPER : Bound.LOWER]
             ? "∞"

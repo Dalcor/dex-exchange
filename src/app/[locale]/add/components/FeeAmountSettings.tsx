@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ButtonHTMLAttributes, useEffect, useMemo, useState } from "react";
 
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
@@ -27,6 +27,7 @@ function FeeAmountOption({
   poolState,
   ...props
 }: FeeAmountOptionProps) {
+  const t = useTranslations("Liquidity");
   return (
     <button
       {...props}
@@ -38,24 +39,29 @@ function FeeAmountOption({
       )}
     >
       <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <span>{FEE_AMOUNT_DETAIL[feeAmount].label}% fee tier</span>
+        <span>{t("fee_tier", { tier: FEE_AMOUNT_DETAIL[feeAmount].label })}</span>
         <Badge
           variant={BadgeVariant.PERCENTAGE}
           percentage={
             !distributions || poolState === PoolState.NOT_EXISTS || poolState === PoolState.INVALID
-              ? "Not created"
+              ? t("fee_tier_not_created")
               : distributions[feeAmount] !== undefined
-                ? `${distributions[feeAmount]?.toFixed(0)}% select`
-                : "No data"
+                ? t("fee_tier_select", {
+                    select: distributions[feeAmount]?.toFixed(0),
+                  })
+                : t("fee_tier_no_data")
           }
         />
       </div>
-      <span className="text-secondary-text">{FEE_AMOUNT_DETAIL[feeAmount].description}</span>
+      <span className="text-secondary-text">
+        {t(FEE_AMOUNT_DETAIL[feeAmount].description as any)}
+      </span>
     </button>
   );
 }
 
 export default function FeeAmountSettings() {
+  const t = useTranslations("Liquidity");
   const [isFeeOpened, setIsFeeOpened] = useState(false);
   const { tier, setTier } = useLiquidityTierStore();
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
@@ -116,10 +122,12 @@ export default function FeeAmountSettings() {
         )}
       >
         <div className="flex items-center gap-2">
-          <span className="font-bold">{FEE_AMOUNT_DETAIL[tier].label}% fee tier</span>
+          <span className="font-bold">
+            {t("fee_tier", { tier: FEE_AMOUNT_DETAIL[tier].label })}
+          </span>
         </div>
         <span className="flex items-center gap-2 group">
-          <span className="">{isFeeOpened ? "Hide" : "Edit"}</span>
+          <span className="">{t(isFeeOpened ? "hide" : "edit")}</span>
           <Svg
             iconName="small-expand-arrow"
             className={isFeeOpened ? "duration-200 -rotate-180" : "duration-200 "}

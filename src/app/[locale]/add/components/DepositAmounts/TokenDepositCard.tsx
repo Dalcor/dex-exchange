@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { ChangeEvent, useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
 import { Address, formatEther, formatGwei, formatUnits } from "viem";
@@ -9,6 +10,7 @@ import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
+import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
@@ -132,6 +134,8 @@ function InputStandardAmount({
   gasPrice?: bigint;
   estimatedGas: bigint | null;
 }) {
+  const t = useTranslations("Liquidity");
+  const tSwap = useTranslations("Swap");
   const { address, chain } = useAccount();
   const { data: blockNumber } = useBlockNumber({ watch: true });
   const tokenAddress = standard === "ERC-20" ? token?.address0 : token?.address1;
@@ -149,8 +153,12 @@ function InputStandardAmount({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span>Standard</span>
+        <span>{t("standard")}</span>
         <Badge color={standard === "ERC-20" ? "purple" : "green"} text={standard} />
+        <Tooltip
+          iconSize={20}
+          text={standard === "ERC-20" ? tSwap("erc20_tooltip") : tSwap("erc223_tooltip")}
+        />
       </div>
       <div className="bg-primary-bg px-4 py-2 md:p-5 w-full rounded-2">
         <div className="mb-1 flex justify-between items-center">
@@ -167,24 +175,43 @@ function InputStandardAmount({
         <div className="flex justify-end items-center text-10 md:text-14">
           <span>
             {token &&
-              `Balance: ${formatFloat(formatUnits(tokenBalance?.value || BigInt(0), token.decimals))} ${token.symbol}`}
+              t("balance", {
+                balance: formatFloat(formatUnits(tokenBalance?.value || BigInt(0), token.decimals)),
+                symbol: token.symbol,
+              })}
           </span>
         </div>
       </div>
       <div className="flex justify-between items-center">
         {token && (
-          <span className="text-12 text-secondary-text">
-            {standard === "ERC-20"
-              ? `Approved: ${formatFloat(formatUnits(currentAllowance || BigInt(0), token.decimals))} ${token.symbol}`
-              : `Deposited: ${formatFloat(formatUnits(currentAllowance || BigInt(0), token.decimals))} ${token.symbol}`}
-          </span>
+          <div className="flex items-center gap-1">
+            <Tooltip
+              iconSize={16}
+              text={standard === "ERC-20" ? t("approved_tooltip") : t("deposited_tooltip")}
+            />
+            <span className="text-12 text-secondary-text">
+              {standard === "ERC-20"
+                ? t("approved", {
+                    approved: formatFloat(
+                      formatUnits(tokenBalance?.value || BigInt(0), token.decimals),
+                    ),
+                    symbol: token.symbol,
+                  })
+                : t("deposited", {
+                    deposited: formatFloat(
+                      formatUnits(currentAllowance || BigInt(0), token.decimals),
+                    ),
+                    symbol: token.symbol,
+                  })}
+            </span>
+          </div>
         )}
         {!!currentAllowance ? (
           <span
-            className="text-12 px-4 pt-[1px] pb-[2px] border border-green rounded-3 h-min cursor-pointer hover:text-green duration-200"
+            className="text-12 px-2 pt-[1px] pb-[2px] border border-green rounded-3 h-min cursor-pointer hover:text-green duration-200"
             onClick={() => setIsOpenedRevokeDialog(true)}
           >
-            {standard === "ERC-20" ? "Revoke" : "Withdraw"}
+            {standard === "ERC-20" ? t("revoke") : t("withdraw")}
           </span>
         ) : null}
       </div>
@@ -192,19 +219,19 @@ function InputStandardAmount({
         <Dialog isOpen={isOpenedRevokeDialog} setIsOpen={setIsOpenedRevokeDialog}>
           <DialogHeader
             onClose={() => setIsOpenedRevokeDialog(false)}
-            title={standard === "ERC-20" ? "Revoke" : "Withdraw"}
+            title={standard === "ERC-20" ? t("revoke") : t("withdraw")}
           />
           <div className="w-full md:w-[570px] px-4 pb-4 md:px-10 md:pb-10">
             <div className="flex justify-between items-center">
               <div className="flex gap-2 py-2 items-center">
-                <span>{`${standard === "ERC-20" ? "Revoke" : "Withdraw"} ${token.symbol}`}</span>
+                <span>{`${standard === "ERC-20" ? t("revoke") : t("withdraw")} ${token.symbol}`}</span>
                 <Badge color="green" text={standard} />
               </div>
               <div className="flex items-center gap-2 justify-end">
                 {status === AllowanceStatus.PENDING && (
                   <>
                     <Preloader type="linear" />
-                    <span className="text-secondary-text text-14">Proceed in your wallet</span>
+                    <span className="text-secondary-text text-14">{t("status_pending")}</span>
                   </>
                 )}
                 {status === AllowanceStatus.LOADING && <Preloader size={20} />}
@@ -216,25 +243,25 @@ function InputStandardAmount({
 
             <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
               <span>{formatUnits(currentAllowance || BigInt(0), token.decimals)}</span>
-              <span>{`Amount ${token.symbol}`}</span>
+              <span>{t("amount", { symbol: token.symbol })}</span>
             </div>
             <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
               <div className="flex flex-col">
-                <span className="text-14 text-secondary-text">Gas price</span>
+                <span className="text-14 text-secondary-text">{t("gas_price")}</span>
                 <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-14 text-secondary-text">Gas limit</span>
+                <span className="text-14 text-secondary-text">{t("gas_limit")}</span>
                 <span>{estimatedGas?.toString()}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-14 text-secondary-text">Fee</span>
+                <span className="text-14 text-secondary-text">{t("fee")}</span>
                 <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
               </div>
             </div>
             {[AllowanceStatus.INITIAL].includes(status) ? (
               <Button onClick={revokeHandler} fullWidth>
-                {standard === "ERC-20" ? "Revoke" : "Withdraw"}
+                {standard === "ERC-20" ? t("revoke") : t("withdraw")}
               </Button>
             ) : null}
             {[AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
@@ -246,7 +273,7 @@ function InputStandardAmount({
             ) : null}
             {[AllowanceStatus.SUCCESS].includes(status) ? (
               <Button onClick={() => setIsOpenedRevokeDialog(false)} fullWidth>
-                Close
+                {t("close")}
               </Button>
             ) : null}
           </div>
@@ -275,6 +302,8 @@ export default function TokenDepositCard({
   setTokenStandardRatio: (ratio: 0 | 100) => void;
   gasPrice?: bigint;
 }) {
+  const t = useTranslations("Liquidity");
+
   const { chainId } = useAccount();
   // TODO BigInt
   const ERC223Value =
@@ -309,9 +338,7 @@ export default function TokenDepositCard({
   if (isOutOfRange) {
     return (
       <div className="flex justify-center items-center rounded-3 bg-tertiary-bg p-5 min-h-[320px]">
-        <span className="text-center text-secondary-text">
-          The market price is outside your specified price range. Single-asset deposit only.
-        </span>
+        <span className="text-center text-secondary-text">{t("out_of_range")}</span>
       </div>
     );
   }
@@ -320,7 +347,7 @@ export default function TokenDepositCard({
       <div className="flex items-center gap-2 mb-3">
         {token && <Image width={24} height={24} src={token?.logoURI || ""} alt="" />}
         <h3 className="text-16 font-bold">
-          {token ? `${token?.symbol} deposit amounts` : "Select token"}
+          {token ? t("token_deposit_amounts", { symbol: token?.symbol }) : t("select_token")}
         </h3>
       </div>
       <div className="flex flex-col gap-5">

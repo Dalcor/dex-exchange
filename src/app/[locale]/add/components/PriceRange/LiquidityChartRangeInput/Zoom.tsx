@@ -1,4 +1,5 @@
 import { ScaleLinear, select, zoom, ZoomBehavior, zoomIdentity, ZoomTransform } from "d3";
+import { useTranslations } from "next-intl";
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 
 import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
@@ -39,6 +40,7 @@ export default function Zoom({
   showResetButton: boolean;
   zoomLevels: ZoomLevels;
 }) {
+  const t = useTranslations("Liquidity");
   const zoomBehavior = useRef<ZoomBehavior<Element, unknown>>();
 
   const [zoomIn, zoomOut, zoomInitial, zoomReset] = useMemo(
@@ -114,7 +116,7 @@ export default function Zoom({
         }}
         className="cursor-pointer rounded-2 hover:bg-green-bg bg-transparent duration-200 text-primary-text px-3 py-1"
       >
-        Refresh
+        {t("refresh")}
       </div>
     </div>
   );

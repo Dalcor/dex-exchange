@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 
 import { FACTORY_ABI } from "@/config/abis/factory";
 import { config } from "@/config/wagmi/config";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { ADDRESS_ZERO, FeeAmount } from "@/sdk_hybrid/constants";
 import { usePoolAddresses } from "@/stores/usePoolsStore";
 
@@ -115,7 +116,7 @@ export const useComputePoolAddressDex = ({
   tokenB?: Token;
   tier?: FeeAmount;
 }) => {
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
   const { addresses, addPoolAddress } = usePoolAddresses();
 
   const key = useMemo(() => {
@@ -175,7 +176,7 @@ export const useComputePoolAddressesDex = (
     tier?: FeeAmount;
   }[],
 ) => {
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
   const { addresses, addPoolAddress } = usePoolAddresses();
 
   const keys = useMemo(() => {

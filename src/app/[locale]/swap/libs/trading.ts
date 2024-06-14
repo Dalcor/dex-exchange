@@ -6,6 +6,7 @@ import { useAccount, useSimulateContract } from "wagmi";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { QUOTER_ABI } from "@/config/abis/quoter";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { PoolState, usePool } from "@/hooks/usePools";
 import { QUOTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
@@ -21,18 +22,22 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
   const { tokenA, tokenB, tokenAAddress, tokenBAddress, setTokenA, setTokenB } =
     useSwapTokensStore();
   // const { typedValue, independentField, dependentField, setTypedValue } = useSwapAmountsStore();
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
   const { typedValue } = useSwapAmountsStore();
   const [poolState, pool] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
 
+  console.log("POOL");
+  console.log(pool);
   const swapRoute = useMemo(() => {
     if (!pool || !tokenA || !tokenB) {
+      console.log("FU");
       return null;
     }
 
     const [_tokenA, _tokenB] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA];
 
     if (pool.token0.address0 !== _tokenA.address0 || pool.token1.address0 !== _tokenB.address0) {
+      console.log("DU");
       return null;
     }
 
@@ -40,6 +45,7 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
   }, [pool, tokenA, tokenB]);
 
   const amountOutData = useSimulateContract({
+    chainId,
     address: QUOTER_ADDRESS[chainId as DexChainId],
     abi: QUOTER_ABI,
     functionName: "quoteExactInputSingle",

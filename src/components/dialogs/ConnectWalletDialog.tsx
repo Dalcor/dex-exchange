@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { isMobile } from "react-device-detect";
+// import { isMobile } from "react-device-detect";
 import { useSwitchChain } from "wagmi";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -61,10 +61,10 @@ export default function ConnectWalletDialog({ isOpen, setIsOpen }: Props) {
           </div>
           <StepLabel step="2" label={t("choose_wallet")} />
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-3">
-            {!isMobile && <MetamaskCard />}
+            <MetamaskCard />
             <WalletConnectCard />
             <CoinbaseCard />
-            {!isMobile && <TrustWalletCard />}
+            <TrustWalletCard />
             <KeystoreCard />
           </div>
         </div>

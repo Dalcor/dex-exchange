@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContracts } from "wagmi";
 
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Pool } from "@/sdk_hybrid/entities/pool";
@@ -20,7 +21,7 @@ export enum PoolState {
 export type PoolKeys = [Currency | undefined, Currency | undefined, FeeAmount | undefined][];
 
 export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][] {
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
   const { pools, addPool } = usePoolsStore();
 
   const poolTokens: ([Token, Token, FeeAmount] | undefined)[] = useMemo(() => {

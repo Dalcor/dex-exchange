@@ -16,6 +16,20 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
     | { warning?: string; error?: never }
   );
 
+export function InputLabel({ label, tooltipText, ...props }: Omit<Props, "helperText">) {
+  return (
+    <p
+      className={clsx(
+        "text-16 font-bold mb-1 flex items-center gap-1",
+        props.disabled && "opacity-50",
+      )}
+    >
+      {label}
+      {tooltipText && <Tooltip iconSize={24} text={tooltipText} />}
+    </p>
+  );
+}
+
 export default function TextField({
   label,
   helperText,
@@ -26,15 +40,7 @@ export default function TextField({
 }: Props) {
   return (
     <div>
-      <p
-        className={clsx(
-          "text-16 font-bold mb-1 flex items-center gap-1",
-          props.disabled && "opacity-50",
-        )}
-      >
-        {label}
-        {tooltipText && <Tooltip iconSize={24} text={tooltipText} />}
-      </p>
+      <InputLabel label={label} tooltipText={tooltipText} />
       <Input isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
       <div className="text-12 mt-0.5 h-4">
         {typeof helperText !== "undefined" && !error && (

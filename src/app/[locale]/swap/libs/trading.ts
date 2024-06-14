@@ -22,22 +22,19 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
   const { tokenA, tokenB, tokenAAddress, tokenBAddress, setTokenA, setTokenB } =
     useSwapTokensStore();
   // const { typedValue, independentField, dependentField, setTypedValue } = useSwapAmountsStore();
+  const { address } = useAccount();
   const chainId = useCurrentChainId();
   const { typedValue } = useSwapAmountsStore();
   const [poolState, pool] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
 
-  console.log("POOL");
-  console.log(pool);
   const swapRoute = useMemo(() => {
     if (!pool || !tokenA || !tokenB) {
-      console.log("FU");
       return null;
     }
 
     const [_tokenA, _tokenB] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA];
 
     if (pool.token0.address0 !== _tokenA.address0 || pool.token1.address0 !== _tokenB.address0) {
-      console.log("DU");
       return null;
     }
 
@@ -48,6 +45,7 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
     chainId,
     address: QUOTER_ADDRESS[chainId as DexChainId],
     abi: QUOTER_ABI,
+    account: address || QUOTER_ADDRESS[chainId as DexChainId],
     functionName: "quoteExactInputSingle",
     args: [
       tokenA?.address0 as Address,

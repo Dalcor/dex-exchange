@@ -29,7 +29,7 @@ const iconsMap: Record<BadgeTrustRate, ReactNode> = {
 };
 
 const textMap: Record<BadgeTrustRate, ReactNode> = {
-  high: "Hight trust",
+  high: "High trust",
   medium: "Medium trust",
   low: "Low trust",
 };

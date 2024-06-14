@@ -41,7 +41,7 @@ export default function LocaleSwitcher({ isMobile = false }: { isMobile?: boolea
   const [isOpened, setIsOpened] = useState(false);
 
   const redirectedPathName = (locale: string) => {
-    router.replace(pathName, { locale });
+    router.replace(pathName, { locale: locale as any });
   };
 
   return (

@@ -67,12 +67,12 @@ function SuccessFeedback() {
       <h3 className="text-secondary-text text-center">
         {t.rich("thank_you_for_the_feedback", {
           telegram: (chunks) => (
-            <a href="#" className="text-green hover:underline">
+            <a href="https://t.me/Dex223_defi" className="text-green hover:underline">
               {chunks}
             </a>
           ),
           discord: (chunks) => (
-            <a href="#" className="text-green hover:underline">
+            <a href="https://discord.gg/t5bdeGC5Jk" className="text-green hover:underline">
               {chunks}
             </a>
           ),
@@ -119,7 +119,10 @@ export default function FeedbackDialog() {
             <p className="text-secondary-text text-16 mb-5">
               {t.rich("feel_free_to_share", {
                 github: (chunks) => (
-                  <a href="#" className="text-green hover:underline">
+                  <a
+                    href="https://github.com/EthereumCommonwealth/Dex223-UI/issues"
+                    className="text-green hover:underline"
+                  >
                     {chunks}
                   </a>
                 ),

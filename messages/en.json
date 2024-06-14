@@ -23,7 +23,7 @@
     "useful_front_page": "ERC223 front page",
     "useful_page_source_codes": "Page source codes",
     "partners": "Partners",
-    "partners_eos_support": "EOS support"
+    "partners_eos_support": "EOS Support"
   },
   "RecentTransactions": {
     "transactions": "Transactions",
@@ -211,7 +211,9 @@
     "trading_fee_tooltip": "Trading fee is charged from each operation and is distributed among D223 token holders.",
     "route_tooltip": "If your transaction will have high impact on the market you may get better prices through arbitrage instead of selling/buying the whole amount of the asset at one Pool. Route shows other token pairs that will be affected during your trade (if any).",
     "maximum_slippage_tooltip": "The actual swap price may be different than the one specified at the moment of sending the transaction. Slippage determines how much of the price change can be tolerated. If the actual price differs from the expected price by more than the maximum slippage, the transaction will be automatically reverted and your tokens will not be swapped.",
-    "gas_limit_tooltip": "Gas Limit determines the amount of operations that your transaction can invoke. The more complex actions are triggered by your transaction in the smart-contract the higher Gas Limit may be required. Higher Gas Limit will result in higher network fee that needs to be paid."
+    "gas_limit_tooltip": "Gas Limit determines the amount of operations that your transaction can invoke. The more complex actions are triggered by your transaction in the smart-contract the higher Gas Limit may be required. Higher Gas Limit will result in higher network fee that needs to be paid.",
+    "deadline_tooltip": "Transaction deadline determines a set timeframe during which your queued transaction is still valid. The transaction can remain in pending for quite long time due to low specified GAS values or high network load. If your transaction will be confirmed after the specified deadling then it will automatically revert (you will pay for GAS but no swap will occur).",
+    "slippage_tooltip": "The actual swap price may be different than the one specified at the moment of sending the transaction. Slippage determines how much of the price change can be tolerated. 5% slippage means that if the price in the pool will change more than 5% from the expected, your transaction will automatically fail (you will pay for GAS but no swap will occur)."
   },
   "Liquidity": {
     "add_liquidity_title": "Add Liquidity",

@@ -154,7 +154,7 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
         <div className="flex justify-between items-center mb-1">
           <div className="flex gap-1 items-center">
             <h3 className="font-bold text-16">{t("maximum_slippage")}</h3>
-            <Tooltip text="Tooltip" />
+            <Tooltip text={t("slippage_tooltip")} />
           </div>
           <span className="text-secondary-text">{getTitle(slippageType, customSlippage, t)}</span>
         </div>
@@ -191,7 +191,7 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
           <div className="flex justify-between items-center">
             <p className={clsx("text-16 font-bold mb-1 flex items-center gap-1")}>
               {t("transaction_deadline")}
-              <Tooltip iconSize={24} text={"Tooltip text"} />
+              <Tooltip iconSize={24} text={t("deadline_tooltip")} />
             </p>
             {customDeadline !== 20 && (
               <TextButton className="pr-0" endIcon="reset" onClick={() => setCustomDeadline(20)}>

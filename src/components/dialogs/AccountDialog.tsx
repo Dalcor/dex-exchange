@@ -106,14 +106,14 @@ function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: a
         </div>
 
         {activeTab == 0 && (
-          <div className="flex flex-col items-center justify-center h-[408px] overflow-scroll gap-2">
+          <div className="flex flex-col items-center justify-center h-[408px] overflow-auto gap-2">
             <EmptyStateIcon iconName="assets" />
             <span className="text-secondary-text">{t("assets_will_be_displayed_here")}</span>
           </div>
         )}
 
         {activeTab == 1 && (
-          <div className="h-[408px] overflow-scroll">
+          <div className="h-[408px] overflow-auto">
             {_transactions.length ? (
               <>
                 <div className="flex justify-between items-center mb-3">

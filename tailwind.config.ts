@@ -116,7 +116,7 @@ const config: Config = {
       "secondary-text": "#BCC3C2", // changed
       "tertiary-text": "#798180", // changed
 
-      "primary-border": "#5A5A5A", // changed
+      "primary-border": "#575A58", // changed
       "secondary-border": "#383C3A", // changed
       "tertiary-border": "#2A2D2C", // changed
       "hover-border": "#7E8281", // changed
@@ -167,7 +167,7 @@ const config: Config = {
   plugins: [
     require("@tailwindcss/container-queries"),
     require("@savvywombat/tailwindcss-grid-areas"),
-    require("tailwind-scrollbar"),
+    require("tailwind-scrollbar")({ preferredStrategy: "pseudoelements", nocompatible: true }),
   ],
 };
 export default config;

@@ -101,7 +101,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               <ButtonTooltip text={t("import_list_tooltip")} />
             </div>
 
-            <div className="flex flex-col mt-3 overflow-scroll flex-grow">
+            <div className="flex flex-col mt-3 overflow-auto flex-grow">
               {lists
                 ?.filter((l) => Boolean(l.list.tokens.length))
                 ?.map((tokenList) => {
@@ -163,7 +163,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               </div>
             </div>
 
-            <div className="flex flex-col overflow-scroll flex-grow">
+            <div className="flex flex-col overflow-auto flex-grow">
               <div style={{ flex: "1 1 auto" }} className="pb-[1px]">
                 {Boolean(filteredTokens.length) && (
                   <AutoSizer>

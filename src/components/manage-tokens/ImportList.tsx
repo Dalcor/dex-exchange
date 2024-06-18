@@ -79,7 +79,9 @@ export default function ImportList({ setContent, handleClose }: Props) {
             //TODO: Check that all tokens in list from same chain
 
             const listChainId = parsedJson.tokens[0].chainId;
+            console.log(listChainId);
 
+            console.log();
             if (listChainId) {
               setTokenListFileContent({
                 enabled: true,

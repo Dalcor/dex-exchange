@@ -119,7 +119,7 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
                     </button>
                   </div>
                 </div>
-                <div className="h-[420px] overflow-scroll">
+                <div className="h-[420px] overflow-auto">
                   {tokens.map((token) => (
                     <TokenRow
                       setTokenForPortfolio={setTokenForPortfolio}

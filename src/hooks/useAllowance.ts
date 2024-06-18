@@ -124,7 +124,7 @@ export default function useAllowance({
       });
 
       console.log(params);
-      const hash = await walletClient.writeContract({ ...request, account: undefined });
+      const hash = await walletClient.writeContract({ ...request });
 
       const transaction = await publicClient.getTransaction({
         hash,

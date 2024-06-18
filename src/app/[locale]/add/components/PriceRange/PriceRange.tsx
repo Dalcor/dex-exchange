@@ -9,7 +9,6 @@ import { Price } from "@/sdk_hybrid/entities/fractions/price";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 import { useRangeHopCallbacks } from "../../hooks/useRangeHopCallbacks";
-import { useTokensStandards } from "../../stores/useAddLiquidityAmountsStore";
 import { useAddLiquidityTokensStore } from "../../stores/useAddLiquidityTokensStore";
 import { useLiquidityPriceRangeStore } from "../../stores/useLiquidityPriceRangeStore";
 import { useLiquidityTierStore } from "../../stores/useLiquidityTierStore";
@@ -77,7 +76,11 @@ export const PriceRange = ({
     setTicks,
   } = useLiquidityPriceRangeStore();
   const { tier } = useLiquidityTierStore();
-  const [poolState, pool] = usePool(tokenA, tokenB, tier);
+  const [poolState, pool] = usePool({
+    currencyA: tokenA,
+    currencyB: tokenB,
+    tier,
+  });
 
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks;
 

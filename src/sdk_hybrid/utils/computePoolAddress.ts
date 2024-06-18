@@ -94,7 +94,7 @@ const computePoolAddressDex = async ({
 };
 
 // TODO: sort TokenA TokenB
-const getPoolAddressKey = ({
+export const getPoolAddressKey = ({
   addressTokenA,
   addressTokenB,
   tier,

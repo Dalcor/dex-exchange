@@ -125,7 +125,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
               }}
               placeholder={t("keystore_password")}
               error={error || undefined}
-              helperText={t("helper_text")}
+              helperText={""}
             />
             <div className="mt-6">
               <Button

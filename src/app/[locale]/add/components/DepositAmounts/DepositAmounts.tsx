@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 import { formatEther, formatGwei, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -9,7 +10,9 @@ import {
   useLiquidityAmountsStore,
 } from "@/app/[locale]/add/stores/useAddLiquidityAmountsStore";
 import Tooltip from "@/components/atoms/Tooltip";
+import { networks } from "@/config/networks";
 import { formatFloat } from "@/functions/formatFloat";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -46,18 +49,22 @@ export const DepositAmounts = ({
     setTokenAStandardRatio,
     setTokenBStandardRatio,
   } = useLiquidityAmountsStore();
-  const { chain } = useAccount();
+  const chainId = useCurrentChainId();
 
   const { gasPrice, approveTotalGasLimit, approveTransactionsCount } = useLiquidityApprove();
   const estimatedMintGas = useEstimatedGasStoreById(EstimatedGasId.mint);
 
   // get formatted amounts
-  const formattedAmounts = {
-    [independentField]: typedValue,
-    [dependentField]: parsedAmounts[dependentField]?.toSignificant() ?? "",
-  };
+  const formattedAmounts = useMemo(() => {
+    return {
+      [independentField]: typedValue,
+      [dependentField]: parsedAmounts[dependentField]?.toSignificant() ?? "",
+    };
+  }, [dependentField, independentField, parsedAmounts, typedValue]);
 
-  const totalGasLimit = approveTotalGasLimit + estimatedMintGas;
+  const totalGasLimit = useMemo(() => {
+    return approveTotalGasLimit + estimatedMintGas;
+  }, [approveTotalGasLimit, estimatedMintGas]);
 
   return (
     <div className={clsx("flex flex-col gap-4 md:gap-5", isFormDisabled && "opacity-20")}>
@@ -82,7 +89,7 @@ export const DepositAmounts = ({
           </div>
           <div className="flex flex-col">
             <div className="text-secondary-text text-14">{t("total_fee")}</div>
-            <div>{`${gasPrice ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</div>
+            <div>{`${gasPrice ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${networks.find((n) => n.chainId === chainId)?.symbol}`}</div>
           </div>
           <div className="flex flex-col">
             <div className="text-secondary-text text-14">{t("transactions")}</div>

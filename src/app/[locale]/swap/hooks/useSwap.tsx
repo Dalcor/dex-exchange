@@ -278,6 +278,7 @@ export default function useSwap() {
       const result = await approveA();
 
       if (!result?.success) {
+        setSwapStatus(SwapStatus.INITIAL);
         return;
       }
     }

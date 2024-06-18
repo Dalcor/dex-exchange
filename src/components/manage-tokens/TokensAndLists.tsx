@@ -1,11 +1,13 @@
 import { useTranslations } from "next-intl";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { LegacyRef, ReactNode, Ref, useEffect, useMemo, useState } from "react";
 import { AutoSizer, List } from "react-virtualized";
 
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Input from "@/components/atoms/Input";
+import Svg from "@/components/atoms/Svg";
+import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import TabButton from "@/components/buttons/TabButton";
 import ManageTokenItem from "@/components/manage-tokens/ManageTokenItem";
@@ -20,6 +22,26 @@ interface Props {
   setContent: (content: ManageTokensDialogContent) => void;
   handleClose: () => void;
   setTokenForPortfolio: (token: Token) => void;
+}
+
+function ButtonTooltip({ text }: { text: string }) {
+  return (
+    <Tooltip
+      customOffset={18}
+      renderTrigger={(ref, refProps) => {
+        return (
+          <div
+            ref={ref.setReference}
+            {...refProps}
+            className="w-12 h-full rounded-r-2 border-r border-y border-green flex items-center justify-center hover:bg-green-bg duration-200 cursor-pointer"
+          >
+            <Svg iconName="info" />
+          </div>
+        );
+      }}
+      text={text}
+    />
+  );
 }
 export default function TokensAndLists({ setContent, handleClose, setTokenForPortfolio }: Props) {
   const t = useTranslations("ManageTokens");
@@ -66,14 +88,18 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               />
             </div>
 
-            <Button
-              endIcon="import-list"
-              variant={ButtonVariant.OUTLINED}
-              onClick={() => setContent("import-list")}
-              className="mt-3"
-            >
-              {t("import_list")}
-            </Button>
+            <div className="w-full flex items-center mt-3">
+              <Button
+                endIcon="import-list"
+                variant={ButtonVariant.OUTLINED}
+                onClick={() => setContent("import-list")}
+                className="rounded-r-0 xl:rounded-r-0 flex-grow"
+              >
+                {t("import_list")}
+              </Button>
+
+              <ButtonTooltip text={t("import_list_tooltip")} />
+            </div>
 
             <div className="flex flex-col mt-3 overflow-scroll flex-grow">
               {lists
@@ -105,14 +131,18 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               />
             </div>
 
-            <Button
-              endIcon="import-token"
-              variant={ButtonVariant.OUTLINED}
-              onClick={() => setContent("import-token")}
-              className="mt-3"
-            >
-              {t("import_token")}
-            </Button>
+            <div className="w-full flex items-center mt-3">
+              <Button
+                endIcon="import-token"
+                variant={ButtonVariant.OUTLINED}
+                onClick={() => setContent("import-token")}
+                className="rounded-r-0 xl:rounded-r-0 flex-grow"
+              >
+                {t("import_token")}
+              </Button>
+
+              <ButtonTooltip text={t("import_token_tooltip")} />
+            </div>
 
             <div className="flex justify-between items-center my-3">
               <div>

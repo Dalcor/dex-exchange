@@ -4,12 +4,11 @@ import { keccak256 } from "@ethersproject/solidity";
 import { readContract } from "@wagmi/core";
 import { useEffect, useMemo } from "react";
 import { Address } from "viem";
-import { useAccount } from "wagmi";
 
 import { FACTORY_ABI } from "@/config/abis/factory";
 import { config } from "@/config/wagmi/config";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
-import { ADDRESS_ZERO, FeeAmount } from "@/sdk_hybrid/constants";
+import { FeeAmount } from "@/sdk_hybrid/constants";
 import { usePoolAddresses } from "@/stores/usePoolsStore";
 
 import { FACTORY_ADDRESS, POOL_INIT_CODE_HASH } from "../addresses";

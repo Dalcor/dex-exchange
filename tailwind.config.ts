@@ -167,6 +167,7 @@ const config: Config = {
   plugins: [
     require("@tailwindcss/container-queries"),
     require("@savvywombat/tailwindcss-grid-areas"),
+    require("tailwind-scrollbar"),
   ],
 };
 export default config;

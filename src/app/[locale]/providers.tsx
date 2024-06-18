@@ -1,12 +1,11 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Image from "next/image";
 import { AbstractIntlMessages, NextIntlClientProvider } from "next-intl";
 import { ReactNode, useEffect, useState } from "react";
 import { type State, WagmiProvider } from "wagmi";
 
-import Preloader from "@/components/atoms/Preloader";
+import Logo from "@/components/atoms/Logo";
 import { config } from "@/config/wagmi/config";
 import { clsxMerge } from "@/functions/clsxMerge";
 import { Locale } from "@/navigation";
@@ -55,9 +54,9 @@ export function Providers({ children, initialState, messages, locale }: Props) {
             loaded ? "opacity-0 pointer-events-none" : "opacity-100",
           )}
         >
-          <div className="absolute left-1/2 top-1/2 -translate-x-[calc(50%-9px)] md:-translate-x-[calc(50%-24px)] -translate-y-1/2 z-10 animate-appear">
+          <div className="absolute left-1/2 top-1/2 -translate-x-[calc(50%-9px)] md:-translate-x-[calc(50%-24px)] -translate-y-1/2 z-10">
             <div className="w-[90px] h-[102px] md:w-[172px] md:h-[195px]">
-              <Image src="/logo-short.svg" alt="" fill={true} />
+              <Logo />
             </div>
           </div>
           <div className="main-loader" />

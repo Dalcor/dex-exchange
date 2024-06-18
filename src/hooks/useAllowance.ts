@@ -9,6 +9,7 @@ import {
 } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
+import { sepolia } from "@/config/chains/sepolia";
 import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -119,7 +120,9 @@ export default function useAllowance({
         ...params,
         gas: estimatedGas + BigInt(30000),
       });
-      const hash = await walletClient.writeContract(request);
+
+      console.log(params);
+      const hash = await walletClient.writeContract({ ...request, account: undefined });
 
       const transaction = await publicClient.getTransaction({
         hash,
@@ -134,7 +137,7 @@ export default function useAllowance({
           chainId,
           gas: {
             model: GasFeeModel.EIP1559,
-            gas: (estimatedGas + BigInt(30000)).toString(),
+            gas: BigInt(30000).toString(),
             maxFeePerGas: undefined,
             maxPriorityFeePerGas: undefined,
           },

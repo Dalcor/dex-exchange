@@ -139,7 +139,9 @@
     "no_tokens_here": "There are no tokens here",
     "imported_successfully": "Token imported successfully",
     "already_imported": "Token is already imported",
-    "import_symbol": "Import {symbol}"
+    "import_symbol": "Import {symbol}",
+    "import_list_tooltip": "You can import a token list as a JSON file or with URL here.",
+    "import_token_tooltip": "You can import a token by inputting its contract address. The token will be added to your “custom tokens list” in Dex223."
   },
   "TrustRating": {},
   "GasSettings": {

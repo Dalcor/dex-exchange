@@ -1,9 +1,4 @@
-import {
-  ProviderRpcError,
-  RequestArguments,
-} from "@coinbase/wallet-sdk/dist/core/provider/interface";
 import { ConnectorNotConnectedError, createConnector } from "@wagmi/core";
-import { EventEmitter } from "eventemitter3";
 import {
   Address,
   createWalletClient,
@@ -11,8 +6,6 @@ import {
   fromHex,
   getAddress,
   http,
-  ProviderConnectInfo,
-  ProviderMessage,
   WalletClient,
   webSocket,
 } from "viem";
@@ -25,8 +18,6 @@ export type KeystoreConnectorParameters = {
 };
 
 keystore.type = "keystore" as const;
-
-// let _pk = undefined;
 
 export function keystore({ pk }: KeystoreConnectorParameters) {
   let connected = false;

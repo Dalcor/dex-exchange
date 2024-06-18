@@ -95,7 +95,7 @@ export function keystore({ pk }: KeystoreConnectorParameters) {
             webSocket("wss://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
             http("https://sepolia.infura.io/v3/6689c099b8d542589b1842e30dbc2027"),
             http("https://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
-            // http("https://rpc.ankr.com/eth_sepolia"),
+            http("https://rpc.ankr.com/eth_sepolia"),
             http(),
           ]),
         });
@@ -115,7 +115,7 @@ export function keystore({ pk }: KeystoreConnectorParameters) {
             webSocket("wss://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
             http("https://sepolia.infura.io/v3/6689c099b8d542589b1842e30dbc2027"),
             http("https://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
-            // http("https://rpc.ankr.com/eth_sepolia"),
+            http("https://rpc.ankr.com/eth_sepolia"),
             http(),
           ]),
         });

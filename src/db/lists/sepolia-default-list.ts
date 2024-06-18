@@ -4,7 +4,7 @@ export const sepoliaDefaultList = {
   version: {
     major: 1,
     minor: 0,
-    patch: 5,
+    patch: 6,
   },
   logoURI: "/token-list-placeholder.svg",
   name: "DEX223 Sepolia Default",
@@ -31,7 +31,7 @@ export const sepoliaDefaultList = {
       11155111,
       "0x18B32000CEaAe9BE1cec1cb6845EF7bba1c9DC02",
       "0x77eBa0266AcCf29e80A753645FC964975ad25C75",
-      0,
+      10,
       "TOT3",
       "Total Test 3",
       "/tokens/placeholder.svg",

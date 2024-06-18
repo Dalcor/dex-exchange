@@ -4,15 +4,17 @@ import { create } from "zustand";
 import { Pool } from "@/sdk_hybrid/entities/pool";
 
 interface PoolsStore {
-  pools: Pool[];
-  setPools: (pools: Pool[]) => void;
-  addPool: (pool: Pool) => void;
+  pools: {
+    [key: string]: Pool;
+  };
+  addPool: (key: string, pool: Pool) => void;
+  getPool: (key: string) => Pool | undefined;
 }
 
 export const usePoolsStore = create<PoolsStore>((set, get) => ({
-  pools: [],
-  setPools: (pools) => set({ pools }),
-  addPool: (pool) => set({ pools: [...get().pools, pool] }),
+  pools: {},
+  addPool: (key, pool) => set({ pools: { ...get().pools, [key]: pool } }),
+  getPool: (key) => get().pools[key],
 }));
 
 type PoolAddress = {

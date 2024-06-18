@@ -6,18 +6,14 @@ import { useAllV3TicksQuery } from "@/graphql/thegraph/__generated__/types-and-h
 import { TickData, Ticks } from "@/graphql/thegraph/AllV3TicksQuery";
 import { chainToApolloClient } from "@/graphql/thegraph/apollo";
 import { PoolState, usePool } from "@/hooks/usePools";
-import { FACTORY_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount, TICK_SPACINGS } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Price } from "@/sdk_hybrid/entities/fractions/price";
-import { Pool } from "@/sdk_hybrid/entities/pool";
-import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Token } from "@/sdk_hybrid/entities/token";
 import { useComputePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 import { tickToPrice } from "@/sdk_hybrid/utils/priceTickConversions";
 
-import { useTokensStandards } from "../../../stores/useAddLiquidityAmountsStore";
-import MockData from "./mockData.json";
 import { ChartEntry } from "./types";
 
 // Computes the numSurroundingTicks above or below the active tick.
@@ -170,7 +166,7 @@ export function usePoolActiveLiquidity(
   const { chainId: accountChainId } = useAccount();
   const defaultChainId = accountChainId ?? DexChainId.SEPOLIA;
 
-  const pool = usePool(currencyA?.wrapped, currencyB?.wrapped, feeAmount);
+  const pool = usePool({ currencyA, currencyB, tier: feeAmount });
 
   const liquidity = pool[1]?.liquidity;
   const sqrtPriceX96 = pool[1]?.sqrtRatioX96;

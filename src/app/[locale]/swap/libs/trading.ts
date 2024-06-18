@@ -25,7 +25,11 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
   const { address } = useAccount();
   const chainId = useCurrentChainId();
   const { typedValue } = useSwapAmountsStore();
-  const [poolState, pool] = usePool(tokenA, tokenB, FeeAmount.MEDIUM);
+  const [poolState, pool] = usePool({
+    currencyA: tokenA,
+    currencyB: tokenB,
+    tier: FeeAmount.MEDIUM,
+  });
 
   const swapRoute = useMemo(() => {
     if (!pool || !tokenA || !tokenB) {

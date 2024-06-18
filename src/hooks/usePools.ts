@@ -1,15 +1,20 @@
-import JSBI from "jsbi";
-import { useEffect, useMemo, useState } from "react";
-import { useAccount, useReadContracts } from "wagmi";
+import { useMemo } from "react";
+import { useReadContracts } from "wagmi";
 
 import { POOL_STATE_ABI } from "@/config/abis/poolState";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Pool } from "@/sdk_hybrid/entities/pool";
-import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
-import { useComputePoolAddressesDex } from "@/sdk_hybrid/utils/computePoolAddress";
+import { Token } from "@/sdk_hybrid/entities/token";
+import {
+  getPoolAddressKey,
+  useComputePoolAddressesDex,
+} from "@/sdk_hybrid/utils/computePoolAddress";
 import { usePoolsStore } from "@/stores/usePoolsStore";
+
+import useDeepEffect from "./useDeepEffect";
+import useDeepMemo from "./useDeepMemo";
 
 export enum PoolState {
   LOADING,
@@ -18,28 +23,40 @@ export enum PoolState {
   INVALID,
 }
 
-export type PoolKeys = [Currency | undefined, Currency | undefined, FeeAmount | undefined][];
+export type PoolParams = {
+  currencyA: Currency | undefined;
+  currencyB: Currency | undefined;
+  tier: FeeAmount | undefined;
+};
 
-export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][] {
-  const chainId = useCurrentChainId();
+export type PoolsParams = PoolParams[];
+
+type UsePoolsResult = [PoolState, Pool | null][];
+
+// TODO: mb we need add additional logic to update pool data on liquidity data changes
+// TODO: mb we need to add loading state
+export const usePools = (poolsParams: PoolsParams): UsePoolsResult => {
   const { pools, addPool } = usePoolsStore();
+  const chainId = useCurrentChainId();
 
-  const poolTokens: ([Token, Token, FeeAmount] | undefined)[] = useMemo(() => {
-    if (!chainId) return [...Array(poolKeys.length)];
+  const poolTokens: ({ token0: Token; token1: Token; tier: FeeAmount } | undefined)[] =
+    useMemo(() => {
+      if (!chainId) return [...Array(poolsParams.length)];
 
-    return poolKeys.map(([currencyA, currencyB, feeAmount]) => {
-      if (currencyA && currencyB && feeAmount) {
+      return poolsParams.map(({ currencyA, currencyB, tier }) => {
+        if (!currencyA || !currencyB || !tier) {
+          return undefined;
+        }
         const tokenA = currencyA.wrapped;
         const tokenB = currencyB.wrapped;
         if (tokenA.equals(tokenB)) return undefined;
-
-        return tokenA.sortsBefore(tokenB)
-          ? [tokenA, tokenB, feeAmount]
-          : [tokenB, tokenA, feeAmount];
-      }
-      return undefined;
-    });
-  }, [chainId, poolKeys]);
+        return {
+          token0: tokenA.sortsBefore(tokenB) ? tokenA : tokenB,
+          token1: tokenA.sortsBefore(tokenB) ? tokenB : tokenA,
+          tier,
+        };
+      });
+    }, [chainId, poolsParams]);
 
   const poolAddressesParams = useMemo(() => {
     return poolTokens.map((poolToken) => {
@@ -49,10 +66,10 @@ export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][]
           tokenB: undefined,
           tier: undefined,
         };
-      const [tokenA, tokenB, tier] = poolToken;
+      const { token0, token1, tier } = poolToken;
       return {
-        tokenA,
-        tokenB,
+        tokenA: token0,
+        tokenB: token1,
         tier,
       };
     });
@@ -87,63 +104,47 @@ export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][]
     contracts: liquidityContracts,
   });
 
-  // Change useMemo to useEffect bc of WARNING addPool(poolToAdd) inside useMemo
-  const [result, setResult] = useState(
-    poolKeys.map(() => [PoolState.LOADING, null]) as [PoolState, Pool | null][],
-  );
-  useEffect(() => {
-    const updatedResult: [PoolState, Pool | null][] = poolKeys.map((_key, index) => {
-      const tokens = poolTokens[index];
-      if (!tokens) return [PoolState.INVALID, null];
-      const [token0, token1, fee] = tokens;
-
-      if (slot0Loading || liquidityLoading) return [PoolState.LOADING, null];
-
-      // TODO change to PoolState.INVALID
-      if (!slot0Data || slot0Data[index].error) return [PoolState.NOT_EXISTS, null];
-      if (!liquidityData || liquidityData[index].error) return [PoolState.NOT_EXISTS, null];
-
-      if (!slot0Data[index]) return [PoolState.NOT_EXISTS, null];
-      if (!liquidityData[index]) return [PoolState.NOT_EXISTS, null];
-
+  useDeepEffect(() => {
+    poolTokens.forEach((tokens, index) => {
+      if (!tokens || slot0Loading || liquidityLoading || !chainId) return;
+      if (!slot0Data || slot0Data[index].error) return;
+      if (!liquidityData || liquidityData[index].error) return;
+      if (!slot0Data[index]) return;
+      if (!liquidityData[index]) return;
       const [sqrtPriceX96, tick] = slot0Data[index].result as [bigint, number];
-      const liquidity = liquidityData[index].result as bigint;
-
       if (!sqrtPriceX96 || sqrtPriceX96 === BigInt(0)) return [PoolState.NOT_EXISTS, null];
 
+      const { token0, token1, tier } = tokens;
+
+      const key = getPoolAddressKey({
+        addressTokenA: token0.address0,
+        addressTokenB: token1.address0,
+        chainId,
+        tier,
+      });
+
+      const existedPool = pools[key];
+      if (existedPool) return;
+
+      const liquidity = liquidityData[index].result as bigint;
       try {
-        const pool = pools.find((pool) => {
-          return (
-            token0 === pool.token0 &&
-            token1 === pool.token1 &&
-            fee === pool.fee &&
-            JSBI.EQ(pool.sqrtRatioX96, sqrtPriceX96) &&
-            JSBI.EQ(pool.liquidity, liquidity) &&
-            pool.tickCurrent === tick
-          );
-        });
-        if (pool) {
-          return [PoolState.EXISTS, pool];
-        } else {
-          const poolToAdd = new Pool(
-            token0,
-            token1,
-            fee,
-            sqrtPriceX96.toString(),
-            liquidity.toString(),
-            tick,
-          );
-          addPool(poolToAdd);
-          return [PoolState.EXISTS, poolToAdd];
-        }
+        const newPool = new Pool(
+          token0,
+          token1,
+          tier,
+          sqrtPriceX96.toString(),
+          liquidity.toString(),
+          tick,
+        );
+        addPool(key, newPool);
+        return [PoolState.EXISTS, newPool];
       } catch (error) {
         console.error("Error when constructing the pool", error);
         return [PoolState.NOT_EXISTS, null];
       }
     });
-    setResult(updatedResult);
   }, [
-    poolKeys,
+    poolsParams,
     poolTokens,
     slot0Data,
     liquidityData,
@@ -151,20 +152,38 @@ export default function usePools(poolKeys: PoolKeys): [PoolState, Pool | null][]
     liquidityLoading,
     pools,
     addPool,
+    chainId,
   ]);
 
-  return result;
-}
+  //
+  const poolKeys = useDeepMemo(() => {
+    return poolTokens.map((poolToken) => {
+      if (!poolToken) return undefined;
+      const { tier, token0, token1 } = poolToken;
+      if (!token0 || !token1 || !tier || !chainId) return undefined;
+      const key = getPoolAddressKey({
+        addressTokenA: token0.address0,
+        addressTokenB: token1.address0,
+        chainId,
+        tier,
+      });
+      return key;
+    });
+  }, [poolsParams, chainId]);
 
-export function usePool(
-  currencyA: Currency | undefined,
-  currencyB: Currency | undefined,
-  feeAmount: FeeAmount | undefined,
-): [PoolState, Pool | null] {
-  const poolKeys: PoolKeys = useMemo(
-    () => [[currencyA, currencyB, feeAmount]],
-    [currencyA, currencyB, feeAmount],
-  );
+  return useDeepMemo(() => {
+    return poolKeys.map((key) => {
+      if (!key) return [PoolState.INVALID, null];
+      const pool = pools[key];
+      if (!pool) {
+        return [PoolState.NOT_EXISTS, null];
+      }
+      return [PoolState.EXISTS, pool];
+    });
+  }, [pools, poolKeys]);
+};
 
-  return usePools(poolKeys)[0];
+export function usePool(poolParamas: PoolParams): [PoolState, Pool | null] {
+  const poolsParams = useDeepMemo(() => [poolParamas], [poolParamas]);
+  return usePools(poolsParams)[0];
 }

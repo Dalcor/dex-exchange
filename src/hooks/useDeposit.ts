@@ -21,6 +21,7 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 
 import { AllowanceStatus } from "./useAllowance";
+import useDeepEffect from "./useDeepEffect";
 
 export default function useDeposit({
   token,
@@ -157,7 +158,7 @@ export default function useDeposit({
   ]);
 
   const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
-  useEffect(() => {
+  useDeepEffect(() => {
     IIFE(async () => {
       if (
         !amountToCheck ||

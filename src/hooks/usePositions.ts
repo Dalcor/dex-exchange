@@ -14,7 +14,6 @@ import {
 } from "wagmi";
 
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
-import { usePool } from "@/hooks/usePools";
 import { useTokens } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
@@ -34,6 +33,7 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 
 import { AllowanceStatus } from "./useAllowance";
+import { usePool } from "./usePools";
 
 export type PositionInfo = {
   nonce: bigint;
@@ -199,7 +199,11 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
     if (token && tokenStandard) return { token, tokenStandard };
   }, [positionDetails?.token1, tokens]);
 
-  const pool = usePool(tokenA?.token, tokenB?.token, positionDetails?.tier);
+  const pool = usePool({
+    currencyA: tokenA?.token,
+    currencyB: tokenB?.token,
+    tier: positionDetails?.tier,
+  });
 
   return useMemo(() => {
     if (pool[1] && positionDetails) {

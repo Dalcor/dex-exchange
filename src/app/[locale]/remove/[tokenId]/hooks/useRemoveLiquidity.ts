@@ -7,6 +7,7 @@ import { ERC20_ABI } from "@/config/abis/erc20";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { AllowanceStatus } from "@/hooks/useAllowance";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
+import addToast from "@/other/toast";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
@@ -102,7 +103,7 @@ export default function useRemoveLiquidity({
           gas: estimatedGas + BigInt(30000),
         });
 
-        const hash = await walletClient.writeContract(request);
+        const hash = await walletClient.writeContract({ ...request, account: undefined });
 
         const transaction = await publicClient.getTransaction({
           hash,
@@ -157,6 +158,7 @@ export default function useRemoveLiquidity({
         }
       } catch (e) {
         console.log(e);
+        addToast("Unexpected error, please, contact support", "error");
         setStatus(AllowanceStatus.INITIAL);
       }
     },

@@ -1,7 +1,25 @@
+import _Big from "big.js";
+import _Decimal from "decimal.js-light";
 import JSBI from "jsbi";
 import invariant from "tiny-invariant";
+import toFormat from "toformat";
 
 import { BigintIsh, Rounding } from "@/sdk_hybrid/constants";
+
+const Decimal = toFormat(_Decimal);
+const Big = toFormat(_Big);
+
+const toSignificantRounding = {
+  [Rounding.ROUND_DOWN]: Decimal.ROUND_DOWN,
+  [Rounding.ROUND_HALF_UP]: Decimal.ROUND_HALF_UP,
+  [Rounding.ROUND_UP]: Decimal.ROUND_UP,
+};
+
+const toFixedRounding = {
+  [Rounding.ROUND_DOWN]: 0,
+  [Rounding.ROUND_HALF_UP]: 1,
+  [Rounding.ROUND_UP]: 3,
+};
 
 export class Fraction {
   public readonly numerator: JSBI;
@@ -114,25 +132,11 @@ export class Fraction {
     invariant(Number.isInteger(significantDigits), `${significantDigits} is not an integer.`);
     invariant(significantDigits > 0, `${significantDigits} is not positive.`);
 
-    const quotient = +this.numerator.toString() / +this.denominator.toString();
-    const factor = 10 ** (significantDigits - Math.floor(Math.log10(quotient)) - 1);
-    let roundedQuotient;
-
-    switch (rounding) {
-      case Rounding.ROUND_DOWN:
-        roundedQuotient = Math.floor(quotient * factor) / factor;
-        break;
-      case Rounding.ROUND_HALF_UP:
-        roundedQuotient = Math.round(quotient * factor) / factor;
-        break;
-      case Rounding.ROUND_UP:
-        roundedQuotient = Math.ceil(quotient * factor) / factor;
-        break;
-      default:
-        roundedQuotient = Math.round(quotient * factor) / factor;
-    }
-
-    return roundedQuotient.toLocaleString("en-US", format);
+    Decimal.set({ precision: significantDigits + 1, rounding: toSignificantRounding[rounding] });
+    const quotient = new Decimal(this.numerator.toString())
+      .div(this.denominator.toString())
+      .toSignificantDigits(significantDigits);
+    return quotient.toFormat(quotient.decimalPlaces(), format);
   }
 
   public toFixed(
@@ -143,25 +147,11 @@ export class Fraction {
     invariant(Number.isInteger(decimalPlaces), `${decimalPlaces} is not an integer.`);
     invariant(decimalPlaces >= 0, `${decimalPlaces} is negative.`);
 
-    const quotient = +this.numerator.toString() / +this.denominator.toString();
-    const factor = 10 ** decimalPlaces;
-    let roundedQuotient;
-
-    switch (rounding) {
-      case Rounding.ROUND_DOWN:
-        roundedQuotient = Math.floor(quotient * factor) / factor;
-        break;
-      case Rounding.ROUND_HALF_UP:
-        roundedQuotient = Math.round(quotient * factor) / factor;
-        break;
-      case Rounding.ROUND_UP:
-        roundedQuotient = Math.ceil(quotient * factor) / factor;
-        break;
-      default:
-        roundedQuotient = Math.round(quotient * factor) / factor;
-    }
-
-    return roundedQuotient.toLocaleString("en-US", format);
+    Big.DP = decimalPlaces;
+    Big.RM = toFixedRounding[rounding];
+    return new Big(this.numerator.toString())
+      .div(this.denominator.toString())
+      .toFormat(decimalPlaces, format);
   }
 
   /**

@@ -1,10 +1,26 @@
 import { fallback, http, webSocket } from "viem";
 import { bscTestnet } from "viem/chains";
-import { cookieStorage, createConfig, createStorage } from "wagmi";
+import { createConfig, createStorage, parseCookie } from "wagmi";
 import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
 
 // import { callisto } from "@/config/chains/callisto";
 import { sepolia } from "@/config/chains/sepolia";
+
+const cookieStorage = {
+  getItem(key: string) {
+    if (typeof window === "undefined") return null;
+    const value = parseCookie(document.cookie, key);
+    return value ?? null;
+  },
+  setItem(key: string, value: string) {
+    if (typeof window === "undefined") return;
+    document.cookie = `${key}=${value};Path=/;SameSite=Lax`;
+  },
+  removeItem(key: string) {
+    if (typeof window === "undefined") return;
+    document.cookie = `${key}=;Path=/;max-age=-1`;
+  },
+};
 
 export const config = createConfig({
   chains: [

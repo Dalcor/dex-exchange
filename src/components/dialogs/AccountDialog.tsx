@@ -15,7 +15,6 @@ import IconButton from "@/components/buttons/IconButton";
 import TabButton from "@/components/buttons/TabButton";
 import RecentTransaction from "@/components/common/RecentTransaction";
 import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
-import { config } from "@/config/wagmi/config";
 import { wallets } from "@/config/wallets";
 import { copyToClipboard } from "@/functions/copyToClipboard";
 import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
@@ -30,7 +29,7 @@ function AccountDialogContent({ setIsOpenedAccount, activeTab, setActiveTab }: a
   const t = useTranslations("Wallet");
 
   const { address } = useAccount();
-  const { disconnect } = useDisconnect({ config });
+  const { disconnect } = useDisconnect();
 
   const chainId = useCurrentChainId();
 

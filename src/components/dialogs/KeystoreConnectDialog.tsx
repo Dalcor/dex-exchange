@@ -56,7 +56,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
     }
   };
 
-  const { connect } = useConnect({ config });
+  const { connect } = useConnect();
 
   const importKeystoreFileHandler = async () => {
     setIsUnlockingKeystore(true);

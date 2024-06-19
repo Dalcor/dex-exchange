@@ -7,7 +7,6 @@ import {
   useConnectWalletStore,
 } from "@/components/dialogs/stores/useConnectWalletStore";
 import { rdnsMap } from "@/config/connectors/rdns";
-import { config } from "@/config/wagmi/config";
 import { wallets } from "@/config/wallets";
 import usePreloaderTimeout from "@/hooks/usePreloader";
 import addToast from "@/other/toast";
@@ -16,7 +15,7 @@ const { image, name } = wallets.trustWallet;
 
 export default function TrustWalletCard() {
   const t = useTranslations("Wallet");
-  const { connectors, connectAsync, isPending } = useConnect({ config });
+  const { connectors, connectAsync, isPending } = useConnect();
 
   const { setName, chainToConnect } = useConnectWalletStore();
   const { setIsOpened } = useConnectWalletDialogStateStore();

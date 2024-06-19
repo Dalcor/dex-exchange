@@ -15,7 +15,7 @@ import addToast from "@/other/toast";
 const { image, name } = wallets.coinbase;
 export default function CoinbaseCard() {
   const t = useTranslations("Wallet");
-  const { connectors, connectAsync, isPending } = useConnect({ config });
+  const { connectors, connectAsync, isPending } = useConnect();
 
   const { setName, chainToConnect } = useConnectWalletStore();
   const { setIsOpened } = useConnectWalletDialogStateStore();

@@ -6,7 +6,6 @@ import {
   useConnectWalletDialogStateStore,
   useConnectWalletStore,
 } from "@/components/dialogs/stores/useConnectWalletStore";
-import { config } from "@/config/wagmi/config";
 import { wallets } from "@/config/wallets";
 import usePreloaderTimeout from "@/hooks/usePreloader";
 import addToast from "@/other/toast";
@@ -14,7 +13,7 @@ import addToast from "@/other/toast";
 const { image, name } = wallets.metamask;
 export default function MetamaskCard() {
   const t = useTranslations("Wallet");
-  const { connectors, connectAsync, isPending } = useConnect({ config });
+  const { connectors, connectAsync, isPending } = useConnect();
 
   const { setName, chainToConnect } = useConnectWalletStore();
   const { setIsOpened } = useConnectWalletDialogStateStore();

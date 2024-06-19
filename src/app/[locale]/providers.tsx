@@ -21,10 +21,10 @@ type Props = {
   locale: Locale;
 };
 
-const queryClient = new QueryClient();
 const timeZone = "Europe/Vienna";
 
 export function Providers({ children, initialState, messages, locale }: Props) {
+  const [queryClient] = useState(() => new QueryClient());
   const [loaded, setIsLoaded] = useState(false);
   const [mountPreloader, setMountPreloader] = useState(true);
 

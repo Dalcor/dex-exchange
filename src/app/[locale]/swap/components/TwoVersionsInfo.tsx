@@ -23,7 +23,19 @@ export default function TwoVersionsInfo() {
         />
       </button>
       <Collapse open={isOpened}>
-        <div className="px-5 pb-2.5">{t("tokens_in_two_standards_paragraph")}</div>
+        <div className="px-5 pb-2.5">
+          {t.rich("tokens_in_two_standards_paragraph", {
+            convert: (chunks) => (
+              <a
+                target="_blank"
+                href="https://gorbatiukcom.github.io/token-converter/"
+                className="text-green hover:underline"
+              >
+                {chunks}
+              </a>
+            ),
+          })}
+        </div>
       </Collapse>
     </div>
   );

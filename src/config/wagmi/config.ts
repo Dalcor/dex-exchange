@@ -3,7 +3,6 @@ import { bscTestnet } from "viem/chains";
 import { createConfig, createStorage, parseCookie } from "wagmi";
 import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
 
-// import { callisto } from "@/config/chains/callisto";
 import { sepolia } from "@/config/chains/sepolia";
 
 const cookieStorage = {
@@ -46,13 +45,12 @@ export const config = createConfig({
     storage: cookieStorage,
   }),
   transports: {
-    // [callisto.id]: http(),
     [sepolia.id]: fallback([
-      // webSocket("wss://sepolia.infura.io/ws/v3/6689c099b8d542589b1842e30dbc2027"),
-      // webSocket("wss://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
-      // http("https://sepolia.infura.io/v3/6689c099b8d542589b1842e30dbc2027"),
-      // http("https://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
-      // http("https://rpc.ankr.com/eth_sepolia"),
+      webSocket("wss://sepolia.infura.io/ws/v3/6689c099b8d542589b1842e30dbc2027"),
+      webSocket("wss://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
+      http("https://sepolia.infura.io/v3/6689c099b8d542589b1842e30dbc2027"),
+      http("https://eth-sepolia.g.alchemy.com/v2/kvidqVpyVu4aivBEb55XXIzCHDqMm7CO"),
+      http("https://rpc.ankr.com/eth_sepolia"),
       http(),
     ]),
     [bscTestnet.id]: http(),

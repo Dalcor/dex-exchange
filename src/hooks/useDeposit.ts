@@ -103,7 +103,7 @@ export default function useDeposit({
         ...params,
         gas: estimatedGas + BigInt(30000),
       });
-      const hash = await walletClient.writeContract(request);
+      const hash = await walletClient.writeContract({ ...request, account: undefined });
 
       const transaction = await publicClient.getTransaction({
         hash,

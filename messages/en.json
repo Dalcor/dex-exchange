@@ -159,7 +159,7 @@
     "swap": "Swap",
     "review_swap": "Review swap",
     "tokens_in_two_standards_title": "Tokens in ERC-20 and ERC-223 standards",
-    "tokens_in_two_standards_paragraph": "Since July 27, 2023, all the tokens on Ethereum mainnet are available in two \"versions\": ERC-20 and ERC-223. You can always convert one token version to another at a 1:1 rate. ERC-223 tokens may require less gas to be swapped for another token. Most centralized exchanges do not support ERC-223 deposits yet.",
+    "tokens_in_two_standards_paragraph": "Since July 27, 2023, all the tokens on Ethereum mainnet are available in two \"versions\": ERC-20 and ERC-223. You can always <convert>convert</convert> one token version to another at a 1:1 rate. ERC-223 tokens may require less gas to be swapped for another token. Most centralized exchanges do not support ERC-223 deposits yet.",
     "you_pay": "You pay",
     "you_receive": "You receive",
     "select_token": "Select token",

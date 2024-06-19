@@ -62,9 +62,9 @@ export function Providers({ children, initialState, messages, locale }: Props) {
           <div className="main-loader" />
         </div>
       )}
-      <DatabaseProvider>
-        <WagmiProvider config={config} initialState={initialState}>
-          <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={config} initialState={initialState}>
+        <QueryClientProvider client={queryClient}>
+          <DatabaseProvider>
             <NextIntlClientProvider locale={locale} timeZone={timeZone} messages={messages}>
               <ThemeProvider attribute="class">
                 <ToastProvider>
@@ -72,9 +72,9 @@ export function Providers({ children, initialState, messages, locale }: Props) {
                 </ToastProvider>
               </ThemeProvider>
             </NextIntlClientProvider>
-          </QueryClientProvider>
-        </WagmiProvider>
-      </DatabaseProvider>
+          </DatabaseProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </>
   );
 }

@@ -13,7 +13,7 @@ import addToast from "@/other/toast";
 const { image, name } = wallets.metamask;
 export default function MetamaskCard() {
   const t = useTranslations("Wallet");
-  const { connectors, connectAsync, isPending } = useConnect();
+  const { connectors, connect, isPending } = useConnect();
 
   const { setName, chainToConnect } = useConnectWalletStore();
   const { setIsOpened } = useConnectWalletDialogStateStore();
@@ -35,21 +35,21 @@ export default function MetamaskCard() {
           return addToast(t("install_metamask"), "error");
         }
 
-        connectAsync({
-          connector: connectorToConnect,
-          chainId: chainToConnect,
-        })
-          .then(() => {
-            setIsOpened(false);
-            addToast(t("successfully_connected"));
-          })
-          .catch((e) => {
-            if (e.code && e.code === 4001) {
-              addToast(t("user_rejected"), "error");
-            } else {
-              addToast(t("something_went_wrong"), "error");
-            }
+        try {
+          connect({
+            connector: connectorToConnect,
+            chainId: chainToConnect,
           });
+
+          setIsOpened(false);
+          addToast(t("successfully_connected"));
+        } catch (e) {
+          if (e.code && e.code === 4001) {
+            addToast(t("user_rejected"), "error");
+          } else {
+            addToast(t("something_went_wrong"), "error");
+          }
+        }
       }}
       image={image}
       label={name}

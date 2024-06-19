@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import JSBI from "jsbi";
 import { useCallback, useMemo, useState } from "react";
 import { Address, formatUnits, getAbiItem } from "viem";

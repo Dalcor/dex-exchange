@@ -1,4 +1,4 @@
-import { pack } from "@ethersproject/solidity";
+import { encodePacked } from "viem";
 
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { Pool } from "@/sdk_hybrid/entities/pool";
@@ -41,5 +41,5 @@ export function encodeRouteToPath(route: Route<Currency, Currency>, exactOutput:
     { inputToken: firstInputToken, path: [], types: [] },
   );
 
-  return exactOutput ? pack(types.reverse(), path.reverse()) : pack(types, path);
+  return exactOutput ? encodePacked(types.reverse(), path.reverse()) : encodePacked(types, path);
 }

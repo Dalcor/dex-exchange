@@ -1,9 +1,13 @@
-import { defaultAbiCoder } from "@ethersproject/abi";
-import { getCreate2Address } from "@ethersproject/address";
-import { keccak256 } from "@ethersproject/solidity";
 import { readContract } from "@wagmi/core";
 import { useEffect, useMemo } from "react";
-import { Address } from "viem";
+import {
+  Address,
+  encodeAbiParameters,
+  encodePacked,
+  getContractAddress,
+  keccak256,
+  parseAbiParameters,
+} from "viem";
 
 import { FACTORY_ABI } from "@/config/abis/factory";
 import { config } from "@/config/wagmi/config";
@@ -34,30 +38,34 @@ export function computePoolAddress({
   standardB = "ERC-20",
   initCodeHashManualOverride,
 }: {
-  factoryAddress: string;
+  factoryAddress: Address;
   tokenA: Token;
   tokenB: Token;
   fee: FeeAmount;
   standardA: TokenStandard;
   standardB: TokenStandard;
-  initCodeHashManualOverride?: string;
+  initCodeHashManualOverride?: Address;
 }): string {
   const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
   const token0Address = standardA === "ERC-20" ? token0.address0 : token0.address1;
   const token1Address = standardB === "ERC-20" ? token1.address0 : token1.address1;
-  return getCreate2Address(
-    factoryAddress,
-    keccak256(
-      ["bytes"],
-      [
-        defaultAbiCoder.encode(
-          ["address", "address", "uint24"],
-          [token0Address, token1Address, fee],
-        ),
-      ],
+  return getContractAddress({
+    from: factoryAddress,
+    salt: keccak256(
+      encodePacked(
+        ["bytes"],
+        [
+          encodeAbiParameters(parseAbiParameters("address, address, uint24"), [
+            token0Address,
+            token1Address,
+            fee,
+          ]),
+        ],
+      ),
     ),
-    initCodeHashManualOverride ?? POOL_INIT_CODE_HASH[DexChainId.SEPOLIA],
-  );
+    bytecode: initCodeHashManualOverride ?? POOL_INIT_CODE_HASH[DexChainId.SEPOLIA],
+    opcode: "CREATE2",
+  });
 }
 
 const cachedKeys = new Set<string>();

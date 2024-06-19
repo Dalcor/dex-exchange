@@ -1,5 +1,5 @@
-import invariant from "invariant";
 import JSBI from "jsbi";
+import invariant from "tiny-invariant";
 
 import { BigintIsh, FeeAmount, TICK_SPACINGS } from "@/sdk_hybrid/constants";
 import { NoTickDataProvider, TickDataProvider } from "@/sdk_hybrid/entities/tickDataProvider";
@@ -7,10 +7,7 @@ import { TickListDataProvider } from "@/sdk_hybrid/entities/tickListDataProvider
 import { LiquidityMath } from "@/sdk_hybrid/utils/liquidityMath";
 import { SwapMath } from "@/sdk_hybrid/utils/swapMath";
 
-import { FACTORY_ADDRESS } from "../addresses";
-import { DexChainId } from "../chains";
 import { NEGATIVE_ONE, ONE, Q192, ZERO } from "../internalConstants";
-import { computePoolAddress } from "../utils/computePoolAddress";
 import { TickMath } from "../utils/tickMath";
 import { CurrencyAmount } from "./fractions/currencyAmount";
 import { Price } from "./fractions/price";

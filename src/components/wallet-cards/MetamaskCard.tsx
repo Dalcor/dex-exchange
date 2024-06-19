@@ -13,7 +13,7 @@ import addToast from "@/other/toast";
 const { image, name } = wallets.metamask;
 export default function MetamaskCard() {
   const t = useTranslations("Wallet");
-  const { connectors, connect, isPending } = useConnect();
+  const { connectors, connectAsync, isPending } = useConnect();
 
   const { setName, chainToConnect } = useConnectWalletStore();
   const { setIsOpened } = useConnectWalletDialogStateStore();
@@ -27,7 +27,6 @@ export default function MetamaskCard() {
       onClick={() => {
         setName("metamask");
         console.log(connectors);
-        // const connectorToConnect = connectors.find((c) => c.id === rdnsMap.metamask);
         const connectorToConnect = connectors[2];
 
         console.log(connectorToConnect);
@@ -35,23 +34,21 @@ export default function MetamaskCard() {
           return addToast(t("install_metamask"), "error");
         }
 
-        try {
-          connect({
-            connector: connectorToConnect,
-            chainId: chainToConnect,
+        connectAsync({
+          connector: connectorToConnect,
+          chainId: chainToConnect,
+        })
+          .then(() => {
+            setIsOpened(false);
+            addToast(t("successfully_connected"));
+          })
+          .catch((e) => {
+            if (e.code && e.code === 4001) {
+              addToast(t("user_rejected"), "error");
+            } else {
+              addToast(t("something_went_wrong"), "error");
+            }
           });
-
-          setIsOpened(false);
-          addToast(t("successfully_connected"));
-        } catch (e) {
-          const _e = e as any;
-
-          if (_e.code && _e.code === 4001) {
-            addToast(t("user_rejected"), "error");
-          } else {
-            addToast(t("something_went_wrong"), "error");
-          }
-        }
       }}
       image={image}
       label={name}

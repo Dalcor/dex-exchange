@@ -63,7 +63,7 @@ export function Providers({ children, initialState, messages, locale }: Props) {
         </div>
       )}
       <DatabaseProvider>
-        <WagmiProvider reconnectOnMount={true} config={config} initialState={initialState}>
+        <WagmiProvider config={config} initialState={initialState}>
           <QueryClientProvider client={queryClient}>
             <NextIntlClientProvider locale={locale} timeZone={timeZone} messages={messages}>
               <ThemeProvider attribute="class">

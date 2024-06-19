@@ -1,7 +1,7 @@
 import "../../assets/styles/globals.css";
 
 import clsx from "clsx";
-import { Golos_Text, Space_Mono } from "next/font/google";
+import { Golos_Text } from "next/font/google";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";

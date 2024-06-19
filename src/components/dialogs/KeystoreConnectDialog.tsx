@@ -10,6 +10,7 @@ import TextField from "@/components/atoms/TextField";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import { keystore } from "@/config/connectors/keystore/connector";
+import { config } from "@/config/wagmi/config";
 import { unlockKeystore } from "@/functions/keystore";
 
 interface Props {
@@ -55,7 +56,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
     }
   };
 
-  const { connect } = useConnect();
+  const { connect } = useConnect({ config });
 
   const importKeystoreFileHandler = async () => {
     setIsUnlockingKeystore(true);

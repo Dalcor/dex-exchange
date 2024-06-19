@@ -44,7 +44,9 @@ export default function MetamaskCard() {
           setIsOpened(false);
           addToast(t("successfully_connected"));
         } catch (e) {
-          if (e.code && e.code === 4001) {
+          const _e = e as any;
+
+          if (_e.code && _e.code === 4001) {
             addToast(t("user_rejected"), "error");
           } else {
             addToast(t("something_went_wrong"), "error");

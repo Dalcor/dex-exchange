@@ -32,7 +32,7 @@ function IconButtonFrame({
 }: FrameProps) {
   return (
     <button
-      className={clsx(
+      className={clsxMerge(
         buttonSize === IconButtonSize.SMALL && "w-8 h-8",
         buttonSize === IconButtonSize.REGULAR && "w-10 h-10",
         buttonSize === IconButtonSize.LARGE && "w-12 h-12",
@@ -51,6 +51,7 @@ export enum IconButtonVariant {
   DELETE,
   CLOSE,
   CONTROL,
+  COPY,
 }
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> &
@@ -62,19 +63,21 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> &
       }
     | { variant: IconButtonVariant.CLOSE; handleClose: () => void }
     | { variant: IconButtonVariant.CONTROL; iconName: IconName }
+    | { variant: IconButtonVariant.COPY; handleCopy: () => void }
     | { variant?: IconButtonVariant.DEFAULT | undefined; iconName: IconName; active?: boolean }
   );
 export default function IconButton(_props: Props) {
   switch (_props.variant) {
     case IconButtonVariant.DEFAULT:
     case undefined: {
-      const { active, iconName, ...props } = _props;
+      const { active, iconName, className, ...props } = _props;
       return (
         <IconButtonFrame
           iconName={_props.iconName}
           className={clsxMerge(
             "text-primary-text rounded-full bg-transparent hover:bg-green-bg duration-200",
             active && "text-green",
+            className,
           )}
           {...props}
         />
@@ -112,6 +115,19 @@ export default function IconButton(_props: Props) {
           iconName={iconName}
           buttonSize={buttonSize || IconButtonSize.SMALL}
           className="rounded-2 hover:bg-green-bg bg-transparent duration-200 text-primary-text"
+          {...props}
+        />
+      );
+    }
+    case IconButtonVariant.COPY: {
+      const { handleCopy, buttonSize, ...props } = _props;
+
+      return (
+        <IconButtonFrame
+          iconName="copy"
+          onClick={_props.handleCopy}
+          buttonSize={buttonSize || IconButtonSize.SMALL}
+          className="hover:text-green duration-200 text-primary-text"
           {...props}
         />
       );

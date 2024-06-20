@@ -43,7 +43,6 @@ export const svgIconsNames = [
   "collaboration",
   "shield",
   "power",
-  "arrow-popup",
   "secure",
   "haven",
   "hotspots",
@@ -123,6 +122,7 @@ export const svgIconsNames = [
   "import-list",
   "reset",
   "pools",
+  "convert",
 ] as const;
 
 export const socialIconNames = [""] as const;

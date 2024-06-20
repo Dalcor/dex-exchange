@@ -95,7 +95,7 @@ export default function PoolPage({
 
   return (
     <Container>
-      <div className="w-full md:w-[800px] md:mx-auto md:mt-[80px] mb-5 bg-primary-bg px-10 pb-10 rounded-5">
+      <div className="w-full md:w-[800px] md:mx-auto md:mt-[40px] mb-5 bg-primary-bg px-10 pb-10 rounded-5">
         <div className="flex justify-between items-center py-1.5 -mx-3">
           <button
             onClick={() => router.push("/pools")}
@@ -289,7 +289,7 @@ export default function PoolPage({
           </div>
         </div>
       </div>
-      <div className="w-[800px] mx-auto mb-[80px] gap-5 flex flex-col">
+      <div className="w-[800px] mx-auto mb-[40px] gap-5 flex flex-col">
         <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
         <RecentTransactions
           showRecentTransactions={showRecentTransactions}

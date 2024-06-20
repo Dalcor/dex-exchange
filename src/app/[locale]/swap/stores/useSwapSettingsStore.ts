@@ -29,14 +29,25 @@ interface SwapSettingsStore {
   setSlippage: (slippage: number) => void;
   setDeadline: (deadline: number) => void;
   setSlippageType: (slippageType: SlippageType) => void;
+  computed: {
+    isModified: boolean;
+  };
 }
 
+const defaultSlippage = 0.5;
+const defaultDeadline = 20;
+
 export const useSwapSettingsStore = create<SwapSettingsStore>((set, get) => ({
-  slippage: 0.5,
+  slippage: defaultSlippage,
   slippageType: SlippageType.MEDIUM,
-  deadline: 20,
+  deadline: defaultDeadline,
 
   setSlippage: (slippage) => set({ slippage }),
   setDeadline: (deadline) => set({ deadline }),
   setSlippageType: (slippageType) => set({ slippageType }),
+  computed: {
+    get isModified() {
+      return get().slippage !== defaultSlippage || get().deadline !== defaultDeadline;
+    },
+  },
 }));

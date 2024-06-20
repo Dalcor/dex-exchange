@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import ExternalTextLink from "@/components/atoms/ExternalTextLink";
+import Svg from "@/components/atoms/Svg";
 import TokenListLogo, { TokenListLogoType } from "@/components/atoms/TokenListLogo";
 import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import IconButton, {
@@ -47,7 +48,10 @@ function TokenListInfo({ listId }: { listId: TokenListId }) {
           </div>
         </div>
       </div>
-      <ExternalTextLink className="opacity-50 pointer-events-none" text={t("view_list")} href="#" />
+      <button className="text-green opacity-50 pointer-events-none flex items-center gap-2">
+        View list
+        <Svg iconName="next" />
+      </button>
     </div>
   );
 }
@@ -62,7 +66,7 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
           <span className="text-secondary-text">{t("symbol")}</span>
           <span>{token.symbol}</span>
         </div>
-        <div className="grid grid-cols-[1fr_auto_32px] gap-x-2">
+        <div className="grid grid-cols-[1fr_auto_32px] gap-x-2 -mr-1 gap-y-1">
           <span className="text-secondary-text flex items-center gap-1">
             {t("address")} <Badge variant={BadgeVariant.COLORED} text="ERC-20" />{" "}
           </span>
@@ -73,11 +77,10 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
             className="justify-between"
           />
           <IconButton
-            iconSize={IconSize.SMALL}
-            variant={IconButtonVariant.DEFAULT}
+            iconSize={IconSize.REGULAR}
+            variant={IconButtonVariant.COPY}
             buttonSize={IconButtonSize.SMALL}
-            iconName="copy"
-            onClick={async () => {
+            handleCopy={async () => {
               await copyToClipboard(token.address0);
               addToast(tToast("successfully_copied"));
             }}
@@ -89,14 +92,12 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
             color="white"
             text={`${token.address1.slice(0, 6)}...${token.address1.slice(-6)}`}
             href={getExplorerLink(ExplorerLinkType.ADDRESS, token.address1, token.chainId)}
-            className="justify-between"
           />
           <IconButton
-            iconSize={IconSize.SMALL}
-            variant={IconButtonVariant.DEFAULT}
+            iconSize={IconSize.REGULAR}
+            variant={IconButtonVariant.COPY}
             buttonSize={IconButtonSize.SMALL}
-            iconName="copy"
-            onClick={async () => {
+            handleCopy={async () => {
               await copyToClipboard(token.address1);
               addToast(tToast("successfully_copied"));
             }}
@@ -109,7 +110,6 @@ export function TokenPortfolioDialogContent({ token }: { token: Token }) {
       </div>
       <p className="text-secondary-text px-4 md:px-10 py-3">
         {t("found_in", { amount: token.lists?.length })}
-        {token.lists?.length.toString().endsWith("1") ? "" : "s"}:
       </p>
       <div className="flex flex-col gap-3 pb-4 md:pb-10 px-4 md:px-10">
         {token.lists?.map((listId) => {

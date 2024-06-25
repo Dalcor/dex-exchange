@@ -43,6 +43,7 @@ export default function AddPoolPage() {
   const { tokenA, tokenB, setTokenA, setTokenB } = useAddLiquidityTokensStore();
   const { tier } = useLiquidityTierStore();
   const { setIsOpen } = useTransactionSettingsDialogStore();
+  const { ticks, clearPriceRange } = useLiquidityPriceRangeStore();
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
@@ -63,9 +64,10 @@ export default function AddPoolPage() {
         setTokenB(token);
       }
 
+      clearPriceRange();
       setIsOpenedTokenPick(false);
     },
-    [currentlyPicking, setTokenA, setTokenB, tokenA, tokenB],
+    [currentlyPicking, setTokenA, setTokenB, tokenA, tokenB, clearPriceRange],
   );
 
   // PRICE RANGE HOOK START
@@ -99,7 +101,6 @@ export default function AddPoolPage() {
   const isFormDisabled = !tokenA || !tokenB;
 
   // User need to provide values to price range & Starting price on pool creating
-  const { ticks } = useLiquidityPriceRangeStore();
   const { LOWER: tickLower, UPPER: tickUpper } = ticks;
   const isCreatePoolFormFilled =
     !!price && typeof tickLower === "number" && typeof tickUpper === "number";

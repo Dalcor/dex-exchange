@@ -35,12 +35,6 @@ interface Values {
   tags: FeedbackTag[];
 }
 
-const initialValues: Values = {
-  email: "",
-  description: "",
-  tags: [],
-};
-
 const FeedbackSchema = Yup.object().shape({
   email: Yup.string(),
   description: Yup.string()
@@ -84,7 +78,17 @@ function SuccessFeedback() {
 export default function FeedbackDialog() {
   const t = useTranslations("Feedback");
 
-  const { isOpen, setIsOpen } = useFeedbackDialogStore();
+  const {
+    isOpen,
+    setIsOpen,
+    tags,
+    description,
+    setDescription,
+    addTag,
+    removeTag,
+    email,
+    setEmail,
+  } = useFeedbackDialogStore();
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleClose = useCallback(() => {
@@ -98,6 +102,12 @@ export default function FeedbackDialog() {
       }, 400);
     }
   }, [isOpen, isSubmitted]);
+
+  const initialValues: Values = {
+    email: email,
+    description: description,
+    tags: tags,
+  };
 
   return (
     <>
@@ -180,7 +190,10 @@ export default function FeedbackDialog() {
                     <TextAreaField
                       id="description"
                       name="description"
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        handleChange(e);
+                        setDescription(e.target.value);
+                      }}
                       onBlur={handleBlur}
                       label={`${t("describe_your_issue")} *`}
                       rows={4}
@@ -196,7 +209,10 @@ export default function FeedbackDialog() {
                       name="email"
                       placeholder={t("email_wallet_address_or_nickname")}
                       label={t("email_wallet_address_or_nickname")}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        handleChange(e);
+                        setEmail(e.target.value);
+                      }}
                       onBlur={handleBlur}
                       value={values.email}
                     />
@@ -217,12 +233,14 @@ export default function FeedbackDialog() {
                             checked={values.tags.includes(feedbackTag)}
                             handleChange={async () => {
                               if (values.tags.includes(feedbackTag)) {
+                                removeTag(feedbackTag);
                                 await setFieldValue(
                                   "tags",
                                   values.tags.filter((v) => v !== feedbackTag),
                                   false,
                                 );
                               } else {
+                                addTag(feedbackTag);
                                 await setFieldValue("tags", [...values.tags, feedbackTag], false);
                               }
                             }}

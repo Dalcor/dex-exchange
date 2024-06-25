@@ -29,6 +29,7 @@ export default function Toast({ text, type = "success", onDismiss }: Props) {
         flex
         justify-between
         items-center
+        outline-1
         outline
         rounded-2
         gap-2

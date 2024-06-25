@@ -12,7 +12,7 @@ export default function BorrowMarket({}) {
 
   return (
     <Container>
-      <div className="py-[80px]">
+      <div className="py-[40px]">
         <div className="grid grid-cols-[3fr_2fr]">
           <div className="grid grid-cols-3 bg-primary-bg p-1 gap-1 rounded-3">
             {["Borrow market", "My lending orders", "My loan positions"].map((title, index) => {

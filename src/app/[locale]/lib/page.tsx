@@ -110,7 +110,7 @@ export default function Lib({ params: { locale } }: { params: { locale: string }
 
   return (
     <div className="grid gap-2 mt-4">
-      <div className="mx-auto my-[80px] p-3 border border-primary-border rounded-2 bg-primary-bg flex flex-col w-[600px] gap-3">
+      <div className="mx-auto my-[40px] p-3 border border-primary-border rounded-2 bg-primary-bg flex flex-col w-[600px] gap-3">
         <Popover
           customOffset={5}
           isOpened={isPopoverOpened}

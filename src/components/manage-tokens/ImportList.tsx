@@ -158,7 +158,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
 
         {importType === "url" && (
           <div className="flex flex-col flex-grow">
-            <h3 className="text-16 font-bold mb-1">{t("import_with_JSON")}</h3>
+            <h3 className="text-16 font-bold mb-1">{t("import_with_URL")}</h3>
 
             <Input
               value={tokenListAddressToImport}
@@ -232,6 +232,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
               onChange={(e) => handleFileChange(e)}
               style={{ display: "none" }}
               ref={fileInput}
+              accept=".json"
             />
             <div className="flex items-center justify-between">
               <div>
@@ -247,7 +248,7 @@ export default function ImportList({ setContent, handleClose }: Props) {
                   {t("browse")}
                 </Button>
               </div>
-              <p className="overflow-hidden overflow-ellipsis whitespace-nowrap w-[200px]">
+              <p className="overflow-hidden overflow-ellipsis whitespace-nowrap min-w-[200px] max-w-[300px] text-right">
                 {tokenListFile?.name ? (
                   `${tokenListFile?.name}`
                 ) : (

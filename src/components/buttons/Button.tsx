@@ -30,6 +30,7 @@ type CommonProps = {
   mobileSize?: ButtonSize;
   tabletSize?: ButtonSize;
   fullWidth?: boolean;
+  isLoading?: boolean;
 };
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> &
@@ -78,6 +79,11 @@ const mobileButtonSizeClassnameMap: Record<ButtonSize, string> = {
   [ButtonSize.EXTRA_LARGE]: "text-18 font-medium min-h-[60px] px-6",
 };
 
+const disabledClassnameMap: Record<ButtonVariant, string> = {
+  [ButtonVariant.CONTAINED]: "disabled:bg-tertiary-bg disabled:text-secondary-text",
+  [ButtonVariant.OUTLINED]: "disabled:text-secondary-text disabled:border-secondary-border",
+};
+
 export default function Button({
   variant = ButtonVariant.CONTAINED,
   size = ButtonSize.LARGE,
@@ -89,6 +95,7 @@ export default function Button({
   colorScheme = ButtonColor.GREEN,
   children,
   className,
+  isLoading,
   ...props
 }: Props) {
   const _mobileSize = mobileSize || size;
@@ -97,13 +104,14 @@ export default function Button({
   return (
     <button
       className={clsxMerge(
-        "rounded-2 flex items-center justify-center gap-2 duration-200",
+        "rounded-2 flex items-center justify-center gap-2 duration-200 disabled:pointer-events-none",
         buttonVariantClassnameMap[variant][colorScheme],
         buttonSizeClassnameMap[size],
         tabletButtonSizeClassnameMap[_tabletSize],
         mobileButtonSizeClassnameMap[_mobileSize],
         fullWidth && "w-full",
-        props.disabled && "opacity-50 pointer-events-none",
+        disabledClassnameMap[variant],
+        isLoading && "opacity-50 pointer-events-none",
         className,
       )}
       {...props}

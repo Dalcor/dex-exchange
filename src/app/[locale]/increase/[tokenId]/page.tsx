@@ -118,7 +118,7 @@ export default function IncreaseLiquidityPage({
 
   return (
     <Container>
-      <div className="w-[1200px] mx-auto my-[80px]">
+      <div className="w-[1200px] mx-auto my-[40px]">
         <div className="flex justify-between items-center bg-primary-bg rounded-t-3 py-2.5 px-6">
           <IconButton
             onClick={() => router.push(`/pool/${params.tokenId}`)}

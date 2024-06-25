@@ -62,7 +62,7 @@ export default function DecreaseLiquidityPage({
 
   return (
     <Container>
-      <div className="w-[600px] bg-primary-bg mx-auto mt-[80px] mb-5 px-10 pb-10 rounded-5">
+      <div className="w-[600px] bg-primary-bg mx-auto mt-[40px] mb-5 px-10 pb-10 rounded-5">
         <div className="grid grid-cols-3 py-1.5 -mx-3">
           <IconButton
             onClick={() => router.push(`/pool/${params.tokenId}`)}
@@ -162,7 +162,7 @@ export default function DecreaseLiquidityPage({
           )}
         </div>
       </div>
-      <div className="w-[600px] mx-auto mb-[80px] gap-5 flex flex-col">
+      <div className="w-[600px] mx-auto mb-[40px] gap-5 flex flex-col">
         <SelectedTokensInfo tokenA={tokenA} tokenB={tokenB} />
         <RecentTransactions
           showRecentTransactions={showRecentTransactions}

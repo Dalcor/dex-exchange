@@ -10,6 +10,7 @@ import {
 
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -21,6 +22,7 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 
 import { AllowanceStatus } from "./useAllowance";
+import useCurrentChainId from "./useCurrentChainId";
 import useDeepEffect from "./useDeepEffect";
 
 export default function useDeposit({
@@ -35,10 +37,10 @@ export default function useDeposit({
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
 
   const { address } = useAccount();
+  const chainId = useCurrentChainId();
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const { chainId } = useAccount();
 
   const { addRecentTransaction } = useRecentTransactionsStore();
 
@@ -129,7 +131,7 @@ export default function useDeposit({
           title: {
             symbol: token.symbol!,
             template: RecentTransactionTitleTemplate.DEPOSIT,
-            amount: formatUnits(amountToCheck, token.decimals),
+            amount: formatFloat(formatUnits(amountToCheck, token.decimals)),
             logoURI: token?.logoURI || "/tokens/placeholder.svg",
           },
         },
@@ -157,23 +159,15 @@ export default function useDeposit({
     addRecentTransaction,
   ]);
 
-  const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
+  const [estimatedGas, setEstimatedGas] = useState(BigInt(101000) as null | bigint);
   useDeepEffect(() => {
     IIFE(async () => {
-      if (
-        !amountToCheck ||
-        !contractAddress ||
-        !token ||
-        !walletClient ||
-        !address ||
-        !chainId ||
-        !publicClient
-      ) {
+      if (!amountToCheck || !contractAddress || !token || !publicClient) {
         return;
       }
 
       const params = {
-        account: address as Address,
+        account: (address as Address) || contractAddress,
         abi: ERC223_ABI,
         functionName: "transfer" as const,
         address: token.address1 as Address,
@@ -185,10 +179,10 @@ export default function useDeposit({
         setEstimatedGas(estimatedGas);
       } catch (error) {
         console.warn("🚀 ~ useDeposit ~ estimatedGas ~ error:", error, "params:", params);
-        setEstimatedGas(null);
+        setEstimatedGas(BigInt(101000));
       }
     });
-  }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
+  }, [amountToCheck, contractAddress, token, address, publicClient]);
 
   return {
     isDeposited,

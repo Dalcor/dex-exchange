@@ -14,7 +14,9 @@ import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
+import { getChainSymbol } from "@/functions/getChainSymbol";
 import { AllowanceStatus } from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useRevoke from "@/hooks/useRevoke";
 import useWithdraw from "@/hooks/useWithdraw";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
@@ -136,7 +138,8 @@ function InputStandardAmount({
 }) {
   const t = useTranslations("Liquidity");
   const tSwap = useTranslations("Swap");
-  const { address, chain } = useAccount();
+  const { address } = useAccount();
+  const chainId = useCurrentChainId();
   const { data: blockNumber } = useBlockNumber({ watch: true });
   const tokenAddress = standard === "ERC-20" ? token?.address0 : token?.address1;
   const { data: tokenBalance, refetch: refetchBalance } = useBalance({
@@ -256,7 +259,8 @@ function InputStandardAmount({
               </div>
               <div className="flex flex-col">
                 <span className="text-14 text-secondary-text">{t("fee")}</span>
-                <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
+                <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : ""} ${getChainSymbol(chainId)}`}</span>
+                const chainId = useCurrentChainId();
               </div>
             </div>
             {[AllowanceStatus.INITIAL].includes(status) ? (
@@ -304,7 +308,7 @@ export default function TokenDepositCard({
 }) {
   const t = useTranslations("Liquidity");
 
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
   // TODO BigInt
   const ERC223Value =
     typeof value !== "undefined" && value !== ""

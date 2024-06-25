@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { formatEther, formatGwei } from "viem";
-import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
+import { useBlockNumber, useGasPrice } from "wagmi";
 
 import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -14,7 +14,9 @@ import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge"
 import Button from "@/components/buttons/Button";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import { formatFloat } from "@/functions/formatFloat";
+import { getChainSymbol } from "@/functions/getChainSymbol";
 import { AllowanceStatus } from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { usePositionPrices, usePositionRangeStatus } from "@/hooks/usePositions";
 import { EstimatedGasId, useEstimatedGasStoreById } from "@/stores/useEstimatedGasStore";
 
@@ -33,7 +35,7 @@ export const MintButton = ({
   tokenId?: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { chain } = useAccount();
+  const chainId = useCurrentChainId();
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
   const { tier } = useLiquidityTierStore();
   const { price } = usePriceRange();
@@ -231,7 +233,7 @@ export const MintButton = ({
             </div>
             <div className="flex flex-col">
               <span className="text-14 text-secondary-text">Fee</span>
-              <span>{`${gasPrice && formatFloat(formatEther(gasPrice * estimatedMintGas))} ${chain?.nativeCurrency.symbol}`}</span>
+              <span>{`${gasPrice && formatFloat(formatEther(gasPrice * estimatedMintGas))} ${getChainSymbol(chainId)}`}</span>
             </div>
           </div>
 

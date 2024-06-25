@@ -1,7 +1,6 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { Chain, formatEther, formatGwei, formatUnits } from "viem";
-import { useAccount } from "wagmi";
+import { formatEther, formatGwei, formatUnits } from "viem";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
@@ -10,7 +9,9 @@ import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
+import { getChainSymbol } from "@/functions/getChainSymbol";
 import { AllowanceStatus } from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { TokenStandard } from "@/sdk_hybrid/entities/token";
 
 import {
@@ -29,14 +30,14 @@ const TransactionItem = ({
   transaction,
   standard,
   gasPrice,
-  chain,
+  chainSymbol,
   index,
   itemsCount,
 }: {
   transaction?: ApproveTransaction;
   gasPrice: any;
   standard: TokenStandard;
-  chain?: Chain;
+  chainSymbol: string;
   index: number;
   itemsCount: number;
 }) => {
@@ -89,7 +90,7 @@ const TransactionItem = ({
           </div>
           <div className="flex flex-col">
             <span className="text-14 text-secondary-text">Fee</span>
-            <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
+            <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : ""} ${chainSymbol}`}</span>
           </div>
         </div>
       </div>
@@ -99,8 +100,8 @@ const TransactionItem = ({
 export const ApproveButton = () => {
   const t = useTranslations("Liquidity");
   const [isOpen, setIsOpen] = useState(false);
-  const { chain } = useAccount();
-
+  const chainId = useCurrentChainId();
+  const chainSymbol = getChainSymbol(chainId);
   const {
     handleApprove,
     approveTransactionsType,
@@ -177,14 +178,14 @@ export const ApproveButton = () => {
               transaction={transaction}
               standard={standard}
               gasPrice={gasPrice}
-              chain={chain}
+              chainSymbol={chainSymbol}
               index={index}
               itemsCount={transactionItems.length}
             />
           ))}
           <div className="flex gap-1 justify-center items-center border-t pt-4 border-secondary-border mb-4">
             <span className="text-secondary-text">{t("total_fee")}</span>
-            <span className="font-bold">{`${gasPrice && approveTotalGasLimit ? formatFloat(formatEther(gasPrice * approveTotalGasLimit)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
+            <span className="font-bold">{`${gasPrice && approveTotalGasLimit ? formatFloat(formatEther(gasPrice * approveTotalGasLimit)) : ""} ${chainSymbol}`}</span>
           </div>
 
           {isLoading ? (

@@ -9,6 +9,7 @@ import {
 } from "wagmi";
 
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -20,6 +21,7 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 
 import { AllowanceStatus } from "./useAllowance";
+import useCurrentChainId from "./useCurrentChainId";
 
 export default function useWithdraw({
   token,
@@ -31,10 +33,10 @@ export default function useWithdraw({
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
 
   const { address } = useAccount();
+  const chainId = useCurrentChainId();
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const { chainId } = useAccount();
 
   const { addRecentTransaction } = useRecentTransactionsStore();
 
@@ -116,7 +118,7 @@ export default function useWithdraw({
           title: {
             symbol: token.symbol!,
             template: RecentTransactionTitleTemplate.WITHDRAW,
-            amount: formatUnits(amountToWithdraw, token.decimals),
+            amount: formatFloat(formatUnits(amountToWithdraw, token.decimals)),
             logoURI: token?.logoURI || "/tokens/placeholder.svg",
           },
         },

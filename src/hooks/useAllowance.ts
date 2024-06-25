@@ -9,7 +9,7 @@ import {
 } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
-import { sepolia } from "@/config/chains/sepolia";
+import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -20,6 +20,7 @@ import {
   useRecentTransactionsStore,
 } from "@/stores/useRecentTransactionsStore";
 
+import useCurrentChainId from "./useCurrentChainId";
 import useDeepEffect from "./useDeepEffect";
 
 export enum AllowanceStatus {
@@ -38,8 +39,9 @@ export default function useAllowance({
   amountToCheck: bigint | null;
 }) {
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
+  const chainId = useCurrentChainId();
 
-  const { address, chainId } = useAccount();
+  const { address } = useAccount();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
@@ -150,7 +152,7 @@ export default function useAllowance({
           title: {
             symbol: token.symbol!,
             template: RecentTransactionTitleTemplate.APPROVE,
-            amount: formatUnits(amountToCheck, token.decimals),
+            amount: formatFloat(formatUnits(amountToCheck, token.decimals)),
             logoURI: token?.logoURI || "/tokens/placeholder.svg",
           },
         },
@@ -183,15 +185,7 @@ export default function useAllowance({
   const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
   useDeepEffect(() => {
     IIFE(async () => {
-      if (
-        !amountToCheck ||
-        !contractAddress ||
-        !token ||
-        !walletClient ||
-        !address ||
-        !chainId ||
-        !publicClient
-      ) {
+      if (!amountToCheck || !contractAddress || !token || !publicClient) {
         return;
       }
 
@@ -203,7 +197,7 @@ export default function useAllowance({
         args: [Address, bigint];
       } = {
         address: token.address0 as Address,
-        account: address,
+        account: address || contractAddress,
         abi: ERC20_ABI,
         functionName: "approve",
         args: [contractAddress!, amountToCheck!],
@@ -217,7 +211,7 @@ export default function useAllowance({
         setEstimatedGas(null);
       }
     });
-  }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
+  }, [amountToCheck, contractAddress, token, address, publicClient]);
 
   return {
     isAllowed,

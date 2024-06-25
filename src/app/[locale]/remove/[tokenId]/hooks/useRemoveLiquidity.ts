@@ -1,11 +1,12 @@
 import JSBI from "jsbi";
 import { useCallback, useState } from "react";
-import { Address, encodeFunctionData, formatUnits, getAbiItem } from "viem";
+import { Address, formatUnits, getAbiItem } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
 import { AllowanceStatus } from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import addToast from "@/other/toast";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
@@ -38,7 +39,7 @@ export default function useRemoveLiquidity({
   const { data: walletClient } = useWalletClient();
 
   const { addRecentTransaction } = useRecentTransactionsStore();
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
 
   const handleRemoveLiquidity = useCallback(
     async (tokenA: Token | null, tokenB: Token | null, position?: Position) => {

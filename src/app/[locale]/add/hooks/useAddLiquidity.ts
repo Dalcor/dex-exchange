@@ -8,6 +8,7 @@ import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePosit
 import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
 import { AllowanceStatus } from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useDeepEffect from "@/hooks/useDeepEffect";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
 import addToast from "@/other/toast";
@@ -48,7 +49,8 @@ export function useAddLiquidityParams({
   const { slippage, deadline: _deadline } = useTransactionSettingsStore();
   const deadline = useTransactionDeadline(_deadline);
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
-  const { address: accountAddress, chainId } = useAccount();
+  const chainId = useCurrentChainId();
+  const { address: accountAddress } = useAccount();
 
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
@@ -277,7 +279,9 @@ export const useAddLiquidity = ({
   tokenId?: string;
 }) => {
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
-  const { address: accountAddress, chainId } = useAccount();
+  const { address: accountAddress } = useAccount();
+  const chainId = useCurrentChainId();
+
   const { addRecentTransaction } = useRecentTransactionsStore();
 
   const publicClient = usePublicClient();
@@ -342,13 +346,17 @@ export const useAddLiquidity = ({
             template: RecentTransactionTitleTemplate.ADD,
             symbol0: position.pool.token0.symbol!,
             symbol1: position.pool.token1.symbol!,
-            amount0: formatUnits(
-              BigInt(JSBI.toNumber(position.mintAmounts.amount0)),
-              position.pool.token0.decimals,
+            amount0: formatFloat(
+              formatUnits(
+                BigInt(JSBI.toNumber(position.mintAmounts.amount0)),
+                position.pool.token0.decimals,
+              ),
             ),
-            amount1: formatUnits(
-              BigInt(JSBI.toNumber(position.mintAmounts.amount1)),
-              position.pool.token1.decimals,
+            amount1: formatFloat(
+              formatUnits(
+                BigInt(JSBI.toNumber(position.mintAmounts.amount1)),
+                position.pool.token1.decimals,
+              ),
             ),
             logoURI0: position.pool.token0?.logoURI || "/tokens/placeholder.svg",
             logoURI1: position.pool.token1?.logoURI || "/tokens/placeholder.svg",

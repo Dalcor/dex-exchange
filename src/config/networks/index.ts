@@ -14,13 +14,13 @@ export const networks: Array<{
   {
     chainId: DexChainId.SEPOLIA,
     name: "Sepolia",
-    symbol: "SEP_ETH",
+    symbol: "SEP",
     logo: "/chains/sepolia.svg",
   },
   {
     chainId: DexChainId.BSC_TESTNET,
     name: "BSC Testnet",
-    symbol: "BSC",
+    symbol: "BNB",
     logo: "/chains/bsc.svg",
   },
 ];

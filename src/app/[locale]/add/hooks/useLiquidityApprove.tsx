@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
+import { useBlockNumber, useGasPrice } from "wagmi";
 
 import useAllowance, { AllowanceStatus } from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useDeposit from "@/hooks/useDeposit";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
@@ -29,7 +30,7 @@ export enum ApproveTransactionType {
 }
 
 export const useLiquidityApprove = () => {
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
   const { price } = usePriceRange();
 

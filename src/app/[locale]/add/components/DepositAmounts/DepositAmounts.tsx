@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { formatEther, formatGwei, parseUnits } from "viem";
-import { useAccount } from "wagmi";
 
 import TokenDepositCard from "@/app/[locale]/add/components/DepositAmounts/TokenDepositCard";
 import {
@@ -10,8 +9,8 @@ import {
   useLiquidityAmountsStore,
 } from "@/app/[locale]/add/stores/useAddLiquidityAmountsStore";
 import Tooltip from "@/components/atoms/Tooltip";
-import { networks } from "@/config/networks";
 import { formatFloat } from "@/functions/formatFloat";
+import { getChainSymbol } from "@/functions/getChainSymbol";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
@@ -89,7 +88,7 @@ export const DepositAmounts = ({
           </div>
           <div className="flex flex-col">
             <div className="text-secondary-text text-14">{t("total_fee")}</div>
-            <div>{`${gasPrice ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${networks.find((n) => n.chainId === chainId)?.symbol}`}</div>
+            <div>{`${gasPrice ? formatFloat(formatEther(gasPrice * totalGasLimit)) : ""} ${getChainSymbol(chainId)}`}</div>
           </div>
           <div className="flex flex-col">
             <div className="text-secondary-text text-14">{t("transactions")}</div>

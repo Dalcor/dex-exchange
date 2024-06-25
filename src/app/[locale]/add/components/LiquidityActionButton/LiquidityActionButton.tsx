@@ -4,6 +4,7 @@ import { Address } from "viem";
 import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
 import Button, { ButtonVariant } from "@/components/buttons/Button";
+import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
 
 import { useLiquidityApprove } from "../../hooks/useLiquidityApprove";
 import { usePriceRange } from "../../hooks/usePrice";
@@ -26,13 +27,16 @@ export const LiquidityActionButton = ({
   tokenId?: string;
 }) => {
   const t = useTranslations("Liquidity");
+  const tWallet = useTranslations("Wallet");
+
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
   const { tier } = useLiquidityTierStore();
   const { price } = usePriceRange();
   const { tokenAStandard, tokenBStandard } = useTokensStandards();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
 
   const { approveTransactionsCount } = useLiquidityApprove();
+  const { setIsOpened: setWalletConnectOpened } = useConnectWalletDialogStateStore();
 
   const { typedValue } = useLiquidityAmountsStore();
 
@@ -96,6 +100,14 @@ export const LiquidityActionButton = ({
         : false;
 
   const isSufficientBalance = isSufficientBalanceA && isSufficientBalanceB;
+
+  if (!isConnected) {
+    return (
+      <Button onClick={() => setWalletConnectOpened(true)} fullWidth>
+        {tWallet("connect_wallet")}
+      </Button>
+    );
+  }
 
   if (!tokenA || !tokenB) {
     return (

@@ -9,6 +9,7 @@ import {
 } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
+import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -20,6 +21,7 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 
 import { AllowanceStatus } from "./useAllowance";
+import useCurrentChainId from "./useCurrentChainId";
 
 const amountToRevoke = BigInt(0);
 
@@ -31,7 +33,8 @@ export default function useRevoke({
   contractAddress: Address | undefined;
 }) {
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
-  const { address, chainId } = useAccount();
+  const { address } = useAccount();
+  const chainId = useCurrentChainId();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
@@ -114,7 +117,7 @@ export default function useRevoke({
           title: {
             symbol: token.symbol!,
             template: RecentTransactionTitleTemplate.APPROVE,
-            amount: formatUnits(amountToRevoke, token.decimals),
+            amount: formatFloat(formatUnits(amountToRevoke, token.decimals)),
             logoURI: token?.logoURI || "/tokens/placeholder.svg",
           },
         },

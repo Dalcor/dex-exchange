@@ -12,10 +12,13 @@ import {
   useWriteContract,
 } from "wagmi";
 
+import { ERC20_ABI } from "@/config/abis/erc20";
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from "@/config/abis/nonfungiblePositionManager";
+import { TOKEN_CONVERTER_ABI } from "@/config/abis/tokenConverter";
 import { useTokens } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { CONVERTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Currency } from "@/sdk_hybrid/entities/currency";
@@ -32,6 +35,7 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 
 import { AllowanceStatus } from "./useAllowance";
+import useCurrentChainId from "./useCurrentChainId";
 import { usePool } from "./usePools";
 
 export type PositionInfo = {
@@ -61,7 +65,7 @@ export function usePositionFromTokenId(tokenId: bigint) {
   }, [loading, positions]);
 }
 export function usePositionsFromTokenIds(tokenIds: bigint[] | undefined) {
-  const { chainId } = useAccount();
+  const chainId = useCurrentChainId();
   const positionsContracts = useMemo(() => {
     if (!tokenIds) {
       return [];
@@ -119,7 +123,8 @@ export function usePositionsFromTokenIds(tokenIds: bigint[] | undefined) {
   }, [positionsData, positionsLoading, tokenIds]);
 }
 export default function usePositions() {
-  const { address: account, chainId } = useAccount();
+  const chainId = useCurrentChainId();
+  const { address: account } = useAccount();
 
   const { data: balance, isLoading: balanceLoading } = useReadContract({
     address: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId as DexChainId],
@@ -168,9 +173,10 @@ export default function usePositions() {
 }
 
 export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
+  const chainId = useCurrentChainId();
   const tokens = useTokens();
 
-  const tokenA = useMemo(() => {
+  const tokenAFromLists = useMemo(() => {
     let tokenStandard: TokenStandard | undefined = undefined;
     const token = tokens.find((t) => {
       if (t.address0 === positionDetails?.token0) {
@@ -184,7 +190,7 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
     if (token && tokenStandard) return { token, tokenStandard };
   }, [positionDetails?.token0, tokens]);
 
-  const tokenB = useMemo(() => {
+  const tokenBFromLists = useMemo(() => {
     let tokenStandard: TokenStandard | undefined = undefined;
     const token = tokens.find((t) => {
       if (t.address0 === positionDetails?.token1) {
@@ -198,9 +204,101 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
     if (token && tokenStandard) return { token, tokenStandard };
   }, [positionDetails?.token1, tokens]);
 
+  // TODO: now we use "Boolean(tokens.length)" but better to add init status to token lists and check it instead
+  // Get token info from node only if we don't find token in our lists
+  const isTokenADetailsEnabled =
+    !tokenAFromLists && Boolean(positionDetails?.token0) && Boolean(tokens.length);
+  const isTokenBDetailsEnabled =
+    !tokenBFromLists && Boolean(positionDetails?.token1) && Boolean(tokens.length);
+  const { data: tokenAInfo }: any = useReadContracts({
+    allowFailure: false,
+    contracts: [
+      {
+        address: CONVERTER_ADDRESS[chainId],
+        abi: TOKEN_CONVERTER_ABI,
+        functionName: "predictWrapperAddress",
+        args: [positionDetails?.token0 as Address, true],
+      },
+      {
+        address: positionDetails?.token0,
+        abi: ERC20_ABI,
+        functionName: "decimals",
+      },
+      {
+        address: positionDetails?.token0,
+        abi: ERC20_ABI,
+        functionName: "symbol",
+      },
+      {
+        address: positionDetails?.token0,
+        abi: ERC20_ABI,
+        functionName: "name",
+      },
+    ],
+    query: {
+      enabled: isTokenADetailsEnabled,
+    },
+  });
+  const { data: tokenBInfo }: any = useReadContracts({
+    allowFailure: false,
+    contracts: [
+      {
+        address: CONVERTER_ADDRESS[chainId],
+        abi: TOKEN_CONVERTER_ABI,
+        functionName: "predictWrapperAddress",
+        args: [positionDetails?.token1 as Address, true],
+      },
+      {
+        address: positionDetails?.token1,
+        abi: ERC20_ABI,
+        functionName: "decimals",
+      },
+      {
+        address: positionDetails?.token1,
+        abi: ERC20_ABI,
+        functionName: "symbol",
+      },
+      {
+        address: positionDetails?.token1,
+        abi: ERC20_ABI,
+        functionName: "name",
+      },
+    ],
+    query: {
+      enabled: isTokenBDetailsEnabled,
+    },
+  });
+
+  // Create Tokens using info from blockchain\node
+  const tokenAFromNode = tokenAInfo?.length
+    ? new Token(
+        chainId,
+        positionDetails?.token0 as Address,
+        tokenAInfo?.[0] as Address,
+        tokenAInfo?.[1],
+        tokenAInfo?.[2],
+        tokenAInfo?.[3],
+        "/tokens/placeholder.svg",
+      )
+    : undefined;
+  const tokenBFromNode = tokenBInfo?.length
+    ? new Token(
+        chainId,
+        positionDetails?.token1 as Address,
+        tokenBInfo?.[0] as Address,
+        tokenBInfo?.[1],
+        tokenBInfo?.[2],
+        tokenBInfo?.[3],
+        "/tokens/placeholder.svg",
+      )
+    : undefined;
+
+  const tokenA = tokenAFromLists?.token || tokenAFromNode;
+  const tokenB = tokenBFromLists?.token || tokenBFromNode;
+
   const pool = usePool({
-    currencyA: tokenA?.token,
-    currencyB: tokenB?.token,
+    currencyA: tokenA,
+    currencyB: tokenB,
     tier: positionDetails?.tier,
   });
 
@@ -237,7 +335,8 @@ export function usePositionFees({
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
-  const { address, chainId } = useAccount();
+  const { address } = useAccount();
+  const chainId = useCurrentChainId();
   const { addRecentTransaction } = useRecentTransactionsStore();
 
   const result = useReadContract({

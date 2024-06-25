@@ -108,7 +108,7 @@ export default function PoolsPage() {
   const { isConnected } = useAccount();
   const router = useRouter();
 
-  const { loading, positions: positions } = usePositions();
+  const { loading, positions } = usePositions();
 
   return (
     <Container>

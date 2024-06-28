@@ -7,11 +7,12 @@ export enum TokenListLogoType {
   DEFAULT,
   CUSTOM,
   OTHER,
+  AUTOLISTING,
 }
 
 type Props =
   | {
-      type: TokenListLogoType.CUSTOM | TokenListLogoType.DEFAULT;
+      type: TokenListLogoType.CUSTOM | TokenListLogoType.DEFAULT | TokenListLogoType.AUTOLISTING;
       chainId: DexChainId;
     }
   | {
@@ -35,6 +36,19 @@ export default function TokenListLogo(props: Props) {
             }
             alt=""
           />
+          <Image
+            width={18}
+            height={18}
+            className="absolute -right-1 -bottom-0.5 border border-primary-bg rounded-full"
+            src={networks.find((t) => t.chainId === props.chainId)?.logo || ""}
+            alt=""
+          />
+        </div>
+      );
+    case TokenListLogoType.AUTOLISTING:
+      return (
+        <div className="w-10 h-10 relative">
+          <Image width={40} height={40} src="/autolisting-default.svg" alt="" />
           <Image
             width={18}
             height={18}

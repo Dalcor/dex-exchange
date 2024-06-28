@@ -52,11 +52,25 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
 
   const tokens = useTokens(onlyCustom);
 
-  const [value, setValue] = useState("");
+  const [listSearchValue, setListSearchValue] = useState("");
+  const [tokensSearchValue, setTokensSearchValue] = useState("");
 
-  const filteredTokens = useMemo(() => {
-    return value ? tokens.filter((t) => t.name && t.name.toLowerCase().startsWith(value)) : tokens;
-  }, [tokens, value]);
+  const [filteredTokens, isTokenFilterActive] = useMemo(() => {
+    return tokensSearchValue
+      ? [tokens.filter((t) => t.name && t.name.toLowerCase().startsWith(tokensSearchValue)), true]
+      : [tokens, false];
+  }, [tokens, tokensSearchValue]);
+
+  const [filteredLists, isListFilterActive] = useMemo(() => {
+    return listSearchValue
+      ? [
+          lists?.filter(
+            ({ list }) => list.name && list.name.toLowerCase().startsWith(listSearchValue),
+          ),
+          true,
+        ]
+      : [lists, false];
+  }, [lists, listSearchValue]);
 
   return (
     <>
@@ -82,8 +96,8 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
           <div className="flex-grow flex flex-col">
             <div className="flex gap-3">
               <Input
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
+                value={listSearchValue}
+                onChange={(e) => setListSearchValue(e.target.value)}
                 placeholder={t("search_list_name")}
               />
             </div>
@@ -101,23 +115,31 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               <ButtonTooltip text={t("import_list_tooltip")} />
             </div>
 
-            <div className="flex flex-col mt-3 overflow-auto flex-grow">
-              {lists
-                ?.filter((l) => Boolean(l.list.tokens.length))
-                ?.map((tokenList) => {
-                  return (
-                    <TokenListItem
-                      toggle={async () => {
-                        (db.tokenLists as any).update(tokenList.id, {
-                          enabled: !tokenList.enabled,
-                        });
-                      }}
-                      tokenList={tokenList}
-                      key={tokenList.id}
-                    />
-                  );
-                })}
-            </div>
+            {Boolean(filteredLists?.length && !isListFilterActive) && (
+              <div className="flex flex-col mt-3 overflow-auto flex-grow">
+                {filteredLists
+                  ?.filter((l) => Boolean(l.list.tokens.length))
+                  ?.map((tokenList) => {
+                    return (
+                      <TokenListItem
+                        toggle={async () => {
+                          (db.tokenLists as any).update(tokenList.id, {
+                            enabled: !tokenList.enabled,
+                          });
+                        }}
+                        tokenList={tokenList}
+                        key={tokenList.id}
+                      />
+                    );
+                  })}
+              </div>
+            )}
+            {Boolean(filteredLists && !filteredLists.length && isListFilterActive) && (
+              <div className="flex items-center justify-center gap-2 flex-col h-full">
+                <EmptyStateIcon iconName="search-list" />
+                <span className="text-secondary-text">List not found</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -125,8 +147,8 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
           <div className="flex-grow flex flex-col">
             <div className="flex gap-3">
               <Input
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
+                value={tokensSearchValue}
+                onChange={(e) => setTokensSearchValue(e.target.value)}
                 placeholder={t("search_name_or_paste_address")}
               />
             </div>
@@ -148,9 +170,9 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               <div>
                 {t("total")}{" "}
                 {onlyCustom ? (
-                  <>{t("custom_tokens_amount", { amount: filteredTokens.length })}</>
+                  <>{t("custom_tokens_amount", { amount: tokens.length })}</>
                 ) : (
-                  filteredTokens.length
+                  tokens.length
                 )}
               </div>
               <div>
@@ -191,16 +213,22 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
                     }}
                   </AutoSizer>
                 )}
-                {Boolean(!filteredTokens.length && onlyCustom) && (
+                {Boolean(!filteredTokens.length && onlyCustom && !isTokenFilterActive) && (
                   <div className="flex items-center justify-center gap-2 flex-col h-full">
                     <EmptyStateIcon iconName="custom" />
                     <span className="text-secondary-text">{t("no_custom_yet")}</span>
                   </div>
                 )}
-                {Boolean(!filteredTokens.length && !onlyCustom) && (
+                {Boolean(!filteredTokens.length && !onlyCustom && !isTokenFilterActive) && (
                   <div className="flex items-center justify-center gap-2 flex-col h-full">
                     <EmptyStateIcon iconName="tokens" />
                     <span className="text-secondary-text">{t("no_tokens_yet")}</span>
+                  </div>
+                )}
+                {Boolean(!filteredTokens.length && isTokenFilterActive) && (
+                  <div className="flex items-center justify-center gap-2 flex-col h-full">
+                    <EmptyStateIcon iconName="search" />
+                    <span className="text-secondary-text">{t("token_not_found")}</span>
                   </div>
                 )}
               </div>

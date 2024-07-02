@@ -20,6 +20,10 @@ export default function ManageTokensDialog({ isOpen, setIsOpen }: Props) {
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
+    setTimeout(() => {
+      setContent("default");
+      setTokenForPortfolio(null);
+    }, 400);
   }, [setIsOpen]);
 
   return (

@@ -41,7 +41,7 @@ export default function LocaleSwitcher({ isMobile = false }: { isMobile?: boolea
   const [isOpened, setIsOpened] = useState(false);
 
   const redirectedPathName = (locale: string) => {
-    router.replace(pathName, { locale });
+    router.replace(pathName, { locale: locale as any });
   };
 
   return (
@@ -65,7 +65,7 @@ export default function LocaleSwitcher({ isMobile = false }: { isMobile?: boolea
           <ul>
             {locales.map((locale) => {
               return (
-                <li className="min-w-[200px] hover:bg-tertiary-bg cursor-pointer" key={locale}>
+                <li className="min-w-[200px]" key={locale}>
                   <SelectOption
                     onClick={() => redirectedPathName(locale)}
                     isActive={lang === locale}

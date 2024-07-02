@@ -166,7 +166,7 @@ function InternalTrustBadge({ rateRange }: { rateRange: BadgeTrustRate }) {
         "rounded-5 py-1 flex items-center gap-1 pl-2 pr-2 text-12",
         rateRange === "high" && "text-green bg-green-bg",
         rateRange === "medium" && "text-orange bg-orange-bg",
-        rateRange === "low" && "text-red bg-red-bg",
+        rateRange === "low" && "text-red-input bg-red-bg",
       )}
     >
       {iconsMap[rateRange]}
@@ -202,13 +202,13 @@ function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps)
         </div>
       </div>
       <div className="mt-5 grid grid-cols-[2fr_1fr_2fr] h-[5px] relative">
-        <div className="h-full bg-red" />
+        <div className="h-full bg-red-input" />
         <div className="h-full bg-orange" />
         <div className="h-full bg-green" />
         <div
           className={clsx(
             "absolute border-[2px]  top-1/2 -translate-y-1/2 flex items-center justify-center rounded-full w-6 h-6 bg-primary-bg",
-            rateRange === "low" && "border-red",
+            rateRange === "low" && "border-red-input",
             rateRange === "medium" && "border-orange",
             rateRange === "high" && "border-green",
           )}
@@ -253,6 +253,7 @@ function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps)
               <div key={key} className="flex justify-between items-center gap-2">
                 <div className="flex items-center gap-2">
                   <Svg
+                    size={20}
                     className={score >= 0 ? "text-green" : "text-red"}
                     iconName={score >= 0 ? "success" : "warning"}
                   />

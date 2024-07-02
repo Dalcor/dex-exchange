@@ -41,7 +41,7 @@ export const useV3DerivedMintInfo = ({
   const { typedValue, independentField, dependentField, setTypedValue } =
     useLiquidityAmountsStore();
 
-  const [poolState, pool] = usePool(tokenA, tokenB, tier);
+  const [poolState, pool] = usePool({ currencyA: tokenA, currencyB: tokenB, tier });
   const noLiquidity = poolState === PoolState.NOT_EXISTS;
 
   const currencyA = tokenA;

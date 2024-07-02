@@ -6,7 +6,6 @@ import {
   useConnectWalletDialogStateStore,
   useConnectWalletStore,
 } from "@/components/dialogs/stores/useConnectWalletStore";
-import { rdnsMap } from "@/config/connectors/rdns";
 import { wallets } from "@/config/wallets";
 import usePreloaderTimeout from "@/hooks/usePreloader";
 import addToast from "@/other/toast";
@@ -28,8 +27,7 @@ export default function MetamaskCard() {
       onClick={() => {
         setName("metamask");
         console.log(connectors);
-        const connectorToConnect = connectors.find((c) => c.id === rdnsMap.metamask);
-        // const connectorToConnect = connectors[2];
+        const connectorToConnect = connectors[2];
 
         console.log(connectorToConnect);
         if (!connectorToConnect) {

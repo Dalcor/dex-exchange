@@ -18,12 +18,14 @@ export function MobileLink({
   title,
   handleClose,
   isActive,
+  disabled = false,
 }: {
   href: string;
   iconName: IconName;
   title: string;
   handleClose: () => void;
   isActive?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Link
@@ -32,6 +34,7 @@ export function MobileLink({
       className={clsx(
         "flex items-center gap-2 py-3 px-4 hover:text-green duration-200",
         isActive && "bg-navigation-active-mobile text-green pointer-events-none",
+        disabled && "pointer-events-none opacity-50",
       )}
     >
       <Svg iconName={iconName} />
@@ -100,6 +103,7 @@ export default function MobileMenu() {
                     title={t(title)}
                     handleClose={() => setMobileMenuOpened(false)}
                     isActive={pathname.includes(href)}
+                    disabled={href !== "/pools" && href !== "/swap"}
                   />
                 );
               }),

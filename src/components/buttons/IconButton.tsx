@@ -1,6 +1,6 @@
-import clsx from "clsx";
 import { ButtonHTMLAttributes } from "react";
 
+import { SortingType } from "@/app/[locale]/borrow-market/components/BorrowMarketTable";
 import Svg from "@/components/atoms/Svg";
 import { IconName } from "@/config/types/IconName";
 import { clsxMerge } from "@/functions/clsxMerge";
@@ -32,7 +32,7 @@ function IconButtonFrame({
 }: FrameProps) {
   return (
     <button
-      className={clsx(
+      className={clsxMerge(
         buttonSize === IconButtonSize.SMALL && "w-8 h-8",
         buttonSize === IconButtonSize.REGULAR && "w-10 h-10",
         buttonSize === IconButtonSize.LARGE && "w-12 h-12",
@@ -51,6 +51,8 @@ export enum IconButtonVariant {
   DELETE,
   CLOSE,
   CONTROL,
+  COPY,
+  SORTING,
 }
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> &
@@ -62,24 +64,49 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> &
       }
     | { variant: IconButtonVariant.CLOSE; handleClose: () => void }
     | { variant: IconButtonVariant.CONTROL; iconName: IconName }
+    | { variant: IconButtonVariant.COPY; handleCopy: () => void }
     | { variant?: IconButtonVariant.DEFAULT | undefined; iconName: IconName; active?: boolean }
+    | {
+        variant: IconButtonVariant.SORTING;
+        sorting: SortingType;
+        handleSort?: () => void;
+      }
   );
 export default function IconButton(_props: Props) {
   switch (_props.variant) {
     case IconButtonVariant.DEFAULT:
     case undefined: {
-      const { active, iconName, ...props } = _props;
+      const { active, iconName, className, ...props } = _props;
       return (
         <IconButtonFrame
           iconName={_props.iconName}
           className={clsxMerge(
             "text-primary-text rounded-full bg-transparent hover:bg-green-bg duration-200",
             active && "text-green",
+            className,
           )}
           {...props}
         />
       );
     }
+
+    case IconButtonVariant.SORTING:
+      const { handleSort, sorting, className, ...props } = _props;
+
+      return (
+        <IconButtonFrame
+          iconName="sort"
+          onClick={handleSort}
+          className={clsxMerge(
+            "text-primary-text rounded-full bg-transparent duration-200",
+            sorting === SortingType.ASCENDING && "sorting-asc",
+            sorting === SortingType.DESCENDING && "sorting-desc",
+            className,
+          )}
+          {...props}
+        />
+      );
+
     case IconButtonVariant.DELETE: {
       const { handleDelete, ...props } = _props;
 
@@ -112,6 +139,19 @@ export default function IconButton(_props: Props) {
           iconName={iconName}
           buttonSize={buttonSize || IconButtonSize.SMALL}
           className="rounded-2 hover:bg-green-bg bg-transparent duration-200 text-primary-text"
+          {...props}
+        />
+      );
+    }
+    case IconButtonVariant.COPY: {
+      const { handleCopy, buttonSize, ...props } = _props;
+
+      return (
+        <IconButtonFrame
+          iconName="copy"
+          onClick={_props.handleCopy}
+          buttonSize={buttonSize || IconButtonSize.SMALL}
+          className="hover:text-green duration-200 text-primary-text"
           {...props}
         />
       );

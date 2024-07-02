@@ -87,7 +87,7 @@ export default function Drawer({
               <div
                 className={clsx(
                   "drawer-container bg-primary-bg",
-                  placement === "left" && "h-full w-[300px]",
+                  placement === "left" && "h-full",
                   placement === "bottom" && "w-full max-h-[80vh]",
                 )}
                 ref={refs.setFloating}
@@ -98,6 +98,7 @@ export default function Drawer({
                   ...transitionStylesDrawer,
                   top: placement === "left" ? 0 : "unset",
                   bottom: placement === "bottom" ? 0 : "unset",
+                  width: placement === "left" ? "auto" : "unset",
                 }}
               >
                 {children}

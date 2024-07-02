@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
 
+import BorrowMarketFilter from "@/app/[locale]/borrow-market/components/BorrowMarketFilter";
+import BorrowMarketTable from "@/app/[locale]/borrow-market/components/BorrowMarketTable";
 import Container from "@/components/atoms/Container";
 import SelectButton from "@/components/atoms/SelectButton";
 import { InputLabel } from "@/components/atoms/TextField";
@@ -10,10 +12,12 @@ import TabButton from "@/components/buttons/TabButton";
 export default function BorrowMarket({}) {
   const [activeTab, setActiveTab] = useState(0);
 
+  const [isDrawerOpened, setDrawerOpened] = useState(false);
+
   return (
     <Container>
-      <div className="py-[80px]">
-        <div className="grid grid-cols-[3fr_2fr] pb-4">
+      <div className="py-[40px]">
+        <div className="grid grid-cols-[3fr_2fr]">
           <div className="grid grid-cols-3 bg-primary-bg p-1 gap-1 rounded-3">
             {["Borrow market", "My lending orders", "My loan positions"].map((title, index) => {
               return (
@@ -36,8 +40,8 @@ export default function BorrowMarket({}) {
           </div>
         </div>
         {activeTab === 0 && (
-          <div>
-            <div className="grid grid-cols-[1fr_1fr_1fr_117px] gap-2.5">
+          <div className="pt-4">
+            <div className="grid grid-cols-[1fr_1fr_1fr_117px] gap-2.5 mb-4">
               <div className="flex flex-col gap-1">
                 <InputLabel label="Collateral tokens" tooltipText="TooltipText" />
                 <SelectButton size="medium" fullWidth>
@@ -45,23 +49,34 @@ export default function BorrowMarket({}) {
                 </SelectButton>
               </div>
               <div className="flex flex-col gap-1">
-                <InputLabel label="Collateral tokens" tooltipText="TooltipText" />
+                <InputLabel label="Borrow" tooltipText="TooltipText" />
                 <SelectButton size="medium" fullWidth>
                   All tokens
                 </SelectButton>
               </div>
               <div className="flex flex-col gap-1">
-                <InputLabel label="Collateral tokens" tooltipText="TooltipText" />
+                <InputLabel label="Tradable tokens" tooltipText="TooltipText" />
                 <SelectButton size="medium" fullWidth>
                   All tokens
                 </SelectButton>
               </div>
               <div className="flex items-end">
-                <Button variant={ButtonVariant.OUTLINED} endIcon="filter">
+                <Button
+                  onClick={() => setDrawerOpened(true)}
+                  variant={ButtonVariant.OUTLINED}
+                  endIcon="filter"
+                >
                   Filter
                 </Button>
+
+                <BorrowMarketFilter
+                  isDrawerOpened={isDrawerOpened}
+                  setDrawerOpened={setDrawerOpened}
+                />
               </div>
             </div>
+
+            <BorrowMarketTable />
           </div>
         )}
         {activeTab === 1 && <div className="">My lending orders</div>}

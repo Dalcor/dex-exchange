@@ -1,15 +1,11 @@
-import _Big from "big.js";
 import JSBI from "jsbi";
 import invariant from "tiny-invariant";
-import toFormat from "toformat";
 
 import { BigintIsh, MaxUint256, Rounding } from "@/sdk_hybrid/constants";
 
 import { Currency } from "../currency";
 import { Token } from "../token";
 import { Fraction } from "./fraction";
-
-const Big = toFormat(_Big);
 
 export class CurrencyAmount<T extends Currency> extends Fraction {
   public readonly currency: T;
@@ -99,10 +95,11 @@ export class CurrencyAmount<T extends Currency> extends Fraction {
     return super.divide(this.decimalScale).toFixed(decimalPlaces, format, rounding);
   }
 
-  public toExact(format: object = { groupSeparator: "" }): string {
-    Big.DP = this.currency.decimals;
-    return new Big(this.quotient.toString()).div(this.decimalScale.toString()).toFormat(format);
-  }
+  //TODO: rewrite without Big and toFormat
+  // public toExact(format: object = { groupSeparator: "" }): string {
+  //   Big.DP = this.currency.decimals;
+  //   return new Big(this.quotient.toString()).div(this.decimalScale.toString()).toFormat(format);
+  // }
 
   public get wrapped(): CurrencyAmount<Token> {
     if (this.currency.isToken) return this as CurrencyAmount<Token>;

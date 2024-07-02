@@ -6,7 +6,7 @@ import { FeeAmount } from "@/sdk_hybrid/constants";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
 import useFeeTierDistributionQuery from "../graphql/thegraph/FeeTierDistributionQuery";
-import usePools, { PoolKeys, PoolState, usePool } from "./usePools";
+import { PoolsParams, PoolState, usePools } from "./usePools";
 
 // maximum number of blocks past which we consider the data stale
 const MAX_DATA_BLOCK_AGE = 20;
@@ -33,16 +33,16 @@ export function useFeeTierDistribution({
   });
 
   // fetch all pool states to determine pool state
-  const poolKeys: PoolKeys = useMemo(
+  const poolParams: PoolsParams = useMemo(
     () => [
-      [tokenA, tokenB, FeeAmount.LOWEST],
-      [tokenA, tokenB, FeeAmount.LOW],
-      [tokenA, tokenB, FeeAmount.MEDIUM],
-      [tokenA, tokenB, FeeAmount.HIGH],
+      { currencyA: tokenA, currencyB: tokenB, tier: FeeAmount.LOWEST },
+      { currencyA: tokenA, currencyB: tokenB, tier: FeeAmount.LOW },
+      { currencyA: tokenA, currencyB: tokenB, tier: FeeAmount.MEDIUM },
+      { currencyA: tokenA, currencyB: tokenB, tier: FeeAmount.HIGH },
     ],
     [tokenA, tokenB],
   );
-  const [poolStateVeryLow, poolStateLow, poolStateMedium, poolStateHigh] = usePools(poolKeys);
+  const [poolStateVeryLow, poolStateLow, poolStateMedium, poolStateHigh] = usePools(poolParams);
 
   return useMemo(() => {
     if (isLoading || error || !distributions) {

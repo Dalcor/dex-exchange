@@ -7,6 +7,7 @@ import {
   useConnectWalletStore,
 } from "@/components/dialogs/stores/useConnectWalletStore";
 import { rdnsMap } from "@/config/connectors/rdns";
+import { config } from "@/config/wagmi/config";
 import { wallets } from "@/config/wallets";
 import usePreloaderTimeout from "@/hooks/usePreloader";
 import addToast from "@/other/toast";

@@ -1,16 +1,11 @@
-import "../../assets/styles/globals.css";
-
 import clsx from "clsx";
-import { Golos_Text, Space_Mono } from "next/font/google";
-import { headers } from "next/headers";
+import { Golos_Text } from "next/font/google";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
-import { cookieToInitialState } from "wagmi";
 
 import { Providers } from "@/app/[locale]/providers";
 import Footer from "@/components/common/Footer";
 import Header from "@/components/common/Header";
-import { config } from "@/config/wagmi/config";
 
 const golos_text = Golos_Text({
   subsets: ["latin"],
@@ -29,31 +24,23 @@ export default async function RootLayout({
   params: { locale },
 }: PropsWithChildren<Props>) {
   let messages;
-  const initialState = cookieToInitialState(config, headers().get("cookie"));
 
   try {
     messages = (await import(`../../../messages/${locale}.json`)).default;
   } catch (error) {
+    console.log(error);
     notFound();
   }
 
   return (
-    <html suppressHydrationWarning lang={locale}>
-      <body className={clsx(golos_text.className)}>
-        <Providers initialState={initialState} messages={messages} locale={locale}>
-          <div className="grid h-[100vh] grid-rows-layout">
-            <Header />
-            <div>{children}</div>
-            <Footer />
-          </div>
-        </Providers>
-      </body>
-    </html>
+    <>
+      <Providers messages={messages} locale={locale}>
+        <div className="grid h-[100vh] grid-rows-layout">
+          <Header />
+          <div>{children}</div>
+          <Footer />
+        </div>
+      </Providers>
+    </>
   );
 }
-
-export const metadata = {
-  title: "Dex Exchange",
-  description:
-    "Next generation decentralized exchange for ERC-223 & ERC-20 tokens with margin trading, 15% cheaper GAS fees and transparent auto-listings for any tokens.",
-};

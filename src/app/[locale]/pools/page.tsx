@@ -112,7 +112,7 @@ export default function PoolsPage() {
 
   return (
     <Container>
-      <div className="py-[80px] px-10 flex justify-center">
+      <div className="py-[40px] px-10 flex justify-center">
         <div className="w-full">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5 px-4 md:px-0 gap-2">
             <h1 className="text-24">Pools</h1>

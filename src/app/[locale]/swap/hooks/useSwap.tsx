@@ -127,7 +127,7 @@ export function useSwapParams() {
             abi: POOL_ABI,
             functionName: "swap",
             args: [
-              address as Address, //account address
+              (address as Address) || poolAddress.poolAddress, // account address
               zeroForOne, //zeroForOne
               parseUnits(typedValue, tokenA.decimals), // amountSpecified
               BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
@@ -278,6 +278,7 @@ export default function useSwap() {
       const result = await approveA();
 
       if (!result?.success) {
+        setSwapStatus(SwapStatus.INITIAL);
         return;
       }
     }

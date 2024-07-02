@@ -11,7 +11,7 @@ const localStorageKey = "swap-recent-transactions-state";
 export const useSwapRecentTransactionsStore = create<SwapRecentTransactionsStore>()(
   persist(
     (set, get) => ({
-      isOpened: true,
+      isOpened: false,
       setIsOpened: (isOpened) => set({ isOpened }),
     }),
     {

@@ -7,6 +7,7 @@ import { NumericFormat } from "react-number-format";
 import SelectButton from "@/components/atoms/SelectButton";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
+import { clsxMerge } from "@/functions/clsxMerge";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 export enum Standard {
@@ -19,12 +20,14 @@ function StandardOption({
   standard,
   active,
   setIsActive,
+  token,
 }: {
   balance: string | undefined;
   symbol: string | undefined;
   standard: Standard;
   active: Standard;
   setIsActive: (isActive: Standard) => void;
+  token: Token | undefined;
 }) {
   const t = useTranslations("Swap");
   const isActive = useMemo(() => {
@@ -35,29 +38,39 @@ function StandardOption({
     <div
       role="button"
       onClick={() => setIsActive(standard)}
-      className={clsx(
+      className={clsxMerge(
         "*:z-10 flex flex-col gap-1 px-3 py-2.5  rounded-2 before:absolute before:rounded-3 before:w-full before:h-full before:left-0 before:top-0 before:duration-200 relative before:bg-standard-gradient hover:cursor-pointer text-12 group",
         isActive ? "before:opacity-100" : "before:opacity-0 hover:before:opacity-100",
         standard === Standard.ERC223 && "before:rotate-180 items-end bg-swap-radio-right",
         standard === Standard.ERC20 && "bg-swap-radio-left",
+        !token && "before:opacity-0 hover:before:opacity-0 before:cursor-default cursor-default",
       )}
     >
-      <div className="flex items-center gap-1">
-        <span className="text-12">{t("standard")}</span>
+      <div className="flex items-center gap-1 cursor-default">
+        <span className={clsxMerge("text-12", !token && "text-tertiary-text")}>
+          {t("standard")}
+        </span>
         <Badge color="green" text={standard} />
         <Tooltip
           iconSize={16}
           text={standard === Standard.ERC20 ? t("erc20_tooltip") : t("erc223_tooltip")}
         />
       </div>
-      <span
-        className={clsx("block", standard === active ? "text-primary-text" : "text-tertiary-text")}
-      >
-        {t("balance")}{" "}
-        <span className="whitespace-nowrap">
-          {balance || "0.0"} {symbol}
+      {!token ? (
+        <div className="text-tertiary-text cursor-default">—</div>
+      ) : (
+        <span
+          className={clsx(
+            "block",
+            standard === active ? "text-primary-text" : "text-tertiary-text",
+          )}
+        >
+          {t("balance")}{" "}
+          <span className="whitespace-nowrap">
+            {balance || "0.0"} {symbol}
+          </span>
         </span>
-      </span>
+      )}
     </div>
   );
 }
@@ -71,6 +84,7 @@ export default function TokenInput({
   label,
   setStandard,
   standard,
+  readOnly = false,
 }: {
   handleClick: () => void;
   token: Token | undefined;
@@ -81,6 +95,7 @@ export default function TokenInput({
   label: string;
   standard: Standard;
   setStandard: (standard: Standard) => void;
+  readOnly?: boolean;
 }) {
   const t = useTranslations("Swap");
 
@@ -92,7 +107,10 @@ export default function TokenInput({
           <NumericFormat
             inputMode="decimal"
             placeholder="0.0"
-            className={clsx("h-12 bg-transparent outline-0 border-0 text-32 w-full peer")}
+            className={clsx(
+              "h-12 bg-transparent outline-0 border-0 text-32 w-full peer placeholder:text-tertiary-text",
+              readOnly && "pointer-events-none",
+            )}
             type="text"
             value={value}
             onValueChange={(values) => {
@@ -127,20 +145,28 @@ export default function TokenInput({
       </div>
       <div className="flex flex-col md:grid md:grid-cols-2 gap-1 md:gap-3 relative">
         <StandardOption
+          token={token}
           setIsActive={setStandard}
           active={standard}
           standard={Standard.ERC20}
           symbol={token?.symbol}
           balance={balance0}
         />
-        <div className="relative mx-auto md:absolute md:left-1/2 md:top-[14px] md:-translate-x-1/2 z-10 text-10 h-[32px] rounded-20 border-green border p-1 flex gap-1 items-center">
+        <div
+          className={clsxMerge(
+            "relative mx-auto md:absolute md:left-1/2 md:top-[14px] md:-translate-x-1/2 z-10 text-10 h-[32px] rounded-20 border-green border p-1 flex gap-1 items-center",
+            !token && "border-secondary-border",
+          )}
+        >
           {[Standard.ERC20, Standard.ERC223].map((st) => {
             return (
               <button
                 key={st}
-                className={clsx(
+                className={clsxMerge(
                   "h-6 rounded-3 duration-200 px-2 min-w-[58px]",
                   standard === st ? "bg-green text-black shadow-checkbox" : "hover:bg-green-bg",
+                  !token && st === Standard.ERC20 && "bg-primary-bg shadow-none",
+                  !token && "text-tertiary-text pointer-events-none",
                 )}
                 onClick={() => setStandard(st)}
               >
@@ -150,6 +176,7 @@ export default function TokenInput({
           })}
         </div>
         <StandardOption
+          token={token}
           setIsActive={setStandard}
           active={standard}
           standard={Standard.ERC223}

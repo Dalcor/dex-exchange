@@ -33,6 +33,7 @@ const config: Config = {
         "navigation-hover": "linear-gradient(180deg, #0F0F0F -6.77%, #3B4E47 100%);",
         "navigation-active-mobile":
           "linear-gradient(270deg, #1D1E1E 13.5%, #283631 97.85%, #70C59E 100%)",
+        "table-gradient": "linear-gradient(to bottom, #272727 60px, #1D1E1E 60px, #1D1E1E 100%)",
       },
       keyframes: {
         appear: {
@@ -116,7 +117,7 @@ const config: Config = {
       "secondary-text": "#BCC3C2", // changed
       "tertiary-text": "#798180", // changed
 
-      "primary-border": "#5A5A5A", // changed
+      "primary-border": "#575A58", // changed
       "secondary-border": "#383C3A", // changed
       "tertiary-border": "#2A2D2C", // changed
       "hover-border": "#7E8281", // changed
@@ -167,6 +168,7 @@ const config: Config = {
   plugins: [
     require("@tailwindcss/container-queries"),
     require("@savvywombat/tailwindcss-grid-areas"),
+    require("tailwind-scrollbar")({ preferredStrategy: "pseudoelements", nocompatible: true }),
   ],
 };
 export default config;

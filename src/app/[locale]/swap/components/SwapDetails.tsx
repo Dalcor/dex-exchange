@@ -5,6 +5,7 @@ import React, { useMemo, useState } from "react";
 import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import { TokenTrade } from "@/app/[locale]/swap/libs/trading";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
+import { useSwapDetailsStateStore } from "@/app/[locale]/swap/stores/useSwapDetailsStateStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import Collapse from "@/components/atoms/Collapse";
 import Svg from "@/components/atoms/Svg";
@@ -44,7 +45,8 @@ export default function SwapDetails({
   tokenB: Token;
 }) {
   const t = useTranslations("Swap");
-  const [expanded, setExpanded] = useState(false);
+  const { isDetailsExpanded, setIsDetailsExpanded, setIsPriceInverted, isPriceInverted } =
+    useSwapDetailsStateStore();
   const { typedValue } = useSwapAmountsStore();
 
   const dependentAmount: CurrencyAmount<Currency> | undefined = useMemo(() => {
@@ -56,25 +58,47 @@ export default function SwapDetails({
 
   return (
     <>
-      <div className={clsx("mt-5 bg-tertiary-bg", !expanded ? "rounded-3" : "rounded-t-3")}>
+      <div
+        className={clsx("mt-5 bg-tertiary-bg", !isDetailsExpanded ? "rounded-3" : "rounded-t-3")}
+      >
         <div
           className={clsx(
-            "h-12 flex justify-between duration-200 px-5 items-center",
-            !expanded ? "hover:bg-green-bg rounded-3" : "rounded-t-3",
+            "h-12 flex justify-between duration-200 px-5 items-center text-secondary-text",
+            !isDetailsExpanded ? "hover:bg-green-bg rounded-3" : "rounded-t-3",
           )}
           role="button"
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
         >
-          <div className="text-secondary-text text-14 flex items-center">{t("swap_details")}</div>
-          <span className="text-secondary-text">
-            <Svg
-              className={clsx("duration-200", expanded && "-rotate-180")}
-              iconName="small-expand-arrow"
-            />
-          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsPriceInverted(!isPriceInverted);
+            }}
+            className="text-14 flex items-center hover:text-green gap-1 duration-200"
+          >
+            <span>1 {isPriceInverted ? tokenB.symbol : tokenA.symbol}</span>
+            <span>=</span>
+            <span>
+              {isPriceInverted
+                ? trade.executionPrice.invert().toSignificant()
+                : trade.executionPrice.toSignificant()}{" "}
+              {isPriceInverted ? tokenA.symbol : tokenB.symbol} ($0.00)
+            </span>
+            <Svg iconName="swap" size={16} />
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div className=" text-14 flex items-center">{t("swap_details")}</div>
+            <span>
+              <Svg
+                className={clsx("duration-200", isDetailsExpanded && "-rotate-180")}
+                iconName="small-expand-arrow"
+              />
+            </span>
+          </div>
         </div>
       </div>
-      <Collapse open={expanded}>
+      <Collapse open={isDetailsExpanded}>
         <div className="flex flex-col gap-2 pb-4 px-5 bg-tertiary-bg rounded-b-3 text-14">
           <SwapDetailsRow
             title={t("minimum_received")}

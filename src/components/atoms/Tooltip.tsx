@@ -1,10 +1,12 @@
 import {
   arrow,
   autoUpdate,
+  ExtendedRefs,
   flip,
   FloatingArrow,
   FloatingPortal,
   offset,
+  ReferenceType,
   shift,
   useDismiss,
   useFloating,
@@ -13,16 +15,27 @@ import {
   useInteractions,
   useRole,
   useTransitionStyles,
+  VirtualElement,
 } from "@floating-ui/react";
-import React, { useRef, useState } from "react";
+import React, { HTMLProps, LegacyRef, ReactNode, RefObject, useRef, useState } from "react";
 
 import Svg from "@/components/atoms/Svg";
 
 interface Props {
   text: string;
   iconSize?: number;
+  renderTrigger?: (
+    ref: {
+      reference: React.MutableRefObject<ReferenceType | null>;
+      floating: React.MutableRefObject<HTMLElement | null>;
+      setReference: (node: ReferenceType | null) => void;
+      setFloating: (node: HTMLElement | null) => void;
+    } & ExtendedRefs<Element | VirtualElement>,
+    refProps: Record<string, unknown>,
+  ) => React.ReactNode;
+  customOffset?: number;
 }
-export default function Tooltip({ text, iconSize = 24 }: Props) {
+export default function Tooltip({ text, iconSize = 24, renderTrigger, customOffset }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const arrowRef = useRef(null);
 
@@ -33,11 +46,13 @@ export default function Tooltip({ text, iconSize = 24 }: Props) {
     // Make sure the tooltip stays on the screen
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset(12),
+      offset(customOffset || 12),
+      shift({
+        padding: 10,
+      }),
       flip({
         fallbackAxisSideDirection: "start",
       }),
-      shift(),
       arrow({
         element: arrowRef,
       }),
@@ -63,13 +78,17 @@ export default function Tooltip({ text, iconSize = 24 }: Props) {
 
   return (
     <>
-      <span
-        className="cursor-pointer text-secondary-text"
-        ref={refs.setReference}
-        {...getReferenceProps()}
-      >
-        <Svg size={iconSize} iconName="info" />
-      </span>
+      {renderTrigger ? (
+        renderTrigger(refs, getReferenceProps())
+      ) : (
+        <span
+          className="cursor-pointer text-secondary-text"
+          ref={refs.setReference}
+          {...getReferenceProps()}
+        >
+          <Svg size={iconSize} iconName="info" />
+        </span>
+      )}
       <FloatingPortal>
         {isMounted && (
           <div
@@ -84,7 +103,7 @@ export default function Tooltip({ text, iconSize = 24 }: Props) {
               context={context}
               strokeWidth={1}
               stroke={"#5A5A5A"}
-              fill={"#141316"}
+              fill={"#1D1E1E"}
             />
           </div>
         )}

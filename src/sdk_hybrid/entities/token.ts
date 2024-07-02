@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import invariant from "tiny-invariant";
 import { Address } from "viem";
 
@@ -34,8 +33,8 @@ export class Token extends BaseCurrency {
    * Relevant for fee-on-transfer (FOT) token taxes,
    * Not every ERC20 token is FOT token, so this field is optional
    */
-  public readonly buyFeeBps?: BigNumber;
-  public readonly sellFeeBps?: BigNumber;
+  public readonly buyFeeBps?: bigint;
+  public readonly sellFeeBps?: bigint;
 
   /**
    *
@@ -63,8 +62,8 @@ export class Token extends BaseCurrency {
     lists?: any[],
     rate?: Rate,
     bypassChecksum?: boolean,
-    buyFeeBps?: BigNumber,
-    sellFeeBps?: BigNumber,
+    buyFeeBps?: bigint,
+    sellFeeBps?: bigint,
   ) {
     super(chainId, decimals, symbol, name);
     if (bypassChecksum) {
@@ -75,10 +74,10 @@ export class Token extends BaseCurrency {
       this.address1 = validateAndParseAddress(address1);
     }
     if (buyFeeBps) {
-      invariant(buyFeeBps.gte(BigNumber.from(0)), "NON-NEGATIVE FOT FEES");
+      invariant(buyFeeBps >= BigInt(0), "NON-NEGATIVE FOT FEES");
     }
     if (sellFeeBps) {
-      invariant(sellFeeBps.gte(BigNumber.from(0)), "NON-NEGATIVE FOT FEES");
+      invariant(sellFeeBps >= BigInt(0), "NON-NEGATIVE FOT FEES");
     }
     this.buyFeeBps = buyFeeBps;
     this.sellFeeBps = sellFeeBps;

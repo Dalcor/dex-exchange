@@ -91,7 +91,7 @@ export const usePriceRange = () =>
     const { tokenA, tokenB, setBothTokens } = useAddLiquidityTokensStore();
     const { tier } = useLiquidityTierStore();
 
-    const [poolState, pool] = usePool(tokenA, tokenB, tier);
+    const [poolState, pool] = usePool({ currencyA: tokenA, currencyB: tokenB, tier });
     const noLiquidity = poolState === PoolState.NOT_EXISTS;
 
     const [token0, token1] = useMemo(

@@ -155,7 +155,7 @@ function SwapActionButton() {
 
   if (!tokenA || !tokenB) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button fullWidth disabled>
         {t("select_tokens")}
       </Button>
     );
@@ -163,7 +163,7 @@ function SwapActionButton() {
 
   if (!typedValue) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button fullWidth disabled>
         {t("enter_amount")}
       </Button>
     );

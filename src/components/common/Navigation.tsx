@@ -19,6 +19,7 @@ const menuItems: Array<
       <div className="flex flex-col py-1 bg-primary-bg rounded-2 shadow-popover">
         <MobileLink href="/swap" iconName="swap" title={t("swap")} handleClose={handleClose} />
         <MobileLink
+          disabled
           href="/margin-trading"
           iconName="margin-trading"
           title={t("margin_trading")}

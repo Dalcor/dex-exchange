@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import { ChangeEvent, useRef, useState } from "react";
 import { useConnect } from "wagmi";
 
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Preloader from "@/components/atoms/Preloader";
@@ -125,7 +124,7 @@ export default function KeystoreConnectDialog({ isOpen, setIsOpen }: Props) {
               }}
               placeholder={t("keystore_password")}
               error={error || undefined}
-              helperText={t("helper_text")}
+              helperText={""}
             />
             <div className="mt-6">
               <Button

@@ -35,12 +35,6 @@ interface Values {
   tags: FeedbackTag[];
 }
 
-const initialValues: Values = {
-  email: "",
-  description: "",
-  tags: [],
-};
-
 const FeedbackSchema = Yup.object().shape({
   email: Yup.string(),
   description: Yup.string()
@@ -67,12 +61,12 @@ function SuccessFeedback() {
       <h3 className="text-secondary-text text-center">
         {t.rich("thank_you_for_the_feedback", {
           telegram: (chunks) => (
-            <a href="#" className="text-green hover:underline">
+            <a href="https://t.me/Dex223_defi" className="text-green hover:underline">
               {chunks}
             </a>
           ),
           discord: (chunks) => (
-            <a href="#" className="text-green hover:underline">
+            <a href="https://discord.gg/t5bdeGC5Jk" className="text-green hover:underline">
               {chunks}
             </a>
           ),
@@ -84,7 +78,17 @@ function SuccessFeedback() {
 export default function FeedbackDialog() {
   const t = useTranslations("Feedback");
 
-  const { isOpen, setIsOpen } = useFeedbackDialogStore();
+  const {
+    isOpen,
+    setIsOpen,
+    tags,
+    description,
+    setDescription,
+    addTag,
+    removeTag,
+    email,
+    setEmail,
+  } = useFeedbackDialogStore();
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleClose = useCallback(() => {
@@ -98,6 +102,12 @@ export default function FeedbackDialog() {
       }, 400);
     }
   }, [isOpen, isSubmitted]);
+
+  const initialValues: Values = {
+    email: email,
+    description: description,
+    tags: tags,
+  };
 
   return (
     <>
@@ -119,7 +129,10 @@ export default function FeedbackDialog() {
             <p className="text-secondary-text text-16 mb-5">
               {t.rich("feel_free_to_share", {
                 github: (chunks) => (
-                  <a href="#" className="text-green hover:underline">
+                  <a
+                    href="https://github.com/EthereumCommonwealth/Dex223-UI/issues"
+                    className="text-green hover:underline"
+                  >
                     {chunks}
                   </a>
                 ),
@@ -177,7 +190,10 @@ export default function FeedbackDialog() {
                     <TextAreaField
                       id="description"
                       name="description"
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        handleChange(e);
+                        setDescription(e.target.value);
+                      }}
                       onBlur={handleBlur}
                       label={`${t("describe_your_issue")} *`}
                       rows={4}
@@ -193,7 +209,10 @@ export default function FeedbackDialog() {
                       name="email"
                       placeholder={t("email_wallet_address_or_nickname")}
                       label={t("email_wallet_address_or_nickname")}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        handleChange(e);
+                        setEmail(e.target.value);
+                      }}
                       onBlur={handleBlur}
                       value={values.email}
                     />
@@ -214,12 +233,14 @@ export default function FeedbackDialog() {
                             checked={values.tags.includes(feedbackTag)}
                             handleChange={async () => {
                               if (values.tags.includes(feedbackTag)) {
+                                removeTag(feedbackTag);
                                 await setFieldValue(
                                   "tags",
                                   values.tags.filter((v) => v !== feedbackTag),
                                   false,
                                 );
                               } else {
+                                addTag(feedbackTag);
                                 await setFieldValue("tags", [...values.tags, feedbackTag], false);
                               }
                             }}

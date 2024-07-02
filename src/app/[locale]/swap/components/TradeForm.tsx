@@ -5,7 +5,7 @@ import { Address, formatGwei, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
-import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
+import { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
@@ -14,11 +14,12 @@ import {
   useSwapGasSettingsStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapRecentTransactionsStore } from "@/app/[locale]/swap/stores/useSwapRecentTransactions";
+import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import Preloader from "@/components/atoms/Preloader";
 import Tooltip from "@/components/atoms/Tooltip";
-import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
-import IconButton from "@/components/buttons/IconButton";
+import Button, { ButtonSize } from "@/components/buttons/Button";
+import IconButton, { IconButtonSize } from "@/components/buttons/IconButton";
 import SwapButton from "@/components/buttons/SwapButton";
 import TokenInput, { Standard } from "@/components/common/TokenInput";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
@@ -96,7 +97,7 @@ function OpenConfirmDialogButton({
 
   if (!tokenA || !tokenB) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button fullWidth disabled>
         {t("select_tokens")}
       </Button>
     );
@@ -104,7 +105,7 @@ function OpenConfirmDialogButton({
 
   if (!typedValue) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button fullWidth disabled>
         {t("enter_amount")}
       </Button>
     );
@@ -112,7 +113,7 @@ function OpenConfirmDialogButton({
 
   if (isTradeLoading) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button fullWidth disabled>
         {t("looking_for_the_best_trade")}
       </Button>
     );
@@ -120,7 +121,7 @@ function OpenConfirmDialogButton({
 
   if (!isTradeReady) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button fullWidth disabled>
         {t("swap_is_unavailable_for_this_pair")}
       </Button>
     );
@@ -128,7 +129,7 @@ function OpenConfirmDialogButton({
 
   if (!isSufficientBalance) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button fullWidth disabled>
         {t("insufficient_balance")}
       </Button>
     );
@@ -165,6 +166,7 @@ export default function TradeForm() {
     setTokenAAddress,
     setTokenBAddress,
   } = useSwapTokensStore();
+  const { computed } = useSwapSettingsStore();
 
   const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
 
@@ -266,7 +268,7 @@ export default function TradeForm() {
       return formatFloat(formatGwei(lowerFeePerGas + gasPrice.maxPriorityFeePerGas));
     }
 
-    return "0.00";
+    return undefined;
   }, [baseFee, gasPrice]);
 
   return (
@@ -275,12 +277,31 @@ export default function TradeForm() {
         <h3 className="font-bold text-20">{t("swap")}</h3>
         <div className="flex items-center">
           <IconButton
+            buttonSize={IconButtonSize.LARGE}
             active={showRecentTransactions}
             iconName="recent-transactions"
             onClick={() => setShowRecentTransactions(!showRecentTransactions)}
           />
-          <IconButton disabled iconName="gas-edit" onClick={() => setIsOpenedFee(true)} />
-          <IconButton iconSize={24} iconName="settings" onClick={() => setIsOpen(true)} />
+          <IconButton
+            buttonSize={IconButtonSize.LARGE}
+            disabled
+            iconName="gas-edit"
+            onClick={() => setIsOpenedFee(true)}
+          />
+
+          <span className="relative">
+            <IconButton
+              buttonSize={IconButtonSize.LARGE}
+              iconSize={24}
+              iconName="settings"
+              onClick={() => setIsOpen(true)}
+            />
+            {computed.isModified && (
+              <div className="absolute w-2 h-2 right-[13px] top-[13px] bg-primary-bg flex items-center justify-center rounded-full">
+                <div className="w-1 h-1 bg-red-input rounded-full" />
+              </div>
+            )}
+          </span>
         </div>
       </div>
       <TokenInput
@@ -323,6 +344,7 @@ export default function TradeForm() {
         />
       </div>
       <TokenInput
+        readOnly
         value={dependentAmount?.toSignificant() || ""}
         onInputChange={(value) => null}
         handleClick={() => {
@@ -348,44 +370,62 @@ export default function TradeForm() {
         }}
       />
 
-      <div
-        className={clsx(
-          "rounded-3 py-3.5 flex flex-col md:flex-row justify-between duration-200 px-5 bg-tertiary-bg my-5 md:items-center",
-        )}
-        // role="button"
-      >
-        <div className="flex items-center gap-1">
-          <Tooltip
-            text={t("network_fee_tooltip", {
-              networkName: networks.find((n) => n.chainId === chainId)?.name,
-            })}
-          />
-          <div className="text-secondary-text text-14 flex items-center">{t("network_fee")}</div>
-        </div>
+      {tokenA && tokenB && typedValue ? (
+        <div
+          className={clsx(
+            "rounded-3 py-3.5 flex flex-col md:flex-row justify-between duration-200 px-5 bg-tertiary-bg my-5 md:items-center",
+          )}
+          // role="button"
+        >
+          {computedGasSpending ? (
+            <>
+              <div className="flex items-center gap-1">
+                <Tooltip
+                  text={t("network_fee_tooltip", {
+                    networkName: networks.find((n) => n.chainId === chainId)?.name,
+                  })}
+                />
+                <div className="text-secondary-text text-14 flex items-center">
+                  {t("network_fee")}
+                </div>
+              </div>
 
-        <div className="flex items-center gap-2 justify-between md:justify-end">
-          <span className="flex gap-2 items-center">
-            <span className="flex items-center justify-center px-2 text-14 rounded-20 font-500 text-secondary-text bg-quaternary-bg">
-              {t(gasOptionTitle[gasOption])}
+              <div className="flex items-center gap-2 justify-between md:justify-end">
+                <span className="flex gap-2 items-center">
+                  {gasOption === GasOption.CUSTOM && (
+                    <span className="flex items-center justify-center px-2 text-14 rounded-20 font-500 text-secondary-text bg-quaternary-bg">
+                      {t(gasOptionTitle[gasOption])}
+                    </span>
+                  )}
+                  <div>
+                    <span className="text-secondary-text mr-1 text-14">
+                      {computedGasSpending} GWEI
+                    </span>{" "}
+                    <span className="mr-1 text-14">~$0.00</span>
+                  </div>
+                </span>
+
+                <button
+                  disabled //TODO: Remove disabled
+                  className="border border-green flex px-4 rounded-5 opacity-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpenedFee(true);
+                  }}
+                >
+                  {t("edit")}
+                </button>
+              </div>
+            </>
+          ) : (
+            <span className="text-secondary-text text-14 flex items-center min-h-[26px]">
+              Fetching best price...
             </span>
-            <div>
-              <span className="text-secondary-text mr-1 text-14">{computedGasSpending} GWEI</span>{" "}
-              <span className="mr-1 text-14">~$0.00</span>
-            </div>
-          </span>
-
-          <button
-            disabled //TODO: Remove disabled
-            className="border border-green flex px-4 rounded-5 opacity-50"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpenedFee(true);
-            }}
-          >
-            {t("edit")}
-          </button>
+          )}
         </div>
-      </div>
+      ) : (
+        <div className="h-5" />
+      )}
 
       {(isLoadingSwap || isPendingSwap || isPendingApprove || isLoadingApprove) && (
         <div className="flex justify-between px-5 py-3 rounded-2 bg-tertiary-bg mb-5">

@@ -48,7 +48,7 @@ export default function NetworkPicker() {
           </SelectButton>
         }
       >
-        <div className="py-1 text-16 bg-primary-bg border border-primary-border rounded-1 min-w-[280px]">
+        <div className="py-1 text-16 bg-primary-bg rounded-1 min-w-[280px]">
           <div>
             {networks.map(({ chainId: _chainId, name, logo }) => {
               return (

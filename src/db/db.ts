@@ -1,12 +1,22 @@
 import Dexie, { Table } from "dexie";
+import { Address } from "viem";
 
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { IRecentTransaction } from "@/stores/useRecentTransactionsStore";
 
-export type TokenListId = number | `custom-${DexChainId}` | `default-${DexChainId}`;
+export type TokenListId =
+  | number
+  | `custom-${DexChainId}`
+  | `default-${DexChainId}`
+  | `core-autolisting-${DexChainId}`
+  | `free-autolisting-${DexChainId}`
+  | undefined;
+
 export interface TokenList {
   id?: TokenListId;
+  autoListingContract?: Address;
+  lastUpdated?: number;
   enabled: boolean;
   chainId: DexChainId;
   list: {
@@ -20,7 +30,6 @@ export interface TokenList {
     tokens: Token[];
   };
 }
-
 export interface RecentTransaction {
   key: string;
   value: IRecentTransaction;
@@ -35,7 +44,7 @@ export class DatabaseDexie extends Dexie {
   constructor() {
     super("DEX223_INDEXED_DB");
     this.version(1).stores({
-      tokenLists: "++id, enabled, list, chainId", // Primary key and indexed props
+      tokenLists: "++id, autoListingContract, lastUpdated, enabled, list, chainId", // Primary key and indexed props
       recentTransactions: "&key",
     });
   }

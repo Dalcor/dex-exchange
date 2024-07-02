@@ -1,11 +1,4 @@
-import {
-  ApolloClient,
-  ApolloLink,
-  concat,
-  HttpLink,
-  InMemoryCache,
-  useLazyQuery,
-} from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 import { useLiveQuery } from "dexie-react-hooks";
 import gql from "graphql-tag";
 import { useCallback, useEffect } from "react";
@@ -14,6 +7,7 @@ import { Address } from "viem";
 import { db, TokenListId } from "@/db/db";
 import { defaultLists } from "@/db/lists";
 import { IIFE } from "@/functions/iife";
+import useAutoListingApolloClient from "@/hooks/useAutoListingApolloClient";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { CORE_AUTO_LISTING_ADDRESS, FREE_AUTO_LISTING_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
@@ -63,14 +57,6 @@ export default function useInitializeDB() {
   }, []);
 }
 
-const authMiddleware = new ApolloLink((operation, forward) => {
-  operation.setContext(() => ({
-    uri: "https://api.studio.thegraph.com/proxy/56540/dex223-auto-listing-sepolia/version/latest/",
-  }));
-
-  return forward(operation);
-});
-
 const query = gql`
   query AutoListings($first: Int!, $addresses: [String!]) {
     autoListings(first: $first, where: { id_in: $addresses }) {
@@ -104,16 +90,6 @@ const queryLastUpdated = gql`
   }
 `;
 
-const client = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: concat(
-    authMiddleware,
-    new HttpLink({
-      uri: "https://api.studio.thegraph.com/proxy/56540/dex223-auto-listing-sepolia/version/latest/",
-    }),
-  ),
-});
-
 export function useAutoListingUpdater() {
   const chainId = useCurrentChainId();
   const allAutoListings = useLiveQuery(() =>
@@ -123,6 +99,8 @@ export function useAutoListingUpdater() {
       .filter((list) => Boolean(list.autoListingContract))
       .toArray(),
   );
+
+  const client = useAutoListingApolloClient();
 
   const [checkLastUpdated] = useLazyQuery(queryLastUpdated, { client });
   const [getAutoListings] = useLazyQuery(query, { client });

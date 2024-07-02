@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import { ChangeEvent, useRef, useState } from "react";
 import { useConnect } from "wagmi";
 
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Preloader from "@/components/atoms/Preloader";
@@ -10,7 +9,6 @@ import TextField from "@/components/atoms/TextField";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import { useConnectWalletStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import { keystore } from "@/config/connectors/keystore/connector";
-import { config } from "@/config/wagmi/config";
 import { unlockKeystore } from "@/functions/keystore";
 
 interface Props {

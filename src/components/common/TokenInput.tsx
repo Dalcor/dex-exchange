@@ -7,6 +7,8 @@ import { NumericFormat } from "react-number-format";
 import SelectButton from "@/components/atoms/SelectButton";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
+import InputButton from "@/components/buttons/InputButton";
 import { clsxMerge } from "@/functions/clsxMerge";
 import { Token } from "@/sdk_hybrid/entities/token";
 
@@ -85,6 +87,10 @@ export default function TokenInput({
   setStandard,
   standard,
   readOnly = false,
+  isHalf = false,
+  isMax = false,
+  setHalf,
+  setMax,
 }: {
   handleClick: () => void;
   token: Token | undefined;
@@ -96,13 +102,26 @@ export default function TokenInput({
   standard: Standard;
   setStandard: (standard: Standard) => void;
   readOnly?: boolean;
+  isHalf?: boolean;
+  isMax?: boolean;
+  setHalf?: () => void;
+  setMax?: () => void;
 }) {
   const t = useTranslations("Swap");
 
   return (
     <div className="p-5 bg-secondary-bg rounded-3 relative">
-      <span className="text-14 block mb-2 text-secondary-text">{label}</span>
-      <div className="flex items-center mb-2 justify-between">
+      <div className="flex justify-between items-center mb-5 h-[22px]">
+        <span className="text-14 block text-secondary-text">{label}</span>
+        {setMax && setHalf && (
+          <div className="flex items-center gap-2">
+            <InputButton onClick={setHalf} isActive={isHalf} text="Half" />
+            <InputButton onClick={setMax} isActive={isMax} text="Max" />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center mb-5 justify-between">
         <div>
           <NumericFormat
             inputMode="decimal"

@@ -6,7 +6,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
-import Input from "@/components/atoms/Input";
+import { SearchInput } from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
 import IconButton from "@/components/buttons/IconButton";
 import { TokenPortfolioDialogContent } from "@/components/dialogs/TokenPortfolioDialog";
@@ -112,7 +112,7 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
             <>
               <div className="w-full md:w-[570px]">
                 <div className="px-4 md:px-10 pb-3">
-                  <Input
+                  <SearchInput
                     value={tokensSearchValue}
                     onChange={(e) => setTokensSearchValue(e.target.value)}
                     placeholder={t("search_name_or_paste_address")}

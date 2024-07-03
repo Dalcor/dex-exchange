@@ -1,11 +1,11 @@
 import { useTranslations } from "next-intl";
-import React, { LegacyRef, ReactNode, Ref, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AutoSizer, List } from "react-virtualized";
 
 import Checkbox from "@/components/atoms/Checkbox";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
-import Input from "@/components/atoms/Input";
+import { SearchInput } from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
@@ -95,7 +95,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
         {activeTab === 0 && (
           <div className="flex-grow flex flex-col">
             <div className="flex gap-3">
-              <Input
+              <SearchInput
                 value={listSearchValue}
                 onChange={(e) => setListSearchValue(e.target.value)}
                 placeholder={t("search_list_name")}
@@ -146,7 +146,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
         {activeTab === 1 && (
           <div className="flex-grow flex flex-col">
             <div className="flex gap-3">
-              <Input
+              <SearchInput
                 value={tokensSearchValue}
                 onChange={(e) => setTokensSearchValue(e.target.value)}
                 placeholder={t("search_name_or_paste_address")}

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import Checkbox from "@/components/atoms/Checkbox";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
-import Input from "@/components/atoms/Input";
+import { SearchInput } from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
 import Button, { ButtonSize } from "@/components/buttons/Button";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
@@ -46,7 +46,7 @@ export default function ImportListWithURL({ setContent }: Props) {
     <div className="flex flex-col flex-grow">
       <h3 className="text-16 font-bold mb-1">{t("import_with_URL")}</h3>
 
-      <Input
+      <SearchInput
         value={tokenListAddressToImport}
         onChange={(e) => setTokenListAddressToImport(e.target.value)}
         placeholder={t("https_or_ipfs_placeholder")}

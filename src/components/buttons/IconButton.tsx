@@ -1,10 +1,10 @@
 import { ButtonHTMLAttributes } from "react";
+import { MouseEvent } from "react";
 
 import { SortingType } from "@/app/[locale]/borrow-market/components/BorrowMarketTable";
 import Svg from "@/components/atoms/Svg";
 import { IconName } from "@/config/types/IconName";
 import { clsxMerge } from "@/functions/clsxMerge";
-
 export enum IconSize {
   SMALL = 20,
   REGULAR = 24,
@@ -62,7 +62,10 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> &
         variant: IconButtonVariant.DELETE;
         handleDelete: () => void;
       }
-    | { variant: IconButtonVariant.CLOSE; handleClose: () => void }
+    | {
+        variant: IconButtonVariant.CLOSE;
+        handleClose: (e: MouseEvent<HTMLButtonElement>) => void;
+      }
     | { variant: IconButtonVariant.CONTROL; iconName: IconName }
     | { variant: IconButtonVariant.COPY; handleCopy: () => void }
     | { variant?: IconButtonVariant.DEFAULT | undefined; iconName: IconName; active?: boolean }
@@ -125,7 +128,7 @@ export default function IconButton(_props: Props) {
       return (
         <IconButtonFrame
           iconName="close"
-          onClick={_props.handleClose}
+          onClick={(e) => _props.handleClose(e)}
           className="text-secondary-text hover:text-primary-text duration-200"
           {...props}
         />

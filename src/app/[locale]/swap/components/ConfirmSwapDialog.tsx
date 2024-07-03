@@ -105,7 +105,7 @@ function SwapRow({
             className={clsxMerge(
               "rotate-90",
               isDisabled ? "text-tertiary-text" : "text-secondary-bg",
-              isReverted && "text-red",
+              isReverted && "text-red-input",
             )}
             iconName="swap"
           />
@@ -114,7 +114,10 @@ function SwapRow({
 
       <div className="flex flex-col justify-center">
         <span className={clsx("text-14", isDisabled ? "text-tertiary-text" : "text-primary-text")}>
-          {isPending ? t("confirm_swap") : t("executing_swap")}
+          {isPending && t("confirm_swap")}
+          {isLoading && t("executing_swap")}
+          {isReverted && "Failed to confirm a swap"}
+          {isSuccess && "Executed swap"}
         </span>
         {!isSettled && <span className="text-green text-12">{t("learn_more_about_swap")}</span>}
       </div>
@@ -127,7 +130,7 @@ function SwapRow({
         )}
         {isLoading && <Preloader size={20} />}
         {isSuccess && <Svg className="text-green" iconName="done" size={20} />}
-        {isReverted && <Svg className="text-red" iconName="warning" size={20} />}
+        {isReverted && <Svg className="text-red-input" iconName="warning" size={20} />}
       </div>
     </div>
   );

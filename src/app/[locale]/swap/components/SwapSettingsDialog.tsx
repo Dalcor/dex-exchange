@@ -1,6 +1,12 @@
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
-import React, { ButtonHTMLAttributes, PropsWithChildren, useCallback, useState } from "react";
+import React, {
+  ButtonHTMLAttributes,
+  PropsWithChildren,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { NumericFormat, NumericFormatProps } from "react-number-format";
 
 import {
@@ -45,17 +51,37 @@ function SettingsButton({ text, isActive = false, ...props }: SettingsButtonProp
 }
 
 type SettingsInputProps = NumericFormatProps & {
+  isError?: boolean;
   isActive?: boolean;
 };
-function SettingsInput({ isActive, ...props }: SettingsInputProps) {
+function SettingsInput({ isActive, isError, ...props }: SettingsInputProps) {
   return (
     <NumericFormat
+      isAllowed={(values) => {
+        console.log(values);
+        const { floatValue } = values;
+        if (values.value === "00" || values.value === "0.0") {
+          return false;
+        }
+
+        if (values.value === "" || values.value === "0" || values.value === "0.") {
+          return true;
+        }
+
+        return typeof floatValue !== "undefined" && floatValue < 99;
+      }}
+      allowNegative={false}
       {...props}
       className={clsx(
-        "focus:border-green focus:outline-0  focus:bg-green-bg focus:shadow-checkbox rounded-2 duration-200 hover:bg-tertiary-bg py-2.5 px-3 text-center placeholder:text-center placeholder:text-secondary-text w-full border",
-        isActive
-          ? "bg-green-bg shadow-checkbox border-green text-primary-text"
-          : "bg-secondary-bg border-transparent hover:bg-green-bg text-secondary-text",
+        " focus:outline-0  rounded-2 duration-200  py-2.5 px-3 text-center placeholder:text-center placeholder:text-secondary-text w-full border",
+        isActive &&
+          !isError &&
+          "bg-green-bg shadow-checkbox border-green text-primary-text hover:bg-green-bg ",
+        isError &&
+          "bg-secondary-bg shadow-error border-red-input text-primary-text hover:bg-red-bg",
+        !isError &&
+          !isActive &&
+          "focus:border-green bg-secondary-bg border-transparent hover:bg-green-bg text-secondary-text  focus:bg-green-bg focus:shadow-checkbox",
       )}
     />
   );
@@ -73,16 +99,18 @@ function getTitle(slippageType: SlippageType, value: string, t: any) {
       return `${values[slippageType]}%`;
 
     case SlippageType.AUTO:
-      return t("auto");
+      return `${value}% ${t("auto")}`;
     case SlippageType.CUSTOM:
       return (
         <div
           className={clsx(
             "flex items-center gap-2",
-            (+value > 1 || +value < 0.05) && "text-orange",
+            Boolean(+value) && (+value > 1 || +value < 0.05) && "text-orange",
+            +value > 50 && "text-red-input",
           )}
         >
-          {value}% {t("custom")} {(+value > 1 || +value < 0.05) && <Svg iconName="warning" />}
+          {value}% {t("custom")}{" "}
+          {Boolean(+value) && (+value > 1 || +value < 0.05) && <Svg iconName="warning" />}
         </div>
       );
   }
@@ -101,11 +129,11 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
   } = useSwapSettingsStore();
 
   const [customSlippage, setCustomSlippage] = useState("");
-  const [customDeadline, setCustomDeadline] = useState(deadline);
+  const [customDeadline, setCustomDeadline] = useState(deadline.toString());
   const [slippageType, setSlippageType] = useState<SlippageType>(SlippageType.MEDIUM);
 
   const handleSave = useCallback(() => {
-    setDeadline(customDeadline);
+    setDeadline(+customDeadline);
 
     switch (slippageType) {
       case SlippageType.LOW:
@@ -149,9 +177,51 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
       }
 
       setSlippageType(_slippageType);
-      setCustomDeadline(deadline);
+      setCustomDeadline(deadline.toString());
     }, 400);
   }, [_slippageType, deadline, setIsOpen]);
+
+  const slippageError = useMemo(() => {
+    if (slippageType === SlippageType.CUSTOM) {
+      return +customSlippage > 50 || !Boolean(+customSlippage);
+    }
+  }, [customSlippage, slippageType]);
+
+  const slippageChanged = useMemo(() => {
+    if (slippageType !== _slippageType) {
+      return true;
+    }
+
+    if (slippageType === SlippageType.CUSTOM) {
+      if (+customSlippage !== slippage) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [_slippageType, customSlippage, slippage, slippageType]);
+
+  const deadlineChanged = useMemo(() => {
+    return +customDeadline !== deadline;
+  }, [customDeadline, deadline]);
+
+  const deadlineError = useMemo(() => {
+    if (customDeadline === "") {
+      return "Deadline cannot be empty";
+    }
+    if (+customDeadline < 1) {
+      return "Deadline cannot be lower then 1";
+    }
+    if (+customDeadline > 4000) {
+      return "Maximum deadline value is 4000 minutes";
+    }
+  }, [customDeadline]);
+
+  const isButtonDisabled = useMemo(() => {
+    return (
+      Boolean(deadlineError) || Boolean(slippageError) || (!slippageChanged && !deadlineChanged)
+    );
+  }, [deadlineChanged, deadlineError, slippageChanged, slippageError]);
 
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -167,7 +237,10 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
         <div className="flex gap-5">
           <span>
             <SettingsButton
-              onClick={() => setSlippageType(SlippageType.AUTO)}
+              onClick={() => {
+                setSlippageType(SlippageType.AUTO);
+                setCustomSlippage("0.5");
+              }}
               isActive={slippageType === SlippageType.AUTO}
               text={t("auto")}
             />
@@ -189,10 +262,11 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
               value={customSlippage}
               onChange={(e) => setCustomSlippage(e.target.value)}
               isActive={slippageType === SlippageType.CUSTOM}
+              isError={+customSlippage > 50 && slippageType === SlippageType.CUSTOM}
             />
           </SettingsButtons>
         </div>
-        {+customSlippage > 1 && slippageType === SlippageType.CUSTOM && (
+        {+customSlippage > 1 && +customSlippage < 50 && slippageType === SlippageType.CUSTOM && (
           <div className="mt-3">
             <Alert
               type="warning"
@@ -200,11 +274,21 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
             />
           </div>
         )}
-        {+customSlippage < 0.05 && slippageType === SlippageType.CUSTOM && (
+        {+customSlippage > 50 && slippageType === SlippageType.CUSTOM && (
           <div className="mt-3">
-            <Alert type="warning" text="Slippage below 0.05% may result in a failed transaction" />
+            <Alert type="error" text="Max slippage cannot exceed 50%" />
           </div>
         )}
+        {+customSlippage < 0.05 &&
+          Boolean(+customSlippage) &&
+          slippageType === SlippageType.CUSTOM && (
+            <div className="mt-3">
+              <Alert
+                type="warning"
+                text="Slippage below 0.05% may result in a failed transaction"
+              />
+            </div>
+          )}
 
         <div className="mt-5">
           <div className="flex justify-between items-center">
@@ -212,8 +296,8 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
               {t("transaction_deadline")}
               <Tooltip iconSize={24} text={t("deadline_tooltip")} />
             </p>
-            {customDeadline !== 20 && (
-              <TextButton className="pr-0" endIcon="reset" onClick={() => setCustomDeadline(20)}>
+            {+customDeadline !== 20 && (
+              <TextButton className="pr-0" endIcon="reset" onClick={() => setCustomDeadline("20")}>
                 {t("set_default")}
               </TextButton>
             )}
@@ -224,9 +308,9 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
               className="pr-[100px] mb-0"
               value={customDeadline}
               onValueChange={(values) => {
-                console.log(values);
-                setCustomDeadline(+values.value);
+                setCustomDeadline(values.value);
               }}
+              isError={+customDeadline > 4000 || +customDeadline < 1}
               allowNegative={false}
               customInput={Input}
             />
@@ -234,6 +318,7 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
               {t("minutes")}
             </span>
           </div>
+          <div className="h-3 text-12 text-red-input">{deadlineError && deadlineError}</div>
 
           <div className="text-12 mt-0.5 h-4" />
         </div>
@@ -242,7 +327,7 @@ export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
           <Button fullWidth variant={ButtonVariant.OUTLINED} onClick={handleCancel}>
             {t("cancel")}
           </Button>
-          <Button fullWidth onClick={handleSave}>
+          <Button disabled={isButtonDisabled} fullWidth onClick={handleSave}>
             {t("save_settings")}
           </Button>
         </div>

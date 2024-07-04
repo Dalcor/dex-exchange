@@ -85,6 +85,7 @@ export default function ImportListWithContract({ setContent }: Props) {
   return (
     <div className="flex flex-col flex-grow">
       <TextField
+        variant="search"
         label="Import token list from contract"
         type="text"
         value={addressToImport}

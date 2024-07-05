@@ -12,6 +12,7 @@ import Switch from "@/components/atoms/Switch";
 import TokenListLogo, { TokenListLogoType } from "@/components/atoms/TokenListLogo";
 import Button, { ButtonColor, ButtonVariant } from "@/components/buttons/Button";
 import { db, TokenList } from "@/db/db";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 
 enum ListActionOption {
@@ -62,9 +63,11 @@ function ListPopoverOption(props: Props) {
     case ListActionOption.VIEW:
       return (
         <a
+          target="_blank"
           className={clsx(
             commonClassName,
-            "text-green hover:text-green-hover opacity-50 pointer-events-none",
+            "text-green hover:text-green-hover",
+            props.href === "#" && "opacity-50 pointer-events-none",
           )}
           href={props.href}
         >
@@ -87,12 +90,17 @@ export default function TokenListItem({
 
   const chainId = useCurrentChainId();
 
+  console.log(tokenList);
+
   return (
     <div>
       <div className="flex justify-between py-1.5">
         <div className="flex gap-3 items-center">
           {tokenList?.id?.toString()?.startsWith("default") && (
             <TokenListLogo type={TokenListLogoType.DEFAULT} chainId={tokenList.chainId} />
+          )}
+          {tokenList?.id?.toString()?.includes("autolisting") && (
+            <TokenListLogo type={TokenListLogoType.AUTOLISTING} chainId={tokenList.chainId} />
           )}
           {tokenList?.id?.toString()?.startsWith("custom") && (
             <TokenListLogo type={TokenListLogoType.CUSTOM} chainId={tokenList.chainId} />
@@ -120,7 +128,18 @@ export default function TokenListItem({
                 }
               >
                 <div className="flex flex-col gap-1 px-5 py-3 border-secondary-border border bg-primary-bg rounded-1 shadow-popover">
-                  <ListPopoverOption variant={ListActionOption.VIEW} href="#" />
+                  <ListPopoverOption
+                    variant={ListActionOption.VIEW}
+                    href={
+                      tokenList.autoListingContract
+                        ? getExplorerLink(
+                            ExplorerLinkType.ADDRESS,
+                            tokenList.autoListingContract,
+                            tokenList.chainId,
+                          )
+                        : "#"
+                    }
+                  />
                   <ListPopoverOption
                     variant={ListActionOption.DOWNLOAD}
                     handleDownload={async () => {
@@ -132,58 +151,60 @@ export default function TokenListItem({
                     }}
                   />
 
-                  {tokenList.id !== `default-${chainId}` && (
-                    <>
-                      <ListPopoverOption
-                        variant={ListActionOption.REMOVE}
-                        handleRemove={() => {
-                          setDeleteOpened(true);
-                        }}
-                      />
-                      <DrawerDialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>
-                        <div className="w-full md:w-[600px]">
-                          <DialogHeader
-                            onClose={() => setDeleteOpened(false)}
-                            title={t("removing_list")}
-                          />
-                          <div className="px-4 pb-4 md:px-10 md:pb-10">
-                            <Image
-                              className="mx-auto mt-5 mb-2"
-                              src={tokenList.list.logoURI || ""}
-                              alt=""
-                              width={60}
-                              height={60}
+                  {tokenList.id !== `default-${chainId}` &&
+                    tokenList.id !== `free-autolisting-${chainId}` &&
+                    tokenList.id !== `core-autolisting-${chainId}` && (
+                      <>
+                        <ListPopoverOption
+                          variant={ListActionOption.REMOVE}
+                          handleRemove={() => {
+                            setDeleteOpened(true);
+                          }}
+                        />
+                        <DrawerDialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>
+                          <div className="w-full md:w-[600px]">
+                            <DialogHeader
+                              onClose={() => setDeleteOpened(false)}
+                              title={t("removing_list")}
                             />
-                            <p className="mb-5 text-center">
-                              {t.rich("confirm_removing_list_text", {
-                                list: tokenList.list.name,
-                                bold: (chunks) => (
-                                  <b className="whitespace-nowrap">&quot;{chunks}&quot;</b>
-                                ),
-                              })}
-                            </p>
-                            <div className="grid grid-cols-2 gap-2">
-                              <Button
-                                variant={ButtonVariant.OUTLINED}
-                                onClick={() => setDeleteOpened(false)}
-                              >
-                                {t("cancel")}
-                              </Button>
-                              <Button
-                                colorScheme={ButtonColor.RED}
-                                onClick={() => {
-                                  db.tokenLists.delete(tokenList.id);
-                                  setDeleteOpened(false);
-                                }}
-                              >
-                                {t("confirm_removing")}
-                              </Button>
+                            <div className="px-4 pb-4 md:px-10 md:pb-10">
+                              <Image
+                                className="mx-auto mt-5 mb-2"
+                                src={tokenList.list.logoURI || ""}
+                                alt=""
+                                width={60}
+                                height={60}
+                              />
+                              <p className="mb-5 text-center">
+                                {t.rich("confirm_removing_list_text", {
+                                  list: tokenList.list.name,
+                                  bold: (chunks) => (
+                                    <b className="whitespace-nowrap">&quot;{chunks}&quot;</b>
+                                  ),
+                                })}
+                              </p>
+                              <div className="grid grid-cols-2 gap-2">
+                                <Button
+                                  variant={ButtonVariant.OUTLINED}
+                                  onClick={() => setDeleteOpened(false)}
+                                >
+                                  {t("cancel")}
+                                </Button>
+                                <Button
+                                  colorScheme={ButtonColor.RED}
+                                  onClick={() => {
+                                    db.tokenLists.delete(tokenList.id);
+                                    setDeleteOpened(false);
+                                  }}
+                                >
+                                  {t("confirm_removing")}
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </DrawerDialog>
-                    </>
-                  )}
+                        </DrawerDialog>
+                      </>
+                    )}
                 </div>
               </Popover>
             </div>

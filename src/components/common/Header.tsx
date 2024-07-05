@@ -30,12 +30,12 @@ export default function Header() {
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             <LocaleSwitcher />
-            <div className="fixed w-[calc(50%-24px)] bottom-2 left-4 md:static md:w-auto md:bottom-unset z-[88] md:z-[15]">
+            <div className="fixed w-[calc(50%-24px)] bottom-2 left-4 md:static md:w-auto md:bottom-unset z-[88] md:z-[21]">
               <TokenListsSettings />
             </div>
             <NetworkPicker />
 
-            <div className="fixed w-[calc(50%-24px)] bottom-2 right-4 md:static md:w-auto md:bottom-unset z-[88] md:z-[15]">
+            <div className="fixed w-[calc(50%-24px)] bottom-2 right-4 md:static md:w-auto md:bottom-unset z-[88] md:z-[21]">
               <AccountDialog />
             </div>
             <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet} />

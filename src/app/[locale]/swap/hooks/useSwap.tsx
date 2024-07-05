@@ -231,8 +231,12 @@ export default function useSwap() {
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
+  console.log(isPendingA + " isPendingA");
+
   useEffect(() => {
+    console.log("Fired pending...");
     if (isPendingA) {
+      console.log("Pending should be fired?");
       setSwapStatus(SwapStatus.PENDING_APPROVE);
     }
     if (isLoadingA) {
@@ -275,8 +279,11 @@ export default function useSwap() {
 
   const handleSwap = useCallback(async () => {
     if (!isAllowedA && tokenA?.address0 === tokenAAddress) {
+      openConfirmInWalletAlert(t("confirm_action_in_your_wallet_alert"));
+
       const result = await approveA();
 
+      closeConfirmInWalletAlert();
       if (!result?.success) {
         setSwapStatus(SwapStatus.INITIAL);
         return;
@@ -380,6 +387,7 @@ export default function useSwap() {
     publicClient,
     setSwapStatus,
     swapParams,
+    t,
     tokenA,
     tokenAAddress,
     tokenB,

@@ -103,7 +103,7 @@ export default function Tooltip({ text, iconSize = 24, renderTrigger, customOffs
               context={context}
               strokeWidth={1}
               stroke={"#5A5A5A"}
-              fill={"#141316"}
+              fill={"#1D1E1E"}
             />
           </div>
         )}

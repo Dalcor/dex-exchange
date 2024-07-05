@@ -7,7 +7,7 @@ import { clsxMerge } from "@/functions/clsxMerge";
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   withArrow?: boolean;
   isOpen?: boolean;
-  size?: "regular" | "large";
+  size?: "regular" | "medium" | "large";
   fullWidth?: boolean;
   variant?: "rounded-primary" | "rounded-secondary" | "rectangle-primary" | "rectangle-secondary";
   className?: string;
@@ -46,6 +46,7 @@ export const SelectButton = forwardRef(
               : "bg-secondary-bg",
           size === "large" && "p-2 md:px-5 md:py-3.5 md:text-24 ",
           size === "regular" && "py-2 px-3",
+          size === "medium" && "py-3 px-3",
           fullWidth && withArrow && "w-full justify-between",
           fullWidth && !withArrow && "w-full justify-center",
           className,

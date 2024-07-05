@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, formatGwei, parseUnits } from "viem";
+import { Address, formatEther, formatGwei, formatUnits, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
@@ -271,6 +271,8 @@ export default function TradeForm() {
     return undefined;
   }, [baseFee, gasPrice]);
 
+  console.log(Boolean(tokenA0Balance?.value));
+
   return (
     <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
       <div className="flex justify-between items-center mb-2.5">
@@ -314,6 +316,83 @@ export default function TradeForm() {
         token={tokenA}
         balance0={tokenA0Balance ? formatFloat(tokenA0Balance.formatted) : "0.0"}
         balance1={tokenA1Balance ? formatFloat(tokenA1Balance.formatted) : "0.0"}
+        setMax={
+          (Boolean(tokenA0Balance?.value) &&
+            Boolean(tokenAAddress) &&
+            tokenAAddress === tokenA?.address0) ||
+          (Boolean(tokenA1Balance?.value) &&
+            Boolean(tokenAAddress) &&
+            tokenAAddress === tokenA?.address1)
+            ? () => {
+                if (tokenA0Balance && tokenAAddress === tokenA?.address0) {
+                  setTypedValue({
+                    typedValue: tokenA0Balance.formatted,
+
+                    field: Field.CURRENCY_A,
+                  });
+                }
+                if (tokenA1Balance && tokenAAddress === tokenA?.address1) {
+                  setTypedValue({
+                    typedValue: tokenA1Balance.formatted,
+
+                    field: Field.CURRENCY_A,
+                  });
+                }
+              }
+            : undefined
+        }
+        setHalf={
+          (Boolean(tokenA0Balance?.value) &&
+            Boolean(tokenAAddress) &&
+            tokenAAddress === tokenA?.address0) ||
+          (Boolean(tokenA1Balance?.value) &&
+            Boolean(tokenAAddress) &&
+            tokenAAddress === tokenA?.address1)
+            ? () => {
+                if (tokenA0Balance && tokenAAddress === tokenA?.address0) {
+                  setTypedValue({
+                    typedValue: formatUnits(
+                      tokenA0Balance.value / BigInt(2),
+                      tokenA0Balance.decimals,
+                    ),
+
+                    field: Field.CURRENCY_A,
+                  });
+                }
+                if (tokenA1Balance && tokenAAddress === tokenA?.address1) {
+                  setTypedValue({
+                    typedValue: formatUnits(
+                      tokenA1Balance.value / BigInt(2),
+                      tokenA1Balance.decimals,
+                    ),
+
+                    field: Field.CURRENCY_A,
+                  });
+                }
+              }
+            : undefined
+        }
+        isHalf={
+          (tokenAAddress === tokenA?.address0 &&
+            tokenA0Balance &&
+            typedValue !== "0" &&
+            typedValue ===
+              formatUnits(tokenA0Balance.value / BigInt(2), tokenA0Balance.decimals)) ||
+          (tokenAAddress === tokenA?.address1 &&
+            typedValue !== "0" &&
+            tokenA1Balance &&
+            typedValue === formatUnits(tokenA1Balance.value / BigInt(2), tokenA1Balance.decimals))
+        }
+        isMax={
+          (tokenAAddress === tokenA?.address0 &&
+            typedValue !== "0" &&
+            tokenA0Balance &&
+            typedValue === tokenA0Balance.formatted) ||
+          (tokenAAddress === tokenA?.address1 &&
+            typedValue !== "0" &&
+            tokenA1Balance &&
+            typedValue === tokenA1Balance.formatted)
+        }
         label={t("you_pay")}
         standard={
           Boolean(tokenAAddress) && tokenAAddress === tokenA?.address1

@@ -13,6 +13,7 @@ import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
 import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { useConfirmInWalletAlertStore } from "@/stores/useConfirmInWalletAlertStore";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -125,41 +126,47 @@ export default function useAllowance({
         gas: estimatedGas + BigInt(30000),
       });
 
-      console.log(params);
-      const hash = await walletClient.writeContract({ ...request, account: undefined });
+      let hash;
 
-      const transaction = await publicClient.getTransaction({
-        hash,
-      });
-
-      const nonce = transaction.nonce;
-
-      addRecentTransaction(
-        {
-          hash,
-          nonce,
-          chainId,
-          gas: {
-            model: GasFeeModel.EIP1559,
-            gas: BigInt(30000).toString(),
-            maxFeePerGas: undefined,
-            maxPriorityFeePerGas: undefined,
-          },
-          params: {
-            ...stringifyObject(params),
-            abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
-          },
-          title: {
-            symbol: token.symbol!,
-            template: RecentTransactionTitleTemplate.APPROVE,
-            amount: formatFloat(formatUnits(amountToCheck, token.decimals)),
-            logoURI: token?.logoURI || "/tokens/placeholder.svg",
-          },
-        },
-        address,
-      );
+      try {
+        hash = await walletClient.writeContract({ ...request, account: undefined });
+      } catch (e) {
+        setStatus(AllowanceStatus.INITIAL);
+        console.log(e);
+      }
 
       if (hash) {
+        const transaction = await publicClient.getTransaction({
+          hash,
+        });
+
+        const nonce = transaction.nonce;
+
+        addRecentTransaction(
+          {
+            hash,
+            nonce,
+            chainId,
+            gas: {
+              model: GasFeeModel.EIP1559,
+              gas: BigInt(30000).toString(),
+              maxFeePerGas: undefined,
+              maxPriorityFeePerGas: undefined,
+            },
+            params: {
+              ...stringifyObject(params),
+              abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
+            },
+            title: {
+              symbol: token.symbol!,
+              template: RecentTransactionTitleTemplate.APPROVE,
+              amount: formatFloat(formatUnits(amountToCheck, token.decimals)),
+              logoURI: token?.logoURI || "/tokens/placeholder.svg",
+            },
+          },
+          address,
+        );
+
         setStatus(AllowanceStatus.LOADING);
         await publicClient.waitForTransactionReceipt({ hash });
         setStatus(AllowanceStatus.SUCCESS);

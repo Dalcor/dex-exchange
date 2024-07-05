@@ -94,14 +94,10 @@ export function useStoreAllowance({
     }
 
     if (currentAllowanceItem) {
-      console.log(currentAllowanceItem);
-      console.log(blockNumber);
       if (
         currentAllowanceItem.blockNumber !== blockNumber ||
         currentAllowanceData !== currentAllowanceItem.allowedToSpend
       ) {
-        console.log("FIREEEEEEED UPDATE!!!!");
-        console.log(currentAllowanceData);
         updateAllowedToSpend(currentAllowanceItem, currentAllowanceData, blockNumber);
       }
     } else {
@@ -265,9 +261,6 @@ export function useStoreAllowance({
       }
     });
   }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
-
-  console.log(currentAllowanceItem?.allowedToSpend);
-  console.log(currentAllowanceData);
 
   return {
     isAllowed: Boolean(

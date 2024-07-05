@@ -1,6 +1,8 @@
+import clsx from "clsx";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
-import { formatEther, formatGwei, formatUnits } from "viem";
+import { useMemo, useState } from "react";
+import { NumericFormat } from "react-number-format";
+import { formatEther, formatGwei, formatUnits, parseUnits } from "viem";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
@@ -33,6 +35,9 @@ const TransactionItem = ({
   chainSymbol,
   index,
   itemsCount,
+  isError,
+  setFieldError,
+  setCustomAmount,
 }: {
   transaction?: ApproveTransaction;
   gasPrice: any;
@@ -40,7 +45,28 @@ const TransactionItem = ({
   chainSymbol: string;
   index: number;
   itemsCount: number;
+  isError: boolean;
+  setFieldError: (isError: boolean) => void;
+  setCustomAmount: (amount: bigint) => void;
 }) => {
+  const [localValue, setLocalValue] = useState(
+    formatUnits(transaction?.amount || BigInt(0), transaction?.token.decimals || 18),
+  );
+  const localValueBigInt = useMemo(() => {
+    if (!transaction) return BigInt(0);
+    return parseUnits(localValue, transaction.token.decimals);
+  }, [localValue, transaction]);
+
+  const updateValue = (value: string) => {
+    if (!transaction?.token) return;
+    setLocalValue(value);
+    const valueBigInt = parseUnits(value, transaction.token.decimals);
+    setCustomAmount(valueBigInt);
+
+    if (transaction.amount) {
+      setFieldError(valueBigInt < transaction.amount ? true : false);
+    }
+  };
   if (!transaction) return null;
 
   const { token, amount, estimatedGas, isAllowed, status } = transaction;
@@ -63,6 +89,18 @@ const TransactionItem = ({
           </div>
 
           <div className="flex items-center gap-2 justify-end">
+            {localValueBigInt !== amount &&
+            ![AllowanceStatus.PENDING, AllowanceStatus.LOADING].includes(status) ? (
+              <div
+                className="flex gap-2 text-green cursor-pointer"
+                onClick={() => {
+                  updateValue(formatUnits(amount, token.decimals));
+                }}
+              >
+                <span>Set Default</span>
+                <Svg iconName="reset" />
+              </div>
+            ) : null}
             {status === AllowanceStatus.PENDING && (
               <>
                 <Preloader type="linear" />
@@ -75,10 +113,28 @@ const TransactionItem = ({
             )}
           </div>
         </div>
-        <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
-          <span>{formatUnits(amount || BigInt(0), token.decimals)}</span>
-          <span>{`Amount ${token.symbol}`}</span>
+        <div
+          className={clsx(
+            "flex justify-between bg-secondary-bg px-5 py-3 rounded-3 mt-2 border ",
+            isError ? "border-red" : "border-transparent",
+          )}
+        >
+          <NumericFormat
+            inputMode="decimal"
+            placeholder="0.0"
+            className={clsx("bg-transparent text-primary-text outline-0 border-0 w-full peer ")}
+            type="text"
+            value={localValue}
+            onValueChange={(values) => {
+              updateValue(values.value);
+            }}
+            allowNegative={false}
+          />
+          <span className="text-secondary-text min-w-max">{`Amount ${token.symbol}`}</span>
         </div>
+        {isError ? (
+          <span className="text-12 mt-2 text-red">{`Must be at least ${formatUnits(amount, token.decimals)} ${token.symbol}`}</span>
+        ) : null}
         <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
           <div className="flex flex-col">
             <span className="text-14 text-secondary-text">Gas price</span>
@@ -132,24 +188,45 @@ export const ApproveButton = () => {
     : false;
   const isLoading = isLoadingA20 || isLoadingB20 || isLoadingA223 || isLoadingB223;
 
+  // TODO change name of "token" field
+  type TokenType = "tokenA" | "tokenB";
   const transactionItems = [
     {
       transaction: approveTransactions.approveA,
       standard: "ERC-20" as TokenStandard,
+      token: "tokenA" as TokenType,
     },
     {
       transaction: approveTransactions.depositA,
       standard: "ERC-223" as TokenStandard,
+      token: "tokenA" as TokenType,
     },
     {
       transaction: approveTransactions.approveB,
       standard: "ERC-20" as TokenStandard,
+      token: "tokenB" as TokenType,
     },
     {
       transaction: approveTransactions.depositB,
       standard: "ERC-223" as TokenStandard,
+      token: "tokenB" as TokenType,
     },
   ].filter(({ transaction }) => !!transaction);
+
+  const [customAmounts, setCustomAmounts] = useState(
+    {} as { customAmountA?: bigint; customAmountB?: bigint },
+  );
+
+  const [fieldsErrors, setFieldsErrors] = useState(
+    {} as {
+      [key: string]: boolean;
+    },
+  );
+  const setFieldError = (key: string, isError: boolean) => {
+    setFieldsErrors({ ...fieldsErrors, [key]: isError });
+  };
+  const isFormInvalid = Object.values(fieldsErrors).includes(true);
+
   return (
     <div>
       {/* TODO */}
@@ -172,30 +249,66 @@ export const ApproveButton = () => {
           title={`${t(APPROVE_BUTTON_TEXT[approveTransactionsType] as any)} ${t("approve_transaction_modal_title")}`}
         />
         <div className="w-full md:w-[570px] px-4 md:px-10 md:pb-10 pb-4 mx-auto">
-          {transactionItems.map(({ transaction, standard }: any, index) => (
-            <TransactionItem
-              key={`${transaction.token.symbol}_${standard}`}
-              transaction={transaction}
-              standard={standard}
-              gasPrice={gasPrice}
-              chainSymbol={chainSymbol}
-              index={index}
-              itemsCount={transactionItems.length}
-            />
-          ))}
+          {transactionItems.map(
+            (
+              {
+                transaction,
+                standard,
+                token,
+              }: { transaction: any; standard: any; token: TokenType },
+              index,
+            ) => (
+              <TransactionItem
+                key={`${transaction.token.symbol}_${standard}`}
+                transaction={transaction}
+                standard={standard}
+                gasPrice={gasPrice}
+                chainSymbol={chainSymbol}
+                index={index}
+                itemsCount={transactionItems.length}
+                isError={fieldsErrors[token]}
+                setFieldError={(isError: boolean) => setFieldError(token, isError)}
+                setCustomAmount={(amount: bigint) => {
+                  if (token === "tokenA") {
+                    setCustomAmounts({
+                      ...customAmounts,
+                      customAmountA: amount,
+                    });
+                  } else if (token === "tokenB") {
+                    setCustomAmounts({
+                      ...customAmounts,
+                      customAmountB: amount,
+                    });
+                  }
+                }}
+              />
+            ),
+          )}
           <div className="flex gap-1 justify-center items-center border-t pt-4 border-secondary-border mb-4">
             <span className="text-secondary-text">{t("total_fee")}</span>
             <span className="font-bold">{`${gasPrice && approveTotalGasLimit ? formatFloat(formatEther(gasPrice * approveTotalGasLimit)) : ""} ${chainSymbol}`}</span>
           </div>
 
-          {isLoading ? (
+          {isFormInvalid ? (
+            <Button fullWidth disabled>
+              <span className="flex items-center gap-2">Enter correct values</span>
+            </Button>
+          ) : isLoading ? (
             <Button fullWidth disabled>
               <span className="flex items-center gap-2">
                 <Preloader size={20} color="black" />
               </span>
             </Button>
           ) : (
-            <Button onClick={handleApprove} fullWidth>
+            <Button
+              onClick={() =>
+                handleApprove({
+                  customAmountA: customAmounts?.customAmountA,
+                  customAmountB: customAmounts?.customAmountB,
+                })
+              }
+              fullWidth
+            >
               {t(APPROVE_BUTTON_TEXT[approveTransactionsType] as any)}
             </Button>
           )}

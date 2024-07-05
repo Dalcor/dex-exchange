@@ -169,33 +169,44 @@ export const useLiquidityApprove = () => {
     isDepositedB,
   ]);
 
-  const handleApprove = useCallback(async () => {
-    if (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountToCheckA) {
-      approveA();
-    } else if (tokenAStandard === "ERC-223" && (currentDepositA || BigInt(0)) < amountToCheckA) {
-      depositA();
-    }
-    if (tokenBStandard === "ERC-20" && (currentAllowanceB || BigInt(0)) < amountToCheckB) {
-      approveB();
-    } else if (tokenBStandard === "ERC-223" && (currentDepositB || BigInt(0)) < amountToCheckB) {
-      depositB();
-    }
-  }, [
-    approveA,
-    approveB,
-    depositA,
-    depositB,
-    tokenAStandard,
-    tokenBStandard,
-    currentAllowanceA,
-    currentAllowanceB,
-    currentDepositA,
-    currentDepositB,
-    amountToCheckA,
-    amountToCheckB,
-    // estimatedGasA,
-    // estimatedGasB,
-  ]);
+  const handleApprove = useCallback(
+    async ({
+      customAmountA,
+      customAmountB,
+    }: {
+      customAmountA?: bigint;
+      customAmountB?: bigint;
+    }) => {
+      const amountA = customAmountA || amountToCheckA;
+      const amountB = customAmountB || amountToCheckB;
+      if (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountA) {
+        approveA(customAmountA);
+      } else if (tokenAStandard === "ERC-223" && (currentDepositA || BigInt(0)) < amountA) {
+        depositA(customAmountA);
+      }
+      if (tokenBStandard === "ERC-20" && (currentAllowanceB || BigInt(0)) < amountB) {
+        approveB(customAmountB);
+      } else if (tokenBStandard === "ERC-223" && (currentDepositB || BigInt(0)) < amountB) {
+        depositB(customAmountB);
+      }
+    },
+    [
+      approveA,
+      approveB,
+      depositA,
+      depositB,
+      tokenAStandard,
+      tokenBStandard,
+      currentAllowanceA,
+      currentAllowanceB,
+      currentDepositA,
+      currentDepositB,
+      amountToCheckA,
+      amountToCheckB,
+      // estimatedGasA,
+      // estimatedGasB,
+    ],
+  );
 
   const approveTransactionsType = useMemo(() => {
     const isERC20Transaction = approveTransactions.approveA || approveTransactions.approveB;

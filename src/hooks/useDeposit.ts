@@ -75,89 +75,95 @@ export default function useDeposit({
     return false;
   }, [amountToCheck, currentDeposit?.data, token]);
 
-  const writeTokenDeposit = useCallback(async () => {
-    if (
-      !amountToCheck ||
-      !contractAddress ||
-      !token ||
-      !walletClient ||
-      !address ||
-      !chainId ||
-      !publicClient
-    ) {
-      return;
-    }
-
-    setStatus(AllowanceStatus.PENDING);
-
-    try {
-      const params = {
-        account: address as Address,
-        abi: ERC223_ABI,
-        functionName: "transfer" as "transfer",
-        address: token.address1 as Address,
-        args: [contractAddress, amountToCheck] as any,
-      };
-
-      const estimatedGas = await publicClient.estimateContractGas(params);
-
-      const { request } = await publicClient.simulateContract({
-        ...params,
-        gas: estimatedGas + BigInt(30000),
-      });
-      const hash = await walletClient.writeContract({ ...request, account: undefined });
-
-      const transaction = await publicClient.getTransaction({
-        hash,
-      });
-
-      const nonce = transaction.nonce;
-
-      addRecentTransaction(
-        {
-          hash,
-          nonce,
-          chainId,
-          gas: {
-            model: GasFeeModel.EIP1559,
-            gas: (estimatedGas + BigInt(30000)).toString(),
-            maxFeePerGas: undefined,
-            maxPriorityFeePerGas: undefined,
-          },
-          params: {
-            ...stringifyObject(params),
-            abi: [getAbiItem({ name: "transfer", abi: ERC223_ABI })],
-          },
-          title: {
-            symbol: token.symbol!,
-            template: RecentTransactionTitleTemplate.DEPOSIT,
-            amount: formatFloat(formatUnits(amountToCheck, token.decimals)),
-            logoURI: token?.logoURI || "/tokens/placeholder.svg",
-          },
-        },
-        address,
-      );
-
-      if (hash) {
-        setStatus(AllowanceStatus.LOADING);
-        await publicClient.waitForTransactionReceipt({ hash });
-        setStatus(AllowanceStatus.SUCCESS);
+  const writeTokenDeposit = useCallback(
+    async (customAmount?: bigint) => {
+      if (
+        !amountToCheck ||
+        !contractAddress ||
+        !token ||
+        !walletClient ||
+        !address ||
+        !chainId ||
+        !publicClient
+      ) {
+        return;
       }
-    } catch (e) {
-      console.log(e);
-      setStatus(AllowanceStatus.INITIAL);
-      addToast("Unexpected error, please contact support", "error");
-    }
-  }, [
-    amountToCheck,
-    contractAddress,
-    token,
-    walletClient,
-    address,
-    chainId,
-    publicClient,
-    addRecentTransaction,
-  ]);
+
+      setStatus(AllowanceStatus.PENDING);
+
+      // customAmount — is amount provided by user in approve amount input
+      const amount = customAmount || amountToCheck;
+
+      try {
+        const params = {
+          account: address as Address,
+          abi: ERC223_ABI,
+          functionName: "transfer" as "transfer",
+          address: token.address1 as Address,
+          args: [contractAddress, amount] as any,
+        };
+
+        const estimatedGas = await publicClient.estimateContractGas(params);
+
+        const { request } = await publicClient.simulateContract({
+          ...params,
+          gas: estimatedGas + BigInt(30000),
+        });
+        const hash = await walletClient.writeContract({ ...request, account: undefined });
+
+        const transaction = await publicClient.getTransaction({
+          hash,
+        });
+
+        const nonce = transaction.nonce;
+
+        addRecentTransaction(
+          {
+            hash,
+            nonce,
+            chainId,
+            gas: {
+              model: GasFeeModel.EIP1559,
+              gas: (estimatedGas + BigInt(30000)).toString(),
+              maxFeePerGas: undefined,
+              maxPriorityFeePerGas: undefined,
+            },
+            params: {
+              ...stringifyObject(params),
+              abi: [getAbiItem({ name: "transfer", abi: ERC223_ABI })],
+            },
+            title: {
+              symbol: token.symbol!,
+              template: RecentTransactionTitleTemplate.DEPOSIT,
+              amount: formatFloat(formatUnits(amount, token.decimals)),
+              logoURI: token?.logoURI || "/tokens/placeholder.svg",
+            },
+          },
+          address,
+        );
+
+        if (hash) {
+          setStatus(AllowanceStatus.LOADING);
+          await publicClient.waitForTransactionReceipt({ hash });
+          setStatus(AllowanceStatus.SUCCESS);
+        }
+      } catch (e) {
+        console.log(e);
+        setStatus(AllowanceStatus.INITIAL);
+        addToast("Unexpected error, please contact support", "error");
+      }
+    },
+    [
+      amountToCheck,
+      contractAddress,
+      token,
+      walletClient,
+      address,
+      chainId,
+      publicClient,
+      addRecentTransaction,
+    ],
+  );
 
   const [estimatedGas, setEstimatedGas] = useState(BigInt(101000) as null | bigint);
   useDeepEffect(() => {

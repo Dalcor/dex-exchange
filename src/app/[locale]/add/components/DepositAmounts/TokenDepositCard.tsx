@@ -1,9 +1,9 @@
 import clsx from "clsx";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { NumericFormat } from "react-number-format";
-import { Address, formatEther, formatGwei, formatUnits } from "viem";
+import { Address, formatEther, formatGwei, formatUnits, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
 import Dialog from "@/components/atoms/Dialog";
@@ -12,7 +12,7 @@ import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import Button from "@/components/buttons/Button";
+import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
 import { getChainSymbol } from "@/functions/getChainSymbol";
 import { AllowanceStatus } from "@/hooks/useAllowance";
@@ -21,6 +21,8 @@ import useRevoke from "@/hooks/useRevoke";
 import useWithdraw from "@/hooks/useWithdraw";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
+import { Currency } from "@/sdk_hybrid/entities/currency";
+import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
 
 export const InputRange = ({
@@ -78,6 +80,12 @@ function InputTotalAmount({
 
   const totalBalance = (token0Balance?.value || BigInt(0)) + (token1Balance?.value || BigInt(0));
 
+  const maxHandler = () => {
+    if (token) {
+      onChange(formatFloat(formatUnits(totalBalance, token.decimals)));
+    }
+  };
+
   return (
     <div>
       <div className="bg-primary-bg px-5 pt-5 pb-4 rounded-3">
@@ -107,10 +115,20 @@ function InputTotalAmount({
         </div>
         <div className="flex justify-between items-center text-14">
           <span className="text-secondary-text">—</span>
-          <span className="text-14 md:text-16">
-            {token &&
-              `Balance: ${formatFloat(formatUnits(totalBalance, token.decimals))} ${token.symbol}`}
-          </span>
+          <div className="flex gap-1">
+            <span className="text-12 md:text-14">
+              {token &&
+                `Balance: ${formatFloat(formatUnits(totalBalance, token.decimals))} ${token.symbol}`}
+            </span>
+            <Button
+              variant={ButtonVariant.CONTAINED}
+              size={ButtonSize.EXTRA_SMALL}
+              className="bg-tertiary-bg text-main-primary xl:px-2 hover:bg-secondary-bg"
+              onClick={maxHandler}
+            >
+              Max
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -128,11 +146,11 @@ function InputStandardAmount({
   gasPrice,
 }: {
   standard: TokenStandard;
-  value?: number;
+  value?: string;
   token?: Token;
   currentAllowance: bigint; // currentAllowance or currentDeposit
   status: AllowanceStatus;
-  revokeHandler: () => void; // onWithdraw or onWithdraw
+  revokeHandler: (customAmount?: bigint) => void; // onWithdraw or onWithdraw
   gasPrice?: bigint;
   estimatedGas: bigint | null;
 }) {
@@ -152,6 +170,19 @@ function InputStandardAmount({
   }, [blockNumber, refetchBalance]);
 
   const [isOpenedRevokeDialog, setIsOpenedRevokeDialog] = useState(false);
+
+  const [localValue, setLocalValue] = useState(undefined as undefined | string);
+  const localValueBigInt = useMemo(() => {
+    if (!token || !localValue) return undefined;
+    return parseUnits(localValue, token?.decimals);
+  }, [localValue, token]);
+
+  const [isError, setIsError] = useState(false);
+  const updateValue = (value: string) => {
+    setLocalValue(value);
+    const valueBigInt = token ? parseUnits(value, token.decimals) : undefined;
+    setIsError(!valueBigInt || valueBigInt <= currentAllowance ? false : true);
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -244,10 +275,47 @@ function InputStandardAmount({
               </div>
             </div>
 
-            <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
-              <span>{formatUnits(currentAllowance || BigInt(0), token.decimals)}</span>
-              <span>{t("amount", { symbol: token.symbol })}</span>
-            </div>
+            {standard === "ERC-20" ? (
+              <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
+                {/* TODO Input withdraw */}
+                <span>{formatUnits(currentAllowance || BigInt(0), token.decimals)}</span>
+                <span>{t("amount", { symbol: token.symbol })}</span>
+              </div>
+            ) : (
+              <>
+                <div
+                  className={clsx(
+                    "flex justify-between bg-secondary-bg px-5 py-3 rounded-3 mt-2 border ",
+                    isError ? "border-red" : "border-transparent",
+                  )}
+                >
+                  <NumericFormat
+                    inputMode="decimal"
+                    placeholder="0.0"
+                    className={clsx(
+                      "bg-transparent text-primary-text outline-0 border-0 w-full peer ",
+                    )}
+                    type="text"
+                    value={
+                      typeof localValue === "undefined"
+                        ? formatUnits(currentAllowance || BigInt(0), token.decimals)
+                        : localValue
+                    }
+                    onValueChange={(values) => {
+                      updateValue(values.value);
+                    }}
+                    allowNegative={false}
+                  />
+                  <span className="text-secondary-text min-w-max">
+                    {t("amount", { symbol: token.symbol })}
+                  </span>
+                </div>
+                {isError ? (
+                  <span className="text-12 mt-2 text-red">{`Must be no more than ${formatUnits(currentAllowance, token.decimals)} ${token.symbol}`}</span>
+                ) : null}
+              </>
+            )}
+
             <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
               <div className="flex flex-col">
                 <span className="text-14 text-secondary-text">{t("gas_price")}</span>
@@ -260,22 +328,23 @@ function InputStandardAmount({
               <div className="flex flex-col">
                 <span className="text-14 text-secondary-text">{t("fee")}</span>
                 <span>{`${gasPrice && estimatedGas ? formatFloat(formatEther(gasPrice * estimatedGas)) : ""} ${getChainSymbol(chainId)}`}</span>
-                const chainId = useCurrentChainId();
               </div>
             </div>
-            {[AllowanceStatus.INITIAL].includes(status) ? (
-              <Button onClick={revokeHandler} fullWidth>
+            {isError ? (
+              <Button fullWidth disabled>
+                <span className="flex items-center gap-2">Enter correct values</span>
+              </Button>
+            ) : [AllowanceStatus.INITIAL].includes(status) ? (
+              <Button onClick={() => revokeHandler(localValueBigInt)} fullWidth>
                 {standard === "ERC-20" ? t("revoke") : t("withdraw")}
               </Button>
-            ) : null}
-            {[AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
+            ) : [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
               <Button fullWidth disabled>
                 <span className="flex items-center gap-2">
                   <Preloader size={20} color="black" />
                 </span>
               </Button>
-            ) : null}
-            {[AllowanceStatus.SUCCESS].includes(status) ? (
+            ) : [AllowanceStatus.SUCCESS].includes(status) ? (
               <Button onClick={() => setIsOpenedRevokeDialog(false)} fullWidth>
                 {t("close")}
               </Button>
@@ -290,6 +359,7 @@ function InputStandardAmount({
 export default function TokenDepositCard({
   token,
   value,
+  formattedValue,
   onChange,
   isDisabled,
   isOutOfRange,
@@ -298,7 +368,8 @@ export default function TokenDepositCard({
   gasPrice,
 }: {
   token?: Token;
-  value: string;
+  value: CurrencyAmount<Currency> | undefined;
+  formattedValue: string;
   onChange: (value: string) => void;
   isDisabled: boolean;
   isOutOfRange: boolean;
@@ -309,15 +380,10 @@ export default function TokenDepositCard({
   const t = useTranslations("Liquidity");
 
   const chainId = useCurrentChainId();
-  // TODO BigInt
-  const ERC223Value =
-    typeof value !== "undefined" && value !== ""
-      ? (parseFloat(value) / 100) * tokenStandardRatio
-      : undefined;
-  const ERC20Value =
-    typeof value !== "undefined" && value !== "" && typeof ERC223Value !== "undefined"
-      ? parseFloat(value) - ERC223Value
-      : undefined;
+  const valueBigInt = value ? BigInt(value.quotient.toString()) : BigInt(0);
+
+  const ERC223Value = (valueBigInt * BigInt(tokenStandardRatio)) / BigInt(100);
+  const ERC20Value = valueBigInt - ERC223Value;
 
   const {
     revokeHandler,
@@ -346,6 +412,7 @@ export default function TokenDepositCard({
       </div>
     );
   }
+  if (!token) return;
   return (
     <div className="rounded-3 bg-secondary-bg p-5">
       <div className="flex items-center gap-2 mb-3">
@@ -355,12 +422,17 @@ export default function TokenDepositCard({
         </h3>
       </div>
       <div className="flex flex-col gap-5">
-        <InputTotalAmount token={token} value={value} onChange={onChange} isDisabled={isDisabled} />
+        <InputTotalAmount
+          token={token}
+          value={formattedValue}
+          onChange={onChange}
+          isDisabled={isDisabled}
+        />
         <InputRange value={tokenStandardRatio} onChange={setTokenStandardRatio} />
         <div className="flex flex-col md:flex-row justify-between gap-4 w-full">
           <InputStandardAmount
             standard="ERC-20"
-            value={ERC20Value}
+            value={formatUnits(ERC20Value, token.decimals)}
             currentAllowance={currentAllowance || BigInt(0)}
             token={token}
             revokeHandler={revokeHandler}
@@ -370,7 +442,7 @@ export default function TokenDepositCard({
           />
           <InputStandardAmount
             standard="ERC-223"
-            value={ERC223Value}
+            value={formatUnits(ERC223Value, token.decimals)}
             token={token}
             currentAllowance={currentDeposit || BigInt(0)}
             revokeHandler={withdrawHandler}

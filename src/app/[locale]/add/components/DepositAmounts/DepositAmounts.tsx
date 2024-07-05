@@ -68,7 +68,8 @@ export const DepositAmounts = ({
   return (
     <div className={clsx("flex flex-col gap-4 md:gap-5", isFormDisabled && "opacity-20")}>
       <TokenDepositCard
-        value={formattedAmounts[Field.CURRENCY_A]}
+        value={parsedAmounts[Field.CURRENCY_A]}
+        formattedValue={formattedAmounts[Field.CURRENCY_A]}
         onChange={(value) => setTypedValue({ field: Field.CURRENCY_A, typedValue: value })}
         token={currencies[Field.CURRENCY_A]}
         isDisabled={isFormDisabled}
@@ -98,7 +99,8 @@ export const DepositAmounts = ({
         <FeeDetailsButton isDisabled={isFormDisabled} />
       </div>
       <TokenDepositCard
-        value={formattedAmounts[Field.CURRENCY_B]}
+        value={parsedAmounts[Field.CURRENCY_B]}
+        formattedValue={formattedAmounts[Field.CURRENCY_B]}
         onChange={(value) => setTypedValue({ field: Field.CURRENCY_B, typedValue: value })}
         token={currencies[Field.CURRENCY_B]}
         isDisabled={isFormDisabled}

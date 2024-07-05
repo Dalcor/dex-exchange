@@ -44,6 +44,11 @@ export const useLiquidityPriceRangeStore = create<LiquidityPriceRangeStore>((set
         leftRangeTypedValue: (price * zoomLevels.initialMin).toFixed(6),
         rightRangeTypedValue: (price * zoomLevels.initialMax).toFixed(6),
       });
+    } else {
+      set({
+        leftRangeTypedValue: "",
+        rightRangeTypedValue: "",
+      });
     }
   },
   setFullRange: () =>

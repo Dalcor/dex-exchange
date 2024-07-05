@@ -121,6 +121,8 @@ const config: Config = {
       "secondary-border": "#383C3A", // changed
       "tertiary-border": "#2A2D2C", // changed
       "hover-border": "#7E8281", // changed
+
+      "main-primary": "#70C59E",
     },
     spacing: {
       "0": "0px",

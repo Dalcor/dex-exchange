@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import React, { PropsWithChildren, ReactNode, useMemo } from "react";
-import { formatGwei } from "viem";
+import { Address, formatGwei } from "viem";
 import { useGasPrice } from "wagmi";
 
 import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
@@ -12,6 +12,7 @@ import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsSt
 import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
 import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
+import { useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
@@ -20,12 +21,15 @@ import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import Button, { ButtonVariant } from "@/components/buttons/Button";
+import Button from "@/components/buttons/Button";
+import IconButton from "@/components/buttons/IconButton";
 import { Standard } from "@/components/common/TokenInput";
 import { networks } from "@/config/networks";
 import { clsxMerge } from "@/functions/clsxMerge";
 import { formatFloat } from "@/functions/formatFloat";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
@@ -37,23 +41,33 @@ function ApproveRow({
   isPending = false,
   isLoading = false,
   isSuccess = false,
+  hash,
 }: {
   logoURI: string | undefined;
   isLoading?: boolean;
   isPending?: boolean;
   isSuccess?: boolean;
+  hash?: Address | undefined;
 }) {
   const t = useTranslations("Swap");
 
   return (
-    <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
-      <Image
-        className={clsx(isSuccess && "", "rounded-full")}
-        src={logoURI}
-        alt=""
-        width={32}
-        height={32}
-      />
+    <div
+      className={clsx(
+        "grid grid-cols-[32px_1fr_1fr] gap-2 h-10 before:absolute relative before:left-[15px] before:-bottom-4 before:w-0.5 before:h-3 before:rounded-1",
+        isSuccess ? "before:bg-green" : "before:bg-green-bg",
+      )}
+    >
+      <div className="flex items-center">
+        <Image
+          className={clsx(isSuccess && "", "rounded-full")}
+          src={logoURI}
+          alt=""
+          width={32}
+          height={32}
+        />
+      </div>
+
       <div className="flex flex-col justify-center">
         <span className={isSuccess ? "text-secondary-text text-14" : "text-14"}>
           {isSuccess ? t("approved") : t("approve")}
@@ -61,6 +75,14 @@ function ApproveRow({
         {!isSuccess && <span className="text-green text-12">{t("why_do_i_have_to_approve")}</span>}
       </div>
       <div className="flex items-center gap-2 justify-end">
+        {hash && (
+          <a
+            target="_blank"
+            href={getExplorerLink(ExplorerLinkType.TRANSACTION, hash, DexChainId.SEPOLIA)}
+          >
+            <IconButton iconName="forward" />
+          </a>
+        )}
         {isPending && (
           <>
             <Preloader type="linear" />
@@ -81,6 +103,7 @@ function SwapRow({
   isSettled = false,
   isReverted = false,
   isDisabled = false,
+  hash,
 }: {
   isLoading?: boolean;
   isPending?: boolean;
@@ -88,12 +111,13 @@ function SwapRow({
   isSuccess?: boolean;
   isReverted?: boolean;
   isDisabled?: boolean;
+  hash?: Address | undefined;
 }) {
   const t = useTranslations("Swap");
 
   return (
-    <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
-      <div className="flex items-center">
+    <div className="grid grid-cols-[32px_1fr_1fr] gap-2 h-10">
+      <div className="flex items-center h-full">
         <div
           className={clsxMerge(
             "p-1 rounded-full h-8 w-8",
@@ -122,6 +146,14 @@ function SwapRow({
         {!isSettled && <span className="text-green text-12">{t("learn_more_about_swap")}</span>}
       </div>
       <div className="flex items-center gap-2 justify-end">
+        {hash && (
+          <a
+            target="_blank"
+            href={getExplorerLink(ExplorerLinkType.TRANSACTION, hash, DexChainId.SEPOLIA)}
+          >
+            <IconButton iconName="forward" />
+          </a>
+        )}
         {isPending && (
           <>
             <Preloader type="linear" />
@@ -156,6 +188,10 @@ function SwapActionButton() {
     isRevertedSwap,
   } = useSwapStatus();
 
+  const { swapHash, approveHash } = useSwapStatusStore();
+
+  console.log(approveHash);
+
   if (!tokenA || !tokenB) {
     return (
       <Button fullWidth disabled>
@@ -185,7 +221,7 @@ function SwapActionButton() {
     if (isLoadingApprove) {
       return (
         <Rows>
-          <ApproveRow isLoading logoURI={tokenA.logoURI} />
+          <ApproveRow hash={approveHash} isLoading logoURI={tokenA.logoURI} />
           <SwapRow isDisabled />
         </Rows>
       );
@@ -195,7 +231,9 @@ function SwapActionButton() {
   if (isPendingSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
+        {tokenAAddress === tokenA.address0 && (
+          <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+        )}
         <SwapRow isPending />
       </Rows>
     );
@@ -204,8 +242,10 @@ function SwapActionButton() {
   if (isLoadingSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
-        <SwapRow isLoading />
+        {tokenAAddress === tokenA.address0 && (
+          <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+        )}
+        <SwapRow hash={swapHash} isLoading />
       </Rows>
     );
   }
@@ -213,8 +253,10 @@ function SwapActionButton() {
   if (isSuccessSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
-        <SwapRow isSettled isSuccess />
+        {tokenAAddress === tokenA.address0 && (
+          <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+        )}
+        <SwapRow hash={swapHash} isSettled isSuccess />
       </Rows>
     );
   }
@@ -222,8 +264,10 @@ function SwapActionButton() {
   if (isRevertedSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
-        <SwapRow isSettled isReverted />
+        {tokenAAddress === tokenA.address0 && (
+          <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+        )}
+        <SwapRow hash={swapHash} isSettled isReverted />
       </Rows>
     );
   }

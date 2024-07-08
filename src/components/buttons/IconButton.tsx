@@ -1,10 +1,10 @@
-import clsx from "clsx";
 import { ButtonHTMLAttributes } from "react";
+import { MouseEvent } from "react";
 
+import { SortingType } from "@/app/[locale]/borrow-market/components/BorrowMarketTable";
 import Svg from "@/components/atoms/Svg";
 import { IconName } from "@/config/types/IconName";
 import { clsxMerge } from "@/functions/clsxMerge";
-
 export enum IconSize {
   SMALL = 20,
   REGULAR = 24,
@@ -52,6 +52,7 @@ export enum IconButtonVariant {
   CLOSE,
   CONTROL,
   COPY,
+  SORTING,
 }
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> &
@@ -61,10 +62,18 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> &
         variant: IconButtonVariant.DELETE;
         handleDelete: () => void;
       }
-    | { variant: IconButtonVariant.CLOSE; handleClose: () => void }
+    | {
+        variant: IconButtonVariant.CLOSE;
+        handleClose: (e: MouseEvent<HTMLButtonElement>) => void;
+      }
     | { variant: IconButtonVariant.CONTROL; iconName: IconName }
     | { variant: IconButtonVariant.COPY; handleCopy: () => void }
     | { variant?: IconButtonVariant.DEFAULT | undefined; iconName: IconName; active?: boolean }
+    | {
+        variant: IconButtonVariant.SORTING;
+        sorting: SortingType;
+        handleSort?: () => void;
+      }
   );
 export default function IconButton(_props: Props) {
   switch (_props.variant) {
@@ -83,6 +92,24 @@ export default function IconButton(_props: Props) {
         />
       );
     }
+
+    case IconButtonVariant.SORTING:
+      const { handleSort, sorting, className, ...props } = _props;
+
+      return (
+        <IconButtonFrame
+          iconName="sort"
+          onClick={handleSort}
+          className={clsxMerge(
+            "text-primary-text rounded-full bg-transparent duration-200",
+            sorting === SortingType.ASCENDING && "sorting-asc",
+            sorting === SortingType.DESCENDING && "sorting-desc",
+            className,
+          )}
+          {...props}
+        />
+      );
+
     case IconButtonVariant.DELETE: {
       const { handleDelete, ...props } = _props;
 
@@ -101,7 +128,7 @@ export default function IconButton(_props: Props) {
       return (
         <IconButtonFrame
           iconName="close"
-          onClick={_props.handleClose}
+          onClick={(e) => _props.handleClose(e)}
           className="text-secondary-text hover:text-primary-text duration-200"
           {...props}
         />

@@ -36,7 +36,7 @@ const CHAIN_ID = DexChainId.SEPOLIA;
 
 // This middleware will allow us to dynamically update the uri for the requests based off chainId
 // For more information: https://www.apollographql.com/docs/react/networking/advanced-http-networking/
-const authMiddleware = new ApolloLink((operation, forward) => {
+export const authMiddleware = new ApolloLink((operation, forward) => {
   // add the authorization to the headers
   // const chainId = store.getState().application.chainId;
   const chainId = CHAIN_ID;

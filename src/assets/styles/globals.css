@@ -10,6 +10,12 @@
   --wcm-overlay-background-color:  rgba(0, 0, 0, 0.7)!important;
   --wcm-color-overlay: #5A5A5A!important;
   --wcm-container-border-radius: 8px!important;
+
+  --sorting-arrow-up-fill: theme("colors.secondary-text");
+  --sorting-arrow-down-fill: theme("colors.secondary-text");
+
+  --sorting-arrow-up-drop-shadow: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+  --sorting-arrow-down-drop-shadow: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
 }
 
 body {
@@ -240,4 +246,15 @@ input[type="range"]:focus::-moz-range-thumb {
     transform: rotate(360deg);
     filter: hue-rotate(180deg);
   }
+}
+
+
+.sorting-asc {
+  --sorting-arrow-up-fill: theme("colors.green");
+  --sorting-arrow-up-drop-shadow: drop-shadow(0 0 2px #B3FFE2CC);
+}
+
+.sorting-desc {
+  --sorting-arrow-down-fill: theme("colors.green");
+  --sorting-arrow-down-drop-shadow: drop-shadow(0 0 2px #B3FFE2CC);
 }

@@ -24,7 +24,7 @@ import { POOL_ABI } from "@/config/abis/pool";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
-import useAllowance from "@/hooks/useAllowance";
+import { useStoreAllowance } from "@/hooks/useAllowance";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useDeepEffect from "@/hooks/useDeepEffect";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
@@ -212,33 +212,21 @@ export default function useSwap() {
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
 
-  const { status: swapStatus, setStatus: setSwapStatus } = useSwapStatusStore();
+  const {
+    status: swapStatus,
+    setStatus: setSwapStatus,
+    setSwapHash,
+    setApproveHash,
+  } = useSwapStatusStore();
   const { isOpen: confirmDialogOpened } = useConfirmSwapDialogStore();
 
-  const {
-    isOpened: confirmAlertOpened,
-    openConfirmInWalletAlert,
-    closeConfirmInWalletAlert,
-  } = useConfirmInWalletAlertStore();
-  const {
-    isAllowed: isAllowedA,
-    writeTokenApprove: approveA,
-    isPending: isPendingA,
-    isLoading: isLoadingA,
-  } = useAllowance({
+  const { openConfirmInWalletAlert, closeConfirmInWalletAlert } = useConfirmInWalletAlertStore();
+
+  const { isAllowed: isAllowedA, writeTokenApprove: approveA } = useStoreAllowance({
     token: tokenA,
     contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
-
-  useEffect(() => {
-    if (isPendingA) {
-      setSwapStatus(SwapStatus.PENDING_APPROVE);
-    }
-    if (isLoadingA) {
-      setSwapStatus(SwapStatus.LOADING_APPROVE);
-    }
-  }, [isLoadingA, isPendingA, setSwapStatus]);
 
   const gasPriceFormatted = useMemo(() => {
     switch (gasPrice.model) {
@@ -274,12 +262,25 @@ export default function useSwap() {
   }, [confirmDialogOpened, setSwapStatus, swapStatus]);
 
   const handleSwap = useCallback(async () => {
+    if (!publicClient) {
+      return;
+    }
+
     if (!isAllowedA && tokenA?.address0 === tokenAAddress) {
+      openConfirmInWalletAlert(t("confirm_action_in_your_wallet_alert"));
+
+      setSwapStatus(SwapStatus.PENDING_APPROVE);
       const result = await approveA();
 
       if (!result?.success) {
         setSwapStatus(SwapStatus.INITIAL);
         return;
+      } else {
+        setApproveHash(result.hash);
+        setSwapStatus(SwapStatus.LOADING_APPROVE);
+        closeConfirmInWalletAlert();
+
+        await publicClient.waitForTransactionReceipt({ hash: result.hash });
       }
     }
 
@@ -290,7 +291,6 @@ export default function useSwap() {
       !tokenB ||
       !trade ||
       !output ||
-      !publicClient ||
       !chainId ||
       !swapParams
       // !estimatedGas
@@ -325,6 +325,7 @@ export default function useSwap() {
     closeConfirmInWalletAlert();
 
     if (hash) {
+      setSwapHash(hash);
       const transaction = await publicClient.getTransaction({
         hash,
       });
@@ -378,6 +379,8 @@ export default function useSwap() {
     openConfirmInWalletAlert,
     output,
     publicClient,
+    setApproveHash,
+    setSwapHash,
     setSwapStatus,
     swapParams,
     t,

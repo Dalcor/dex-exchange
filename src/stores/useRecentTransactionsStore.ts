@@ -3,18 +3,15 @@ import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
 
 import { db } from "@/db/db";
-
 export enum RecentTransactionStatus {
   PENDING,
   SUCCESS,
   ERROR,
 }
-
 export enum GasFeeModel {
   EIP1559,
   LEGACY,
 }
-
 export enum RecentTransactionTitleTemplate {
   APPROVE,
   DEPOSIT,

@@ -34,6 +34,9 @@ function TokenListInfo({ listId }: { listId: TokenListId }) {
         {tokenList?.id?.toString()?.startsWith("default") && (
           <TokenListLogo type={TokenListLogoType.DEFAULT} chainId={tokenList.chainId} />
         )}
+        {tokenList?.id?.toString()?.includes("autolisting") && (
+          <TokenListLogo type={TokenListLogoType.AUTOLISTING} chainId={tokenList.chainId} />
+        )}
         {tokenList?.id?.toString()?.startsWith("custom") && (
           <TokenListLogo type={TokenListLogoType.CUSTOM} chainId={tokenList.chainId} />
         )}

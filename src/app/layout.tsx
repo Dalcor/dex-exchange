@@ -10,6 +10,7 @@ import Providers from "@/app/providers";
 import { config } from "@/config/wagmi/config";
 
 const golos_text = Golos_Text({
+  weight: ["400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
   display: "swap",
   adjustFontFallback: false,

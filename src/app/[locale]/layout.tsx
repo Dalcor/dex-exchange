@@ -33,16 +33,14 @@ export default async function RootLayout({
   }
 
   return (
-    <html suppressHydrationWarning lang={locale}>
-      <body className={clsx(golos_text.className)}>
-        <Providers messages={messages} locale={locale}>
-          <div className="grid h-[100vh] grid-rows-layout">
-            <Header />
-            <div>{children}</div>
-            <Footer />
-          </div>
-        </Providers>
-      </body>
-    </html>
+    <>
+      <Providers messages={messages} locale={locale}>
+        <div className="grid h-[100vh] grid-rows-layout">
+          <Header />
+          <div>{children}</div>
+          <Footer />
+        </div>
+      </Providers>
+    </>
   );
 }

@@ -380,6 +380,7 @@ export default function useSwap() {
     publicClient,
     setSwapStatus,
     swapParams,
+    t,
     tokenA,
     tokenAAddress,
     tokenB,

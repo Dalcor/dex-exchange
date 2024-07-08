@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import Badge, { BadgeVariant } from "@/components/badges/Badge";
-import { Standard } from "@/components/common/TokenInput";
+import { Standard } from "@/sdk_hybrid/standard";
 
 const meta = {
   title: "Atoms/Badge",

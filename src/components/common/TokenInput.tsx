@@ -7,15 +7,10 @@ import { NumericFormat } from "react-number-format";
 import SelectButton from "@/components/atoms/SelectButton";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import InputButton from "@/components/buttons/InputButton";
 import { clsxMerge } from "@/functions/clsxMerge";
 import { Token } from "@/sdk_hybrid/entities/token";
-
-export enum Standard {
-  ERC20 = "ERC-20",
-  ERC223 = "ERC-223",
-}
+import { Standard } from "@/sdk_hybrid/standard";
 function StandardOption({
   balance,
   symbol,

@@ -8,10 +8,21 @@ import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Badge from "@/components/badges/Badge";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
-import { TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 import { EstimatedGasId, useEstimatedGasStoreById } from "@/stores/useEstimatedGasStore";
 
 import { ApproveTransaction, useLiquidityApprove } from "../hooks/useLiquidityApprove";
+
+interface TransactionItem {
+  transaction: ApproveTransaction;
+  standard: Standard;
+}
+function isDefinedTransactionItem(item: {
+  transaction?: ApproveTransaction;
+  standard: Standard;
+}): item is TransactionItem {
+  return !!item.transaction && !item.transaction.isAllowed;
+}
 
 export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
   const t = useTranslations("Liquidity");
@@ -26,21 +37,21 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
   const transactionItems = [
     {
       transaction: approveTransactions.approveA,
-      standard: "ERC-20" as TokenStandard,
+      standard: Standard.ERC20,
     },
     {
       transaction: approveTransactions.depositA,
-      standard: "ERC-223" as TokenStandard,
+      standard: Standard.ERC223,
     },
     {
       transaction: approveTransactions.approveB,
-      standard: "ERC-20" as TokenStandard,
+      standard: Standard.ERC20,
     },
     {
       transaction: approveTransactions.depositB,
-      standard: "ERC-223" as TokenStandard,
+      standard: Standard.ERC223,
     },
-  ].filter(({ transaction }) => !!transaction && !transaction.isAllowed);
+  ].filter(isDefinedTransactionItem);
 
   const totalGasLimit = approveTotalGasLimit + estimatedMintGas;
 
@@ -60,48 +71,46 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
       <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
         <DialogHeader onClose={() => setIsOpen(false)} title="Fee details" />
         <div className="w-full md:w-[570px] px-4 md:px-10 pb-4 md:pb-10">
-          {(transactionItems as { transaction: ApproveTransaction; standard: TokenStandard }[]).map(
-            ({ transaction, standard }, index) => (
-              <div key={`${transaction.token.address0}_${standard}`} className="flex gap-2">
-                <div className="flex flex-col items-center">
-                  <div className="flex justify-center items-center rounded-full min-h-10 min-w-10 w-10 h-10 bg-green-bg">
-                    {index + 1}
-                  </div>
-                  <div className="w-[2px] bg-green-bg h-full my-2 rounded-3"></div>
+          {transactionItems.map(({ transaction, standard }, index) => (
+            <div key={`${transaction.token.address0}_${standard}`} className="flex gap-2">
+              <div className="flex flex-col items-center">
+                <div className="flex justify-center items-center rounded-full min-h-10 min-w-10 w-10 h-10 bg-green-bg">
+                  {index + 1}
                 </div>
-                <div className="w-full">
-                  <div className="flex gap-2 py-2 items-center">
-                    <span>
-                      {standard === "ERC-20"
-                        ? t("fee_details_aprove_for", { symbol: transaction.token.symbol })
-                        : t("fee_details_deposit_for", { symbol: transaction.token.symbol })}
-                    </span>
-                    <Badge color="green" text={standard} />
+                <div className="w-[2px] bg-green-bg h-full my-2 rounded-3"></div>
+              </div>
+              <div className="w-full">
+                <div className="flex gap-2 py-2 items-center">
+                  <span>
+                    {standard === Standard.ERC20
+                      ? t("fee_details_aprove_for", { symbol: transaction.token.symbol })
+                      : t("fee_details_deposit_for", { symbol: transaction.token.symbol })}
+                  </span>
+                  <Badge color="green" text={standard} />
+                </div>
+                <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
+                  <span>
+                    {formatUnits(transaction.amount || BigInt(0), transaction.token.decimals)}
+                  </span>
+                  <span>{t("fee_details_amount", { symbol: transaction.token.symbol })}</span>
+                </div>
+                <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
+                  <div className="flex flex-col">
+                    <span className="text-14 text-secondary-text">{t("gas_price")}</span>
+                    <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
                   </div>
-                  <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
-                    <span>
-                      {formatUnits(transaction.amount || BigInt(0), transaction.token.decimals)}
-                    </span>
-                    <span>{t("fee_details_amount", { symbol: transaction.token.symbol })}</span>
+                  <div className="flex flex-col">
+                    <span className="text-14 text-secondary-text">{t("gas_limit")}</span>
+                    <span>{transaction.estimatedGas?.toString()}</span>
                   </div>
-                  <div className="flex justify-between bg-tertiary-bg px-5 py-3 rounded-3 mb-5 mt-2">
-                    <div className="flex flex-col">
-                      <span className="text-14 text-secondary-text">{t("gas_price")}</span>
-                      <span>{gasPrice ? formatFloat(formatGwei(gasPrice)) : ""} GWEI</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-14 text-secondary-text">{t("gas_limit")}</span>
-                      <span>{transaction.estimatedGas?.toString()}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-14 text-secondary-text">{t("fee")}</span>
-                      <span>{`${gasPrice && transaction.estimatedGas ? formatFloat(formatEther(gasPrice * transaction.estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
-                    </div>
+                  <div className="flex flex-col">
+                    <span className="text-14 text-secondary-text">{t("fee")}</span>
+                    <span>{`${gasPrice && transaction.estimatedGas ? formatFloat(formatEther(gasPrice * transaction.estimatedGas)) : ""} ${chain?.nativeCurrency.symbol}`}</span>
                   </div>
                 </div>
               </div>
-            ),
-          )}
+            </div>
+          ))}
 
           <div key="10" className="flex gap-2">
             <div className="flex flex-col items-center">

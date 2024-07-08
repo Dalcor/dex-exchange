@@ -3,6 +3,7 @@ import { Address } from "viem";
 
 import TokenAddressWithStandard from "@/components/atoms/TokenAddressWithStandard";
 import { DexChainId } from "@/sdk_hybrid/chains";
+import { Standard } from "@/sdk_hybrid/standard";
 
 const meta = {
   title: "Atoms/Token Address With Standard",
@@ -20,7 +21,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     tokenAddress: testTokenAddress,
-    standard: "ERC-20",
+    standard: Standard.ERC20,
     chainId: DexChainId.SEPOLIA,
   },
 };

@@ -23,7 +23,6 @@ import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
 import IconButton from "@/components/buttons/IconButton";
-import { Standard } from "@/components/common/TokenInput";
 import { networks } from "@/config/networks";
 import { clsxMerge } from "@/functions/clsxMerge";
 import { formatFloat } from "@/functions/formatFloat";
@@ -34,6 +33,7 @@ import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 
 function ApproveRow({
@@ -173,7 +173,7 @@ function Rows({ children }: PropsWithChildren<{}>) {
 
 function SwapActionButton() {
   const t = useTranslations("Swap");
-  const { tokenA, tokenB, tokenAAddress } = useSwapTokensStore();
+  const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
 
   const { handleSwap } = useSwap();
@@ -208,7 +208,7 @@ function SwapActionButton() {
     );
   }
 
-  if (tokenA.address1 !== tokenAAddress) {
+  if (tokenAStandard === Standard.ERC20) {
     if (isPendingApprove) {
       return (
         <Rows>
@@ -231,7 +231,7 @@ function SwapActionButton() {
   if (isPendingSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && (
+        {tokenAStandard === Standard.ERC20 && (
           <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
         )}
         <SwapRow isPending />
@@ -242,7 +242,7 @@ function SwapActionButton() {
   if (isLoadingSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && (
+        {tokenAStandard === Standard.ERC20 && (
           <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
         )}
         <SwapRow hash={swapHash} isLoading />
@@ -253,7 +253,7 @@ function SwapActionButton() {
   if (isSuccessSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && (
+        {tokenAStandard === Standard.ERC20 && (
           <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
         )}
         <SwapRow hash={swapHash} isSettled isSuccess />
@@ -264,7 +264,7 @@ function SwapActionButton() {
   if (isRevertedSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && (
+        {tokenAStandard === Standard.ERC20 && (
           <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
         )}
         <SwapRow hash={swapHash} isSettled isReverted />
@@ -328,7 +328,7 @@ function SwapDetailsRow({
 }
 export default function ConfirmSwapDialog() {
   const t = useTranslations("Swap");
-  const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
+  const { tokenA, tokenB, tokenAStandard, tokenBStandard } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
   const chainId = useCurrentChainId();
 
@@ -398,14 +398,14 @@ export default function ConfirmSwapDialog() {
                 token={tokenA}
                 amount={typedValue}
                 amountUSD={"0.00"}
-                standard={tokenA?.address0 === tokenAAddress ? Standard.ERC20 : Standard.ERC223}
+                standard={tokenAStandard}
                 title={t("you_pay")}
               />
               <ReadonlyTokenAmountCard
                 token={tokenB}
                 amount={output}
                 amountUSD={"0.00"}
-                standard={tokenB?.address0 === tokenBAddress ? Standard.ERC20 : Standard.ERC223}
+                standard={tokenBStandard}
                 title={t("you_receive")}
               />
             </div>

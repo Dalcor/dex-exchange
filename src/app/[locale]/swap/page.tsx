@@ -16,11 +16,6 @@ import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 
-enum Standard {
-  ERC20 = "ERC-20",
-  ERC223 = "ERC-223",
-}
-
 export default function SwapPage() {
   useRecentTransactionTracking();
   useSwapEstimatedGas();

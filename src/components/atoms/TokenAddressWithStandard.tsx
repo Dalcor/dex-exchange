@@ -3,7 +3,7 @@ import { Address } from "viem";
 import Svg from "@/components/atoms/Svg";
 import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import { DexChainId } from "@/sdk_hybrid/chains";
-import { TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 
 export default function TokenAddressWithStandard({
   tokenAddress,
@@ -11,7 +11,7 @@ export default function TokenAddressWithStandard({
   chainId,
 }: {
   tokenAddress: Address;
-  standard: TokenStandard;
+  standard: Standard;
   chainId: DexChainId;
 }) {
   return (

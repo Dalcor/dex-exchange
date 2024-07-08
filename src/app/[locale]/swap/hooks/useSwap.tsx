@@ -32,6 +32,7 @@ import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { ONE } from "@/sdk_hybrid/internalConstants";
+import { getTokenAddressForStandard, Standard } from "@/sdk_hybrid/standard";
 import { useComputePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 import { TickMath } from "@/sdk_hybrid/utils/tickMath";
 import { useConfirmInWalletAlertStore } from "@/stores/useConfirmInWalletAlertStore";
@@ -57,7 +58,7 @@ export function useSwapStatus() {
 }
 
 export function useSwapParams() {
-  const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
+  const { tokenA, tokenB, tokenAStandard, tokenBStandard } = useSwapTokensStore();
   const chainId = useCurrentChainId();
   const { address } = useAccount();
 
@@ -78,8 +79,6 @@ export function useSwapParams() {
       !tokenB ||
       !chainId ||
       !DEX_SUPPORTED_CHAINS.includes(chainId) ||
-      !tokenAAddress ||
-      !tokenBAddress ||
       !poolAddress ||
       !typedValue
     ) {
@@ -92,16 +91,14 @@ export function useSwapParams() {
       ? JSBI.add(TickMath.MIN_SQRT_RATIO, ONE)
       : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE);
 
-    if (tokenAAddress === tokenA.address0) {
-      // mean we are sending ERC-20 token with approve + funcName
-
+    if (tokenAStandard === Standard.ERC20) {
       return {
         address: ROUTER_ADDRESS[chainId as DexChainId],
         abi: ROUTER_ABI,
         functionName: "exactInputSingle" as "exactInputSingle",
         args: [
           {
-            tokenIn: tokenAAddress,
+            tokenIn: getTokenAddressForStandard(tokenA, tokenAStandard),
             tokenOut: tokenB.address0,
             fee: FeeAmount.MEDIUM,
             recipient: address as Address,
@@ -109,15 +106,15 @@ export function useSwapParams() {
             amountIn: parseUnits(typedValue, tokenA.decimals),
             amountOutMinimum: BigInt(0),
             sqrtPriceLimitX96: BigInt(sqrtPriceLimitX96.toString()),
-            prefer223Out: tokenBAddress === tokenB.address1,
+            prefer223Out: tokenBStandard === Standard.ERC223,
           },
         ],
       };
     }
 
-    if (tokenAAddress === tokenA.address1) {
+    if (tokenAStandard === Standard.ERC223) {
       return {
-        address: tokenA.address1,
+        address: getTokenAddressForStandard(tokenA, tokenAStandard),
         abi: ERC223_ABI,
         functionName: "transfer",
         args: [
@@ -131,7 +128,7 @@ export function useSwapParams() {
               zeroForOne, //zeroForOne
               parseUnits(typedValue, tokenA.decimals), // amountSpecified
               BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
-              tokenBAddress === tokenB.address1, // prefer223Out
+              tokenBStandard === Standard.ERC223, // prefer223Out
               encodeAbiParameters(
                 [
                   { name: "path", type: "bytes" },
@@ -156,9 +153,9 @@ export function useSwapParams() {
     deadline,
     poolAddress,
     tokenA,
-    tokenAAddress,
+    tokenAStandard,
     tokenB,
-    tokenBAddress,
+    tokenBStandard,
     typedValue,
   ]);
 
@@ -179,7 +176,6 @@ export function useSwapEstimatedGas() {
       }
 
       try {
-        console.log("Trying to estimate");
         const estimated = await publicClient?.estimateContractGas({
           account: address,
           ...swapParams,
@@ -198,7 +194,7 @@ export function useSwapEstimatedGas() {
 export default function useSwap() {
   const t = useTranslations("Swap");
   const { data: walletClient } = useWalletClient();
-  const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
+  const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
   const { trade } = useTrade();
   const { address } = useAccount();
   const publicClient = usePublicClient();
@@ -266,7 +262,7 @@ export default function useSwap() {
       return;
     }
 
-    if (!isAllowedA && tokenA?.address0 === tokenAAddress) {
+    if (!isAllowedA && tokenAStandard === Standard.ERC20) {
       openConfirmInWalletAlert(t("confirm_action_in_your_wallet_alert"));
 
       setSwapStatus(SwapStatus.PENDING_APPROVE);
@@ -385,7 +381,7 @@ export default function useSwap() {
     swapParams,
     t,
     tokenA,
-    tokenAAddress,
+    tokenAStandard,
     tokenB,
     trade,
     typedValue,

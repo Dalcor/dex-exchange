@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, formatEther, formatGwei, formatUnits, parseUnits } from "viem";
+import { Address, formatGwei, formatUnits, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
@@ -21,7 +21,7 @@ import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonSize } from "@/components/buttons/Button";
 import IconButton, { IconButtonSize } from "@/components/buttons/IconButton";
 import SwapButton from "@/components/buttons/SwapButton";
-import TokenInput, { Standard } from "@/components/common/TokenInput";
+import TokenInput from "@/components/common/TokenInput";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
@@ -32,6 +32,7 @@ import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 
 function OpenConfirmDialogButton({
@@ -161,10 +162,10 @@ export default function TradeForm() {
     tokenB,
     setTokenA,
     setTokenB,
-    tokenAAddress,
-    tokenBAddress,
-    setTokenAAddress,
-    setTokenBAddress,
+    tokenAStandard,
+    tokenBStandard,
+    setTokenAStandard,
+    setTokenBStandard,
   } = useSwapTokensStore();
   const { computed } = useSwapSettingsStore();
 
@@ -184,20 +185,24 @@ export default function TradeForm() {
       if (currentlyPicking === "tokenA") {
         if (token === tokenB) {
           setTokenB(tokenA);
-          setTokenBAddress(tokenAAddress);
+          setTokenBStandard(tokenAStandard);
+          // setTokenBAddress(tokenAAddress);
         }
 
         setTokenA(token);
-        setTokenAAddress(token.address0);
+        setTokenAStandard(Standard.ERC20);
+        // setTokenAAddress(token.address0);
       }
 
       if (currentlyPicking === "tokenB") {
         if (token === tokenA) {
           setTokenA(tokenB);
-          setTokenAAddress(tokenBAddress);
+          setTokenAStandard(tokenBStandard);
+          // setTokenAAddress(tokenBAddress);
         }
         setTokenB(token);
-        setTokenBAddress(token.address0);
+        setTokenBStandard(Standard.ERC20);
+        // setTokenBAddress(token.address0);
       }
 
       setIsOpenedTokenPick(false);
@@ -205,13 +210,13 @@ export default function TradeForm() {
     [
       currentlyPicking,
       setTokenA,
-      setTokenAAddress,
+      setTokenAStandard,
       setTokenB,
-      setTokenBAddress,
+      setTokenBStandard,
       tokenA,
-      tokenAAddress,
+      tokenAStandard,
       tokenB,
-      tokenBAddress,
+      tokenBStandard,
     ],
   );
 
@@ -317,21 +322,17 @@ export default function TradeForm() {
         balance0={tokenA0Balance ? formatFloat(tokenA0Balance.formatted) : "0.0"}
         balance1={tokenA1Balance ? formatFloat(tokenA1Balance.formatted) : "0.0"}
         setMax={
-          (Boolean(tokenA0Balance?.value) &&
-            Boolean(tokenAAddress) &&
-            tokenAAddress === tokenA?.address0) ||
-          (Boolean(tokenA1Balance?.value) &&
-            Boolean(tokenAAddress) &&
-            tokenAAddress === tokenA?.address1)
+          (Boolean(tokenA0Balance?.value) && tokenAStandard === Standard.ERC20) ||
+          (Boolean(tokenA1Balance?.value) && tokenAStandard === Standard.ERC223)
             ? () => {
-                if (tokenA0Balance && tokenAAddress === tokenA?.address0) {
+                if (tokenA0Balance && tokenAStandard === Standard.ERC20) {
                   setTypedValue({
                     typedValue: tokenA0Balance.formatted,
 
                     field: Field.CURRENCY_A,
                   });
                 }
-                if (tokenA1Balance && tokenAAddress === tokenA?.address1) {
+                if (tokenA1Balance && tokenAStandard === Standard.ERC223) {
                   setTypedValue({
                     typedValue: tokenA1Balance.formatted,
 
@@ -342,14 +343,10 @@ export default function TradeForm() {
             : undefined
         }
         setHalf={
-          (Boolean(tokenA0Balance?.value) &&
-            Boolean(tokenAAddress) &&
-            tokenAAddress === tokenA?.address0) ||
-          (Boolean(tokenA1Balance?.value) &&
-            Boolean(tokenAAddress) &&
-            tokenAAddress === tokenA?.address1)
+          (Boolean(tokenA0Balance?.value) && tokenAStandard === Standard.ERC20) ||
+          (Boolean(tokenA1Balance?.value) && tokenAStandard === Standard.ERC223)
             ? () => {
-                if (tokenA0Balance && tokenAAddress === tokenA?.address0) {
+                if (tokenA0Balance && tokenAStandard === Standard.ERC20) {
                   setTypedValue({
                     typedValue: formatUnits(
                       tokenA0Balance.value / BigInt(2),
@@ -359,7 +356,7 @@ export default function TradeForm() {
                     field: Field.CURRENCY_A,
                   });
                 }
-                if (tokenA1Balance && tokenAAddress === tokenA?.address1) {
+                if (tokenA1Balance && tokenAStandard === Standard.ERC223) {
                   setTypedValue({
                     typedValue: formatUnits(
                       tokenA1Balance.value / BigInt(2),
@@ -373,48 +370,37 @@ export default function TradeForm() {
             : undefined
         }
         isHalf={
-          (tokenAAddress === tokenA?.address0 &&
+          (tokenAStandard === Standard.ERC20 &&
             tokenA0Balance &&
             typedValue !== "0" &&
             typedValue ===
               formatUnits(tokenA0Balance.value / BigInt(2), tokenA0Balance.decimals)) ||
-          (tokenAAddress === tokenA?.address1 &&
+          (tokenAStandard === Standard.ERC223 &&
             typedValue !== "0" &&
             tokenA1Balance &&
             typedValue === formatUnits(tokenA1Balance.value / BigInt(2), tokenA1Balance.decimals))
         }
         isMax={
-          (tokenAAddress === tokenA?.address0 &&
+          (tokenAStandard === Standard.ERC20 &&
             typedValue !== "0" &&
             tokenA0Balance &&
             typedValue === tokenA0Balance.formatted) ||
-          (tokenAAddress === tokenA?.address1 &&
+          (tokenAStandard === Standard.ERC223 &&
             typedValue !== "0" &&
             tokenA1Balance &&
             typedValue === tokenA1Balance.formatted)
         }
         label={t("you_pay")}
-        standard={
-          Boolean(tokenAAddress) && tokenAAddress === tokenA?.address1
-            ? Standard.ERC223
-            : Standard.ERC20
-        }
-        setStandard={(standard) => {
-          if (standard === Standard.ERC20) {
-            setTokenAAddress(tokenA?.address0);
-          }
-          if (standard === Standard.ERC223) {
-            setTokenAAddress(tokenA?.address1);
-          }
-        }}
+        standard={tokenAStandard}
+        setStandard={setTokenAStandard}
       />
       <div className="relative h-3 z-10">
         <SwapButton
           onClick={() => {
             setTokenB(tokenA);
             setTokenA(tokenB);
-            setTokenAAddress(tokenBAddress);
-            setTokenBAddress(tokenAAddress);
+            setTokenAStandard(tokenBStandard);
+            setTokenBStandard(tokenAStandard);
             setTypedValue({
               typedValue: dependentAmount?.toSignificant() || "",
               field: Field.CURRENCY_A,
@@ -434,19 +420,8 @@ export default function TradeForm() {
         balance0={tokenB0Balance ? formatFloat(tokenB0Balance.formatted) : "0.0"}
         balance1={tokenB1Balance ? formatFloat(tokenB1Balance.formatted) : "0.0"}
         label={t("you_receive")}
-        standard={
-          Boolean(tokenBAddress) && tokenBAddress === tokenB?.address1
-            ? Standard.ERC223
-            : Standard.ERC20
-        }
-        setStandard={(standard) => {
-          if (standard === Standard.ERC20) {
-            setTokenBAddress(tokenB?.address0);
-          }
-          if (standard === Standard.ERC223) {
-            setTokenBAddress(tokenB?.address1);
-          }
-        }}
+        standard={tokenBStandard}
+        setStandard={setTokenBStandard}
       />
 
       {tokenA && tokenB && typedValue ? (
@@ -530,11 +505,11 @@ export default function TradeForm() {
 
       <OpenConfirmDialogButton
         isSufficientBalance={
-          (tokenAAddress === tokenA?.address0 &&
+          (tokenAStandard === Standard.ERC20 &&
             (tokenA0Balance && tokenA
               ? tokenA0Balance?.value >= parseUnits(typedValue, tokenA.decimals)
               : false)) ||
-          (tokenAAddress === tokenA?.address1 &&
+          (tokenAStandard === Standard.ERC223 &&
             (tokenA1Balance && tokenA
               ? tokenA1Balance?.value >= parseUnits(typedValue, tokenA.decimals)
               : false))

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 
 export enum Field {
   CURRENCY_A = "CURRENCY_A",
@@ -48,8 +48,8 @@ export const useLiquidityAmountsStore = create<LiquidityAmountsStore>((set, get)
 export const useTokensStandards = () => {
   const { tokenAStandardRatio, tokenBStandardRatio } = useLiquidityAmountsStore();
 
-  const tokenAStandard: TokenStandard = tokenAStandardRatio === 0 ? "ERC-20" : "ERC-223";
-  const tokenBStandard: TokenStandard = tokenBStandardRatio === 0 ? "ERC-20" : "ERC-223";
+  const tokenAStandard = tokenAStandardRatio === 0 ? Standard.ERC20 : Standard.ERC223;
+  const tokenBStandard = tokenBStandardRatio === 0 ? Standard.ERC20 : Standard.ERC223;
 
   return {
     tokenAStandard,

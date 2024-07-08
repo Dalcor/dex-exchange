@@ -11,7 +11,7 @@ import Badge from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
 import { formatFloat } from "@/functions/formatFloat";
 import { AllowanceStatus } from "@/hooks/useAllowance";
-import { TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 
 import {
   ApproveTransaction,
@@ -35,7 +35,7 @@ const TransactionItem = ({
 }: {
   transaction?: ApproveTransaction;
   gasPrice: any;
-  standard: TokenStandard;
+  standard: Standard;
   chain?: Chain;
   index: number;
   itemsCount: number;
@@ -57,7 +57,7 @@ const TransactionItem = ({
       <div className="w-full">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 py-2 items-center">
-            <span>{`${standard === "ERC-20" ? "Approve" : "Deposit"} for ${token.symbol}`}</span>
+            <span>{`${standard === Standard.ERC20 ? "Approve" : "Deposit"} for ${token.symbol}`}</span>
             <Badge color="green" text={standard} />
           </div>
 
@@ -96,6 +96,17 @@ const TransactionItem = ({
     </div>
   );
 };
+
+interface TransactionItem {
+  transaction: ApproveTransaction;
+  standard: Standard;
+}
+function isDefinedTransactionItem(item: {
+  transaction?: ApproveTransaction;
+  standard: Standard;
+}): item is TransactionItem {
+  return !!item.transaction;
+}
 export const ApproveButton = () => {
   const t = useTranslations("Liquidity");
   const [isOpen, setIsOpen] = useState(false);
@@ -134,21 +145,22 @@ export const ApproveButton = () => {
   const transactionItems = [
     {
       transaction: approveTransactions.approveA,
-      standard: "ERC-20" as TokenStandard,
+      standard: Standard.ERC20,
     },
     {
       transaction: approveTransactions.depositA,
-      standard: "ERC-223" as TokenStandard,
+      standard: Standard.ERC223,
     },
     {
       transaction: approveTransactions.approveB,
-      standard: "ERC-20" as TokenStandard,
+      standard: Standard.ERC20,
     },
     {
       transaction: approveTransactions.depositB,
-      standard: "ERC-223" as TokenStandard,
+      standard: Standard.ERC223,
     },
-  ].filter(({ transaction }) => !!transaction);
+  ].filter(isDefinedTransactionItem);
+
   return (
     <div>
       {/* TODO */}
@@ -171,7 +183,7 @@ export const ApproveButton = () => {
           title={`${t(APPROVE_BUTTON_TEXT[approveTransactionsType] as any)} ${t("approve_transaction_modal_title")}`}
         />
         <div className="w-full md:w-[570px] px-4 md:px-10 md:pb-10 pb-4 mx-auto">
-          {transactionItems.map(({ transaction, standard }: any, index) => (
+          {transactionItems.map(({ transaction, standard }, index) => (
             <TransactionItem
               key={`${transaction.token.symbol}_${standard}`}
               transaction={transaction}

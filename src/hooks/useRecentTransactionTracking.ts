@@ -19,37 +19,6 @@ export function useRecentTransactionTracking() {
     return (address && transactions[address]) || [];
   }, [address, transactions]);
 
-  // const isUnViewedTransactions = useMemo(() => {
-  //   const _transactionsForAddress = transactions[address];
-  //   if (_transactionsForAddress) {
-  //     const unViewed = _transactionsForAddress.filter((t) => {
-  //       return t.isViewed === false;
-  //     });
-  //
-  //     const pending = unViewed.filter((t) => {
-  //       return t.status === RecentTransactionStatus.PENDING;
-  //     });
-  //
-  //     const failed = unViewed.filter((t) => {
-  //       return t.status === RecentTransactionStatus.ERROR;
-  //     });
-  //
-  //     const success = unViewed.filter((t) => {
-  //       return t.status === RecentTransactionStatus.SUCCESS;
-  //     });
-  //
-  //     return {
-  //       isUnViewed: Boolean(unViewed.length),
-  //       pending,
-  //       failed,
-  //       success,
-  //       totalUnViewed: unViewed.length,
-  //     };
-  //   }
-  //
-  //   return { isUnViewed: false };
-  // }, [address, transactions]);
-
   const waitForTransaction = useCallback(
     async (hash: `0x${string}`, id: string, title: IRecentTransactionTitle) => {
       if (!publicClient || !address) {

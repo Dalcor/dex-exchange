@@ -270,6 +270,7 @@ export default function useSwap() {
 
       if (!result?.success) {
         setSwapStatus(SwapStatus.INITIAL);
+        closeConfirmInWalletAlert();
         return;
       } else {
         setApproveHash(result.hash);

@@ -276,8 +276,6 @@ export default function TradeForm() {
     return undefined;
   }, [baseFee, gasPrice]);
 
-  console.log(Boolean(tokenA0Balance?.value));
-
   return (
     <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
       <div className="flex justify-between items-center mb-2.5">

@@ -355,7 +355,7 @@ export default function TokenDepositCard({
         <InputRange value={tokenStandardRatio} onChange={setTokenStandardRatio} />
         <div className="flex flex-col md:flex-row justify-between gap-4 w-full">
           <InputStandardAmount
-            standard={Standard.ERC223}
+            standard={Standard.ERC20}
             value={ERC20Value}
             currentAllowance={currentAllowance || BigInt(0)}
             token={token}

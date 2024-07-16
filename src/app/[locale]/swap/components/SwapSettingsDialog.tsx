@@ -23,6 +23,7 @@ import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import TextButton from "@/components/buttons/TextButton";
+import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import addToast from "@/other/toast";
 
 function SettingsButtons({ children }: PropsWithChildren) {
@@ -86,10 +87,6 @@ function SettingsInput({ isActive, isError, ...props }: SettingsInputProps) {
     />
   );
 }
-interface Props {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-}
 
 function getTitle(slippageType: SlippageType, value: string, t: any) {
   switch (slippageType) {
@@ -116,7 +113,9 @@ function getTitle(slippageType: SlippageType, value: string, t: any) {
   }
 }
 
-export default function SwapSettingsDialog({ isOpen, setIsOpen }: Props) {
+export default function SwapSettingsDialog() {
+  const { isOpen, setIsOpen } = useTransactionSettingsDialogStore();
+
   const t = useTranslations("Swap");
 
   const {

@@ -8,8 +8,11 @@ import DrawerDialog from "@/components/atoms/DrawerDialog";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import { SearchInput } from "@/components/atoms/Input";
 import Svg from "@/components/atoms/Svg";
+import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import IconButton from "@/components/buttons/IconButton";
 import { TokenPortfolioDialogContent } from "@/components/dialogs/TokenPortfolioDialog";
+import { formatFloat } from "@/functions/formatFloat";
+import useTokenBalances from "@/hooks/useTokenBalances";
 import { useTokens } from "@/hooks/useTokenLists";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { usePinnedTokensStore } from "@/stores/usePinnedTokensStore";
@@ -35,17 +38,38 @@ function TokenRow({
     isTokenPinned: s.tokens[token.chainId].includes(token.address0),
   }));
 
+  const {
+    balance: { erc20Balance, erc223Balance },
+  } = useTokenBalances(isTokenPinned ? token : undefined);
+
   return (
     <div
       role="button"
       onClick={() => handlePick(token)}
       className="px-10 flex justify-between py-2"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-grow">
         <Image width={40} height={40} src={token?.logoURI || ""} alt="" />
-        <div className="grid">
+        <div className="grid flex-grow">
           <span>{token.symbol}</span>
-          <span className="text-secondary-text text-12">0.00 {token.symbol}</span>
+          <div className="auto-cols-fr grid grid-flow-col gap-2">
+            {erc20Balance && (
+              <div className="flex items-center gap-1">
+                <Badge size="small" variant={BadgeVariant.COLORED} text="ERC-20" />
+                <span className="text-secondary-text text-12">
+                  {formatFloat(erc20Balance?.formatted)} {token.symbol}
+                </span>
+              </div>
+            )}
+            {erc223Balance && (
+              <div className="flex items-center gap-1">
+                <Badge size="small" variant={BadgeVariant.COLORED} text="ERC-223" />
+                <span className="text-secondary-text text-12">
+                  {formatFloat(erc223Balance?.formatted)} {token.symbol}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -110,7 +134,7 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
 
           {Boolean(tokens.length) && (
             <>
-              <div className="w-full md:w-[570px]">
+              <div className="w-full md:w-[600px]">
                 <div className="px-4 md:px-10 pb-3">
                   <SearchInput
                     value={tokensSearchValue}

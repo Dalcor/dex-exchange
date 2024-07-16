@@ -14,6 +14,7 @@ import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSe
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
+import Alert from "@/components/atoms/Alert";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
@@ -41,12 +42,14 @@ function ApproveRow({
   isPending = false,
   isLoading = false,
   isSuccess = false,
+  isReverted = false,
   hash,
 }: {
   logoURI: string | undefined;
   isLoading?: boolean;
   isPending?: boolean;
   isSuccess?: boolean;
+  isReverted?: boolean;
   hash?: Address | undefined;
 }) {
   const t = useTranslations("Swap");
@@ -70,7 +73,11 @@ function ApproveRow({
 
       <div className="flex flex-col justify-center">
         <span className={isSuccess ? "text-secondary-text text-14" : "text-14"}>
-          {isSuccess ? t("approved") : t("approve")}
+          {isSuccess && t("approved")}
+          {isPending && "Confirm in your wallet"}
+          {isLoading && "Approving"}
+          {!isSuccess && !isPending && !isReverted && !isLoading && "Approve"}
+          {isReverted && "Approve failed"}
         </span>
         {!isSuccess && <span className="text-green text-12">{t("why_do_i_have_to_approve")}</span>}
       </div>
@@ -91,6 +98,7 @@ function ApproveRow({
         )}
         {isLoading && <Preloader size={20} />}
         {isSuccess && <Svg className="text-green" iconName="done" size={20} />}
+        {isReverted && <Svg className="text-red-input" iconName="warning" size={20} />}
       </div>
     </div>
   );
@@ -138,7 +146,7 @@ function SwapRow({
 
       <div className="flex flex-col justify-center">
         <span className={clsx("text-14", isDisabled ? "text-tertiary-text" : "text-primary-text")}>
-          {isPending && t("confirm_swap")}
+          {isPending || (!isLoading && !isReverted && !isSuccess && t("confirm_swap"))}
           {isLoading && t("executing_swap")}
           {isReverted && "Failed to confirm a swap"}
           {isSuccess && "Executed swap"}
@@ -175,6 +183,7 @@ function SwapActionButton() {
   const t = useTranslations("Swap");
   const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
+  const { isOpen, setIsOpen } = useConfirmSwapDialogStore();
 
   const { handleSwap } = useSwap();
 
@@ -186,6 +195,7 @@ function SwapActionButton() {
     isSuccessSwap,
     isSettledSwap,
     isRevertedSwap,
+    isRevertedApprove,
   } = useSwapStatus();
 
   const { swapHash, approveHash } = useSwapStatusStore();
@@ -226,6 +236,42 @@ function SwapActionButton() {
         </Rows>
       );
     }
+
+    if (isRevertedApprove) {
+      return (
+        <>
+          <Rows>
+            <ApproveRow hash={approveHash} isReverted logoURI={tokenA.logoURI} />
+            <SwapRow isDisabled />
+          </Rows>
+          <div className="flex flex-col gap-5 mt-4">
+            <Alert
+              withIcon={false}
+              type="error"
+              text={
+                <span>
+                  Transaction failed due to lack of gas or an internal contract error. Try using
+                  higher slippage or gas to ensure your transaction is completed. If you still have
+                  issues, click{" "}
+                  <a href="#" className="text-green hover:underline">
+                    common errors
+                  </a>
+                  .
+                </span>
+              }
+            />
+            <Button
+              fullWidth
+              onClick={() => {
+                setIsOpen(false);
+              }}
+            >
+              Try again
+            </Button>
+          </div>
+        </>
+      );
+    }
   }
 
   if (isPendingSwap) {
@@ -263,12 +309,39 @@ function SwapActionButton() {
 
   if (isRevertedSwap) {
     return (
-      <Rows>
-        {tokenAStandard === Standard.ERC20 && (
-          <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
-        )}
-        <SwapRow hash={swapHash} isSettled isReverted />
-      </Rows>
+      <>
+        <Rows>
+          {tokenAStandard === Standard.ERC20 && (
+            <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+          )}
+          <SwapRow hash={swapHash} isSettled isReverted />
+        </Rows>
+        <div className="flex flex-col gap-5 mt-4">
+          <Alert
+            withIcon={false}
+            type="error"
+            text={
+              <span>
+                Transaction failed due to lack of gas or an internal contract error. Try using
+                higher slippage or gas to ensure your transaction is completed. If you still have
+                issues, click{" "}
+                <a href="#" className="text-green hover:underline">
+                  common errors
+                </a>
+                .
+              </span>
+            }
+          />
+          <Button
+            fullWidth
+            onClick={() => {
+              setIsOpen(false);
+            }}
+          >
+            Try again
+          </Button>
+        </div>
+      </>
     );
   }
 
@@ -328,8 +401,14 @@ function SwapDetailsRow({
 }
 export default function ConfirmSwapDialog() {
   const t = useTranslations("Swap");
-  const { tokenA, tokenB, tokenAStandard, tokenBStandard } = useSwapTokensStore();
-  const { typedValue } = useSwapAmountsStore();
+  const {
+    tokenA,
+    tokenB,
+    tokenAStandard,
+    tokenBStandard,
+    reset: resetTokens,
+  } = useSwapTokensStore();
+  const { typedValue, reset: resetAmounts } = useSwapAmountsStore();
   const chainId = useCurrentChainId();
 
   const { isOpen, setIsOpen } = useConfirmSwapDialogStore();
@@ -357,12 +436,27 @@ export default function ConfirmSwapDialog() {
     isPendingApprove,
     isRevertedSwap,
     isSettledSwap,
+    isRevertedApprove,
   } = useSwapStatus();
   const { estimatedGas } = useSwapEstimatedGasStore();
 
   const isProcessing = useMemo(() => {
-    return isPendingSwap || isLoadingSwap || isSettledSwap || isLoadingApprove || isPendingApprove;
-  }, [isLoadingApprove, isLoadingSwap, isPendingApprove, isPendingSwap, isSettledSwap]);
+    return (
+      isPendingSwap ||
+      isLoadingSwap ||
+      isSettledSwap ||
+      isLoadingApprove ||
+      isPendingApprove ||
+      isRevertedApprove
+    );
+  }, [
+    isLoadingApprove,
+    isLoadingSwap,
+    isPendingApprove,
+    isPendingSwap,
+    isRevertedApprove,
+    isSettledSwap,
+  ]);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
 
@@ -388,11 +482,29 @@ export default function ConfirmSwapDialog() {
   }, [baseFee, gasPrice]);
 
   return (
-    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
+    <DrawerDialog
+      isOpen={isOpen}
+      setIsOpen={(isOpen) => {
+        setIsOpen(isOpen);
+        if (isSettledSwap) {
+          resetAmounts();
+          resetTokens();
+        }
+      }}
+    >
       <div className="shadow-popup bg-primary-bg rounded-5 w-full md:w-[600px]">
-        <DialogHeader onClose={() => setIsOpen(false)} title={t("review_swap")} />
+        <DialogHeader
+          onClose={() => {
+            if (isSettledSwap) {
+              resetAmounts();
+              resetTokens();
+            }
+            setIsOpen(false);
+          }}
+          title={t("review_swap")}
+        />
         <div className="px-4 pb-4 md:px-10 md:pb-9">
-          {!isSettledSwap && (
+          {!isSettledSwap && !isRevertedApprove && (
             <div className="flex flex-col gap-3">
               <ReadonlyTokenAmountCard
                 token={tokenA}
@@ -410,10 +522,10 @@ export default function ConfirmSwapDialog() {
               />
             </div>
           )}
-          {isSettledSwap && (
+          {(isSettledSwap || isRevertedApprove) && (
             <div>
               <div className="mx-auto w-[80px] h-[80px] flex items-center justify-center relative mb-5">
-                {isRevertedSwap && <EmptyStateIcon iconName="warning" />}
+                {(isRevertedSwap || isRevertedApprove) && <EmptyStateIcon iconName="warning" />}
 
                 {isSuccessSwap && (
                   <>
@@ -429,7 +541,9 @@ export default function ConfirmSwapDialog() {
 
               <div className="flex justify-center">
                 <span className="text-20 font-bold text-primary-text mb-1">
-                  {isRevertedSwap ? t("swap_failed") : t("successful_swap")}
+                  {isRevertedSwap && t("swap_failed")}
+                  {isSuccessSwap && t("successful_swap")}
+                  {isRevertedApprove && "Approve failed"}
                 </span>
               </div>
 

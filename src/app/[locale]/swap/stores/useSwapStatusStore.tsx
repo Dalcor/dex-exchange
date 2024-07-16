@@ -9,6 +9,7 @@ export enum SwapStatus {
   LOADING,
   SUCCESS,
   ERROR,
+  APPROVE_ERROR,
 }
 
 interface SwapStatusStore {

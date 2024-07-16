@@ -98,7 +98,7 @@ export default function Drawer({
                   ...transitionStylesDrawer,
                   top: placement === "left" ? 0 : "unset",
                   bottom: placement === "bottom" ? 0 : "unset",
-                  width: placement === "left" ? "auto" : "unset",
+                  ...(placement === "left" ? { width: "auto" } : {}),
                 }}
               >
                 {children}

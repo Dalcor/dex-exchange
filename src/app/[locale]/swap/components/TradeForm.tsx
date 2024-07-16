@@ -1,8 +1,9 @@
 import clsx from "clsx";
+import JSBI from "jsbi";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, formatGwei, formatUnits, parseUnits } from "viem";
-import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
+import { formatGwei, formatUnits, parseUnits } from "viem";
+import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
 import { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
@@ -28,7 +29,12 @@ import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/us
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { networks } from "@/config/networks";
 import { formatFloat } from "@/functions/formatFloat";
+import { useStoreAllowance } from "@/hooks/useAllowance";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import { usePoolBalances } from "@/hooks/usePoolBalances";
+import useTokenBalances from "@/hooks/useTokenBalances";
+import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -65,7 +71,7 @@ function OpenConfirmDialogButton({
 
   if (isLoadingSwap) {
     return (
-      <Button fullWidth disabled>
+      <Button fullWidth isLoading>
         <span className="flex items-center gap-2">
           <span>{t("processing_swap")}</span>
           <Preloader size={20} color="black" />
@@ -76,7 +82,7 @@ function OpenConfirmDialogButton({
 
   if (isLoadingApprove) {
     return (
-      <Button fullWidth disabled>
+      <Button fullWidth isLoading>
         <span className="flex items-center gap-2">
           <span>{t("approving_in_progress")}</span>
           <Preloader size={20} color="black" />
@@ -87,7 +93,7 @@ function OpenConfirmDialogButton({
 
   if (isPendingApprove || isPendingSwap) {
     return (
-      <Button fullWidth disabled>
+      <Button fullWidth isLoading>
         <span className="flex items-center gap-2">
           <span>{t("waiting_for_confirmation")}</span>
           <Preloader size={20} color="black" />
@@ -151,7 +157,6 @@ const gasOptionTitle: Record<GasOption, any> = {
 export default function TradeForm() {
   const t = useTranslations("Swap");
 
-  const { address } = useAccount();
   const chainId = useCurrentChainId();
   const [isOpenedFee, setIsOpenedFee] = useState(false);
   const { isOpened: showRecentTransactions, setIsOpened: setShowRecentTransactions } =
@@ -173,10 +178,87 @@ export default function TradeForm() {
 
   const { setTypedValue, independentField, dependentField, typedValue } = useSwapAmountsStore();
 
+  const { isAllowed: isAllowedA } = useStoreAllowance({
+    token: tokenA,
+    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
+    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
+  });
+
   const { trade, isLoading: isLoadingTrade } = useTrade();
+
+  const { erc20BalanceToken1, erc223BalanceToken1 } = usePoolBalances({
+    tokenA,
+    tokenB,
+  });
+
   const dependentAmount: CurrencyAmount<Currency> | undefined = useMemo(() => {
     return trade?.outputAmount;
   }, [trade?.outputAmount]);
+
+  const isConvertationRequired = useMemo(() => {
+    console.log("MEMO");
+    console.log(erc20BalanceToken1);
+    console.log(tokenBStandard);
+    if (erc20BalanceToken1 && tokenBStandard === Standard.ERC20) {
+      if (dependentAmount && +dependentAmount.toSignificant() > +erc20BalanceToken1.formatted) {
+        return true;
+      }
+    }
+
+    if (erc223BalanceToken1 && tokenBStandard === Standard.ERC223) {
+      if (dependentAmount && +dependentAmount.toSignificant() > +erc223BalanceToken1.formatted) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [dependentAmount, erc20BalanceToken1, erc223BalanceToken1, tokenBStandard]);
+
+  const gasERC20 = useMemo(() => {
+    if (!tokenA || !tokenB || !typedValue) {
+      return "—";
+    }
+
+    let gasForERC20 = 149;
+
+    if (!isAllowedA) {
+      gasForERC20 += 29;
+    }
+
+    if (isConvertationRequired) {
+      gasForERC20 += 56;
+    }
+
+    return `~${gasForERC20}K gas`;
+  }, [isAllowedA, isConvertationRequired, tokenA, tokenB, typedValue]);
+
+  const gasERC223 = useMemo(() => {
+    if (!tokenA || !tokenB || !typedValue) {
+      return "—";
+    }
+
+    let gasForERC223 = 127;
+
+    if (isConvertationRequired) {
+      gasForERC223 += 56;
+    }
+
+    return `~${gasForERC223}K gas`;
+  }, [isConvertationRequired, tokenA, tokenB, typedValue]);
+
+  // const { poolAddress } = useComputePoolAddressDex({
+  //   tokenA,
+  //   tokenB,
+  //   tier: FeeAmount.MEDIUM,
+  // });
+
+  // console.log(poolAddress?.toLowerCase());
+
+  console.log("IS CONVERTATion REQUIRED");
+  console.log(isConvertationRequired);
+
+  console.log("Pool balances");
+  // console.log(poolBalances);
 
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
 
@@ -220,34 +302,21 @@ export default function TradeForm() {
     ],
   );
 
-  const { data: tokenA0Balance, refetch: refetchBalanceA0 } = useBalance({
-    address: tokenA ? address : undefined,
-    token: tokenA ? (tokenA.address0 as Address) : undefined,
-  });
-
-  const { data: tokenA1Balance, refetch: refetchBalanceA1 } = useBalance({
-    address: tokenA ? address : undefined,
-    token: tokenA ? (tokenA.address1 as Address) : undefined,
-  });
-
-  const { data: tokenB0Balance, refetch: refetchBalanceB0 } = useBalance({
-    address: tokenB ? address : undefined,
-    token: tokenB ? (tokenB.address0 as Address) : undefined,
-  });
-
-  const { data: tokenB1Balance, refetch: refetchBalanceB1 } = useBalance({
-    address: tokenB ? address : undefined,
-    token: tokenB ? (tokenB.address1 as Address) : undefined,
-  });
+  const {
+    balance: { erc20Balance: tokenA0Balance, erc223Balance: tokenA1Balance },
+    refetch: refetchABalance,
+  } = useTokenBalances(tokenA);
+  const {
+    balance: { erc20Balance: tokenB0Balance, erc223Balance: tokenB1Balance },
+    refetch: refetchBBalance,
+  } = useTokenBalances(tokenB);
 
   const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {
-    refetchBalanceA0();
-    refetchBalanceA1();
-    refetchBalanceB0();
-    refetchBalanceB1();
-  }, [blockNumber, refetchBalanceA0, refetchBalanceB0, refetchBalanceA1, refetchBalanceB1]);
+    refetchABalance();
+    refetchBBalance();
+  }, [blockNumber, refetchABalance, refetchBBalance]);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
 
@@ -316,6 +385,8 @@ export default function TradeForm() {
           setCurrentlyPicking("tokenA");
           setIsOpenedTokenPick(true);
         }}
+        gasERC20={gasERC20}
+        gasERC223={gasERC223}
         token={tokenA}
         balance0={tokenA0Balance ? formatFloat(tokenA0Balance.formatted) : "0.0"}
         balance1={tokenA1Balance ? formatFloat(tokenA1Balance.formatted) : "0.0"}

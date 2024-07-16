@@ -6,7 +6,8 @@ import Svg from "@/components/atoms/Svg";
 export type AlertType = "success" | "info" | "error" | "warning" | "info-border";
 
 interface Props {
-  text: string;
+  text: string | ReactNode;
+  withIcon?: boolean;
   type?: AlertType;
 }
 
@@ -18,7 +19,7 @@ const iconsMap: Record<AlertType, ReactNode> = {
   "info-border": <Svg className=" flex-shrink-0" iconName="info" />,
 };
 
-export default function Alert({ text, type = "success" }: Props) {
+export default function Alert({ text, type = "success", withIcon = true }: Props) {
   return (
     <div
       className={clsx(
@@ -36,24 +37,26 @@ export default function Alert({ text, type = "success" }: Props) {
         text-14
         `,
         type === "success" && "outline-green bg-green-bg",
-        type === "error" && "outline-red bg-red-bg",
+        type === "error" && "outline-red-input bg-red-bg",
         type === "warning" && "outline-orange bg-orange-bg",
         type === "info" && "outline-blue bg-blue-bg",
         type === "info-border" && "border-l-4 border-l-blue outline-0 bg-primary-bg",
       )}
     >
-      <div
-        className={clsx(
-          "flex items-center justify-center flex-shrink-0",
-          type === "success" && "text-green",
-          type === "error" && "text-red",
-          type === "warning" && "text-orange",
-          type === "info" && "text-blue",
-          type === "info-border" && "text-blue",
-        )}
-      >
-        {iconsMap[type]}
-      </div>
+      {withIcon && (
+        <div
+          className={clsx(
+            "flex items-center justify-center flex-shrink-0",
+            type === "success" && "text-green",
+            type === "error" && "text-red",
+            type === "warning" && "text-orange",
+            type === "info" && "text-blue",
+            type === "info-border" && "text-blue",
+          )}
+        >
+          {iconsMap[type]}
+        </div>
+      )}
       {text}
     </div>
   );

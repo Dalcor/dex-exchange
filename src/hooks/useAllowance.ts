@@ -46,8 +46,6 @@ export function useStoreAllowance({
 
   const { allowances, addAllowanceItem, updateAllowedToSpend } = useAllowanceStore();
 
-  console.log(allowances, "Allowancves");
-
   const currentAllowanceItem = useMemo(() => {
     return allowances.find(
       (allowanceItem) =>
@@ -77,9 +75,6 @@ export function useStoreAllowance({
     // watch: true,
   });
 
-  console.log("Current allowance data:");
-  console.log(currentAllowanceData);
-
   // const { data: blockNumber } = useBlockNumber({ watch: true });
 
   // useEffect(() => {
@@ -89,9 +84,7 @@ export function useStoreAllowance({
   const waitAndReFetch = useCallback(
     async (hash: Address) => {
       if (publicClient) {
-        console.log("Waiting....");
         await publicClient.waitForTransactionReceipt({ hash });
-        console.log("Refetching...");
         refetch();
       }
     },
@@ -115,7 +108,6 @@ export function useStoreAllowance({
         // currentAllowanceItem.blockNumber !== blockNumber ||
         currentAllowanceData !== currentAllowanceItem.allowedToSpend
       ) {
-        console.log("Uodated allowed");
         updateAllowedToSpend(currentAllowanceItem, currentAllowanceData);
       }
     } else {

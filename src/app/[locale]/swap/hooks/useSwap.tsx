@@ -54,6 +54,7 @@ export function useSwapStatus() {
     isSuccessSwap: swapStatus === SwapStatus.SUCCESS,
     isRevertedSwap: swapStatus === SwapStatus.ERROR,
     isSettledSwap: swapStatus === SwapStatus.SUCCESS || swapStatus === SwapStatus.ERROR,
+    isRevertedApprove: swapStatus === SwapStatus.APPROVE_ERROR,
   };
 }
 
@@ -248,7 +249,9 @@ export default function useSwap() {
 
   useEffect(() => {
     if (
-      (swapStatus === SwapStatus.SUCCESS || swapStatus === SwapStatus.ERROR) &&
+      (swapStatus === SwapStatus.SUCCESS ||
+        swapStatus === SwapStatus.ERROR ||
+        swapStatus === SwapStatus.APPROVE_ERROR) &&
       !confirmDialogOpened
     ) {
       setTimeout(() => {
@@ -277,7 +280,16 @@ export default function useSwap() {
         setSwapStatus(SwapStatus.LOADING_APPROVE);
         closeConfirmInWalletAlert();
 
-        await publicClient.waitForTransactionReceipt({ hash: result.hash });
+        const approveReceipt = await publicClient.waitForTransactionReceipt({ hash: result.hash });
+        //
+        // if (approveReceipt.status === "success") {
+        //   setSwapStatus(SwapStatus.SUCCESS);
+        // }
+
+        if (approveReceipt.status === "reverted") {
+          setSwapStatus(SwapStatus.APPROVE_ERROR);
+          return;
+        }
       }
     }
 
@@ -362,6 +374,7 @@ export default function useSwap() {
 
       if (receipt.status === "reverted") {
         setSwapStatus(SwapStatus.ERROR);
+        console.log(receipt);
       }
     }
   }, [

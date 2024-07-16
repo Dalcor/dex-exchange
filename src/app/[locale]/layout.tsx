@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { Golos_Text } from "next/font/google";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
@@ -6,6 +5,7 @@ import { PropsWithChildren } from "react";
 import { Providers } from "@/app/[locale]/providers";
 import Footer from "@/components/common/Footer";
 import Header from "@/components/common/Header";
+import NoTokenListsEnabledWarning from "@/components/dialogs/NoTokenListsEnabledWarning";
 
 const golos_text = Golos_Text({
   subsets: ["latin"],

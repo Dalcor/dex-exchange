@@ -11,6 +11,7 @@ import InputButton from "@/components/buttons/InputButton";
 import { clsxMerge } from "@/functions/clsxMerge";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { Standard } from "@/sdk_hybrid/standard";
+
 function StandardOption({
   balance,
   symbol,
@@ -18,6 +19,7 @@ function StandardOption({
   active,
   setIsActive,
   token,
+  gas,
 }: {
   balance: string | undefined;
   symbol: string | undefined;
@@ -25,6 +27,7 @@ function StandardOption({
   active: Standard;
   setIsActive: (isActive: Standard) => void;
   token: Token | undefined;
+  gas?: string;
 }) {
   const t = useTranslations("Swap");
   const isActive = useMemo(() => {
@@ -32,41 +35,57 @@ function StandardOption({
   }, [active, standard]);
 
   return (
-    <div
-      role="button"
-      onClick={() => setIsActive(standard)}
-      className={clsxMerge(
-        "*:z-10 flex flex-col gap-1 px-3 py-2.5  rounded-2 before:absolute before:rounded-3 before:w-full before:h-full before:left-0 before:top-0 before:duration-200 relative before:bg-standard-gradient hover:cursor-pointer text-12 group",
-        isActive ? "before:opacity-100" : "before:opacity-0 hover:before:opacity-100",
-        standard === Standard.ERC223 && "before:rotate-180 items-end bg-swap-radio-right",
-        standard === Standard.ERC20 && "bg-swap-radio-left",
-        !token && "before:opacity-0 hover:before:opacity-0 before:cursor-default cursor-default",
-      )}
-    >
-      <div className="flex items-center gap-1 cursor-default">
-        <span className={clsxMerge("text-12", !token && "text-tertiary-text")}>
-          {t("standard")}
-        </span>
-        <Badge color="green" text={standard} />
-        <Tooltip
-          iconSize={16}
-          text={standard === Standard.ERC20 ? t("erc20_tooltip") : t("erc223_tooltip")}
-        />
+    <div className="flex flex-col">
+      <div
+        role="button"
+        onClick={() => setIsActive(standard)}
+        className={clsxMerge(
+          "*:z-10 flex flex-col gap-1 px-3 py-2.5  rounded-2 before:absolute before:rounded-3 before:w-full before:h-full before:left-0 before:top-0 before:duration-200 relative before:bg-standard-gradient hover:cursor-pointer text-12 group",
+          isActive ? "before:opacity-100" : "before:opacity-0 hover:before:opacity-100",
+          standard === Standard.ERC223 && "before:rotate-180 items-end bg-swap-radio-right",
+          standard === Standard.ERC20 && "bg-swap-radio-left",
+          !token && "before:opacity-0 hover:before:opacity-0 before:cursor-default cursor-default",
+          gas && standard === Standard.ERC20 && "rounded-b-0 before:rounded-b-0",
+          gas && standard === Standard.ERC223 && "rounded-b-0 before:rounded-t-0",
+        )}
+      >
+        <div className="flex items-center gap-1 cursor-default">
+          <span className={clsxMerge("text-12", !token && "text-tertiary-text")}>
+            {t("standard")}
+          </span>
+          <Badge color="green" text={standard} />
+          <Tooltip
+            iconSize={16}
+            text={standard === Standard.ERC20 ? t("erc20_tooltip") : t("erc223_tooltip")}
+          />
+        </div>
+        {!token ? (
+          <div className="text-tertiary-text cursor-default">—</div>
+        ) : (
+          <span
+            className={clsx(
+              "block",
+              standard === active ? "text-primary-text" : "text-tertiary-text",
+            )}
+          >
+            {t("balance")}{" "}
+            <span className="whitespace-nowrap">
+              {balance || "0.0"} {symbol}
+            </span>
+          </span>
+        )}
       </div>
-      {!token ? (
-        <div className="text-tertiary-text cursor-default">—</div>
-      ) : (
-        <span
+      {gas && (
+        <div
           className={clsx(
-            "block",
-            standard === active ? "text-primary-text" : "text-tertiary-text",
+            "py-1 px-3 text-12 bg-swap-gas-gradient flex items-center",
+            standard === Standard.ERC20 && "bg-swap-gas-gradient-left rounded-bl-2",
+            standard === Standard.ERC223 && "bg-swap-gas-gradient-right rounded-br-2 justify-end",
+            gas === "—" ? "text-tertiary-text" : "text-secondary-text",
           )}
         >
-          {t("balance")}{" "}
-          <span className="whitespace-nowrap">
-            {balance || "0.0"} {symbol}
-          </span>
-        </span>
+          {gas}
+        </div>
       )}
     </div>
   );
@@ -86,6 +105,8 @@ export default function TokenInput({
   isMax = false,
   setHalf,
   setMax,
+  gasERC20,
+  gasERC223,
 }: {
   handleClick: () => void;
   token: Token | undefined;
@@ -101,6 +122,8 @@ export default function TokenInput({
   isMax?: boolean;
   setHalf?: () => void;
   setMax?: () => void;
+  gasERC20?: string;
+  gasERC223?: string;
 }) {
   const t = useTranslations("Swap");
 
@@ -165,6 +188,7 @@ export default function TokenInput({
           standard={Standard.ERC20}
           symbol={token?.symbol}
           balance={balance0}
+          gas={gasERC20}
         />
         <div
           className={clsxMerge(
@@ -196,6 +220,7 @@ export default function TokenInput({
           standard={Standard.ERC223}
           symbol={token?.symbol}
           balance={balance1}
+          gas={gasERC223}
         />
       </div>
     </div>

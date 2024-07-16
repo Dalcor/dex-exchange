@@ -8,13 +8,11 @@ import ImportToken from "@/components/manage-tokens/ImportToken";
 import TokensAndLists from "@/components/manage-tokens/TokensAndLists";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
 
-interface Props {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-}
+export default function ManageTokensDialog() {
+  const { isOpen, setIsOpen } = useManageTokensDialogStore();
 
-export default function ManageTokensDialog({ isOpen, setIsOpen }: Props) {
   const [content, setContent] = useState<ManageTokensDialogContent>("default");
   const [tokenForPortfolio, setTokenForPortfolio] = useState<Token | null>(null);
 
@@ -28,35 +26,37 @@ export default function ManageTokensDialog({ isOpen, setIsOpen }: Props) {
 
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
-      {content === "default" && (
-        <TokensAndLists
-          setTokenForPortfolio={(token: Token) => {
-            setTokenForPortfolio(token);
-            setContent("token-portfolio");
-          }}
-          setContent={setContent}
-          handleClose={handleClose}
-        />
-      )}
-      {content === "import-token" && (
-        <ImportToken setContent={setContent} handleClose={handleClose} />
-      )}
-      {content === "import-list" && (
-        <ImportList setContent={setContent} handleClose={handleClose} />
-      )}
-      {content === "token-portfolio" && tokenForPortfolio && (
-        <>
-          <DialogHeader
-            onClose={handleClose}
-            onBack={() => {
-              setContent("default");
-              setTokenForPortfolio(null);
+      <div className="z-[1000]">
+        {content === "default" && (
+          <TokensAndLists
+            setTokenForPortfolio={(token: Token) => {
+              setTokenForPortfolio(token);
+              setContent("token-portfolio");
             }}
-            title={tokenForPortfolio.name || "Unknown"}
+            setContent={setContent}
+            handleClose={handleClose}
           />
-          <TokenPortfolioDialogContent token={tokenForPortfolio} />
-        </>
-      )}
+        )}
+        {content === "import-token" && (
+          <ImportToken setContent={setContent} handleClose={handleClose} />
+        )}
+        {content === "import-list" && (
+          <ImportList setContent={setContent} handleClose={handleClose} />
+        )}
+        {content === "token-portfolio" && tokenForPortfolio && (
+          <>
+            <DialogHeader
+              onClose={handleClose}
+              onBack={() => {
+                setContent("default");
+                setTokenForPortfolio(null);
+              }}
+              title={tokenForPortfolio.name || "Unknown"}
+            />
+            <TokenPortfolioDialogContent token={tokenForPortfolio} />
+          </>
+        )}
+      </div>
     </DrawerDialog>
   );
 }

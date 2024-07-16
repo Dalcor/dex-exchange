@@ -19,7 +19,6 @@ export default function TokenListsSettings() {
       >
         {t("manage_tokens")}
       </SelectButton>
-      <ManageTokensDialog isOpen={isOpen} setIsOpen={setIsOpen} />
     </div>
   );
 }

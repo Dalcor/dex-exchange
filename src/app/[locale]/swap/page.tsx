@@ -15,8 +15,10 @@ import RecentTransactions from "@/components/common/RecentTransactions";
 import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
+import { useSwapSearchParams } from "@/hooks/useSwapSearchParams";
 
 export default function SwapPage() {
+  useSwapSearchParams();
   useRecentTransactionTracking();
   useSwapEstimatedGas();
 

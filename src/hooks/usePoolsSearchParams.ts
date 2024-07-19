@@ -53,13 +53,13 @@ export const usePoolsSearchParams = () => {
       const queryTokenB = searchParams.get(PoolsQueryParams.tokenB);
       const queryTier = parseInt(searchParams.get(PoolsQueryParams.tier) || "");
       if (queryTokenA) {
-        const token = tokens.find((t) => t.address0 === queryTokenA);
+        const token = tokens.find((t) => t.address0.toLowerCase() === queryTokenA.toLowerCase());
         if (token) {
           setTokenA(token);
         }
       }
       if (queryTokenB) {
-        const token = tokens.find((t) => t.address0 === queryTokenB);
+        const token = tokens.find((t) => t.address0.toLowerCase() === queryTokenB.toLowerCase());
         if (token) {
           setTokenB(token);
         }

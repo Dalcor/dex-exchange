@@ -48,7 +48,12 @@ export function SelectedTokenInfoItem({ token }: { token: Token }) {
   return (
     <div className="bg-tertiary-bg rounded-3 py-2.5 px-5 flex flex-wrap justify-between items-center @container relative z-20">
       <div className="flex items-center gap-2">
-        <Image src={token.logoURI || ""} alt="Ethereum" width={32} height={32} />
+        <Image
+          src={token.logoURI || "/tokens/placeholder.svg"}
+          alt="Ethereum"
+          width={32}
+          height={32}
+        />
         <div className="flex flex-col">
           <div className="flex gap-2 items-center">
             {token.name}

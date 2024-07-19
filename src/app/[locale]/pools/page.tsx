@@ -1,16 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
+import Image from "next/image";
+import { useCallback, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 
 import Container from "@/components/atoms/Container";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import Preloader from "@/components/atoms/Preloader";
+import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
 import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
 import Button, { ButtonSize } from "@/components/buttons/Button";
+import TabButton from "@/components/buttons/TabButton";
 import TokensPair from "@/components/common/TokensPair";
+import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import usePositions, {
   usePositionFromPositionInfo,
@@ -18,6 +22,9 @@ import usePositions, {
 } from "@/hooks/usePositions";
 import { useRouter } from "@/navigation";
 import { FeeAmount } from "@/sdk_hybrid/constants";
+import { Token } from "@/sdk_hybrid/entities/token";
+
+import PoolsTable from "./PoolsTable";
 
 type PositionInfo = {
   nonce: bigint;
@@ -104,84 +111,255 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
   );
 }
 
-export default function PoolsPage() {
+const MyPositions = () => {
   const { isConnected } = useAccount();
   const router = useRouter();
 
   const { loading, positions } = usePositions();
 
   return (
-    <Container>
-      <div className="py-[40px] px-10 flex justify-center">
+    <div className="w-full">
+      {loading ? (
         <div className="w-full">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5 px-4 md:px-0 gap-2">
-            <h1 className="text-24">Pools</h1>
-            <Button size={ButtonSize.MEDIUM} onClick={() => router.push("/add")}>
+          <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
+            <Preloader size={50} type="awaiting" />
+          </div>
+        </div>
+      ) : (
+        <>
+          {!isConnected ? (
+            <div className="w-full">
+              <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
+                <EmptyStateIcon iconName="wallet" />
+                <p className="text-16 text-secondary-text">
+                  Connect to a wallet to see your liquidity
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {positions?.length ? (
+                <div className="rounded-5 w-full overflow-hidden bg-primary-bg md:px-10 px-5">
+                  <div className="flex justify-between py-3">
+                    <span className="text-secondary-text">Your positions</span>
+                    <span className="text-green">Hide closed positions</span>
+                  </div>
+                  <div className="flex flex-col gap-3 pb-10">
+                    {positions?.length ? (
+                      positions.map((position) => {
+                        return (
+                          <PoolPosition
+                            positionInfo={position}
+                            key={(position as any).nonce}
+                            onClick={() =>
+                              router.push(`/pool/${(position as any).tokenId.toString()}`)
+                            }
+                          />
+                        );
+                      })
+                    ) : (
+                      <div>You have no positions yet</div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full">
+                  <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
+                    <EmptyStateIcon iconName="pool" />
+                    <p className="text-16 text-secondary-text">
+                      Your active liquidity positions will appear here
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export type PoolsPageContent = "pools" | "my-positions";
+
+export default function PoolsPage() {
+  const [activeTab, setActiveTab] = useState<PoolsPageContent>("pools");
+  const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
+
+  const router = useRouter();
+
+  const [currentlyPicking, setCurrentlyPicking] = useState<"tokenA" | "tokenB">("tokenA");
+  const [tokenA, setTokenA] = useState(undefined as Token | undefined);
+  const [tokenB, setTokenB] = useState(undefined as Token | undefined);
+  const handlePick = useCallback(
+    (token?: Token, tokenPicking?: "tokenA" | "tokenB") => {
+      const currentlyPickingToken = tokenPicking || currentlyPicking;
+      if (currentlyPickingToken === "tokenA") {
+        if (!token) {
+          setTokenA(undefined);
+        } else {
+          if (token === tokenB) {
+            setTokenB(tokenA);
+          }
+
+          setTokenA(token);
+        }
+      }
+
+      if (currentlyPickingToken === "tokenB") {
+        if (!token) {
+          setTokenB(undefined);
+        } else {
+          if (token === tokenA) {
+            setTokenA(tokenB);
+          }
+          setTokenB(token);
+        }
+      }
+
+      setIsOpenedTokenPick(false);
+    },
+    [currentlyPicking, setTokenA, setTokenB, tokenA, tokenB, setIsOpenedTokenPick],
+  );
+
+  return (
+    <Container>
+      <div className="py-[40px] px-10 flex flex-col items-center">
+        <div className="flex w-full justify-between items-center mb-6">
+          <div className="w-[300px] grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3">
+            <TabButton
+              inactiveBackground="bg-primary-bg"
+              size={48}
+              active={activeTab === "pools"}
+              onClick={() => setActiveTab("pools")}
+            >
+              Pools
+            </TabButton>
+            <TabButton
+              inactiveBackground="bg-primary-bg"
+              size={48}
+              active={activeTab === "my-positions"}
+              onClick={() => setActiveTab("my-positions")}
+            >
+              My positions
+            </TabButton>
+          </div>
+
+          {activeTab === "pools" ? (
+            <div className="flex gap-2 mb-4 md:mb-5 items-center">
+              <SelectButton
+                variant="rectangle-primary"
+                fullWidth
+                onClick={() => {
+                  setCurrentlyPicking("tokenA");
+                  setIsOpenedTokenPick(true);
+                }}
+                size="medium"
+                withArrow={!tokenA}
+              >
+                {tokenA ? (
+                  <span className="flex gap-2 items-center">
+                    <Image
+                      className="flex-shrink-0 hidden md:block"
+                      src={tokenA?.logoURI || ""}
+                      alt="Ethereum"
+                      width={24}
+                      height={24}
+                    />
+                    <Image
+                      className="flex-shrink-0 block md:hidden"
+                      src={tokenA?.logoURI || ""}
+                      alt="Ethereum"
+                      width={24}
+                      height={24}
+                    />
+                    <span className="block overflow-ellipsis whitespace-nowrap w-[84px] md:w-[141px] overflow-hidden text-left">
+                      {tokenA.symbol}
+                    </span>
+                    <Svg
+                      className="flex-shrink-0"
+                      iconName="close"
+                      size={20}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePick(undefined, "tokenA");
+                      }}
+                    />
+                  </span>
+                ) : (
+                  <span className="text-tertiary-text">Select token</span>
+                )}
+              </SelectButton>
+              <span>—</span>
+              <SelectButton
+                variant="rectangle-primary"
+                fullWidth
+                onClick={() => {
+                  setCurrentlyPicking("tokenB");
+                  setIsOpenedTokenPick(true);
+                }}
+                size="medium"
+                withArrow={!tokenB}
+              >
+                {tokenB ? (
+                  <span className="flex gap-2 items-center">
+                    <Image
+                      className="flex-shrink-0 hidden md:block"
+                      src={tokenB?.logoURI || ""}
+                      alt="Ethereum"
+                      width={24}
+                      height={24}
+                    />
+                    <Image
+                      className="flex-shrink-0 block md:hidden"
+                      src={tokenB?.logoURI || ""}
+                      alt="Ethereum"
+                      width={24}
+                      height={24}
+                    />
+                    <span className="block overflow-ellipsis whitespace-nowrap w-[84px] md:w-[141px] overflow-hidden text-left">
+                      {tokenB.symbol}
+                    </span>
+                    <Svg
+                      className="flex-shrink-0"
+                      iconName="close"
+                      size={20}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePick(undefined, "tokenB");
+                      }}
+                    />
+                  </span>
+                ) : (
+                  <span className="text-tertiary-text">Select token</span>
+                )}
+              </SelectButton>
+            </div>
+          ) : activeTab === "my-positions" ? (
+            <Button size={ButtonSize.LARGE} onClick={() => router.push("/add")}>
               <span className="flex items-center gap-2">
                 New position
                 <Svg iconName="add" />
               </span>
             </Button>
-          </div>
-          {loading ? (
-            <div className="w-full">
-              <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
-                <Preloader size={50} type="awaiting" />
-              </div>
-            </div>
-          ) : (
-            <>
-              {!isConnected ? (
-                <div className="w-full">
-                  <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
-                    <EmptyStateIcon iconName="wallet" />
-                    <p className="text-16 text-secondary-text">
-                      Connect to a wallet to see your liquidity
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {positions?.length ? (
-                    <div className="rounded-5 w-full overflow-hidden bg-primary-bg md:px-10 px-5">
-                      <div className="flex justify-between py-3">
-                        <span className="text-secondary-text">Your positions</span>
-                        <span className="text-green">Hide closed positions</span>
-                      </div>
-                      <div className="flex flex-col gap-3 pb-10">
-                        {positions?.length ? (
-                          positions.map((position) => {
-                            return (
-                              <PoolPosition
-                                positionInfo={position}
-                                key={(position as any).nonce}
-                                onClick={() =>
-                                  router.push(`/pool/${(position as any).tokenId.toString()}`)
-                                }
-                              />
-                            );
-                          })
-                        ) : (
-                          <div>You have no positions yet</div>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full">
-                      <div className="min-h-[340px] bg-primary-bg flex items-center justify-center w-full flex-col gap-2 rounded-5">
-                        <EmptyStateIcon iconName="pool" />
-                        <p className="text-16 text-secondary-text">
-                          Your active liquidity positions will appear here
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
+          ) : null}
         </div>
+        {activeTab === "pools" ? (
+          <PoolsTable
+            filter={{
+              token0Address: tokenA?.address0,
+              token1Address: tokenB?.address0,
+            }}
+          />
+        ) : activeTab === "my-positions" ? (
+          <MyPositions />
+        ) : null}
       </div>
+      <PickTokenDialog
+        handlePick={handlePick}
+        isOpen={isOpenedTokenPick}
+        setIsOpen={setIsOpenedTokenPick}
+      />
     </Container>
   );
 }

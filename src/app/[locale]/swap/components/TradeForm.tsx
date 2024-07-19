@@ -1,8 +1,9 @@
 import clsx from "clsx";
+import JSBI from "jsbi";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Address, formatEther, formatGwei, formatUnits, parseUnits } from "viem";
-import { useAccount, useBalance, useBlockNumber, useGasPrice } from "wagmi";
+import { formatGwei, formatUnits, parseUnits } from "viem";
+import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
 import { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
@@ -21,17 +22,23 @@ import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonSize } from "@/components/buttons/Button";
 import IconButton, { IconButtonSize } from "@/components/buttons/IconButton";
 import SwapButton from "@/components/buttons/SwapButton";
-import TokenInput, { Standard } from "@/components/common/TokenInput";
+import TokenInput from "@/components/common/TokenInput";
 import NetworkFeeConfigDialog from "@/components/dialogs/NetworkFeeConfigDialog";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
 import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
 import { networks } from "@/config/networks";
 import { formatFloat } from "@/functions/formatFloat";
+import { useStoreAllowance } from "@/hooks/useAllowance";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import { usePoolBalances } from "@/hooks/usePoolBalances";
+import useTokenBalances from "@/hooks/useTokenBalances";
+import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 
 function OpenConfirmDialogButton({
@@ -64,7 +71,7 @@ function OpenConfirmDialogButton({
 
   if (isLoadingSwap) {
     return (
-      <Button fullWidth disabled>
+      <Button fullWidth isLoading>
         <span className="flex items-center gap-2">
           <span>{t("processing_swap")}</span>
           <Preloader size={20} color="black" />
@@ -75,7 +82,7 @@ function OpenConfirmDialogButton({
 
   if (isLoadingApprove) {
     return (
-      <Button fullWidth disabled>
+      <Button fullWidth isLoading>
         <span className="flex items-center gap-2">
           <span>{t("approving_in_progress")}</span>
           <Preloader size={20} color="black" />
@@ -86,7 +93,7 @@ function OpenConfirmDialogButton({
 
   if (isPendingApprove || isPendingSwap) {
     return (
-      <Button fullWidth disabled>
+      <Button fullWidth isLoading>
         <span className="flex items-center gap-2">
           <span>{t("waiting_for_confirmation")}</span>
           <Preloader size={20} color="black" />
@@ -150,7 +157,6 @@ const gasOptionTitle: Record<GasOption, any> = {
 export default function TradeForm() {
   const t = useTranslations("Swap");
 
-  const { address } = useAccount();
   const chainId = useCurrentChainId();
   const [isOpenedFee, setIsOpenedFee] = useState(false);
   const { isOpened: showRecentTransactions, setIsOpened: setShowRecentTransactions } =
@@ -161,10 +167,10 @@ export default function TradeForm() {
     tokenB,
     setTokenA,
     setTokenB,
-    tokenAAddress,
-    tokenBAddress,
-    setTokenAAddress,
-    setTokenBAddress,
+    tokenAStandard,
+    tokenBStandard,
+    setTokenAStandard,
+    setTokenBStandard,
   } = useSwapTokensStore();
   const { computed } = useSwapSettingsStore();
 
@@ -172,10 +178,87 @@ export default function TradeForm() {
 
   const { setTypedValue, independentField, dependentField, typedValue } = useSwapAmountsStore();
 
+  const { isAllowed: isAllowedA } = useStoreAllowance({
+    token: tokenA,
+    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
+    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
+  });
+
   const { trade, isLoading: isLoadingTrade } = useTrade();
+
+  const { erc20BalanceToken1, erc223BalanceToken1 } = usePoolBalances({
+    tokenA,
+    tokenB,
+  });
+
   const dependentAmount: CurrencyAmount<Currency> | undefined = useMemo(() => {
     return trade?.outputAmount;
   }, [trade?.outputAmount]);
+
+  const isConvertationRequired = useMemo(() => {
+    console.log("MEMO");
+    console.log(erc20BalanceToken1);
+    console.log(tokenBStandard);
+    if (erc20BalanceToken1 && tokenBStandard === Standard.ERC20) {
+      if (dependentAmount && +dependentAmount.toSignificant() > +erc20BalanceToken1.formatted) {
+        return true;
+      }
+    }
+
+    if (erc223BalanceToken1 && tokenBStandard === Standard.ERC223) {
+      if (dependentAmount && +dependentAmount.toSignificant() > +erc223BalanceToken1.formatted) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [dependentAmount, erc20BalanceToken1, erc223BalanceToken1, tokenBStandard]);
+
+  const gasERC20 = useMemo(() => {
+    if (!tokenA || !tokenB || !typedValue) {
+      return "—";
+    }
+
+    let gasForERC20 = 149;
+
+    if (!isAllowedA) {
+      gasForERC20 += 29;
+    }
+
+    if (isConvertationRequired) {
+      gasForERC20 += 56;
+    }
+
+    return `~${gasForERC20}K gas`;
+  }, [isAllowedA, isConvertationRequired, tokenA, tokenB, typedValue]);
+
+  const gasERC223 = useMemo(() => {
+    if (!tokenA || !tokenB || !typedValue) {
+      return "—";
+    }
+
+    let gasForERC223 = 127;
+
+    if (isConvertationRequired) {
+      gasForERC223 += 56;
+    }
+
+    return `~${gasForERC223}K gas`;
+  }, [isConvertationRequired, tokenA, tokenB, typedValue]);
+
+  // const { poolAddress } = useComputePoolAddressDex({
+  //   tokenA,
+  //   tokenB,
+  //   tier: FeeAmount.MEDIUM,
+  // });
+
+  // console.log(poolAddress?.toLowerCase());
+
+  console.log("IS CONVERTATion REQUIRED");
+  console.log(isConvertationRequired);
+
+  console.log("Pool balances");
+  // console.log(poolBalances);
 
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
 
@@ -184,20 +267,24 @@ export default function TradeForm() {
       if (currentlyPicking === "tokenA") {
         if (token === tokenB) {
           setTokenB(tokenA);
-          setTokenBAddress(tokenAAddress);
+          setTokenBStandard(tokenAStandard);
+          // setTokenBAddress(tokenAAddress);
         }
 
         setTokenA(token);
-        setTokenAAddress(token.address0);
+        setTokenAStandard(Standard.ERC20);
+        // setTokenAAddress(token.address0);
       }
 
       if (currentlyPicking === "tokenB") {
         if (token === tokenA) {
           setTokenA(tokenB);
-          setTokenAAddress(tokenBAddress);
+          setTokenAStandard(tokenBStandard);
+          // setTokenAAddress(tokenBAddress);
         }
         setTokenB(token);
-        setTokenBAddress(token.address0);
+        setTokenBStandard(Standard.ERC20);
+        // setTokenBAddress(token.address0);
       }
 
       setIsOpenedTokenPick(false);
@@ -205,44 +292,31 @@ export default function TradeForm() {
     [
       currentlyPicking,
       setTokenA,
-      setTokenAAddress,
+      setTokenAStandard,
       setTokenB,
-      setTokenBAddress,
+      setTokenBStandard,
       tokenA,
-      tokenAAddress,
+      tokenAStandard,
       tokenB,
-      tokenBAddress,
+      tokenBStandard,
     ],
   );
 
-  const { data: tokenA0Balance, refetch: refetchBalanceA0 } = useBalance({
-    address: tokenA ? address : undefined,
-    token: tokenA ? (tokenA.address0 as Address) : undefined,
-  });
-
-  const { data: tokenA1Balance, refetch: refetchBalanceA1 } = useBalance({
-    address: tokenA ? address : undefined,
-    token: tokenA ? (tokenA.address1 as Address) : undefined,
-  });
-
-  const { data: tokenB0Balance, refetch: refetchBalanceB0 } = useBalance({
-    address: tokenB ? address : undefined,
-    token: tokenB ? (tokenB.address0 as Address) : undefined,
-  });
-
-  const { data: tokenB1Balance, refetch: refetchBalanceB1 } = useBalance({
-    address: tokenB ? address : undefined,
-    token: tokenB ? (tokenB.address1 as Address) : undefined,
-  });
+  const {
+    balance: { erc20Balance: tokenA0Balance, erc223Balance: tokenA1Balance },
+    refetch: refetchABalance,
+  } = useTokenBalances(tokenA);
+  const {
+    balance: { erc20Balance: tokenB0Balance, erc223Balance: tokenB1Balance },
+    refetch: refetchBBalance,
+  } = useTokenBalances(tokenB);
 
   const { data: blockNumber } = useBlockNumber({ watch: true });
 
   useEffect(() => {
-    refetchBalanceA0();
-    refetchBalanceA1();
-    refetchBalanceB0();
-    refetchBalanceB1();
-  }, [blockNumber, refetchBalanceA0, refetchBalanceB0, refetchBalanceA1, refetchBalanceB1]);
+    refetchABalance();
+    refetchBBalance();
+  }, [blockNumber, refetchABalance, refetchBBalance]);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
 
@@ -270,8 +344,6 @@ export default function TradeForm() {
 
     return undefined;
   }, [baseFee, gasPrice]);
-
-  console.log(Boolean(tokenA0Balance?.value));
 
   return (
     <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
@@ -313,25 +385,23 @@ export default function TradeForm() {
           setCurrentlyPicking("tokenA");
           setIsOpenedTokenPick(true);
         }}
+        gasERC20={gasERC20}
+        gasERC223={gasERC223}
         token={tokenA}
         balance0={tokenA0Balance ? formatFloat(tokenA0Balance.formatted) : "0.0"}
         balance1={tokenA1Balance ? formatFloat(tokenA1Balance.formatted) : "0.0"}
         setMax={
-          (Boolean(tokenA0Balance?.value) &&
-            Boolean(tokenAAddress) &&
-            tokenAAddress === tokenA?.address0) ||
-          (Boolean(tokenA1Balance?.value) &&
-            Boolean(tokenAAddress) &&
-            tokenAAddress === tokenA?.address1)
+          (Boolean(tokenA0Balance?.value) && tokenAStandard === Standard.ERC20) ||
+          (Boolean(tokenA1Balance?.value) && tokenAStandard === Standard.ERC223)
             ? () => {
-                if (tokenA0Balance && tokenAAddress === tokenA?.address0) {
+                if (tokenA0Balance && tokenAStandard === Standard.ERC20) {
                   setTypedValue({
                     typedValue: tokenA0Balance.formatted,
 
                     field: Field.CURRENCY_A,
                   });
                 }
-                if (tokenA1Balance && tokenAAddress === tokenA?.address1) {
+                if (tokenA1Balance && tokenAStandard === Standard.ERC223) {
                   setTypedValue({
                     typedValue: tokenA1Balance.formatted,
 
@@ -342,14 +412,10 @@ export default function TradeForm() {
             : undefined
         }
         setHalf={
-          (Boolean(tokenA0Balance?.value) &&
-            Boolean(tokenAAddress) &&
-            tokenAAddress === tokenA?.address0) ||
-          (Boolean(tokenA1Balance?.value) &&
-            Boolean(tokenAAddress) &&
-            tokenAAddress === tokenA?.address1)
+          (Boolean(tokenA0Balance?.value) && tokenAStandard === Standard.ERC20) ||
+          (Boolean(tokenA1Balance?.value) && tokenAStandard === Standard.ERC223)
             ? () => {
-                if (tokenA0Balance && tokenAAddress === tokenA?.address0) {
+                if (tokenA0Balance && tokenAStandard === Standard.ERC20) {
                   setTypedValue({
                     typedValue: formatUnits(
                       tokenA0Balance.value / BigInt(2),
@@ -359,7 +425,7 @@ export default function TradeForm() {
                     field: Field.CURRENCY_A,
                   });
                 }
-                if (tokenA1Balance && tokenAAddress === tokenA?.address1) {
+                if (tokenA1Balance && tokenAStandard === Standard.ERC223) {
                   setTypedValue({
                     typedValue: formatUnits(
                       tokenA1Balance.value / BigInt(2),
@@ -373,48 +439,37 @@ export default function TradeForm() {
             : undefined
         }
         isHalf={
-          (tokenAAddress === tokenA?.address0 &&
+          (tokenAStandard === Standard.ERC20 &&
             tokenA0Balance &&
             typedValue !== "0" &&
             typedValue ===
               formatUnits(tokenA0Balance.value / BigInt(2), tokenA0Balance.decimals)) ||
-          (tokenAAddress === tokenA?.address1 &&
+          (tokenAStandard === Standard.ERC223 &&
             typedValue !== "0" &&
             tokenA1Balance &&
             typedValue === formatUnits(tokenA1Balance.value / BigInt(2), tokenA1Balance.decimals))
         }
         isMax={
-          (tokenAAddress === tokenA?.address0 &&
+          (tokenAStandard === Standard.ERC20 &&
             typedValue !== "0" &&
             tokenA0Balance &&
             typedValue === tokenA0Balance.formatted) ||
-          (tokenAAddress === tokenA?.address1 &&
+          (tokenAStandard === Standard.ERC223 &&
             typedValue !== "0" &&
             tokenA1Balance &&
             typedValue === tokenA1Balance.formatted)
         }
         label={t("you_pay")}
-        standard={
-          Boolean(tokenAAddress) && tokenAAddress === tokenA?.address1
-            ? Standard.ERC223
-            : Standard.ERC20
-        }
-        setStandard={(standard) => {
-          if (standard === Standard.ERC20) {
-            setTokenAAddress(tokenA?.address0);
-          }
-          if (standard === Standard.ERC223) {
-            setTokenAAddress(tokenA?.address1);
-          }
-        }}
+        standard={tokenAStandard}
+        setStandard={setTokenAStandard}
       />
       <div className="relative h-3 z-10">
         <SwapButton
           onClick={() => {
             setTokenB(tokenA);
             setTokenA(tokenB);
-            setTokenAAddress(tokenBAddress);
-            setTokenBAddress(tokenAAddress);
+            setTokenAStandard(tokenBStandard);
+            setTokenBStandard(tokenAStandard);
             setTypedValue({
               typedValue: dependentAmount?.toSignificant() || "",
               field: Field.CURRENCY_A,
@@ -434,19 +489,8 @@ export default function TradeForm() {
         balance0={tokenB0Balance ? formatFloat(tokenB0Balance.formatted) : "0.0"}
         balance1={tokenB1Balance ? formatFloat(tokenB1Balance.formatted) : "0.0"}
         label={t("you_receive")}
-        standard={
-          Boolean(tokenBAddress) && tokenBAddress === tokenB?.address1
-            ? Standard.ERC223
-            : Standard.ERC20
-        }
-        setStandard={(standard) => {
-          if (standard === Standard.ERC20) {
-            setTokenBAddress(tokenB?.address0);
-          }
-          if (standard === Standard.ERC223) {
-            setTokenBAddress(tokenB?.address1);
-          }
-        }}
+        standard={tokenBStandard}
+        setStandard={setTokenBStandard}
       />
 
       {tokenA && tokenB && typedValue ? (
@@ -530,11 +574,11 @@ export default function TradeForm() {
 
       <OpenConfirmDialogButton
         isSufficientBalance={
-          (tokenAAddress === tokenA?.address0 &&
+          (tokenAStandard === Standard.ERC20 &&
             (tokenA0Balance && tokenA
               ? tokenA0Balance?.value >= parseUnits(typedValue, tokenA.decimals)
               : false)) ||
-          (tokenAAddress === tokenA?.address1 &&
+          (tokenAStandard === Standard.ERC223 &&
             (tokenA1Balance && tokenA
               ? tokenA1Balance?.value >= parseUnits(typedValue, tokenA.decimals)
               : false))

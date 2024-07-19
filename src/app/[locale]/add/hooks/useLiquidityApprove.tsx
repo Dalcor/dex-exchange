@@ -7,6 +7,7 @@ import useDeposit from "@/hooks/useDeposit";
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 
 import { Field, useTokensStandards } from "../stores/useAddLiquidityAmountsStore";
 import { useAddLiquidityTokensStore } from "../stores/useAddLiquidityTokensStore";
@@ -104,7 +105,7 @@ export const useLiquidityApprove = () => {
     let depositA = undefined as undefined | ApproveTransaction;
     let depositB = undefined as undefined | ApproveTransaction;
     if (tokenA && tokenAStandard && amountToCheckA) {
-      if (tokenAStandard === "ERC-20") {
+      if (tokenAStandard === Standard.ERC20) {
         approveA = {
           token: tokenA,
           amount: amountToCheckA,
@@ -112,7 +113,7 @@ export const useLiquidityApprove = () => {
           status: statusAllowanceA,
           estimatedGas: estimatedGasAllowanceA,
         };
-      } else if (tokenAStandard === "ERC-223") {
+      } else if (tokenAStandard === Standard.ERC223) {
         depositA = {
           token: tokenA,
           amount: amountToCheckA,
@@ -123,7 +124,7 @@ export const useLiquidityApprove = () => {
       }
     }
     if (tokenB && tokenBStandard && amountToCheckB) {
-      if (tokenBStandard === "ERC-20") {
+      if (tokenBStandard === Standard.ERC20) {
         approveB = {
           token: tokenB,
           amount: amountToCheckB,
@@ -131,7 +132,7 @@ export const useLiquidityApprove = () => {
           status: statusAllowanceB,
           estimatedGas: estimatedGasAllowanceB,
         };
-      } else if (tokenBStandard === "ERC-223") {
+      } else if (tokenBStandard === Standard.ERC223) {
         depositB = {
           token: tokenB,
           amount: amountToCheckB,
@@ -179,14 +180,14 @@ export const useLiquidityApprove = () => {
     }) => {
       const amountA = customAmountA || amountToCheckA;
       const amountB = customAmountB || amountToCheckB;
-      if (tokenAStandard === "ERC-20" && (currentAllowanceA || BigInt(0)) < amountA) {
+      if (tokenAStandard === Standard.ERC20 && (currentAllowanceA || BigInt(0)) < amountA) {
         approveA(customAmountA);
-      } else if (tokenAStandard === "ERC-223" && (currentDepositA || BigInt(0)) < amountA) {
+      } else if (tokenAStandard === Standard.ERC223 && (currentDepositA || BigInt(0)) < amountA) {
         depositA(customAmountA);
       }
-      if (tokenBStandard === "ERC-20" && (currentAllowanceB || BigInt(0)) < amountB) {
+      if (tokenBStandard === Standard.ERC20 && (currentAllowanceB || BigInt(0)) < amountB) {
         approveB(customAmountB);
-      } else if (tokenBStandard === "ERC-223" && (currentDepositB || BigInt(0)) < amountB) {
+      } else if (tokenBStandard === Standard.ERC223 && (currentDepositB || BigInt(0)) < amountB) {
         depositB(customAmountB);
       }
     },

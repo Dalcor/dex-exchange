@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { Address } from "viem";
 
 import Svg from "@/components/atoms/Svg";
 import TokenAddressWithStandard from "@/components/atoms/TokenAddressWithStandard";
@@ -8,6 +7,7 @@ import TrustBadge from "@/components/badges/TrustBadge";
 import IconButton from "@/components/buttons/IconButton";
 import { useTokenPortfolioDialogStore } from "@/components/dialogs/stores/useTokenPortfolioDialogStore";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 
 interface Props {
   tokenA: Token | undefined;
@@ -31,12 +31,12 @@ function AddressPair({ token }: { token: Token }) {
     <div className="flex gap-2 flex-col min-[450px]:flex-row">
       <TokenAddressWithStandard
         tokenAddress={token.address0}
-        standard="ERC-20"
+        standard={Standard.ERC20}
         chainId={token?.chainId}
       />
       <TokenAddressWithStandard
         tokenAddress={token.address1}
-        standard="ERC-223"
+        standard={Standard.ERC223}
         chainId={token.chainId}
       />
     </div>

@@ -10,6 +10,7 @@ type Props =
   | {
       variant?: BadgeVariant.COLORED;
       color?: "blue" | "red" | "green" | "purple";
+      size?: "default" | "small";
       text: string;
     }
   | {
@@ -24,22 +25,24 @@ type Props =
 export default function Badge(props: Props) {
   switch (props.variant) {
     case BadgeVariant.COLORED:
-    case undefined:
-      const { text, color = "green" } = props;
+    case undefined: {
+      const { text, color = "green", size = "default" } = props;
       return (
         <div
           className={clsx(
-            "rounded-5 px-2 py-px border text-12 font-medium",
+            "rounded-5 px-2 border font-medium",
             color === "blue" && "bg-blue-bg border-blue text-blue",
             color === "green" && "bg-green-bg border-green text-green",
             color === "purple" && "bg-purple-bg border-purple text-purple",
             color === "red" && "bg-red-bg border-red text-red",
+            size === "default" ? "text-12 py-px " : "text-10",
           )}
         >
           {text}
         </div>
       );
-    case BadgeVariant.DEFAULT:
+    }
+    case BadgeVariant.DEFAULT: {
       const { text: defaultText, size = "default" } = props;
       return (
         <div
@@ -51,6 +54,7 @@ export default function Badge(props: Props) {
           {defaultText}
         </div>
       );
+    }
     case BadgeVariant.PERCENTAGE:
       const { percentage } = props;
       return (

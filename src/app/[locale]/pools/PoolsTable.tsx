@@ -91,8 +91,6 @@ export default function PoolsTable({
     orderDirection: GQLSorting[sorting],
     filter,
   });
-  console.log("🚀 ~ Pools ~ data:", data);
-  console.log("🚀 ~ Pools ~ restData:", restData);
   const pools = useMemo(() => data?.pools || [], [data?.pools]);
 
   const currentTableData = useMemo(() => {
@@ -100,7 +98,6 @@ export default function PoolsTable({
     const lastPageIndex = firstPageIndex + PAGE_SIZE;
     return pools.slice(firstPageIndex, lastPageIndex);
   }, [pools, currentPage]);
-  console.log("🚀 ~ currentTableData ~ currentTableData:", currentTableData);
   const router = useRouter();
 
   const openPoolHandler = (poolAddress: Address) => {

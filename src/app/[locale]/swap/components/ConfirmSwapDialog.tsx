@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import React, { PropsWithChildren, ReactNode, useMemo } from "react";
-import { formatGwei } from "viem";
+import { Address, formatGwei } from "viem";
 import { useGasPrice } from "wagmi";
 
 import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
@@ -12,7 +12,9 @@ import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsSt
 import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
 import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
+import { useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
+import Alert from "@/components/atoms/Alert";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
@@ -20,16 +22,19 @@ import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
-import Button, { ButtonVariant } from "@/components/buttons/Button";
-import { Standard } from "@/components/common/TokenInput";
+import Button from "@/components/buttons/Button";
+import IconButton from "@/components/buttons/IconButton";
 import { networks } from "@/config/networks";
 import { clsxMerge } from "@/functions/clsxMerge";
 import { formatFloat } from "@/functions/formatFloat";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 
 function ApproveRow({
@@ -37,30 +42,54 @@ function ApproveRow({
   isPending = false,
   isLoading = false,
   isSuccess = false,
+  isReverted = false,
+  hash,
 }: {
   logoURI: string | undefined;
   isLoading?: boolean;
   isPending?: boolean;
   isSuccess?: boolean;
+  isReverted?: boolean;
+  hash?: Address | undefined;
 }) {
   const t = useTranslations("Swap");
 
   return (
-    <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
-      <Image
-        className={clsx(isSuccess && "", "rounded-full")}
-        src={logoURI}
-        alt=""
-        width={32}
-        height={32}
-      />
+    <div
+      className={clsx(
+        "grid grid-cols-[32px_1fr_1fr] gap-2 h-10 before:absolute relative before:left-[15px] before:-bottom-4 before:w-0.5 before:h-3 before:rounded-1",
+        isSuccess ? "before:bg-green" : "before:bg-green-bg",
+      )}
+    >
+      <div className="flex items-center">
+        <Image
+          className={clsx(isSuccess && "", "rounded-full")}
+          src={logoURI}
+          alt=""
+          width={32}
+          height={32}
+        />
+      </div>
+
       <div className="flex flex-col justify-center">
         <span className={isSuccess ? "text-secondary-text text-14" : "text-14"}>
-          {isSuccess ? t("approved") : t("approve")}
+          {isSuccess && t("approved")}
+          {isPending && "Confirm in your wallet"}
+          {isLoading && "Approving"}
+          {!isSuccess && !isPending && !isReverted && !isLoading && "Approve"}
+          {isReverted && "Approve failed"}
         </span>
         {!isSuccess && <span className="text-green text-12">{t("why_do_i_have_to_approve")}</span>}
       </div>
       <div className="flex items-center gap-2 justify-end">
+        {hash && (
+          <a
+            target="_blank"
+            href={getExplorerLink(ExplorerLinkType.TRANSACTION, hash, DexChainId.SEPOLIA)}
+          >
+            <IconButton iconName="forward" />
+          </a>
+        )}
         {isPending && (
           <>
             <Preloader type="linear" />
@@ -69,6 +98,7 @@ function ApproveRow({
         )}
         {isLoading && <Preloader size={20} />}
         {isSuccess && <Svg className="text-green" iconName="done" size={20} />}
+        {isReverted && <Svg className="text-red-input" iconName="warning" size={20} />}
       </div>
     </div>
   );
@@ -81,6 +111,7 @@ function SwapRow({
   isSettled = false,
   isReverted = false,
   isDisabled = false,
+  hash,
 }: {
   isLoading?: boolean;
   isPending?: boolean;
@@ -88,12 +119,13 @@ function SwapRow({
   isSuccess?: boolean;
   isReverted?: boolean;
   isDisabled?: boolean;
+  hash?: Address | undefined;
 }) {
   const t = useTranslations("Swap");
 
   return (
-    <div className="grid grid-cols-[32px_1fr_1fr] gap-2">
-      <div className="flex items-center">
+    <div className="grid grid-cols-[32px_1fr_1fr] gap-2 h-10">
+      <div className="flex items-center h-full">
         <div
           className={clsxMerge(
             "p-1 rounded-full h-8 w-8",
@@ -114,7 +146,7 @@ function SwapRow({
 
       <div className="flex flex-col justify-center">
         <span className={clsx("text-14", isDisabled ? "text-tertiary-text" : "text-primary-text")}>
-          {isPending && t("confirm_swap")}
+          {isPending || (!isLoading && !isReverted && !isSuccess && t("confirm_swap"))}
           {isLoading && t("executing_swap")}
           {isReverted && "Failed to confirm a swap"}
           {isSuccess && "Executed swap"}
@@ -122,6 +154,14 @@ function SwapRow({
         {!isSettled && <span className="text-green text-12">{t("learn_more_about_swap")}</span>}
       </div>
       <div className="flex items-center gap-2 justify-end">
+        {hash && (
+          <a
+            target="_blank"
+            href={getExplorerLink(ExplorerLinkType.TRANSACTION, hash, DexChainId.SEPOLIA)}
+          >
+            <IconButton iconName="forward" />
+          </a>
+        )}
         {isPending && (
           <>
             <Preloader type="linear" />
@@ -141,8 +181,9 @@ function Rows({ children }: PropsWithChildren<{}>) {
 
 function SwapActionButton() {
   const t = useTranslations("Swap");
-  const { tokenA, tokenB, tokenAAddress } = useSwapTokensStore();
+  const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
   const { typedValue } = useSwapAmountsStore();
+  const { isOpen, setIsOpen } = useConfirmSwapDialogStore();
 
   const { handleSwap } = useSwap();
 
@@ -154,7 +195,12 @@ function SwapActionButton() {
     isSuccessSwap,
     isSettledSwap,
     isRevertedSwap,
+    isRevertedApprove,
   } = useSwapStatus();
+
+  const { swapHash, approveHash } = useSwapStatusStore();
+
+  console.log(approveHash);
 
   if (!tokenA || !tokenB) {
     return (
@@ -172,7 +218,7 @@ function SwapActionButton() {
     );
   }
 
-  if (tokenA.address1 !== tokenAAddress) {
+  if (tokenAStandard === Standard.ERC20) {
     if (isPendingApprove) {
       return (
         <Rows>
@@ -185,9 +231,45 @@ function SwapActionButton() {
     if (isLoadingApprove) {
       return (
         <Rows>
-          <ApproveRow isLoading logoURI={tokenA.logoURI} />
+          <ApproveRow hash={approveHash} isLoading logoURI={tokenA.logoURI} />
           <SwapRow isDisabled />
         </Rows>
+      );
+    }
+
+    if (isRevertedApprove) {
+      return (
+        <>
+          <Rows>
+            <ApproveRow hash={approveHash} isReverted logoURI={tokenA.logoURI} />
+            <SwapRow isDisabled />
+          </Rows>
+          <div className="flex flex-col gap-5 mt-4">
+            <Alert
+              withIcon={false}
+              type="error"
+              text={
+                <span>
+                  Transaction failed due to lack of gas or an internal contract error. Try using
+                  higher slippage or gas to ensure your transaction is completed. If you still have
+                  issues, click{" "}
+                  <a href="#" className="text-green hover:underline">
+                    common errors
+                  </a>
+                  .
+                </span>
+              }
+            />
+            <Button
+              fullWidth
+              onClick={() => {
+                setIsOpen(false);
+              }}
+            >
+              Try again
+            </Button>
+          </div>
+        </>
       );
     }
   }
@@ -195,7 +277,9 @@ function SwapActionButton() {
   if (isPendingSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
+        {tokenAStandard === Standard.ERC20 && (
+          <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+        )}
         <SwapRow isPending />
       </Rows>
     );
@@ -204,8 +288,10 @@ function SwapActionButton() {
   if (isLoadingSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
-        <SwapRow isLoading />
+        {tokenAStandard === Standard.ERC20 && (
+          <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+        )}
+        <SwapRow hash={swapHash} isLoading />
       </Rows>
     );
   }
@@ -213,18 +299,49 @@ function SwapActionButton() {
   if (isSuccessSwap) {
     return (
       <Rows>
-        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
-        <SwapRow isSettled isSuccess />
+        {tokenAStandard === Standard.ERC20 && (
+          <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+        )}
+        <SwapRow hash={swapHash} isSettled isSuccess />
       </Rows>
     );
   }
 
   if (isRevertedSwap) {
     return (
-      <Rows>
-        {tokenAAddress === tokenA.address0 && <ApproveRow isSuccess logoURI={tokenA.logoURI} />}
-        <SwapRow isSettled isReverted />
-      </Rows>
+      <>
+        <Rows>
+          {tokenAStandard === Standard.ERC20 && (
+            <ApproveRow hash={approveHash} isSuccess logoURI={tokenA.logoURI} />
+          )}
+          <SwapRow hash={swapHash} isSettled isReverted />
+        </Rows>
+        <div className="flex flex-col gap-5 mt-4">
+          <Alert
+            withIcon={false}
+            type="error"
+            text={
+              <span>
+                Transaction failed due to lack of gas or an internal contract error. Try using
+                higher slippage or gas to ensure your transaction is completed. If you still have
+                issues, click{" "}
+                <a href="#" className="text-green hover:underline">
+                  common errors
+                </a>
+                .
+              </span>
+            }
+          />
+          <Button
+            fullWidth
+            onClick={() => {
+              setIsOpen(false);
+            }}
+          >
+            Try again
+          </Button>
+        </div>
+      </>
     );
   }
 
@@ -284,8 +401,14 @@ function SwapDetailsRow({
 }
 export default function ConfirmSwapDialog() {
   const t = useTranslations("Swap");
-  const { tokenA, tokenB, tokenAAddress, tokenBAddress } = useSwapTokensStore();
-  const { typedValue } = useSwapAmountsStore();
+  const {
+    tokenA,
+    tokenB,
+    tokenAStandard,
+    tokenBStandard,
+    reset: resetTokens,
+  } = useSwapTokensStore();
+  const { typedValue, reset: resetAmounts } = useSwapAmountsStore();
   const chainId = useCurrentChainId();
 
   const { isOpen, setIsOpen } = useConfirmSwapDialogStore();
@@ -313,12 +436,27 @@ export default function ConfirmSwapDialog() {
     isPendingApprove,
     isRevertedSwap,
     isSettledSwap,
+    isRevertedApprove,
   } = useSwapStatus();
   const { estimatedGas } = useSwapEstimatedGasStore();
 
   const isProcessing = useMemo(() => {
-    return isPendingSwap || isLoadingSwap || isSettledSwap || isLoadingApprove || isPendingApprove;
-  }, [isLoadingApprove, isLoadingSwap, isPendingApprove, isPendingSwap, isSettledSwap]);
+    return (
+      isPendingSwap ||
+      isLoadingSwap ||
+      isSettledSwap ||
+      isLoadingApprove ||
+      isPendingApprove ||
+      isRevertedApprove
+    );
+  }, [
+    isLoadingApprove,
+    isLoadingSwap,
+    isPendingApprove,
+    isPendingSwap,
+    isRevertedApprove,
+    isSettledSwap,
+  ]);
 
   const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
 
@@ -344,32 +482,50 @@ export default function ConfirmSwapDialog() {
   }, [baseFee, gasPrice]);
 
   return (
-    <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
+    <DrawerDialog
+      isOpen={isOpen}
+      setIsOpen={(isOpen) => {
+        setIsOpen(isOpen);
+        if (isSettledSwap) {
+          resetAmounts();
+          resetTokens();
+        }
+      }}
+    >
       <div className="shadow-popup bg-primary-bg rounded-5 w-full md:w-[600px]">
-        <DialogHeader onClose={() => setIsOpen(false)} title={t("review_swap")} />
+        <DialogHeader
+          onClose={() => {
+            if (isSettledSwap) {
+              resetAmounts();
+              resetTokens();
+            }
+            setIsOpen(false);
+          }}
+          title={t("review_swap")}
+        />
         <div className="px-4 pb-4 md:px-10 md:pb-9">
-          {!isSettledSwap && (
+          {!isSettledSwap && !isRevertedApprove && (
             <div className="flex flex-col gap-3">
               <ReadonlyTokenAmountCard
                 token={tokenA}
                 amount={typedValue}
                 amountUSD={"0.00"}
-                standard={tokenA?.address0 === tokenAAddress ? Standard.ERC20 : Standard.ERC223}
+                standard={tokenAStandard}
                 title={t("you_pay")}
               />
               <ReadonlyTokenAmountCard
                 token={tokenB}
                 amount={output}
                 amountUSD={"0.00"}
-                standard={tokenB?.address0 === tokenBAddress ? Standard.ERC20 : Standard.ERC223}
+                standard={tokenBStandard}
                 title={t("you_receive")}
               />
             </div>
           )}
-          {isSettledSwap && (
+          {(isSettledSwap || isRevertedApprove) && (
             <div>
               <div className="mx-auto w-[80px] h-[80px] flex items-center justify-center relative mb-5">
-                {isRevertedSwap && <EmptyStateIcon iconName="warning" />}
+                {(isRevertedSwap || isRevertedApprove) && <EmptyStateIcon iconName="warning" />}
 
                 {isSuccessSwap && (
                   <>
@@ -385,7 +541,9 @@ export default function ConfirmSwapDialog() {
 
               <div className="flex justify-center">
                 <span className="text-20 font-bold text-primary-text mb-1">
-                  {isRevertedSwap ? t("swap_failed") : t("successful_swap")}
+                  {isRevertedSwap && t("swap_failed")}
+                  {isSuccessSwap && t("successful_swap")}
+                  {isRevertedApprove && "Approve failed"}
                 </span>
               </div>
 

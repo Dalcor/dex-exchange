@@ -14,7 +14,7 @@ import { formatFloat } from "@/functions/formatFloat";
 import { getChainSymbol } from "@/functions/getChainSymbol";
 import { AllowanceStatus } from "@/hooks/useAllowance";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
-import { TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 
 import {
   ApproveTransaction,
@@ -41,8 +41,8 @@ const TransactionItem = ({
 }: {
   transaction?: ApproveTransaction;
   gasPrice: any;
-  standard: TokenStandard;
   chainSymbol: string;
+  standard: Standard;
   index: number;
   itemsCount: number;
   isError: boolean;
@@ -84,7 +84,7 @@ const TransactionItem = ({
       <div className="w-full">
         <div className="flex justify-between items-center">
           <div className="flex gap-2 py-2 items-center">
-            <span>{`${standard === "ERC-20" ? "Approve" : "Deposit"} for ${token.symbol}`}</span>
+            <span>{`${standard === Standard.ERC20 ? "Approve" : "Deposit"} for ${token.symbol}`}</span>
             <Badge color="green" text={standard} />
           </div>
 
@@ -153,6 +153,17 @@ const TransactionItem = ({
     </div>
   );
 };
+
+interface TransactionItem {
+  transaction: ApproveTransaction;
+  standard: Standard;
+}
+function isDefinedTransactionItem(item: {
+  transaction?: ApproveTransaction;
+  standard: Standard;
+}): item is TransactionItem {
+  return !!item.transaction;
+}
 export const ApproveButton = () => {
   const t = useTranslations("Liquidity");
   const [isOpen, setIsOpen] = useState(false);
@@ -193,25 +204,25 @@ export const ApproveButton = () => {
   const transactionItems = [
     {
       transaction: approveTransactions.approveA,
-      standard: "ERC-20" as TokenStandard,
+      standard: Standard.ERC20,
       token: "tokenA" as TokenType,
     },
     {
       transaction: approveTransactions.depositA,
-      standard: "ERC-223" as TokenStandard,
+      standard: Standard.ERC223,
       token: "tokenA" as TokenType,
     },
     {
       transaction: approveTransactions.approveB,
-      standard: "ERC-20" as TokenStandard,
+      standard: Standard.ERC20,
       token: "tokenB" as TokenType,
     },
     {
       transaction: approveTransactions.depositB,
-      standard: "ERC-223" as TokenStandard,
+      standard: Standard.ERC223,
       token: "tokenB" as TokenType,
     },
-  ].filter(({ transaction }) => !!transaction);
+  ].filter(isDefinedTransactionItem);
 
   const [customAmounts, setCustomAmounts] = useState(
     {} as { customAmountA?: bigint; customAmountB?: bigint },

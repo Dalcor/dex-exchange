@@ -42,7 +42,7 @@ function NotificationTitle({
               ? t("approve_success_notification", { symbol: title.symbol })
               : t("approve_revert_notification", { symbol: title.symbol })}
           </span>
-          <Badge color="green" text="ERC-20" />
+          {status === RecentTransactionStatus.SUCCESS && <Badge color="green" text="ERC-20" />}
         </div>
       );
     case RecentTransactionTitleTemplate.DEPOSIT:
@@ -106,8 +106,8 @@ function NotificationTitle({
 
 export default function Notification({ onDismiss, transactionTitle, transactionStatus }: Props) {
   return (
-    <div className="grid grid-cols-[1fr_48px] rounded-3 border border-secondary-border shadow-popover bg-primary-bg">
-      <div className="flex gap-2 items-center p-5">
+    <div className="grid grid-cols-[1fr_48px] rounded-3 border border-secondary-border shadow-popover bg-primary-bg w-full">
+      <div className="flex gap-2 items-center p-5 whitespace-nowrap">
         {transactionStatus === RecentTransactionStatus.SUCCESS ? (
           <RecentTransactionLogo title={transactionTitle} />
         ) : (

@@ -6,6 +6,7 @@ import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
 import { Price } from "@/sdk_hybrid/entities/fractions/price";
 import { Pool } from "@/sdk_hybrid/entities/pool";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 import { sortedInsert } from "@/sdk_hybrid/utils/sortedInsert";
 
 import { FACTORY_ADDRESS } from "../addresses";
@@ -486,8 +487,8 @@ export class Trade<
             fee: pool.fee,
             tokenA: pool.token0,
             tokenB: pool.token1,
-            standardA: "ERC-20", // TODO,
-            standardB: "ERC-20", // TODO,
+            standardA: Standard.ERC20, // TODO,
+            standardB: Standard.ERC20, // TODO,
           }),
         );
       }

@@ -23,7 +23,8 @@ import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
-import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Token } from "@/sdk_hybrid/entities/token";
+import { getTokenAddressForStandard, Standard } from "@/sdk_hybrid/standard";
 
 export const InputRange = ({
   value,
@@ -145,8 +146,8 @@ function InputStandardAmount({
   estimatedGas,
   gasPrice,
 }: {
-  standard: TokenStandard;
-  value?: string;
+  standard: Standard;
+  value?: number | string;
   token?: Token;
   currentAllowance: bigint; // currentAllowance or currentDeposit
   status: AllowanceStatus;
@@ -159,10 +160,9 @@ function InputStandardAmount({
   const { address } = useAccount();
   const chainId = useCurrentChainId();
   const { data: blockNumber } = useBlockNumber({ watch: true });
-  const tokenAddress = standard === "ERC-20" ? token?.address0 : token?.address1;
   const { data: tokenBalance, refetch: refetchBalance } = useBalance({
     address: token ? address : undefined,
-    token: token ? (tokenAddress as Address) : undefined,
+    token: token ? getTokenAddressForStandard(token, standard) : undefined,
   });
 
   useEffect(() => {
@@ -188,10 +188,10 @@ function InputStandardAmount({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <span>{t("standard")}</span>
-        <Badge color={standard === "ERC-20" ? "purple" : "green"} text={standard} />
+        <Badge color={standard === Standard.ERC20 ? "purple" : "green"} text={standard} />
         <Tooltip
           iconSize={20}
-          text={standard === "ERC-20" ? tSwap("erc20_tooltip") : tSwap("erc223_tooltip")}
+          text={standard === Standard.ERC20 ? tSwap("erc20_tooltip") : tSwap("erc223_tooltip")}
         />
       </div>
       <div className="bg-primary-bg px-4 py-2 md:p-5 w-full rounded-2">
@@ -221,10 +221,10 @@ function InputStandardAmount({
           <div className="flex items-center gap-1">
             <Tooltip
               iconSize={16}
-              text={standard === "ERC-20" ? t("approved_tooltip") : t("deposited_tooltip")}
+              text={standard === Standard.ERC20 ? t("approved_tooltip") : t("deposited_tooltip")}
             />
             <span className="text-12 text-secondary-text">
-              {standard === "ERC-20"
+              {standard === Standard.ERC20
                 ? t("approved", {
                     approved: formatFloat(
                       formatUnits(currentAllowance || BigInt(0), token.decimals),
@@ -245,7 +245,7 @@ function InputStandardAmount({
             className="text-12 px-2 pt-[1px] pb-[2px] border border-green rounded-3 h-min cursor-pointer hover:text-green duration-200"
             onClick={() => setIsOpenedRevokeDialog(true)}
           >
-            {standard === "ERC-20" ? t("revoke") : t("withdraw")}
+            {standard === Standard.ERC20 ? t("revoke") : t("withdraw")}
           </span>
         ) : null}
       </div>
@@ -253,12 +253,12 @@ function InputStandardAmount({
         <Dialog isOpen={isOpenedRevokeDialog} setIsOpen={setIsOpenedRevokeDialog}>
           <DialogHeader
             onClose={() => setIsOpenedRevokeDialog(false)}
-            title={standard === "ERC-20" ? t("revoke") : t("withdraw")}
+            title={standard === Standard.ERC20 ? t("revoke") : t("withdraw")}
           />
           <div className="w-full md:w-[570px] px-4 pb-4 md:px-10 md:pb-10">
             <div className="flex justify-between items-center">
               <div className="flex gap-2 py-2 items-center">
-                <span>{`${standard === "ERC-20" ? t("revoke") : t("withdraw")} ${token.symbol}`}</span>
+                <span>{`${standard === Standard.ERC20 ? t("revoke") : t("withdraw")} ${token.symbol}`}</span>
                 <Badge color="green" text={standard} />
               </div>
               <div className="flex items-center gap-2 justify-end">
@@ -336,7 +336,7 @@ function InputStandardAmount({
               </Button>
             ) : [AllowanceStatus.INITIAL].includes(status) ? (
               <Button onClick={() => revokeHandler(localValueBigInt)} fullWidth>
-                {standard === "ERC-20" ? t("revoke") : t("withdraw")}
+                {standard === Standard.ERC20 ? t("revoke") : t("withdraw")}
               </Button>
             ) : [AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
               <Button fullWidth disabled>
@@ -431,7 +431,7 @@ export default function TokenDepositCard({
         <InputRange value={tokenStandardRatio} onChange={setTokenStandardRatio} />
         <div className="flex flex-col md:flex-row justify-between gap-4 w-full">
           <InputStandardAmount
-            standard="ERC-20"
+            standard={Standard.ERC20}
             value={formatUnits(ERC20Value, token.decimals)}
             currentAllowance={currentAllowance || BigInt(0)}
             token={token}
@@ -441,7 +441,7 @@ export default function TokenDepositCard({
             gasPrice={gasPrice}
           />
           <InputStandardAmount
-            standard="ERC-223"
+            standard={Standard.ERC223}
             value={formatUnits(ERC223Value, token.decimals)}
             token={token}
             currentAllowance={currentDeposit || BigInt(0)}

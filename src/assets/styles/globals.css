@@ -31,6 +31,8 @@ body {
   display: grid;
   place-items: center;
   z-index: 88;
+  padding-bottom: 40px;
+  padding-top: 40px;
 }
 
 .drawer-overlay {
@@ -257,4 +259,8 @@ input[type="range"]:focus::-moz-range-thumb {
 .sorting-desc {
   --sorting-arrow-down-fill: theme("colors.green");
   --sorting-arrow-down-drop-shadow: drop-shadow(0 0 2px #B3FFE2CC);
+}
+
+[data-sonner-toast] {
+  width: 100%;
 }

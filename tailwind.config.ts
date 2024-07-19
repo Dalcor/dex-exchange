@@ -34,6 +34,8 @@ const config: Config = {
         "navigation-active-mobile":
           "linear-gradient(270deg, #1D1E1E 13.5%, #283631 97.85%, #70C59E 100%)",
         "table-gradient": "linear-gradient(to bottom, #272727 60px, #1D1E1E 60px, #1D1E1E 100%)",
+        "swap-gas-gradient-right": "linear-gradient(90deg, #0F0F0F 0%, #1D1E1E 100%)",
+        "swap-gas-gradient-left": "linear-gradient(90deg, #1D1E1E 0%, #0F0F0F 100%)",
       },
       keyframes: {
         appear: {

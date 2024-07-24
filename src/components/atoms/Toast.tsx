@@ -25,6 +25,7 @@ export default function Toast({ text, type = "success", onDismiss }: Props) {
       className={clsx(
         `
         min-w-[340px]
+        sm:min-w-[400px]
         relative
         flex
         justify-between
@@ -36,6 +37,8 @@ export default function Toast({ text, type = "success", onDismiss }: Props) {
         pl-5
         overflow-hidden
         box-border
+        py-2
+        px-2
         `,
         type === "success" && "outline-green bg-green-bg",
         type === "error" && "outline-red bg-red-bg",

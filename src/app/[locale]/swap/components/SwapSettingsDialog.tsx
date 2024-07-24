@@ -59,7 +59,7 @@ function SettingsInput({ isActive, isError, ...props }: SettingsInputProps) {
   return (
     <NumericFormat
       isAllowed={(values) => {
-        console.log(values);
+        // console.log(values);
         const { floatValue } = values;
         if (values.value === "00" || values.value === "0.0") {
           return false;

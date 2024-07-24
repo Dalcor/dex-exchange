@@ -200,8 +200,6 @@ function SwapActionButton() {
 
   const { swapHash, approveHash } = useSwapStatusStore();
 
-  console.log(approveHash);
-
   if (!tokenA || !tokenB) {
     return (
       <Button fullWidth disabled>

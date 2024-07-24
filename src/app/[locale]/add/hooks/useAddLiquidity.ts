@@ -253,7 +253,7 @@ export function useAddLiquidityEstimatedGas({
             estimatedGas: estimated,
           });
         }
-        console.log(estimated);
+        // console.log(estimated);
       } catch (error) {
         console.error("useAddLiquidityEstimatedGas ~ error:", error);
         setEstimatedGas({

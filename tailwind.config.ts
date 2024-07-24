@@ -165,6 +165,7 @@ const config: Config = {
       20: ["20px", "32px"],
       24: ["24px", "40px"],
       32: ["32px", "48px"],
+      40: ["40px", "48px"],
     },
   },
   plugins: [

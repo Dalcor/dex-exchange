@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useAccount, useBlockNumber, useEstimateFeesPerGas, useGasPrice } from "wagmi";
 
 import {
@@ -6,9 +6,16 @@ import {
   GasSettings,
   useSwapGasSettingsStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
+import {
+  baseFeeMultipliers,
+  isEip1559Supported,
+  SCALING_FACTOR,
+} from "@/config/constants/baseFeeMultipliers";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
+import useDeepEffect from "@/hooks/useDeepEffect";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 
-function useFees() {
+export function useFees() {
   const { chainId } = useAccount();
 
   const { data: estimatedFeesPerGasEIP1559, refetch: refetchEIP1559 } = useEstimateFeesPerGas({
@@ -50,25 +57,28 @@ export default function useSwapGas() {
     currentGasPrice,
   } = useFees();
 
+  const chainId = useCurrentChainId();
+
   const { gasOption, setGasPrice, setGasOption, setGasLimit, gasPrice } = useSwapGasSettingsStore();
 
-  useEffect(() => {
+  useDeepEffect(() => {
     if (gasOption === GasOption.CHEAP) {
-      if (!estimatedMaxFeePerGas || !estimatedMaxPriorityFeePerGas) {
-        return;
+      if (gasPrice.model === GasFeeModel.EIP1559) {
+        if (!gasPrice.maxFeePerGas && !gasPrice.maxPriorityFeePerGas) {
+          console.log("INTIALIZE GAS PRICE");
+          setGasPrice({
+            model: GasFeeModel.EIP1559,
+            maxFeePerGas: estimatedMaxFeePerGas,
+            maxPriorityFeePerGas: estimatedMaxPriorityFeePerGas,
+          });
+        }
       }
-
-      setGasPrice({
-        model: GasFeeModel.EIP1559,
-        maxFeePerGas: estimatedMaxFeePerGas,
-        maxPriorityFeePerGas: estimatedMaxPriorityFeePerGas,
-      });
     }
-  }, [estimatedMaxFeePerGas, estimatedMaxPriorityFeePerGas, gasOption, setGasPrice]);
+  }, [estimatedMaxFeePerGas, estimatedMaxPriorityFeePerGas, gasOption, gasPrice, setGasPrice]);
 
   const handleApply = useCallback(
     (args: HandleApplyArgs) => {
-      if (!estimatedMaxFeePerGas || !estimatedMaxPriorityFeePerGas) {
+      if (!estimatedMaxFeePerGas || !estimatedMaxPriorityFeePerGas || !currentGasPrice) {
         return;
       }
 
@@ -76,27 +86,37 @@ export default function useSwapGas() {
 
       setGasOption(option);
 
-      if (option === GasOption.CHEAP) {
-        setGasPrice({
-          model: GasFeeModel.EIP1559,
-          maxFeePerGas: estimatedMaxFeePerGas,
-          maxPriorityFeePerGas: estimatedMaxPriorityFeePerGas,
-        });
-      }
-
-      if (option === GasOption.FAST) {
-        setGasPrice({
-          model: GasFeeModel.EIP1559,
-          maxFeePerGas: estimatedMaxFeePerGas,
-          maxPriorityFeePerGas: estimatedMaxPriorityFeePerGas * BigInt(2),
-        });
-      }
-
       if (option === GasOption.CUSTOM) {
         setGasPrice(args.gasSettings);
+      } else {
+        console.log(args.option);
+        const multiplier = baseFeeMultipliers[chainId][args.option];
+
+        console.log(multiplier);
+
+        if (isEip1559Supported(chainId)) {
+          console.log("Supported eip1559");
+          setGasPrice({
+            model: GasFeeModel.EIP1559,
+            maxFeePerGas: (estimatedMaxFeePerGas * multiplier) / SCALING_FACTOR,
+            maxPriorityFeePerGas: (estimatedMaxPriorityFeePerGas * multiplier) / SCALING_FACTOR,
+          });
+        } else {
+          setGasPrice({
+            model: GasFeeModel.LEGACY,
+            gasPrice: (currentGasPrice * multiplier) / SCALING_FACTOR,
+          });
+        }
       }
     },
-    [estimatedMaxFeePerGas, estimatedMaxPriorityFeePerGas, setGasOption, setGasPrice],
+    [
+      chainId,
+      currentGasPrice,
+      estimatedMaxFeePerGas,
+      estimatedMaxPriorityFeePerGas,
+      setGasOption,
+      setGasPrice,
+    ],
   );
 
   return {

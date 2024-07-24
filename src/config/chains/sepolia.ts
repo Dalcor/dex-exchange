@@ -9,6 +9,9 @@ export const sepolia = defineChain({
       http: ["https://ethereum-sepolia-rpc.publicnode.com"],
     },
   },
+  fees: {
+    baseFeeMultiplier: 1,
+  },
   blockExplorers: {
     default: {
       name: "Etherscan",

@@ -58,81 +58,60 @@ export function useStoreAllowance({
 
   const { addRecentTransaction } = useRecentTransactionsStore();
 
-  const { refetch, data: currentAllowanceData } = useReadContract({
-    abi: ERC20_ABI,
-    address: token?.address0 as Address,
-    functionName: "allowance",
-    args: [
-      //set ! to avoid ts errors, make sure it is not undefined with "enable" option
-      address!,
-      contractAddress!,
-    ],
-    query: {
-      //make sure hook don't run when there is no addresses
-      enabled: Boolean(token?.address0) && Boolean(address) && Boolean(contractAddress),
-    },
-    // cacheTime: 0,
-    // watch: true,
-  });
+  const updateAllowance = useCallback(async () => {
+    if (!publicClient || !address || !contractAddress || !token) {
+      return;
+    }
 
-  // const { data: blockNumber } = useBlockNumber({ watch: true });
+    console.warn("NODE REQUEST FOR ALLOWANCE");
+    const data = await publicClient.readContract({
+      abi: ERC20_ABI,
+      functionName: "allowance",
+      address: token.address0,
+      args: [address, contractAddress],
+    });
 
-  // useEffect(() => {
-  //   refetch();
-  // }, [blockNumber, refetch]);
+    if (data) {
+      if (currentAllowanceItem) {
+        updateAllowedToSpend(currentAllowanceItem, data);
+      } else {
+        addAllowanceItem({
+          tokenAddress: token.address0,
+          contractAddress,
+          account: address,
+          chainId,
+          allowedToSpend: data,
+        });
+      }
+    }
+  }, [
+    addAllowanceItem,
+    address,
+    chainId,
+    contractAddress,
+    currentAllowanceItem,
+    publicClient,
+    token,
+    updateAllowedToSpend,
+  ]);
+
+  useEffect(() => {
+    if (!currentAllowanceItem) {
+      updateAllowance();
+    }
+  }, [currentAllowanceItem, updateAllowance]);
 
   const waitAndReFetch = useCallback(
     async (hash: Address) => {
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash });
-        refetch();
+        await updateAllowance();
       }
     },
-    [publicClient, refetch],
+    [publicClient, updateAllowance],
   );
 
-  useEffect(() => {
-    if (
-      !token ||
-      // !blockNumber ||
-      !address ||
-      !contractAddress ||
-      typeof currentAllowanceData === "undefined"
-    ) {
-      console.log("Not enough data to write allowance");
-      return;
-    }
-
-    if (currentAllowanceItem) {
-      if (
-        // currentAllowanceItem.blockNumber !== blockNumber ||
-        currentAllowanceData !== currentAllowanceItem.allowedToSpend
-      ) {
-        updateAllowedToSpend(currentAllowanceItem, currentAllowanceData);
-      }
-    } else {
-      addAllowanceItem({
-        tokenAddress: token.address0,
-        contractAddress,
-        account: address,
-        chainId,
-        allowedToSpend: currentAllowanceData,
-        // blockNumber,
-      });
-    }
-  }, [
-    addAllowanceItem,
-    address,
-    // allowances,
-    // blockNumber,
-    chainId,
-    contractAddress,
-    currentAllowanceData,
-    currentAllowanceItem,
-    token,
-    updateAllowedToSpend,
-  ]);
-
+  //TODO: ADD OPTIONAL PARAMETER TO APPROVE MORE THAN CHECK
   const writeTokenApprove = useCallback(async () => {
     if (
       !amountToCheck ||
@@ -145,10 +124,6 @@ export function useStoreAllowance({
     ) {
       console.error("Error: writeTokenApprove ~ something undefined");
       return;
-    }
-
-    if (!currentAllowanceItem) {
-      return { success: false as const };
     }
 
     const params: {
@@ -232,7 +207,6 @@ export function useStoreAllowance({
     address,
     chainId,
     publicClient,
-    currentAllowanceItem,
     addRecentTransaction,
     waitAndReFetch,
   ]);
@@ -283,7 +257,7 @@ export function useStoreAllowance({
         currentAllowanceItem.allowedToSpend >= amountToCheck,
     ),
     writeTokenApprove,
-    currentAllowance: currentAllowanceData,
+    currentAllowance: currentAllowanceItem?.allowedToSpend,
     estimatedGas,
     currentAllowanceItem,
   };
@@ -469,16 +443,17 @@ export default function useAllowance({
         functionName: "approve";
         args: [Address, bigint];
       } = {
-        address: token.address0 as Address,
+        address: token.address0,
         account: address,
         abi: ERC20_ABI,
         functionName: "approve",
-        args: [contractAddress!, amountToCheck!],
+        args: [contractAddress, amountToCheck],
       };
 
       try {
         const estimatedGas = await publicClient.estimateContractGas(params);
         setEstimatedGas(estimatedGas);
+        console.log(estimatedGas);
       } catch (error) {
         console.warn("🚀 ~ useAllowance ~ estimatedGas ~ error:", error, "params:", params);
         setEstimatedGas(null);

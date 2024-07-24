@@ -30,9 +30,6 @@ export const usePoolBalances = ({
     tier: FeeAmount.MEDIUM,
   });
 
-  console.log("POOL ADDRESS");
-  console.log(poolAddress);
-
   const { data: erc20BalanceToken0 } = useBalance({
     address: poolAddress,
     token: tokenA ? tokenA.address0 : undefined,

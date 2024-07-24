@@ -9,13 +9,13 @@ import {
   getAbiItem,
   parseUnits,
 } from "viem";
-import { useAccount, useBlockNumber, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
-import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
+import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
@@ -28,6 +28,7 @@ import { useStoreAllowance } from "@/hooks/useAllowance";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useDeepEffect from "@/hooks/useDeepEffect";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
+import addToast from "@/other/toast";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
@@ -168,15 +169,26 @@ export function useSwapEstimatedGas() {
   const { swapParams } = useSwapParams();
   const { setEstimatedGas } = useSwapEstimatedGasStore();
   const publicClient = usePublicClient();
-  const { data: blockNumber } = useBlockNumber({ watch: true });
+  // const { data: blockNumber } = useBlockNumber({ watch: true });
+  const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
+  const chainId = useCurrentChainId();
+  const { typedValue } = useSwapAmountsStore();
+
+  const { isAllowed: isAllowedA } = useStoreAllowance({
+    token: tokenA,
+    contractAddress: ROUTER_ADDRESS[chainId],
+    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
+  });
 
   useDeepEffect(() => {
     IIFE(async () => {
-      if (!swapParams || !address) {
+      if (!swapParams || !address || !isAllowedA) {
+        console.log("Can't estimate gas");
         return;
       }
 
       try {
+        // console.log(swapParams);
         const estimated = await publicClient?.estimateContractGas({
           account: address,
           ...swapParams,
@@ -184,13 +196,13 @@ export function useSwapEstimatedGas() {
         if (estimated) {
           setEstimatedGas(estimated);
         }
-        console.log(estimated);
+        // console.log(estimated);
       } catch (e) {
         console.log(e);
         setEstimatedGas(BigInt(195000));
       }
     });
-  }, [publicClient, address, swapParams, blockNumber]);
+  }, [publicClient, address, swapParams, isAllowedA]);
 }
 export default function useSwap() {
   const t = useTranslations("Swap");
@@ -203,8 +215,7 @@ export default function useSwap() {
   const chainId = useCurrentChainId();
   const { estimatedGas } = useSwapEstimatedGasStore();
 
-  const { gasPrice } = useSwapGas();
-
+  const { gasPrice } = useSwapGasSettingsStore();
   const { slippage } = useSwapSettingsStore();
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
@@ -236,6 +247,8 @@ export default function useSwap() {
         return { gasPrice: gasPrice.gasPrice };
     }
   }, [gasPrice]);
+
+  console.log(gasPriceFormatted);
 
   const output = useMemo(() => {
     if (!trade) {
@@ -281,10 +294,6 @@ export default function useSwap() {
         closeConfirmInWalletAlert();
 
         const approveReceipt = await publicClient.waitForTransactionReceipt({ hash: result.hash });
-        //
-        // if (approveReceipt.status === "success") {
-        //   setSwapStatus(SwapStatus.SUCCESS);
-        // }
 
         if (approveReceipt.status === "reverted") {
           setSwapStatus(SwapStatus.APPROVE_ERROR);
@@ -348,7 +357,8 @@ export default function useSwap() {
           chainId,
           gas: {
             ...stringifyObject(gasPrice),
-            gas: (estimatedGas + BigInt(30000)).toString(),
+            // gas: (estimatedGas + BigInt(30000)).toString(),
+            gas: BigInt(90000).toString(),
           },
           params: {
             ...stringifyObject(swapParams),
@@ -374,8 +384,13 @@ export default function useSwap() {
 
       if (receipt.status === "reverted") {
         setSwapStatus(SwapStatus.ERROR);
+        if (receipt.gasUsed === BigInt(100000)) {
+          addToast("Swap failed cause a lack of gas");
+        }
         console.log(receipt);
       }
+    } else {
+      setSwapStatus(SwapStatus.INITIAL);
     }
   }, [
     addRecentTransaction,
@@ -383,7 +398,6 @@ export default function useSwap() {
     approveA,
     chainId,
     closeConfirmInWalletAlert,
-    estimatedGas,
     gasPrice,
     isAllowedA,
     openConfirmInWalletAlert,

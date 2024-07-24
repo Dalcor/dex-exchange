@@ -57,7 +57,12 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
 
   const [filteredTokens, isTokenFilterActive] = useMemo(() => {
     return tokensSearchValue
-      ? [tokens.filter((t) => t.name && t.name.toLowerCase().startsWith(tokensSearchValue)), true]
+      ? [
+          tokens.filter(
+            (t) => t.name && t.name.toLowerCase().startsWith(tokensSearchValue.toLowerCase()),
+          ),
+          true,
+        ]
       : [tokens, false];
   }, [tokens, tokensSearchValue]);
 
@@ -65,7 +70,8 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
     return listSearchValue
       ? [
           lists?.filter(
-            ({ list }) => list.name && list.name.toLowerCase().startsWith(listSearchValue),
+            ({ list }) =>
+              list.name && list.name.toLowerCase().startsWith(listSearchValue.toLowerCase()),
           ),
           true,
         ]
@@ -115,7 +121,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               <ButtonTooltip text={t("import_list_tooltip")} />
             </div>
 
-            {Boolean(filteredLists?.length && !isListFilterActive) && (
+            {Boolean(filteredLists?.length) && (
               <div className="flex flex-col mt-3 overflow-auto flex-grow">
                 {filteredLists
                   ?.filter((l) => Boolean(l.list.tokens.length))

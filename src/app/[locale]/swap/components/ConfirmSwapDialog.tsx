@@ -151,7 +151,9 @@ function SwapRow({
           {isReverted && "Failed to confirm a swap"}
           {isSuccess && "Executed swap"}
         </span>
-        {!isSettled && <span className="text-green text-12">{t("learn_more_about_swap")}</span>}
+        {(isPending || isLoading) && (
+          <span className="text-green text-12">{t("learn_more_about_swap")}</span>
+        )}
       </div>
       <div className="flex items-center gap-2 justify-end">
         {hash && (

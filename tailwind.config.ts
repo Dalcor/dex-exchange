@@ -36,6 +36,7 @@ const config: Config = {
         "table-gradient": "linear-gradient(to bottom, #272727 60px, #1D1E1E 60px, #1D1E1E 100%)",
         "swap-gas-gradient-right": "linear-gradient(90deg, #0F0F0F 0%, #1D1E1E 100%)",
         "swap-gas-gradient-left": "linear-gradient(90deg, #1D1E1E 0%, #0F0F0F 100%)",
+        "test-tokens-gradient": "linear-gradient(90deg, #3C4C4A 0%, #1D1E1E 100%)",
       },
       keyframes: {
         appear: {

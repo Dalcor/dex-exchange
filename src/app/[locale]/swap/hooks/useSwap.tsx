@@ -92,24 +92,24 @@ export function useSwapParams() {
       ? JSBI.add(TickMath.MIN_SQRT_RATIO, ONE)
       : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE);
 
+    const routerParams = {
+      tokenIn: getTokenAddressForStandard(tokenA, tokenAStandard),
+      tokenOut: tokenB.address0,
+      fee: FeeAmount.MEDIUM,
+      recipient: address as Address,
+      deadline,
+      amountIn: parseUnits(typedValue, tokenA.decimals),
+      amountOutMinimum: BigInt(0),
+      sqrtPriceLimitX96: BigInt(sqrtPriceLimitX96.toString()),
+      prefer223Out: tokenBStandard === Standard.ERC223,
+    };
+
     if (tokenAStandard === Standard.ERC20) {
       return {
         address: ROUTER_ADDRESS[chainId as DexChainId],
         abi: ROUTER_ABI,
         functionName: "exactInputSingle" as "exactInputSingle",
-        args: [
-          {
-            tokenIn: getTokenAddressForStandard(tokenA, tokenAStandard),
-            tokenOut: tokenB.address0,
-            fee: FeeAmount.MEDIUM,
-            recipient: address as Address,
-            deadline,
-            amountIn: parseUnits(typedValue, tokenA.decimals),
-            amountOutMinimum: BigInt(0),
-            sqrtPriceLimitX96: BigInt(sqrtPriceLimitX96.toString()),
-            prefer223Out: tokenBStandard === Standard.ERC223,
-          },
-        ],
+        args: [routerParams],
       };
     }
 
@@ -119,31 +119,12 @@ export function useSwapParams() {
         abi: ERC223_ABI,
         functionName: "transfer",
         args: [
-          poolAddress.poolAddress,
+          ROUTER_ADDRESS[chainId],
           parseUnits(typedValue, tokenA.decimals), // amountSpecified
           encodeFunctionData({
-            abi: POOL_ABI,
-            functionName: "swap",
-            args: [
-              (address as Address) || poolAddress.poolAddress, // account address
-              zeroForOne, //zeroForOne
-              parseUnits(typedValue, tokenA.decimals), // amountSpecified
-              BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
-              tokenBStandard === Standard.ERC223, // prefer223Out
-              encodeAbiParameters(
-                [
-                  { name: "path", type: "bytes" },
-                  { name: "payer", type: "address" },
-                ],
-                [
-                  encodePacked(
-                    ["address", "uint24", "address"],
-                    [tokenA.address0, FeeAmount.MEDIUM, tokenB.address0],
-                  ),
-                  "0x0000000000000000000000000000000000000000",
-                ],
-              ),
-            ],
+            abi: ROUTER_ABI,
+            functionName: "exactInputSingle",
+            args: [routerParams],
           }),
         ],
       };
@@ -221,7 +202,7 @@ export default function useSwap() {
 
   const { isAllowed: isAllowedA, writeTokenApprove: approveA } = useStoreAllowance({
     token: tokenA,
-    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
+    contractAddress: ROUTER_ADDRESS[chainId],
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
@@ -376,6 +357,8 @@ export default function useSwap() {
         setSwapStatus(SwapStatus.ERROR);
         console.log(receipt);
       }
+    } else {
+      setSwapStatus(SwapStatus.INITIAL);
     }
   }, [
     addRecentTransaction,

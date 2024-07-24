@@ -123,6 +123,8 @@ function SwapRow({
 }) {
   const t = useTranslations("Swap");
 
+  console.log(isPending);
+
   return (
     <div className="grid grid-cols-[32px_1fr_1fr] gap-2 h-10">
       <div className="flex items-center h-full">
@@ -562,13 +564,6 @@ export default function ConfirmSwapDialog() {
           )}
           {!isProcessing && (
             <div className="pb-4 flex flex-col gap-2 rounded-b-3 text-14 mt-4">
-              {/*<SwapDetailsRow*/}
-              {/*  title={t("token_price", { symbol: tokenA?.symbol })}*/}
-              {/*  value={*/}
-              {/*    trade ? `${trade.executionPrice.toSignificant()} ${tokenB?.symbol}` : "Loading..."*/}
-              {/*  }*/}
-              {/*  tooltipText={t("minimum_received_tooltip")}*/}
-              {/*/>*/}
               <SwapDetailsRow
                 title={t("network_fee")}
                 value={

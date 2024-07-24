@@ -111,105 +111,109 @@ export function useStoreAllowance({
     [publicClient, updateAllowance],
   );
 
-  //TODO: ADD OPTIONAL PARAMETER TO APPROVE MORE THAN CHECK
-  const writeTokenApprove = useCallback(async () => {
-    if (
-      !amountToCheck ||
-      !contractAddress ||
-      !token ||
-      !walletClient ||
-      !address ||
-      !chainId ||
-      !publicClient
-    ) {
-      console.error("Error: writeTokenApprove ~ something undefined");
-      return;
-    }
+  const writeTokenApprove = useCallback(
+    async (customAmount?: bigint) => {
+      const amountToApprove = customAmount || amountToCheck;
 
-    const params: {
-      address: Address;
-      account: Address;
-      abi: Abi;
-      functionName: "approve";
-      args: [Address, bigint];
-    } = {
-      address: token.address0 as Address,
-      account: address,
-      abi: ERC20_ABI,
-      functionName: "approve",
-      args: [contractAddress!, amountToCheck!],
-    };
+      if (
+        !amountToApprove ||
+        !contractAddress ||
+        !token ||
+        !walletClient ||
+        !address ||
+        !chainId ||
+        !publicClient
+      ) {
+        console.error("Error: writeTokenApprove ~ something undefined");
+        return;
+      }
 
-    try {
-      const estimatedGas = await publicClient.estimateContractGas(params);
-
-      const { request } = await publicClient.simulateContract({
-        ...params,
-        gas: estimatedGas + BigInt(30000),
-      });
-
-      let hash;
+      const params: {
+        address: Address;
+        account: Address;
+        abi: Abi;
+        functionName: "approve";
+        args: [Address, bigint];
+      } = {
+        address: token.address0 as Address,
+        account: address,
+        abi: ERC20_ABI,
+        functionName: "approve",
+        args: [contractAddress!, amountToApprove!],
+      };
 
       try {
-        hash = await walletClient.writeContract({ ...request, account: undefined });
-      } catch (e) {
-        console.log(e);
-      }
+        const estimatedGas = await publicClient.estimateContractGas(params);
 
-      if (hash) {
-        const transaction = await publicClient.getTransaction({
-          hash,
+        const { request } = await publicClient.simulateContract({
+          ...params,
+          gas: estimatedGas + BigInt(30000),
         });
 
-        const nonce = transaction.nonce;
+        let hash;
 
-        addRecentTransaction(
-          {
+        try {
+          hash = await walletClient.writeContract({ ...request, account: undefined });
+        } catch (e) {
+          console.log(e);
+        }
+
+        if (hash) {
+          const transaction = await publicClient.getTransaction({
             hash,
-            nonce,
-            chainId,
-            gas: {
-              model: GasFeeModel.EIP1559,
-              gas: BigInt(30000).toString(),
-              maxFeePerGas: undefined,
-              maxPriorityFeePerGas: undefined,
-            },
-            params: {
-              ...stringifyObject(params),
-              abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
-            },
-            title: {
-              symbol: token.symbol!,
-              template: RecentTransactionTitleTemplate.APPROVE,
-              amount: formatUnits(amountToCheck, token.decimals),
-              logoURI: token?.logoURI || "/tokens/placeholder.svg",
-            },
-          },
-          address,
-        );
+          });
 
-        // no await needed, function should return hash without waiting
-        waitAndReFetch(hash);
+          const nonce = transaction.nonce;
 
-        return { success: true as const, hash };
+          addRecentTransaction(
+            {
+              hash,
+              nonce,
+              chainId,
+              gas: {
+                model: GasFeeModel.EIP1559,
+                gas: BigInt(30000).toString(),
+                maxFeePerGas: undefined,
+                maxPriorityFeePerGas: undefined,
+              },
+              params: {
+                ...stringifyObject(params),
+                abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
+              },
+              title: {
+                symbol: token.symbol!,
+                template: RecentTransactionTitleTemplate.APPROVE,
+                amount: formatUnits(amountToApprove, token.decimals),
+                logoURI: token?.logoURI || "/tokens/placeholder.svg",
+              },
+            },
+            address,
+          );
+
+          // no await needed, function should return hash without waiting
+          waitAndReFetch(hash);
+
+          return { success: true as const, hash };
+        }
+        return { success: false as const };
+      } catch (e) {
+        console.log(e);
+        addToast("Unexpected error, please contact support", "error");
+        return { success: false as const };
       }
-      return { success: false as const };
-    } catch (e) {
-      console.log(e);
-      addToast("Unexpected error, please contact support", "error");
-      return { success: false as const };
-    }
-  }, [
-    amountToCheck,
-    contractAddress,
-    token,
-    walletClient,
-    address,
-    chainId,
-    publicClient,
-    addRecentTransaction,
-    waitAndReFetch,
-  ]);
+    },
+    [
+      amountToCheck,
+      contractAddress,
+      token,
+      walletClient,
+      address,
+      chainId,
+      publicClient,
+      addRecentTransaction,
+      waitAndReFetch,
+    ],
+  );
 
   const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
   useDeepEffect(() => {

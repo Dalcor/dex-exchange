@@ -26,6 +26,7 @@ const Input = forwardRef<HTMLInputElement | null, Props>(function Input(
         isError && "border-red-input hover:shadow-error focus:shadow-error",
         isWarning && "border-orange hover:shadow-warning focus:shadow-warning",
         props.disabled && "opacity-50 pointer-events-none",
+        props.readOnly && "pointer-events-none",
         className,
       )}
       {...props}

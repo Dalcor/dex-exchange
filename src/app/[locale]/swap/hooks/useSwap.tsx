@@ -11,6 +11,7 @@ import {
 } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
+import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
@@ -120,12 +121,31 @@ export function useSwapParams() {
         abi: ERC223_ABI,
         functionName: "transfer",
         args: [
-          ROUTER_ADDRESS[chainId],
+          poolAddress.poolAddress,
           parseUnits(typedValue, tokenA.decimals), // amountSpecified
           encodeFunctionData({
-            abi: ROUTER_ABI,
-            functionName: "exactInputSingle",
-            args: [routerParams],
+            abi: POOL_ABI,
+            functionName: "swap",
+            args: [
+              (address as Address) || poolAddress.poolAddress, // account address
+              zeroForOne, //zeroForOne
+              parseUnits(typedValue, tokenA.decimals), // amountSpecified
+              BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
+              tokenBStandard === Standard.ERC223, // prefer223Out
+              encodeAbiParameters(
+                [
+                  { name: "path", type: "bytes" },
+                  { name: "payer", type: "address" },
+                ],
+                [
+                  encodePacked(
+                    ["address", "uint24", "address"],
+                    [tokenA.address0, FeeAmount.MEDIUM, tokenB.address0],
+                  ),
+                  "0x0000000000000000000000000000000000000000",
+                ],
+              ),
+            ],
           }),
         ],
       };
@@ -192,6 +212,7 @@ export default function useSwap() {
   const { trade } = useTrade();
   const { address } = useAccount();
   const publicClient = usePublicClient();
+  useSwapGas();
 
   const chainId = useCurrentChainId();
   const { estimatedGas } = useSwapEstimatedGasStore();

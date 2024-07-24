@@ -146,7 +146,7 @@ function SwapRow({
 
       <div className="flex flex-col justify-center">
         <span className={clsx("text-14", isDisabled ? "text-tertiary-text" : "text-primary-text")}>
-          {isPending || (!isLoading && !isReverted && !isSuccess && t("confirm_swap"))}
+          {(isPending || (!isLoading && !isReverted && !isSuccess)) && t("confirm_swap")}
           {isLoading && t("executing_swap")}
           {isReverted && "Failed to confirm a swap"}
           {isSuccess && "Executed swap"}

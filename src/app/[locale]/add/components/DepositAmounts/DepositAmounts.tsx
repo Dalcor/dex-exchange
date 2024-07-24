@@ -1,8 +1,7 @@
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-import { formatEther, formatGwei, parseUnits } from "viem";
-import { useAccount } from "wagmi";
+import { formatEther, formatGwei } from "viem";
 
 import TokenDepositCard from "@/app/[locale]/add/components/DepositAmounts/TokenDepositCard";
 import {

@@ -337,7 +337,7 @@ export default function TradeForm() {
           />
           <IconButton
             buttonSize={IconButtonSize.LARGE}
-            // disabled
+            disabled
             iconName="gas-edit"
             onClick={() => setIsOpenedFee(true)}
           />
@@ -508,7 +508,8 @@ export default function TradeForm() {
                 </span>
 
                 <button
-                  className="border border-green flex px-4 rounded-5"
+                  disabled
+                  className="border border-green flex px-4 rounded-5 opacity-50"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsOpenedFee(true);

@@ -338,8 +338,7 @@ export default function useSwap() {
           chainId,
           gas: {
             ...stringifyObject(gasPrice),
-            // gas: (estimatedGas + BigInt(30000)).toString(),
-            gas: BigInt(90000).toString(),
+            gas: (estimatedGas + BigInt(30000)).toString(),
           },
           params: {
             ...stringifyObject(swapParams),
@@ -379,6 +378,7 @@ export default function useSwap() {
     approveA,
     chainId,
     closeConfirmInWalletAlert,
+    estimatedGas,
     gasPrice,
     isAllowedA,
     openConfirmInWalletAlert,

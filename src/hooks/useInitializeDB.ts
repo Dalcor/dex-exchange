@@ -136,11 +136,17 @@ export function useAutoListingUpdater() {
         (list.autoListingContract as Address).toLowerCase(),
       );
 
-      if (!allAutoListingContracts.includes(CORE_AUTO_LISTING_ADDRESS[chainId].toLowerCase())) {
+      if (
+        CORE_AUTO_LISTING_ADDRESS[chainId] &&
+        !allAutoListingContracts.includes(CORE_AUTO_LISTING_ADDRESS[chainId].toLowerCase())
+      ) {
         addressesToActualize.add(CORE_AUTO_LISTING_ADDRESS[chainId].toLowerCase());
       }
 
-      if (!allAutoListingContracts.includes(FREE_AUTO_LISTING_ADDRESS[chainId].toLowerCase())) {
+      if (
+        FREE_AUTO_LISTING_ADDRESS[chainId] &&
+        !allAutoListingContracts.includes(FREE_AUTO_LISTING_ADDRESS[chainId]?.toLowerCase())
+      ) {
         addressesToActualize.add(FREE_AUTO_LISTING_ADDRESS[chainId].toLowerCase());
       }
 

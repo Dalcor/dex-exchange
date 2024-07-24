@@ -16,27 +16,26 @@ type AllowanceItem = {
   allowedToSpend: bigint;
   account: Address;
   chainId: DexChainId;
-  blockNumber: bigint;
   hash?: Address;
 };
 
 interface AllowanceStore {
   allowances: AllowanceItem[];
   addAllowanceItem: (item: AllowanceItem) => void;
-  updateAllowedToSpend: (item: AllowanceItem, allowedToSpend: bigint, blockNumber: bigint) => void;
+  updateAllowedToSpend: (item: AllowanceItem, allowedToSpend: bigint) => void;
 }
 
 export const useAllowanceStore = create<AllowanceStore>((set, get) => ({
   allowances: [],
   addAllowanceItem: (item) => set({ allowances: [...get().allowances, item] }),
-  updateAllowedToSpend: (item, allowedToSpend, blockNumber) =>
+  updateAllowedToSpend: (item, allowedToSpend) =>
     set({
       allowances: get().allowances.map((allowance) =>
         allowance.tokenAddress === item.tokenAddress &&
         allowance.contractAddress === item.contractAddress &&
         allowance.account === item.account &&
         allowance.chainId === item.chainId
-          ? { ...allowance, allowedToSpend, blockNumber }
+          ? { ...allowance, allowedToSpend }
           : allowance,
       ),
     }),

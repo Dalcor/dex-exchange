@@ -19,8 +19,7 @@ import { Trade } from "@/sdk_hybrid/entities/trade";
 export type TokenTrade = Trade<Currency, Currency, TradeType>;
 
 export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
-  const { tokenA, tokenB, tokenAAddress, tokenBAddress, setTokenA, setTokenB } =
-    useSwapTokensStore();
+  const { tokenA, tokenB } = useSwapTokensStore();
   // const { typedValue, independentField, dependentField, setTypedValue } = useSwapAmountsStore();
   const { address } = useAccount();
   const chainId = useCurrentChainId();
@@ -59,13 +58,7 @@ export function useTrade(): { trade: TokenTrade | null; isLoading: boolean } {
       BigInt(0),
     ],
     query: {
-      enabled:
-        Boolean(tokenA) &&
-        Boolean(tokenB) &&
-        Boolean(tokenAAddress) &&
-        Boolean(tokenBAddress) &&
-        Boolean(typedValue) &&
-        Boolean(+typedValue),
+      enabled: Boolean(tokenA) && Boolean(tokenB) && Boolean(typedValue) && Boolean(+typedValue),
     },
   });
 

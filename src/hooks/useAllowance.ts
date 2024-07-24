@@ -46,6 +46,8 @@ export function useStoreAllowance({
 
   const { allowances, addAllowanceItem, updateAllowedToSpend } = useAllowanceStore();
 
+  console.log(allowances, "Allowancves");
+
   const currentAllowanceItem = useMemo(() => {
     return allowances.find(
       (allowanceItem) =>
@@ -75,16 +77,31 @@ export function useStoreAllowance({
     // watch: true,
   });
 
-  const { data: blockNumber } = useBlockNumber({ watch: true });
+  console.log("Current allowance data:");
+  console.log(currentAllowanceData);
 
-  useEffect(() => {
-    refetch();
-  }, [blockNumber, refetch]);
+  // const { data: blockNumber } = useBlockNumber({ watch: true });
+
+  // useEffect(() => {
+  //   refetch();
+  // }, [blockNumber, refetch]);
+
+  const waitAndReFetch = useCallback(
+    async (hash: Address) => {
+      if (publicClient) {
+        console.log("Waiting....");
+        await publicClient.waitForTransactionReceipt({ hash });
+        console.log("Refetching...");
+        refetch();
+      }
+    },
+    [publicClient, refetch],
+  );
 
   useEffect(() => {
     if (
       !token ||
-      !blockNumber ||
+      // !blockNumber ||
       !address ||
       !contractAddress ||
       typeof currentAllowanceData === "undefined"
@@ -95,10 +112,11 @@ export function useStoreAllowance({
 
     if (currentAllowanceItem) {
       if (
-        currentAllowanceItem.blockNumber !== blockNumber ||
+        // currentAllowanceItem.blockNumber !== blockNumber ||
         currentAllowanceData !== currentAllowanceItem.allowedToSpend
       ) {
-        updateAllowedToSpend(currentAllowanceItem, currentAllowanceData, blockNumber);
+        console.log("Uodated allowed");
+        updateAllowedToSpend(currentAllowanceItem, currentAllowanceData);
       }
     } else {
       addAllowanceItem({
@@ -107,14 +125,14 @@ export function useStoreAllowance({
         account: address,
         chainId,
         allowedToSpend: currentAllowanceData,
-        blockNumber,
+        // blockNumber,
       });
     }
   }, [
     addAllowanceItem,
     address,
-    allowances,
-    blockNumber,
+    // allowances,
+    // blockNumber,
     chainId,
     contractAddress,
     currentAllowanceData,
@@ -203,6 +221,9 @@ export function useStoreAllowance({
           address,
         );
 
+        // no await needed, function should return hash without waiting
+        waitAndReFetch(hash);
+
         return { success: true as const, hash };
       }
       return { success: false as const };
@@ -221,6 +242,7 @@ export function useStoreAllowance({
     publicClient,
     currentAllowanceItem,
     addRecentTransaction,
+    waitAndReFetch,
   ]);
 
   const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);

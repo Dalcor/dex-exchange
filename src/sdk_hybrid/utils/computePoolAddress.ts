@@ -13,18 +13,21 @@ import { FACTORY_ABI } from "@/config/abis/factory";
 import { config } from "@/config/wagmi/config";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { FeeAmount } from "@/sdk_hybrid/constants";
+import { getTokenAddressForStandard, Standard } from "@/sdk_hybrid/standard";
 import { usePoolAddresses } from "@/stores/usePoolsStore";
 
 import { FACTORY_ADDRESS, POOL_INIT_CODE_HASH } from "../addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "../chains";
-import { Token, TokenStandard } from "../entities/token";
+import { Token } from "../entities/token";
 
 /**
  * Computes a pool address
  * @deprecated deprecated
  * @param factoryAddress The Uniswap V3 factory address
  * @param tokenA The first token of the pair, irrespective of sort order
+ * @param standardA First token standard
  * @param tokenB The second token of the pair, irrespective of sort order
+ * @param standardB Second token standard
  * @param fee The fee tier of the pool
  * @param initCodeHashManualOverride Override the init code hash used to compute the pool address if necessary
  * @returns The pool address
@@ -34,21 +37,23 @@ export function computePoolAddress({
   tokenA,
   tokenB,
   fee,
-  standardA = "ERC-20",
-  standardB = "ERC-20",
+  standardA = Standard.ERC20,
+  standardB = Standard.ERC20,
   initCodeHashManualOverride,
 }: {
   factoryAddress: Address;
   tokenA: Token;
   tokenB: Token;
   fee: FeeAmount;
-  standardA: TokenStandard;
-  standardB: TokenStandard;
+  standardA: Standard;
+  standardB: Standard;
   initCodeHashManualOverride?: Address;
 }): string {
   const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
-  const token0Address = standardA === "ERC-20" ? token0.address0 : token0.address1;
-  const token1Address = standardB === "ERC-20" ? token1.address0 : token1.address1;
+  const [standard0, standard1] = tokenA.sortsBefore(tokenB)
+    ? [standardA, standardB]
+    : [standardB, standardA];
+
   return getContractAddress({
     from: factoryAddress,
     salt: keccak256(
@@ -56,8 +61,8 @@ export function computePoolAddress({
         ["bytes"],
         [
           encodeAbiParameters(parseAbiParameters("address, address, uint24"), [
-            token0Address,
-            token1Address,
+            getTokenAddressForStandard(token0, standard0),
+            getTokenAddressForStandard(token1, standard1),
             fee,
           ]),
         ],

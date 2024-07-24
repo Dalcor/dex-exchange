@@ -4,6 +4,7 @@ import { Address } from "viem";
 import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
 import Button, { ButtonVariant } from "@/components/buttons/Button";
+import { Standard } from "@/sdk_hybrid/standard";
 
 import { useLiquidityApprove } from "../../hooks/useLiquidityApprove";
 import { usePriceRange } from "../../hooks/usePrice";
@@ -78,7 +79,7 @@ export const LiquidityActionButton = ({
     : BigInt(0);
 
   const isSufficientBalanceA =
-    tokenAStandard === "ERC-20"
+    tokenAStandard === Standard.ERC20
       ? tokenA0Balance
         ? tokenA0Balance?.value >= amountToCheckA
         : false
@@ -87,7 +88,7 @@ export const LiquidityActionButton = ({
         : false;
 
   const isSufficientBalanceB =
-    tokenBStandard === "ERC-20"
+    tokenBStandard === Standard.ERC20
       ? tokenB0Balance
         ? tokenB0Balance?.value >= amountToCheckB
         : false

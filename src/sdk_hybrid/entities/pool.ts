@@ -12,7 +12,7 @@ import { TickMath } from "../utils/tickMath";
 import { CurrencyAmount } from "./fractions/currencyAmount";
 import { Price } from "./fractions/price";
 import { Tick, TickConstructorArgs } from "./tick";
-import { Token, TokenStandard } from "./token";
+import { Token } from "./token";
 
 interface StepComputations {
   sqrtPriceStartX96: JSBI;

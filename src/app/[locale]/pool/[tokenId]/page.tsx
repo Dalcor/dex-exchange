@@ -32,7 +32,7 @@ import {
 } from "@/hooks/usePositions";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
 import { useRouter } from "@/navigation";
-import { TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 import { useComputePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 
 export default function PoolPage({
@@ -45,18 +45,18 @@ export default function PoolPage({
   useRecentTransactionTracking();
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const [tokenAStandard, setTokenAStandard] = useState("ERC-20" as TokenStandard);
-  const [tokenBStandard, setTokenBStandard] = useState("ERC-20" as TokenStandard);
+  const [tokenAStandard, setTokenAStandard] = useState(Standard.ERC20);
+  const [tokenBStandard, setTokenBStandard] = useState(Standard.ERC20);
 
   const tokensOutCode = useMemo(() => {
     // 0 >> both ERC-20
     // 1 >> 0 ERC-20, 1 ERC-223
     // 2 >> 0 ERC-223, 1 ERC-20
     // 3 >> both ERC-223
-    if (tokenAStandard === "ERC-20" && tokenBStandard === "ERC-20") return 0;
-    if (tokenAStandard === "ERC-20" && tokenBStandard === "ERC-223") return 1;
-    if (tokenAStandard === "ERC-223" && tokenBStandard === "ERC-20") return 2;
-    if (tokenAStandard === "ERC-223" && tokenBStandard === "ERC-223") return 3;
+    if (tokenAStandard === Standard.ERC20 && tokenBStandard === Standard.ERC20) return 0;
+    if (tokenAStandard === Standard.ERC20 && tokenBStandard === Standard.ERC223) return 1;
+    if (tokenAStandard === Standard.ERC223 && tokenBStandard === Standard.ERC20) return 2;
+    if (tokenAStandard === Standard.ERC223 && tokenBStandard === Standard.ERC223) return 3;
     return 0;
   }, [tokenAStandard, tokenBStandard]);
   const router = useRouter();
@@ -338,8 +338,8 @@ export default function PoolPage({
               </div>
               <div className="flex flex-col gap-2">
                 <RadioButton
-                  isActive={tokenAStandard === "ERC-20"}
-                  onClick={() => setTokenAStandard("ERC-20")}
+                  isActive={tokenAStandard === Standard.ERC20}
+                  onClick={() => setTokenAStandard(Standard.ERC20)}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -352,8 +352,8 @@ export default function PoolPage({
                   </div>
                 </RadioButton>
                 <RadioButton
-                  isActive={tokenAStandard === "ERC-223"}
-                  onClick={() => setTokenAStandard("ERC-223")}
+                  isActive={tokenAStandard === Standard.ERC223}
+                  onClick={() => setTokenAStandard(Standard.ERC223)}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -375,8 +375,8 @@ export default function PoolPage({
               </div>
               <div className="flex flex-col gap-2">
                 <RadioButton
-                  isActive={tokenBStandard === "ERC-20"}
-                  onClick={() => setTokenBStandard("ERC-20")}
+                  isActive={tokenBStandard === Standard.ERC20}
+                  onClick={() => setTokenBStandard(Standard.ERC20)}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -389,8 +389,8 @@ export default function PoolPage({
                   </div>
                 </RadioButton>
                 <RadioButton
-                  isActive={tokenBStandard === "ERC-223"}
-                  onClick={() => setTokenBStandard("ERC-223")}
+                  isActive={tokenBStandard === Standard.ERC223}
+                  onClick={() => setTokenBStandard(Standard.ERC223)}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">

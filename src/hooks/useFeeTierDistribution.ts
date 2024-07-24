@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useBlockNumber } from "wagmi";
 
 import { FeeAmount } from "@/sdk_hybrid/constants";
-import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Token } from "@/sdk_hybrid/entities/token";
 
 import useFeeTierDistributionQuery from "../graphql/thegraph/FeeTierDistributionQuery";
 import { PoolsParams, PoolState, usePools } from "./usePools";

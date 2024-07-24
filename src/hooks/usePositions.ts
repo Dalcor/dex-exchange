@@ -1,6 +1,6 @@
 import JSBI from "jsbi";
 import { useCallback, useMemo, useState } from "react";
-import { Address, formatUnits, getAbiItem } from "viem";
+import { Address, getAbiItem } from "viem";
 import {
   useAccount,
   useBlockNumber,
@@ -23,7 +23,8 @@ import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Price } from "@/sdk_hybrid/entities/fractions/price";
 import { Pool } from "@/sdk_hybrid/entities/pool";
 import { Position } from "@/sdk_hybrid/entities/position";
-import { Token, TokenStandard } from "@/sdk_hybrid/entities/token";
+import { Token } from "@/sdk_hybrid/entities/token";
+import { Standard } from "@/sdk_hybrid/standard";
 import {
   GasFeeModel,
   RecentTransactionTitleTemplate,
@@ -171,13 +172,13 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
   const tokens = useTokens();
 
   const tokenA = useMemo(() => {
-    let tokenStandard: TokenStandard | undefined = undefined;
+    let tokenStandard: Standard | undefined = undefined;
     const token = tokens.find((t) => {
       if (t.address0 === positionDetails?.token0) {
-        tokenStandard = "ERC-20";
+        tokenStandard = Standard.ERC20;
         return true;
       } else if (t.address1 === positionDetails?.token0) {
-        tokenStandard = "ERC-223";
+        tokenStandard = Standard.ERC223;
         return true;
       }
     });
@@ -185,13 +186,13 @@ export function usePositionFromPositionInfo(positionDetails: PositionInfo) {
   }, [positionDetails?.token0, tokens]);
 
   const tokenB = useMemo(() => {
-    let tokenStandard: TokenStandard | undefined = undefined;
+    let tokenStandard: Standard | undefined = undefined;
     const token = tokens.find((t) => {
       if (t.address0 === positionDetails?.token1) {
-        tokenStandard = "ERC-20";
+        tokenStandard = Standard.ERC20;
         return true;
       } else if (t.address1 === positionDetails?.token1) {
-        tokenStandard = "ERC-223";
+        tokenStandard = Standard.ERC223;
         return true;
       }
     });

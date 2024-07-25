@@ -16,8 +16,6 @@ import { useMintTestTokensDialogStore } from "@/components/dialogs/stores/useMin
 import { Link, usePathname } from "@/navigation";
 
 export default function Header() {
-  const { isOpened: isOpenedWallet, setIsOpened: setOpenedWallet } =
-    useConnectWalletDialogStateStore();
   const pathname = usePathname();
   const { handleOpen } = useMintTestTokensDialogStore();
   return (
@@ -41,7 +39,6 @@ export default function Header() {
               <div className="fixed w-[calc(50%-24px)] bottom-2 right-4 md:static md:w-auto md:bottom-unset z-[88] md:z-[21]">
                 <AccountDialog />
               </div>
-              <ConnectWalletDialog isOpen={isOpenedWallet} setIsOpen={setOpenedWallet} />
 
               <MobileMenu />
             </div>
@@ -54,7 +51,7 @@ export default function Header() {
         <Container className="flex h-full items-center px-5">
           <div className="flex justify-between items-center w-full">
             <div className="flex items-center gap-2">
-              Get text tokens for free
+              Get test tokens for free
               <Image src="/test-tokens.svg" alt="" width={92} height={48} />
             </div>
             <Button

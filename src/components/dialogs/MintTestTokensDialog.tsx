@@ -17,6 +17,7 @@ import Preloader from "@/components/atoms/Preloader";
 import SelectButton from "@/components/atoms/SelectButton";
 import TextField, { InputLabel } from "@/components/atoms/TextField";
 import Button from "@/components/buttons/Button";
+import { useConnectWalletDialogStateStore } from "@/components/dialogs/stores/useConnectWalletStore";
 import { useMintTestTokensDialogStore } from "@/components/dialogs/stores/useMintTestTokensDialogStore";
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { ERC223_ABI } from "@/config/abis/erc223";
@@ -30,7 +31,8 @@ import addToast from "@/other/toast";
 export default function MintTestTokensDialog() {
   const { isOpen, handleOpen, handleClose } = useMintTestTokensDialogStore();
   const tokens = useTokens();
-
+  const { isOpened: isOpenedWallet, setIsOpened: setOpenedWallet } =
+    useConnectWalletDialogStateStore();
   const [isPopoverOpened, setPopoverOpened] = useState(false);
 
   const [amountToMint, setAmountToMint] = useState<string>("1000");
@@ -102,7 +104,7 @@ export default function MintTestTokensDialog() {
         setIsPending(false);
       }
     });
-  }, [tokenToMint, amountToMint, connector, publicClient, walletClient]);
+  }, [connector, tokenToMint, walletClient, publicClient, address, amountToMint]);
 
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={handleClose}>
@@ -154,6 +156,7 @@ export default function MintTestTokensDialog() {
             value={amountToMint}
             onChange={(e) => setAmountToMint(e.target.value)}
             placeholder="Amount"
+            internalText={tokenToMint?.symbol}
           />
 
           {isConnected ? (
@@ -173,7 +176,13 @@ export default function MintTestTokensDialog() {
               {!isLoading && !isPending && "Mint tokens"}
             </Button>
           ) : (
-            <Button disabled>Connect your wallet</Button>
+            <Button
+              onClick={() => {
+                setOpenedWallet(true);
+              }}
+            >
+              Connect your wallet
+            </Button>
           )}
         </div>
       </div>

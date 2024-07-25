@@ -1,14 +1,7 @@
 import JSBI from "jsbi";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo } from "react";
-import {
-  Address,
-  encodeAbiParameters,
-  encodeFunctionData,
-  encodePacked,
-  getAbiItem,
-  parseUnits,
-} from "viem";
+import { Address, encodeFunctionData, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
@@ -21,7 +14,6 @@ import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettings
 import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ERC223_ABI } from "@/config/abis/erc223";
-import { POOL_ABI } from "@/config/abis/pool";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
@@ -29,7 +21,6 @@ import { useStoreAllowance } from "@/hooks/useAllowance";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useDeepEffect from "@/hooks/useDeepEffect";
 import useTransactionDeadline from "@/hooks/useTransactionDeadline";
-import addToast from "@/other/toast";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DEX_SUPPORTED_CHAINS, DexChainId } from "@/sdk_hybrid/chains";
 import { FeeAmount } from "@/sdk_hybrid/constants";
@@ -95,7 +86,7 @@ export function useSwapParams() {
       : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE);
 
     const routerParams = {
-      tokenIn: getTokenAddressForStandard(tokenA, tokenAStandard),
+      tokenIn: tokenA.address0,
       tokenOut: tokenB.address0,
       fee: FeeAmount.MEDIUM,
       recipient: address as Address,
@@ -121,31 +112,12 @@ export function useSwapParams() {
         abi: ERC223_ABI,
         functionName: "transfer",
         args: [
-          poolAddress.poolAddress,
+          ROUTER_ADDRESS[chainId],
           parseUnits(typedValue, tokenA.decimals), // amountSpecified
           encodeFunctionData({
-            abi: POOL_ABI,
-            functionName: "swap",
-            args: [
-              (address as Address) || poolAddress.poolAddress, // account address
-              zeroForOne, //zeroForOne
-              parseUnits(typedValue, tokenA.decimals), // amountSpecified
-              BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
-              tokenBStandard === Standard.ERC223, // prefer223Out
-              encodeAbiParameters(
-                [
-                  { name: "path", type: "bytes" },
-                  { name: "payer", type: "address" },
-                ],
-                [
-                  encodePacked(
-                    ["address", "uint24", "address"],
-                    [tokenA.address0, FeeAmount.MEDIUM, tokenB.address0],
-                  ),
-                  "0x0000000000000000000000000000000000000000",
-                ],
-              ),
-            ],
+            abi: ROUTER_ABI,
+            functionName: "exactInputSingle",
+            args: [routerParams],
           }),
         ],
       };
@@ -232,7 +204,11 @@ export default function useSwap() {
 
   const { openConfirmInWalletAlert, closeConfirmInWalletAlert } = useConfirmInWalletAlertStore();
 
-  const { isAllowed: isAllowedA, writeTokenApprove: approveA } = useStoreAllowance({
+  const {
+    isAllowed: isAllowedA,
+    writeTokenApprove: approveA,
+    updateAllowance,
+  } = useStoreAllowance({
     token: tokenA,
     contractAddress: ROUTER_ADDRESS[chainId],
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
@@ -379,15 +355,13 @@ export default function useSwap() {
       );
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      updateAllowance();
       if (receipt.status === "success") {
         setSwapStatus(SwapStatus.SUCCESS);
       }
 
       if (receipt.status === "reverted") {
         setSwapStatus(SwapStatus.ERROR);
-        if (receipt.gasUsed === BigInt(100000)) {
-          addToast("Swap failed cause a lack of gas");
-        }
         console.log(receipt);
       }
     } else {
@@ -415,6 +389,7 @@ export default function useSwap() {
     tokenB,
     trade,
     typedValue,
+    updateAllowance,
     walletClient,
   ]);
 

@@ -71,18 +71,16 @@ export function useStoreAllowance({
       args: [address, contractAddress],
     });
 
-    if (data) {
-      if (currentAllowanceItem) {
-        updateAllowedToSpend(currentAllowanceItem, data);
-      } else {
-        addAllowanceItem({
-          tokenAddress: token.address0,
-          contractAddress,
-          account: address,
-          chainId,
-          allowedToSpend: data,
-        });
-      }
+    if (currentAllowanceItem) {
+      updateAllowedToSpend(currentAllowanceItem, data);
+    } else {
+      addAllowanceItem({
+        tokenAddress: token.address0,
+        contractAddress,
+        account: address,
+        chainId,
+        allowedToSpend: data,
+      });
     }
   }, [
     addAllowanceItem,
@@ -264,6 +262,7 @@ export function useStoreAllowance({
     currentAllowance: currentAllowanceItem?.allowedToSpend,
     estimatedGas,
     currentAllowanceItem,
+    updateAllowance,
   };
 }
 

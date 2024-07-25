@@ -78,6 +78,9 @@ export default function MintTestTokensDialog() {
     }
 
     IIFE(async () => {
+      if (!address) {
+        return;
+      }
       setIsLoading(true);
 
       try {
@@ -85,7 +88,7 @@ export default function MintTestTokensDialog() {
           abi: ERC223_ABI,
           address: tokenToMint?.address0 as Address,
           functionName: "mint",
-          args: [tokenToMint?.address0, parseUnits(amountToMint, tokenToMint.decimals)],
+          args: [address, parseUnits(amountToMint, tokenToMint.decimals)],
         });
         setIsLoading(false);
         setIsPending(true);

@@ -180,7 +180,7 @@ export default function TradeForm() {
 
   const { isAllowed: isAllowedA } = useStoreAllowance({
     token: tokenA,
-    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
+    contractAddress: ROUTER_ADDRESS[chainId],
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
@@ -508,8 +508,8 @@ export default function TradeForm() {
                 </span>
 
                 <button
-                  disabled
-                  className="border border-green flex px-4 rounded-5 opacity-50"
+                  // disabled
+                  className="border border-green flex px-4 rounded-5"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsOpenedFee(true);

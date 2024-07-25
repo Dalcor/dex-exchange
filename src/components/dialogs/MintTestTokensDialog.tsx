@@ -122,7 +122,7 @@ export default function MintTestTokensDialog() {
                 onClick={() => setPopoverOpened(!isPopoverOpened)}
                 fullWidth
                 size="medium"
-                className="flex-shrink-0"
+                className="flex-shrink-0 pl-5"
               >
                 {tokenToMint?.symbol || "Select token"}
               </SelectButton>
@@ -138,7 +138,7 @@ export default function MintTestTokensDialog() {
                       setPopoverOpened(false);
                     }}
                     role="button"
-                    className="flex items-center gap-3 bg-primary-bg hover:bg-green-bg duration-300 w-full min-w-[250px] px-10 h-10 justify-between"
+                    className="flex items-center gap-3 bg-primary-bg hover:bg-tertiary-bg duration-300 w-full min-w-[250px] px-10 h-10 justify-between"
                   >
                     <span className="text-secondary-text">{token.symbol}</span>
                   </div>

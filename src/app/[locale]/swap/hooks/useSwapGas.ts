@@ -61,6 +61,8 @@ export default function useSwapGas() {
 
   const { gasOption, setGasPrice, setGasOption, setGasLimit, gasPrice } = useSwapGasSettingsStore();
 
+  console.log(gasPrice);
+
   useDeepEffect(() => {
     if (gasOption === GasOption.CHEAP) {
       if (gasPrice.model === GasFeeModel.EIP1559) {

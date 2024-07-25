@@ -184,7 +184,6 @@ export default function useSwap() {
   const { trade } = useTrade();
   const { address } = useAccount();
   const publicClient = usePublicClient();
-  useSwapGas();
 
   const chainId = useCurrentChainId();
   const { estimatedGas } = useSwapEstimatedGasStore();

@@ -99,7 +99,7 @@ export default function MintTestTokensDialog() {
         setIsPending(false);
       }
     });
-  }, [tokenToMint, amountToMint, connector, publicClient, walletClient]);
+  }, [connector, tokenToMint, walletClient, publicClient, address, amountToMint]);
 
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={handleClose}>

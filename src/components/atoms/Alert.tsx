@@ -46,9 +46,9 @@ export default function Alert({ text, type = "success", withIcon = true }: Props
       {withIcon && (
         <div
           className={clsx(
-            "flex justify-center flex-shrink-0",
+            "flex justify-center flex-shrink-0 items-center",
             type === "success" && "text-green",
-            type === "error" && "text-red",
+            type === "error" && "text-red-input",
             type === "warning" && "text-orange",
             type === "info" && "text-blue",
             type === "info-border" && "text-blue",

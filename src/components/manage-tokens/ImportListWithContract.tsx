@@ -1,15 +1,8 @@
-import {
-  ApolloClient,
-  ApolloLink,
-  concat,
-  HttpLink,
-  InMemoryCache,
-  useQuery,
-} from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo, useState } from "react";
-import { Address, isAddress } from "viem";
+import { useMemo, useState } from "react";
+import { isAddress } from "viem";
 
 import Checkbox from "@/components/atoms/Checkbox";
 import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";

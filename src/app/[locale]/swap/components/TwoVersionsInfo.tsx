@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
-import React, { useState } from "react";
+import React from "react";
 
 import { useTwoVersionsInfoStore } from "@/app/[locale]/swap/stores/useTwoVersionsInfoStore";
 import Collapse from "@/components/atoms/Collapse";

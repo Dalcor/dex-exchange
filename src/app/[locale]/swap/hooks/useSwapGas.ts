@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import { useAccount, useBlockNumber, useEstimateFeesPerGas, useGasPrice } from "wagmi";
 
 import {

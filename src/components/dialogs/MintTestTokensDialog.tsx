@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Address, formatUnits, isAddress, parseUnits } from "viem";
+import { Address, formatUnits, parseUnits } from "viem";
 import {
   useAccount,
   useBlockNumber,
@@ -8,10 +8,8 @@ import {
   useWalletClient,
 } from "wagmi";
 
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
-import Input from "@/components/atoms/Input";
 import Popover from "@/components/atoms/Popover";
 import Preloader from "@/components/atoms/Preloader";
 import SelectButton from "@/components/atoms/SelectButton";
@@ -22,7 +20,6 @@ import { ERC20_ABI } from "@/config/abis/erc20";
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
-import truncateMiddle from "@/functions/truncateMiddle";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { useTokens } from "@/hooks/useTokenLists";
 import addToast from "@/other/toast";

@@ -5,9 +5,11 @@ import SwapSettingsDialog from "@/app/[locale]/swap/components/SwapSettingsDialo
 import ConfirmInWalletAlert from "@/components/dialogs/ConfirmInWalletAlert";
 import ConfirmInWalletDialog from "@/components/dialogs/ConfirmInWalletDialog";
 import FeedbackDialog from "@/components/dialogs/FeedbackDialog";
+import MintTestTokensDialog from "@/components/dialogs/MintTestTokensDialog";
 import NoTokenListsEnabledWarning from "@/components/dialogs/NoTokenListsEnabledWarning";
 import TokenPortfolioDialog from "@/components/dialogs/TokenPortfolioDialog";
 import TransactionSpeedUpDialog from "@/components/dialogs/TransactionSpeedUpDialog";
+import UnknownNetworkWarning from "@/components/dialogs/UnknownNetworkWarning";
 import ManageTokensDialog from "@/components/manage-tokens/ManageTokensDialog";
 
 export default function DialogsProvider({ children }: PropsWithChildren) {
@@ -23,6 +25,8 @@ export default function DialogsProvider({ children }: PropsWithChildren) {
       <ConfirmInWalletAlert />
       <NoTokenListsEnabledWarning />
       <ManageTokensDialog />
+      <UnknownNetworkWarning />
+      <MintTestTokensDialog />
     </>
   );
 }

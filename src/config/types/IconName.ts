@@ -124,6 +124,7 @@ export const svgIconsNames = [
   "pools",
   "convert",
   "sort",
+  "change-network",
 ] as const;
 
 export const socialIconNames = [""] as const;

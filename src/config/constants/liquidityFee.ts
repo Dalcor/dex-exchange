@@ -1,8 +1,5 @@
-import { ReactNode } from "react";
-
 import { FeeAmount } from "@/sdk_hybrid/constants";
 
-// export const FEE_TIERS = [FeeAmount.LOWEST, FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH];
 export const FEE_TIERS = [FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH];
 
 export const FEE_AMOUNT_DETAIL: Record<

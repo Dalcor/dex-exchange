@@ -1,12 +1,13 @@
-import { useMemo } from "react";
 import { useBlock } from "wagmi";
+
+import useDeepMemo from "@/hooks/useDeepMemo";
 
 export default function useTransactionDeadline(userDeadline: number): bigint {
   const ttl = userDeadline * 60;
 
   const { data: block } = useBlock();
 
-  return useMemo(() => {
+  return useDeepMemo(() => {
     if (block) {
       return block.timestamp + BigInt(ttl);
     }

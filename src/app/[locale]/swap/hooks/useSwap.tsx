@@ -1,26 +1,19 @@
 import JSBI from "jsbi";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo } from "react";
-import {
-  Address,
-  encodeAbiParameters,
-  encodeFunctionData,
-  encodePacked,
-  getAbiItem,
-  parseUnits,
-} from "viem";
-import { useAccount, useBlockNumber, usePublicClient, useWalletClient } from "wagmi";
+import { Address, encodeFunctionData, getAbiItem, parseUnits } from "viem";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
+import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ERC223_ABI } from "@/config/abis/erc223";
-import { POOL_ABI } from "@/config/abis/pool";
 import { ROUTER_ABI } from "@/config/abis/router";
 import { formatFloat } from "@/functions/formatFloat";
 import { IIFE } from "@/functions/iife";
@@ -92,24 +85,24 @@ export function useSwapParams() {
       ? JSBI.add(TickMath.MIN_SQRT_RATIO, ONE)
       : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE);
 
+    const routerParams = {
+      tokenIn: tokenA.address0,
+      tokenOut: tokenB.address0,
+      fee: FeeAmount.MEDIUM,
+      recipient: address as Address,
+      deadline,
+      amountIn: parseUnits(typedValue, tokenA.decimals),
+      amountOutMinimum: BigInt(0),
+      sqrtPriceLimitX96: BigInt(sqrtPriceLimitX96.toString()),
+      prefer223Out: tokenBStandard === Standard.ERC223,
+    };
+
     if (tokenAStandard === Standard.ERC20) {
       return {
         address: ROUTER_ADDRESS[chainId as DexChainId],
         abi: ROUTER_ABI,
         functionName: "exactInputSingle" as "exactInputSingle",
-        args: [
-          {
-            tokenIn: getTokenAddressForStandard(tokenA, tokenAStandard),
-            tokenOut: tokenB.address0,
-            fee: FeeAmount.MEDIUM,
-            recipient: address as Address,
-            deadline,
-            amountIn: parseUnits(typedValue, tokenA.decimals),
-            amountOutMinimum: BigInt(0),
-            sqrtPriceLimitX96: BigInt(sqrtPriceLimitX96.toString()),
-            prefer223Out: tokenBStandard === Standard.ERC223,
-          },
-        ],
+        args: [routerParams],
       };
     }
 
@@ -119,31 +112,12 @@ export function useSwapParams() {
         abi: ERC223_ABI,
         functionName: "transfer",
         args: [
-          poolAddress.poolAddress,
+          ROUTER_ADDRESS[chainId],
           parseUnits(typedValue, tokenA.decimals), // amountSpecified
           encodeFunctionData({
-            abi: POOL_ABI,
-            functionName: "swap",
-            args: [
-              (address as Address) || poolAddress.poolAddress, // account address
-              zeroForOne, //zeroForOne
-              parseUnits(typedValue, tokenA.decimals), // amountSpecified
-              BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
-              tokenBStandard === Standard.ERC223, // prefer223Out
-              encodeAbiParameters(
-                [
-                  { name: "path", type: "bytes" },
-                  { name: "payer", type: "address" },
-                ],
-                [
-                  encodePacked(
-                    ["address", "uint24", "address"],
-                    [tokenA.address0, FeeAmount.MEDIUM, tokenB.address0],
-                  ),
-                  "0x0000000000000000000000000000000000000000",
-                ],
-              ),
-            ],
+            abi: ROUTER_ABI,
+            functionName: "exactInputSingle",
+            args: [routerParams],
           }),
         ],
       };
@@ -168,15 +142,26 @@ export function useSwapEstimatedGas() {
   const { swapParams } = useSwapParams();
   const { setEstimatedGas } = useSwapEstimatedGasStore();
   const publicClient = usePublicClient();
-  const { data: blockNumber } = useBlockNumber({ watch: true });
+  // const { data: blockNumber } = useBlockNumber({ watch: true });
+  const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
+  const chainId = useCurrentChainId();
+  const { typedValue } = useSwapAmountsStore();
+
+  const { isAllowed: isAllowedA } = useStoreAllowance({
+    token: tokenA,
+    contractAddress: ROUTER_ADDRESS[chainId],
+    amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
+  });
 
   useDeepEffect(() => {
     IIFE(async () => {
-      if (!swapParams || !address) {
+      if (!swapParams || !address || !isAllowedA) {
+        console.log("Can't estimate gas");
         return;
       }
 
       try {
+        // console.log(swapParams);
         const estimated = await publicClient?.estimateContractGas({
           account: address,
           ...swapParams,
@@ -184,13 +169,13 @@ export function useSwapEstimatedGas() {
         if (estimated) {
           setEstimatedGas(estimated);
         }
-        console.log(estimated);
+        // console.log(estimated);
       } catch (e) {
         console.log(e);
         setEstimatedGas(BigInt(195000));
       }
     });
-  }, [publicClient, address, swapParams, blockNumber]);
+  }, [publicClient, address, swapParams, isAllowedA]);
 }
 export default function useSwap() {
   const t = useTranslations("Swap");
@@ -199,12 +184,12 @@ export default function useSwap() {
   const { trade } = useTrade();
   const { address } = useAccount();
   const publicClient = usePublicClient();
+  useSwapGas();
 
   const chainId = useCurrentChainId();
   const { estimatedGas } = useSwapEstimatedGasStore();
 
-  const { gasPrice } = useSwapGas();
-
+  const { gasPrice } = useSwapGasSettingsStore();
   const { slippage } = useSwapSettingsStore();
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
@@ -219,9 +204,13 @@ export default function useSwap() {
 
   const { openConfirmInWalletAlert, closeConfirmInWalletAlert } = useConfirmInWalletAlertStore();
 
-  const { isAllowed: isAllowedA, writeTokenApprove: approveA } = useStoreAllowance({
+  const {
+    isAllowed: isAllowedA,
+    writeTokenApprove: approveA,
+    updateAllowance,
+  } = useStoreAllowance({
     token: tokenA,
-    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
+    contractAddress: ROUTER_ADDRESS[chainId],
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
@@ -236,6 +225,8 @@ export default function useSwap() {
         return { gasPrice: gasPrice.gasPrice };
     }
   }, [gasPrice]);
+
+  console.log(gasPriceFormatted);
 
   const output = useMemo(() => {
     if (!trade) {
@@ -281,10 +272,6 @@ export default function useSwap() {
         closeConfirmInWalletAlert();
 
         const approveReceipt = await publicClient.waitForTransactionReceipt({ hash: result.hash });
-        //
-        // if (approveReceipt.status === "success") {
-        //   setSwapStatus(SwapStatus.SUCCESS);
-        // }
 
         if (approveReceipt.status === "reverted") {
           setSwapStatus(SwapStatus.APPROVE_ERROR);
@@ -368,6 +355,7 @@ export default function useSwap() {
       );
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      updateAllowance();
       if (receipt.status === "success") {
         setSwapStatus(SwapStatus.SUCCESS);
       }
@@ -376,6 +364,8 @@ export default function useSwap() {
         setSwapStatus(SwapStatus.ERROR);
         console.log(receipt);
       }
+    } else {
+      setSwapStatus(SwapStatus.INITIAL);
     }
   }, [
     addRecentTransaction,
@@ -399,6 +389,7 @@ export default function useSwap() {
     tokenB,
     trade,
     typedValue,
+    updateAllowance,
     walletClient,
   ]);
 

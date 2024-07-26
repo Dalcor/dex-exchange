@@ -15,6 +15,7 @@ import { formatFloat } from "@/functions/formatFloat";
 import useTokenBalances from "@/hooks/useTokenBalances";
 import { useTokens } from "@/hooks/useTokenLists";
 import { Token } from "@/sdk_hybrid/entities/token";
+import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
 import { usePinnedTokensStore } from "@/stores/usePinnedTokensStore";
 
 interface Props {
@@ -46,7 +47,7 @@ function TokenRow({
     <div
       role="button"
       onClick={() => handlePick(token)}
-      className="px-10 flex justify-between py-2"
+      className="px-10 flex justify-between py-2 hover:bg-tertiary-bg duration-200"
     >
       <div className="flex items-center gap-3 flex-grow">
         <Image width={40} height={40} src={token?.logoURI || ""} alt="" />
@@ -99,6 +100,7 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
   const t = useTranslations("ManageTokens");
 
   const [tokenForPortfolio, setTokenForPortfolio] = useState<Token | null>(null);
+  const { isOpen: isManageOpened, setIsOpen: setManageOpened } = useManageTokensDialogStore();
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
@@ -111,7 +113,12 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
 
   const [filteredTokens, isTokenFilterActive] = useMemo(() => {
     return tokensSearchValue
-      ? [tokens.filter((t) => t.name && t.name.toLowerCase().startsWith(tokensSearchValue)), true]
+      ? [
+          tokens.filter(
+            (t) => t.name && t.name.toLowerCase().startsWith(tokensSearchValue.toLowerCase()),
+          ),
+          true,
+        ]
       : [tokens, false];
   }, [tokens, tokensSearchValue]);
 
@@ -174,7 +181,13 @@ export default function PickTokenDialog({ isOpen, setIsOpen, handlePick }: Props
                     <span className="text-secondary-text">{t("token_not_found")}</span>
                   </div>
                 )}
-                <button className="w-full text-green hover:text-green-hover rounded-b-5 flex items-center justify-center gap-2 h-[60px] bg-tertiary-bg hover:bg-green-bg hover:shadow-checkbox duration-200">
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    setManageOpened(true);
+                  }}
+                  className="w-full text-green hover:text-green-hover rounded-b-5 flex items-center justify-center gap-2 h-[60px] bg-tertiary-bg hover:bg-green-bg hover:shadow-checkbox duration-200"
+                >
                   Manage tokens
                   <Svg iconName="edit" />
                 </button>

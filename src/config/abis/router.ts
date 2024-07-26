@@ -272,6 +272,13 @@ export const ROUTER_ABI = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "token_sender",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       { internalType: "int256", name: "amount0Delta", type: "int256" },
       { internalType: "int256", name: "amount1Delta", type: "int256" },

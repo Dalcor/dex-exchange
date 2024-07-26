@@ -26,7 +26,6 @@ export default function Alert({ text, type = "success", withIcon = true }: Props
         `
         relative
         flex
-        items-center
         outline
         rounded-2
         gap-2
@@ -40,13 +39,14 @@ export default function Alert({ text, type = "success", withIcon = true }: Props
         type === "error" && "outline-red-input bg-red-bg",
         type === "warning" && "outline-orange bg-orange-bg",
         type === "info" && "outline-blue bg-blue-bg",
-        type === "info-border" && "border-l-4 border-l-blue outline-0 bg-primary-bg",
+        type === "info-border" &&
+          "border-l-4 border-l-blue outline-0 bg-primary-bg text-secondary-text",
       )}
     >
       {withIcon && (
         <div
           className={clsx(
-            "flex items-center justify-center flex-shrink-0",
+            "flex justify-center flex-shrink-0",
             type === "success" && "text-green",
             type === "error" && "text-red",
             type === "warning" && "text-orange",

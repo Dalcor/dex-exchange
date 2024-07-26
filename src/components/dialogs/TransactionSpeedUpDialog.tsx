@@ -1,10 +1,7 @@
 import clsx from "clsx";
-import { ReactNode, useCallback, useEffect, useState } from "react";
-import { formatGwei } from "viem";
-import { useBlock, useBlockNumber, useWalletClient } from "wagmi";
+import { ReactNode, useCallback, useState } from "react";
+import { useWalletClient } from "wagmi";
 
-import { GasOption } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
-import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Svg from "@/components/atoms/Svg";

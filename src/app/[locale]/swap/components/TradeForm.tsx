@@ -196,9 +196,6 @@ export default function TradeForm() {
   }, [trade?.outputAmount]);
 
   const isConvertationRequired = useMemo(() => {
-    console.log("MEMO");
-    console.log(erc20BalanceToken1);
-    console.log(tokenBStandard);
     if (erc20BalanceToken1 && tokenBStandard === Standard.ERC20) {
       if (dependentAmount && +dependentAmount.toSignificant() > +erc20BalanceToken1.formatted) {
         return true;
@@ -246,20 +243,6 @@ export default function TradeForm() {
     return `~${gasForERC223}K gas`;
   }, [isConvertationRequired, tokenA, tokenB, typedValue]);
 
-  // const { poolAddress } = useComputePoolAddressDex({
-  //   tokenA,
-  //   tokenB,
-  //   tier: FeeAmount.MEDIUM,
-  // });
-
-  // console.log(poolAddress?.toLowerCase());
-
-  console.log("IS CONVERTATion REQUIRED");
-  console.log(isConvertationRequired);
-
-  console.log("Pool balances");
-  // console.log(poolBalances);
-
   const [isOpenedTokenPick, setIsOpenedTokenPick] = useState(false);
 
   const handlePick = useCallback(
@@ -268,23 +251,19 @@ export default function TradeForm() {
         if (token === tokenB) {
           setTokenB(tokenA);
           setTokenBStandard(tokenAStandard);
-          // setTokenBAddress(tokenAAddress);
         }
 
         setTokenA(token);
         setTokenAStandard(Standard.ERC20);
-        // setTokenAAddress(token.address0);
       }
 
       if (currentlyPicking === "tokenB") {
         if (token === tokenA) {
           setTokenA(tokenB);
           setTokenAStandard(tokenBStandard);
-          // setTokenAAddress(tokenBAddress);
         }
         setTokenB(token);
         setTokenBStandard(Standard.ERC20);
-        // setTokenBAddress(token.address0);
       }
 
       setIsOpenedTokenPick(false);
@@ -529,7 +508,7 @@ export default function TradeForm() {
                 </span>
 
                 <button
-                  disabled //TODO: Remove disabled
+                  disabled
                   className="border border-green flex px-4 rounded-5 opacity-50"
                   onClick={(e) => {
                     e.stopPropagation();

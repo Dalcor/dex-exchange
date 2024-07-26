@@ -376,7 +376,7 @@ export default function PoolPage({
               <div className="flex flex-col gap-2">
                 <RadioButton
                   isActive={tokenBStandard === Standard.ERC20}
-                  onClick={() => setTokenBStandard(Standard.ERC223)}
+                  onClick={() => setTokenBStandard(Standard.ERC20)}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">

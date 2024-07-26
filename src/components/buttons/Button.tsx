@@ -21,6 +21,7 @@ export const enum ButtonSize {
 export const enum ButtonColor {
   GREEN,
   RED,
+  LIGHT_GREEN,
 }
 
 type CommonProps = {
@@ -47,11 +48,15 @@ const buttonVariantClassnameMap: Record<ButtonVariant, Record<ButtonColor, strin
   [ButtonVariant.CONTAINED]: {
     [ButtonColor.RED]: "bg-red text-primary-text hover:bg-red-hover",
     [ButtonColor.GREEN]: "bg-green text-black hover:bg-green-hover",
+    [ButtonColor.LIGHT_GREEN]:
+      "bg-green-bg text-primary-text border-transparent border hover:border-green",
   },
   [ButtonVariant.OUTLINED]: {
     [ButtonColor.RED]:
       "border border-primary text-secondary-text hover:bg-red-bg hover:border-primary-text hover:text-primary-text",
     [ButtonColor.GREEN]: "border border-green text-primary-text hover:bg-green-bg",
+    [ButtonColor.LIGHT_GREEN]:
+      "bg-green-bg text-primary-text border-transparent border hover:border-green",
   },
 };
 

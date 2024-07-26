@@ -15,6 +15,7 @@ import TokenListItem from "@/components/manage-tokens/TokenListItem";
 import { ManageTokensDialogContent } from "@/components/manage-tokens/types";
 import { db } from "@/db/db";
 import { useTokenLists, useTokens } from "@/hooks/useTokenLists";
+import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { useManageTokensDialogStore } from "@/stores/useManageTokensDialogStore";
 
@@ -57,7 +58,12 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
 
   const [filteredTokens, isTokenFilterActive] = useMemo(() => {
     return tokensSearchValue
-      ? [tokens.filter((t) => t.name && t.name.toLowerCase().startsWith(tokensSearchValue)), true]
+      ? [
+          tokens.filter(
+            (t) => t.name && t.name.toLowerCase().startsWith(tokensSearchValue.toLowerCase()),
+          ),
+          true,
+        ]
       : [tokens, false];
   }, [tokens, tokensSearchValue]);
 
@@ -65,7 +71,8 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
     return listSearchValue
       ? [
           lists?.filter(
-            ({ list }) => list.name && list.name.toLowerCase().startsWith(listSearchValue),
+            ({ list }) =>
+              list.name && list.name.toLowerCase().startsWith(listSearchValue.toLowerCase()),
           ),
           true,
         ]
@@ -115,7 +122,7 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
               <ButtonTooltip text={t("import_list_tooltip")} />
             </div>
 
-            {Boolean(filteredLists?.length && !isListFilterActive) && (
+            {Boolean(filteredLists?.length) && (
               <div className="flex flex-col mt-3 overflow-auto flex-grow">
                 {filteredLists
                   ?.filter((l) => Boolean(l.list.tokens.length))
@@ -123,6 +130,30 @@ export default function TokensAndLists({ setContent, handleClose, setTokenForPor
                     return (
                       <TokenListItem
                         toggle={async () => {
+                          const otherEnabledLists = lists?.filter(
+                            (l) =>
+                              Boolean(l.enabled) &&
+                              Boolean(l.list.tokens.length) &&
+                              l.id !== tokenList.id,
+                          );
+
+                          const totalTokensInOtherEnabledLists = otherEnabledLists?.reduce(
+                            (accumulator, currentValue) =>
+                              accumulator + currentValue.list.tokens.length,
+                            0,
+                          );
+
+                          if (
+                            tokenList.enabled &&
+                            (!totalTokensInOtherEnabledLists || totalTokensInOtherEnabledLists < 2)
+                          ) {
+                            addToast(
+                              "You can't disable this token list. Please, enable any other one and try again",
+                              "warning",
+                            );
+                            return;
+                          }
+
                           (db.tokenLists as any).update(tokenList.id, {
                             enabled: !tokenList.enabled,
                           });

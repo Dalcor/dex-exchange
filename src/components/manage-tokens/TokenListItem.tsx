@@ -14,6 +14,8 @@ import Button, { ButtonColor, ButtonVariant } from "@/components/buttons/Button"
 import { db, TokenList } from "@/db/db";
 import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import { useTokenLists } from "@/hooks/useTokenLists";
+import addToast from "@/other/toast";
 
 enum ListActionOption {
   VIEW,
@@ -84,6 +86,7 @@ export default function TokenListItem({
   tokenList: TokenList;
   toggle: any;
 }) {
+  const lists = useTokenLists();
   const t = useTranslations("ManageTokens");
   const [isPopoverOpened, setPopoverOpened] = useState(false);
   const [deleteOpened, setDeleteOpened] = useState(false);
@@ -158,6 +161,27 @@ export default function TokenListItem({
                         <ListPopoverOption
                           variant={ListActionOption.REMOVE}
                           handleRemove={() => {
+                            const otherEnabledLists = lists?.filter(
+                              (l) =>
+                                Boolean(l.enabled) &&
+                                Boolean(l.list.tokens.length) &&
+                                l.id !== tokenList.id,
+                            );
+
+                            const totalTokensInOtherEnabledLists = otherEnabledLists?.reduce(
+                              (accumulator, currentValue) =>
+                                accumulator + currentValue.list.tokens.length,
+                              0,
+                            );
+
+                            if (
+                              tokenList.enabled &&
+                              (!totalTokensInOtherEnabledLists ||
+                                totalTokensInOtherEnabledLists < 2)
+                            ) {
+                              addToast("You can't delete this token list now", "warning");
+                              return;
+                            }
                             setDeleteOpened(true);
                           }}
                         />

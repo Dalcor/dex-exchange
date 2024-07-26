@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
@@ -9,6 +9,8 @@ import Button, { ButtonColor, ButtonVariant } from "@/components/buttons/Button"
 import IconButton, { IconButtonVariant } from "@/components/buttons/IconButton";
 import { db } from "@/db/db";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import { useTokenLists } from "@/hooks/useTokenLists";
+import addToast from "@/other/toast";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 export default function ManageTokenItem({
@@ -19,6 +21,7 @@ export default function ManageTokenItem({
   setTokenForPortfolio: (token: Token) => void;
 }) {
   const t = useTranslations("ManageTokens");
+  const lists = useTokenLists();
 
   const [open, setOpen] = useState(false);
   const [deleteOpened, setDeleteOpened] = useState(false);
@@ -40,7 +43,22 @@ export default function ManageTokenItem({
             <div className="group-hover:opacity-100 opacity-0 duration-200">
               <IconButton
                 variant={IconButtonVariant.DELETE}
-                handleDelete={() => setDeleteOpened(true)}
+                handleDelete={() => {
+                  const otherEnabledLists = lists?.filter(
+                    (l) => Boolean(l.enabled) && Boolean(l.list.tokens.length),
+                  );
+
+                  const totalTokensInOtherEnabledLists = otherEnabledLists?.reduce(
+                    (accumulator, currentValue) => accumulator + currentValue.list.tokens.length,
+                    0,
+                  );
+
+                  if (!totalTokensInOtherEnabledLists || totalTokensInOtherEnabledLists === 2) {
+                    addToast("You can't delete this token now", "warning");
+                    return;
+                  }
+                  setDeleteOpened(true);
+                }}
               />
               <DrawerDialog isOpen={deleteOpened} setIsOpen={setDeleteOpened}>
                 <div className="w-full md:w-[600px]">

@@ -11,7 +11,7 @@ import {
   useRole,
   useTransitionStyles,
 } from "@floating-ui/react";
-import React, { PropsWithChildren, ReactElement } from "react";
+import React, { CSSProperties, PropsWithChildren, ReactElement } from "react";
 
 interface Props {
   placement: Placement;
@@ -19,6 +19,7 @@ interface Props {
   setIsOpened?: (isOpened: boolean) => void;
   trigger: ReactElement;
   customOffset?: number;
+  customStyles?: CSSProperties;
 }
 
 export default function Popover({
@@ -28,6 +29,7 @@ export default function Popover({
   children,
   trigger,
   customOffset,
+  customStyles = {},
 }: PropsWithChildren<Props>) {
   const { refs, floatingStyles, context } = useFloating({
     open: isOpened,
@@ -57,7 +59,7 @@ export default function Popover({
         <FloatingFocusManager context={context} modal={false}>
           <div
             ref={refs.setFloating}
-            style={{ ...floatingStyles, ...transitionStyles, zIndex: 20 }}
+            style={{ ...floatingStyles, ...transitionStyles, ...customStyles, zIndex: 20 }}
             {...getFloatingProps()}
           >
             {children}

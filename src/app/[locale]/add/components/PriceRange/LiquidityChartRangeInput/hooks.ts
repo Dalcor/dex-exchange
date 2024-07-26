@@ -105,9 +105,9 @@ function useTicksFromSubgraph(
 
   return useAllV3TicksQuery({
     variables: { poolAddress: poolAddress?.toLowerCase(), skip },
-    skip: !poolAddress,
+    skip: !poolAddress || !apolloClient,
     pollInterval: 30000,
-    client: apolloClient,
+    client: apolloClient || chainToApolloClient[DexChainId.SEPOLIA],
   });
 }
 

@@ -96,6 +96,7 @@ const config: Config = {
       black: "#000000", // changed
       white: "#FFFFFF", // changed
       purple: "#A380DC", // changed
+      purple_opacity_20: "#A380DC33", // changed
 
       "green-bg": "#3C4C4A", // changed
       "red-bg": "#443535", // changed

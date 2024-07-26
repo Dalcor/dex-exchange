@@ -41,7 +41,10 @@ export const InputRange = ({
         step={100}
         min={0}
         onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(+e.target.value as 0 | 100)}
-        className="w-full accent-green absolute top-2 left-0 right-0 duration-200 !bg-purple"
+        className={clsx(
+          "w-full accent-green absolute top-2 left-0 right-0 duration-200 !bg-purple",
+          value < 50 && "variant-purple",
+        )}
         type="range"
       />
       <div

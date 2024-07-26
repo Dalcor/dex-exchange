@@ -67,7 +67,7 @@ export default function Zoom({
         svg &&
         zoomBehavior.current &&
         select(svg as Element)
-          .call(zoomBehavior.current.transform, zoomIdentity.translate(0, 0).scale(1))
+          // .call(zoomBehavior.current.transform, zoomIdentity.translate(0, 0).scale(1))
           .transition()
           .call(zoomBehavior.current.scaleTo, 0.5),
     ],

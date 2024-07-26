@@ -110,8 +110,9 @@ export function usePoolsData({
         token1_: filter?.token1Address ? { id: filter.token1Address.toLowerCase() } : undefined,
       },
     },
+    skip: !apolloClient,
     pollInterval: 30000,
-    client: apolloClient,
+    client: apolloClient || chainToApolloClient[DexChainId.SEPOLIA],
   });
 }
 
@@ -129,6 +130,7 @@ export const usePoolData = ({
       id: poolAddress,
     },
     pollInterval: 30000,
-    client: apolloClient,
+    skip: !apolloClient,
+    client: apolloClient || chainToApolloClient[DexChainId.SEPOLIA],
   });
 };

@@ -233,7 +233,7 @@ function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps)
               <div key={key} className="flex justify-between items-center gap-2">
                 <div className="flex items-center gap-2">
                   <Svg
-                    className={score >= 0 ? "text-green" : "text-red"}
+                    className={score >= 0 ? "text-green" : "text-red-input"}
                     iconName={score >= 0 ? "success" : "warning"}
                   />
                   <span>{text}</span>
@@ -241,7 +241,7 @@ function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps)
                 {score >= 0 ? (
                   <span className="text-green">+{score}</span>
                 ) : (
-                  <span className="text-red">-{score}</span>
+                  <span className="text-red-input">-{score}</span>
                 )}
               </div>
             );
@@ -254,7 +254,7 @@ function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps)
                 <div className="flex items-center gap-2">
                   <Svg
                     size={20}
-                    className={score >= 0 ? "text-green" : "text-red"}
+                    className={score >= 0 ? "text-green" : "text-red-input"}
                     iconName={score >= 0 ? "success" : "warning"}
                   />
                   <span>{text}</span>
@@ -262,7 +262,7 @@ function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps)
                 {score >= 0 ? (
                   <span className="text-green">+{score}</span>
                 ) : (
-                  <span className="text-red">{score}</span>
+                  <span className="text-red-input">{score}</span>
                 )}
               </div>
             );
@@ -272,7 +272,9 @@ function TooltipContent({ rate, logoURI, rateRange, totalScore }: InternalProps)
 
       <div className="flex mt-4 justify-between items-center text-14">
         <span>Total score</span>
-        <span className={clsx(internalTokenScore > 0 ? "text-green" : "text-red", "font-bold")}>
+        <span
+          className={clsx(internalTokenScore > 0 ? "text-green" : "text-red-input", "font-bold")}
+        >
           {internalTokenScore}
         </span>
       </div>

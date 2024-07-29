@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo } from "react";
 import { Address, encodeFunctionData, getAbiItem, parseUnits } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
-import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
@@ -140,8 +139,9 @@ export function useSwapParams() {
 export function useSwapEstimatedGas() {
   const { address } = useAccount();
   const { swapParams } = useSwapParams();
-  const { setEstimatedGas } = useSwapEstimatedGasStore();
+  // const { setEstimatedGas } = useSwapEstimatedGasStore();
   const publicClient = usePublicClient();
+  const { setGasLimit } = useSwapGasSettingsStore();
   // const { data: blockNumber } = useBlockNumber({ watch: true });
   const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
   const chainId = useCurrentChainId();
@@ -155,7 +155,8 @@ export function useSwapEstimatedGas() {
 
   useDeepEffect(() => {
     IIFE(async () => {
-      if (!swapParams || !address || !isAllowedA) {
+      if (!swapParams || !address || (!isAllowedA && tokenAStandard === Standard.ERC20)) {
+        setGasLimit(BigInt(195000));
         console.log("Can't estimate gas");
         return;
       }
@@ -166,13 +167,16 @@ export function useSwapEstimatedGas() {
           account: address,
           ...swapParams,
         } as any);
+
+        console.log(estimated);
+
         if (estimated) {
-          setEstimatedGas(estimated);
+          setGasLimit(estimated + BigInt(10000));
         }
         // console.log(estimated);
       } catch (e) {
         console.log(e);
-        setEstimatedGas(BigInt(195000));
+        setGasLimit(BigInt(195000));
       }
     });
   }, [publicClient, address, swapParams, isAllowedA]);
@@ -186,9 +190,9 @@ export default function useSwap() {
   const publicClient = usePublicClient();
 
   const chainId = useCurrentChainId();
-  const { estimatedGas } = useSwapEstimatedGasStore();
+  // const { estimatedGas } = useSwapEstimatedGasStore();
 
-  const { gasPrice } = useSwapGasSettingsStore();
+  const { gasPrice, gasLimit } = useSwapGasSettingsStore();
   const { slippage } = useSwapSettingsStore();
   const { typedValue } = useSwapAmountsStore();
   const { addRecentTransaction } = useRecentTransactionsStore();
@@ -310,7 +314,11 @@ export default function useSwap() {
     let hash;
 
     try {
-      hash = await walletClient.writeContract(swapParams as any); // TODO: remove any
+      hash = await walletClient.writeContract({
+        gas: gasLimit,
+        ...gasPriceFormatted,
+        ...swapParams,
+      } as any); // TODO: remove any
     } catch (e) {
       setSwapStatus(SwapStatus.INITIAL);
 
@@ -334,7 +342,7 @@ export default function useSwap() {
           chainId,
           gas: {
             ...stringifyObject(gasPrice),
-            gas: (estimatedGas + BigInt(30000)).toString(),
+            gas: gasLimit.toString(),
           },
           params: {
             ...stringifyObject(swapParams),
@@ -372,7 +380,7 @@ export default function useSwap() {
     approveA,
     chainId,
     closeConfirmInWalletAlert,
-    estimatedGas,
+    gasLimit,
     gasPrice,
     isAllowedA,
     openConfirmInWalletAlert,
@@ -396,6 +404,6 @@ export default function useSwap() {
     handleSwap,
     isAllowedA: isAllowedA,
     handleApprove: () => null,
-    estimatedGas,
+    estimatedGas: gasLimit,
   };
 }

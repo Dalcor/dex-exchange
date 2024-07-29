@@ -34,6 +34,7 @@ export default function Alert({ text, type = "success", withIcon = true }: Props
         overflow-hidden
         group
         text-14
+        items-center
         `,
         type === "success" && "outline-green bg-green-bg",
         type === "error" && "outline-red-input bg-red-bg",

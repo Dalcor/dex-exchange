@@ -440,7 +440,7 @@ export default function ConfirmSwapDialog() {
     isSettledSwap,
     isRevertedApprove,
   } = useSwapStatus();
-  const { estimatedGas } = useSwapEstimatedGasStore();
+  // const { estimatedGas } = useSwapEstimatedGasStore();
 
   const isProcessing = useMemo(() => {
     return (
@@ -613,7 +613,7 @@ export default function ConfirmSwapDialog() {
               />
               <SwapDetailsRow
                 title={t("gas_limit")}
-                value={estimatedGas?.toString() || "Loading..."}
+                value={gasLimit?.toString() || "Loading..."}
                 tooltipText={t("gas_limit_tooltip")}
               />
             </div>

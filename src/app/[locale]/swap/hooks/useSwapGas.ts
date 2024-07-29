@@ -48,7 +48,7 @@ export function useFees() {
 type HandleApplyArgs =
   | { option: GasOption.CHEAP }
   | { option: GasOption.FAST }
-  | { option: GasOption.CUSTOM; gasSettings: GasSettings };
+  | { option: GasOption.CUSTOM; gasSettings: GasSettings; gasLimit: bigint };
 export default function useSwapGas() {
   const {
     estimatedGasPriceLegacy,
@@ -89,7 +89,9 @@ export default function useSwapGas() {
       setGasOption(option);
 
       if (option === GasOption.CUSTOM) {
+        console.log(args.gasLimit);
         setGasPrice(args.gasSettings);
+        setGasLimit(args.gasLimit);
       } else {
         console.log(args.option);
         const multiplier = baseFeeMultipliers[chainId][args.option];
@@ -116,6 +118,7 @@ export default function useSwapGas() {
       currentGasPrice,
       estimatedMaxFeePerGas,
       estimatedMaxPriorityFeePerGas,
+      setGasLimit,
       setGasOption,
       setGasPrice,
     ],

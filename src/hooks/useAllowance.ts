@@ -12,6 +12,7 @@ import { ERC20_ABI } from "@/config/abis/erc20";
 import { IIFE } from "@/functions/iife";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import addToast from "@/other/toast";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { useAllowanceStore } from "@/stores/useAllowanceStore";
 import {
@@ -29,6 +30,13 @@ export enum AllowanceStatus {
   LOADING,
   SUCCESS,
 }
+
+const allowanceGasLimitMap: Record<DexChainId, { base: bigint; additional: bigint }> = {
+  [DexChainId.SEPOLIA]: { base: BigInt(46200), additional: BigInt(10000) },
+  [DexChainId.BSC_TESTNET]: { base: BigInt(46200), additional: BigInt(10000) },
+};
+
+const defaultApproveValue = BigInt(46000);
 
 export function useStoreAllowance({
   token,
@@ -57,6 +65,14 @@ export function useStoreAllowance({
   }, [address, allowances, chainId, contractAddress, token]);
 
   const { addRecentTransaction } = useRecentTransactionsStore();
+
+  const gasLimit = useMemo(() => {
+    if (allowanceGasLimitMap[chainId]) {
+      return allowanceGasLimitMap[chainId].additional + allowanceGasLimitMap[chainId].base;
+    }
+
+    return defaultApproveValue;
+  }, [chainId]);
 
   const updateAllowance = useCallback(async () => {
     if (!publicClient || !address || !contractAddress || !token) {
@@ -141,11 +157,9 @@ export function useStoreAllowance({
       };
 
       try {
-        const estimatedGas = await publicClient.estimateContractGas(params);
-
         const { request } = await publicClient.simulateContract({
           ...params,
-          gas: estimatedGas + BigInt(30000),
+          gas: gasLimit,
         });
 
         let hash;
@@ -170,7 +184,7 @@ export function useStoreAllowance({
               chainId,
               gas: {
                 model: GasFeeModel.EIP1559,
-                gas: BigInt(30000).toString(),
+                gas: gasLimit.toString(),
                 maxFeePerGas: undefined,
                 maxPriorityFeePerGas: undefined,
               },
@@ -213,45 +227,6 @@ export function useStoreAllowance({
     ],
   );
 
-  const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
-  useDeepEffect(() => {
-    IIFE(async () => {
-      if (
-        !amountToCheck ||
-        !contractAddress ||
-        !token ||
-        !walletClient ||
-        !address ||
-        !chainId ||
-        !publicClient
-      ) {
-        return;
-      }
-
-      const params: {
-        address: Address;
-        account: Address;
-        abi: Abi;
-        functionName: "approve";
-        args: [Address, bigint];
-      } = {
-        address: token.address0 as Address,
-        account: address,
-        abi: ERC20_ABI,
-        functionName: "approve",
-        args: [contractAddress!, amountToCheck!],
-      };
-
-      try {
-        const estimatedGas = await publicClient.estimateContractGas(params);
-        setEstimatedGas(estimatedGas);
-      } catch (error) {
-        console.warn("🚀 ~ useAllowance ~ estimatedGas ~ error:", error, "params:", params);
-        setEstimatedGas(null);
-      }
-    });
-  }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
-
   return {
     isAllowed: Boolean(
       currentAllowanceItem?.allowedToSpend &&
@@ -260,7 +235,7 @@ export function useStoreAllowance({
     ),
     writeTokenApprove,
     currentAllowance: currentAllowanceItem?.allowedToSpend,
-    estimatedGas,
+    estimatedGas: allowanceGasLimitMap[chainId]?.base || defaultApproveValue,
     currentAllowanceItem,
     updateAllowance,
   };

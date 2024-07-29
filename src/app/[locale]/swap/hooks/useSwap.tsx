@@ -7,7 +7,6 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
-import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
 import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
@@ -139,10 +138,8 @@ export function useSwapParams() {
 export function useSwapEstimatedGas() {
   const { address } = useAccount();
   const { swapParams } = useSwapParams();
-  // const { setEstimatedGas } = useSwapEstimatedGasStore();
   const publicClient = usePublicClient();
   const { setGasLimit } = useSwapGasSettingsStore();
-  // const { data: blockNumber } = useBlockNumber({ watch: true });
   const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
   const chainId = useCurrentChainId();
   const { typedValue } = useSwapAmountsStore();
@@ -190,7 +187,6 @@ export default function useSwap() {
   const publicClient = usePublicClient();
 
   const chainId = useCurrentChainId();
-  // const { estimatedGas } = useSwapEstimatedGasStore();
 
   const { gasPrice, gasLimit } = useSwapGasSettingsStore();
   const { slippage } = useSwapSettingsStore();
@@ -370,6 +366,15 @@ export default function useSwap() {
       if (receipt.status === "reverted") {
         setSwapStatus(SwapStatus.ERROR);
         console.log(receipt);
+
+        const ninetyEightPercent = (gasLimit * BigInt(98)) / BigInt(100);
+
+        console.log(ninetyEightPercent);
+        console.log(gasLimit);
+        console.log(receipt.gasUsed >= ninetyEightPercent && receipt.gasUsed <= gasLimit);
+        if (receipt.gasUsed >= ninetyEightPercent && receipt.gasUsed <= gasLimit) {
+          console.error("OUT OF GAS ERROR");
+        }
       }
     } else {
       setSwapStatus(SwapStatus.INITIAL);
@@ -382,6 +387,7 @@ export default function useSwap() {
     closeConfirmInWalletAlert,
     gasLimit,
     gasPrice,
+    gasPriceFormatted,
     isAllowedA,
     openConfirmInWalletAlert,
     output,

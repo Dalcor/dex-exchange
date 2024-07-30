@@ -29,6 +29,15 @@ export const usePinnedTokensStore = create<PinnedTokensStore>()(
       },
       toggleToken: (address, chainId) => {
         const currentPinned = get().tokens[chainId];
+        if (!currentPinned) {
+          set({
+            tokens: {
+              ...get().tokens,
+              [chainId]: [address],
+            },
+          });
+        }
+
         if (currentPinned.includes(address)) {
           set({
             tokens: {

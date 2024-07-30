@@ -12,12 +12,17 @@ export const baseFeeMultipliers: Record<DexChainId, Record<GasOptionWithoutCusto
     [GasOption.CHEAP]: BigInt(120),
     [GasOption.FAST]: BigInt(200),
   },
+  [DexChainId.EOS_TESTNET]: {
+    [GasOption.CHEAP]: BigInt(120),
+    [GasOption.FAST]: BigInt(200),
+  },
 };
 
 export const SCALING_FACTOR = BigInt(100);
 
 export const eip1559SupportMap: Record<DexChainId, boolean> = {
   [DexChainId.SEPOLIA]: true,
+  [DexChainId.EOS_TESTNET]: true,
   [DexChainId.BSC_TESTNET]: false,
 };
 

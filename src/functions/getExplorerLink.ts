@@ -11,6 +11,7 @@ const explorerMap: Record<DexChainId, string> = {
   [DexChainId.SEPOLIA]: "https://sepolia.etherscan.io",
   // [DexChainId.CALLISTO]: "https://explorer.callisto.network",
   [DexChainId.BSC_TESTNET]: "https://testnet.bscscan.com",
+  [DexChainId.EOS_TESTNET]: "https://explorer.testnet.evm.eosnetwork.com",
 };
 export default function getExplorerLink(
   type: ExplorerLinkType,

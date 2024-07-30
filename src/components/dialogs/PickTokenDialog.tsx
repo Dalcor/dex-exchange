@@ -36,7 +36,7 @@ function TokenRow({
   const { toggleToken, isTokenPinned, pinnedTokens } = usePinnedTokensStore((s) => ({
     toggleToken: s.toggleToken,
     pinnedTokens: s.tokens,
-    isTokenPinned: s.tokens[token.chainId].includes(token.address0),
+    isTokenPinned: s.tokens[token.chainId]?.includes(token.address0),
   }));
 
   const {

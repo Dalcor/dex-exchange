@@ -1,4 +1,5 @@
 import { DexChainId } from "@/sdk_hybrid/chains";
+import { ADDRESS_ZERO } from "@/sdk_hybrid/constants";
 
 import { Token } from "./token";
 
@@ -26,6 +27,14 @@ export const WETH9: Record<DexChainId, Token> = {
     97,
     "0x094616f0bdfb0b526bd735bf66eca0ad254ca81f",
     "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // TODO: Update wrapped
+    18,
+    "WBNB",
+    "Wrapped BNB",
+  ),
+  [DexChainId.EOS_TESTNET]: new Token(
+    97,
+    ADDRESS_ZERO, // TODO: Update wrapped
+    ADDRESS_ZERO, // TODO: Update wrapped
     18,
     "WBNB",
     "Wrapped BNB",

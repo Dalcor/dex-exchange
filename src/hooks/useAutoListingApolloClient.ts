@@ -9,6 +9,8 @@ const autoListingUrlMap: Record<DexChainId, string> = {
     "https://api.studio.thegraph.com/proxy/56540/dex223-auto-listing-sepolia/version/latest/",
   [DexChainId.BSC_TESTNET]:
     "https://api.studio.thegraph.com/proxy/56540/dex223-auto-listing-chapel/version/latest/",
+  [DexChainId.EOS_TESTNET]:
+    "https://api.studio.thegraph.com/proxy/56540/dex223-auto-listing-chapel/version/latest/", //TODO: update  for real
 };
 
 export default function useAutoListingApolloClient() {

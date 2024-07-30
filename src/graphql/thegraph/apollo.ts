@@ -27,6 +27,7 @@ const CHAIN_SUBGRAPH_URL: Record<DexChainId, string> = {
     "https://api.studio.thegraph.com/proxy/56540/dex223-v1-sepolia/version/latest",
   // [DexChainId.CALLISTO]: "",
   [DexChainId.BSC_TESTNET]: "",
+  [DexChainId.EOS_TESTNET]: "",
 };
 
 const httpLink = new HttpLink({ uri: CHAIN_SUBGRAPH_URL[DexChainId.SEPOLIA] });
@@ -90,6 +91,10 @@ export const chainToApolloClient: Record<DexChainId, ApolloClient<NormalizedCach
     uri: CHAIN_SUBGRAPH_URL[DexChainId.SEPOLIA],
   }),
   [DexChainId.BSC_TESTNET]: new ApolloClient({
+    cache: new InMemoryCache(),
+    uri: CHAIN_SUBGRAPH_URL[DexChainId.SEPOLIA],
+  }),
+  [DexChainId.EOS_TESTNET]: new ApolloClient({
     cache: new InMemoryCache(),
     uri: CHAIN_SUBGRAPH_URL[DexChainId.SEPOLIA],
   }),

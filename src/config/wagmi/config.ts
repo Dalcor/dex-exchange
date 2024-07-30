@@ -1,5 +1,5 @@
 import { fallback, http, webSocket } from "viem";
-import { bscTestnet } from "viem/chains";
+import { bscTestnet, eosTestnet } from "viem/chains";
 import { createConfig, createStorage, parseCookie } from "wagmi";
 import { coinbaseWallet, metaMask, walletConnect } from "wagmi/connectors";
 
@@ -26,6 +26,7 @@ export const config = createConfig({
     // callisto,
     sepolia,
     bscTestnet,
+    eosTestnet,
   ],
   connectors: [
     walletConnect({
@@ -54,5 +55,6 @@ export const config = createConfig({
       http(),
     ]),
     [bscTestnet.id]: http(),
+    [eosTestnet.id]: http(),
   },
 });

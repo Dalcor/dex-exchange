@@ -32,9 +32,9 @@ export const WETH9: Record<DexChainId, Token> = {
     "Wrapped BNB",
   ),
   [DexChainId.EOS_TESTNET]: new Token(
-    97,
-    ADDRESS_ZERO, // TODO: Update wrapped
-    ADDRESS_ZERO, // TODO: Update wrapped
+    DexChainId.EOS_TESTNET,
+    "0x6cCC5AD199bF1C64b50f6E7DD530d71402402EB6", // TODO: Update wrapped
+    "0xC8B20A566aF7b358345F82ac6e9EcD6589e5e862", // TODO: Update wrapped
     18,
     "WBNB",
     "Wrapped BNB",

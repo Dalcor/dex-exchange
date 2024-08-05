@@ -9,7 +9,11 @@ import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirm
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
-import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
+import {
+  SwapError,
+  SwapStatus,
+  useSwapStatusStore,
+} from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { ROUTER_ABI } from "@/config/abis/router";
@@ -139,7 +143,7 @@ export function useSwapEstimatedGas() {
   const { address } = useAccount();
   const { swapParams } = useSwapParams();
   const publicClient = usePublicClient();
-  const { setGasLimit } = useSwapGasSettingsStore();
+  const { setEstimatedGas } = useSwapGasSettingsStore();
   const { tokenA, tokenB, tokenAStandard } = useSwapTokensStore();
   const chainId = useCurrentChainId();
   const { typedValue } = useSwapAmountsStore();
@@ -153,7 +157,7 @@ export function useSwapEstimatedGas() {
   useDeepEffect(() => {
     IIFE(async () => {
       if (!swapParams || !address || (!isAllowedA && tokenAStandard === Standard.ERC20)) {
-        setGasLimit(BigInt(195000));
+        setEstimatedGas(BigInt(195000));
         console.log("Can't estimate gas");
         return;
       }
@@ -168,12 +172,14 @@ export function useSwapEstimatedGas() {
         console.log(estimated);
 
         if (estimated) {
-          setGasLimit(estimated + BigInt(10000));
+          setEstimatedGas(estimated + BigInt(10000));
+        } else {
+          setEstimatedGas(BigInt(195000));
         }
         // console.log(estimated);
       } catch (e) {
         console.log(e);
-        setGasLimit(BigInt(195000));
+        setEstimatedGas(BigInt(195000));
       }
     });
   }, [publicClient, address, swapParams, isAllowedA]);
@@ -198,6 +204,7 @@ export default function useSwap() {
     setStatus: setSwapStatus,
     setSwapHash,
     setApproveHash,
+    setErrorType,
   } = useSwapStatusStore();
   const { isOpen: confirmDialogOpened } = useConfirmSwapDialogStore();
 
@@ -373,7 +380,9 @@ export default function useSwap() {
         console.log(gasLimit);
         console.log(receipt.gasUsed >= ninetyEightPercent && receipt.gasUsed <= gasLimit);
         if (receipt.gasUsed >= ninetyEightPercent && receipt.gasUsed <= gasLimit) {
-          console.error("OUT OF GAS ERROR");
+          setErrorType(SwapError.OUT_OF_GAS);
+        } else {
+          setErrorType(SwapError.UNKNOWN);
         }
       }
     } else {
@@ -393,6 +402,7 @@ export default function useSwap() {
     output,
     publicClient,
     setApproveHash,
+    setErrorType,
     setSwapHash,
     setSwapStatus,
     swapParams,

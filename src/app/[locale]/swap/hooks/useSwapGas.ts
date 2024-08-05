@@ -89,17 +89,12 @@ export default function useSwapGas() {
       setGasOption(option);
 
       if (option === GasOption.CUSTOM) {
-        console.log(args.gasLimit);
         setGasPrice(args.gasSettings);
         setGasLimit(args.gasLimit);
       } else {
-        console.log(args.option);
         const multiplier = baseFeeMultipliers[chainId][args.option];
 
-        console.log(multiplier);
-
         if (isEip1559Supported(chainId)) {
-          console.log("Supported eip1559");
           setGasPrice({
             model: GasFeeModel.EIP1559,
             maxFeePerGas: (estimatedMaxFeePerGas * multiplier) / SCALING_FACTOR,

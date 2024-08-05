@@ -11,7 +11,6 @@ import React, {
 } from "react";
 import { formatGwei, parseGwei } from "viem";
 
-import useSwap from "@/app/[locale]/swap/hooks/useSwap";
 import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import {
   GasOption,
@@ -82,6 +81,10 @@ function EIP1559Fields({
   setMaxFeePerGasValue,
   setMaxPriorityFeePerGasValue,
   currentMaxPriorityFeePerGas,
+  maxPriorityFeePerGasError,
+  maxPriorityFeePerGasWarning,
+  maxFeePerGasError,
+  maxFeePerGasWarning,
 }: {
   maxFeePerGas: string;
   maxPriorityFeePerGas: string;
@@ -91,10 +94,16 @@ function EIP1559Fields({
   handleBlur: (e: FocusEvent<HTMLInputElement>) => void;
   currentMaxFeePerGas: bigint | undefined;
   currentMaxPriorityFeePerGas: bigint | undefined;
+  maxPriorityFeePerGasError: boolean;
+  maxPriorityFeePerGasWarning: boolean;
+  maxFeePerGasError: boolean;
+  maxFeePerGasWarning: boolean;
 }) {
   return (
     <div className="grid gap-3 grid-cols-2 mt-4">
       <TextField
+        isError={maxFeePerGasError}
+        isWarning={maxFeePerGasWarning}
         placeholder="Max fee"
         label="Max fee"
         name="maxFeePerGas"
@@ -128,6 +137,8 @@ function EIP1559Fields({
       />
 
       <TextField
+        isError={maxPriorityFeePerGasError}
+        isWarning={maxPriorityFeePerGasWarning}
         placeholder="Priority fee"
         label="Priority fee"
         name="maxPriorityFeePerGas"
@@ -163,6 +174,19 @@ function EIP1559Fields({
     </div>
   );
 }
+
+function ErrorsAndWarnings({ errors, warnings }: { errors?: string[]; warnings?: string[] }) {
+  return (
+    <>
+      {(!!errors?.length || !!warnings?.length) && (
+        <div className="flex flex-col gap-5 mt-4">
+          {errors?.map((err) => <Alert key={err} text={err} type="error" />)}
+          {warnings?.map((war) => <Alert key={war} text={war} type="warning" />)}
+        </div>
+      )}
+    </>
+  );
+}
 function NetworkFeeDialogContent({
   setIsOpen,
   isAdvanced,
@@ -171,9 +195,7 @@ function NetworkFeeDialogContent({
   isAdvanced: boolean;
 }) {
   const chainId = useCurrentChainId();
-  const { gasOption, gasPrice, setGasLimit } = useSwapGasSettingsStore();
-
-  const { estimatedGas } = useSwap();
+  const { gasOption, gasPrice, setGasLimit, estimatedGas, gasLimit } = useSwapGasSettingsStore();
 
   const {
     handleApply,
@@ -226,7 +248,7 @@ function NetworkFeeDialogContent({
       ),
       gasOption,
       gasPriceModel: gasPrice.model,
-      gasLimit: estimatedGas ? estimatedGas.toString() : "100000",
+      gasLimit: gasLimit ? gasLimit.toString() : estimatedGas.toString(),
     },
     onSubmit: (values, formikHelpers) => {
       if (values.gasOption !== GasOption.CUSTOM) {
@@ -295,6 +317,52 @@ function NetworkFeeDialogContent({
       : undefined;
   }, [estimatedMaxPriorityFeePerGas, touched.maxPriorityFeePerGas, values.maxPriorityFeePerGas]);
 
+  console.log(values.gasLimit);
+  console.log(estimatedGas);
+  console.log(touched);
+
+  const gasLimitError = useMemo(() => {
+    return touched.gasLimit && BigInt(values.gasLimit) < estimatedGas
+      ? "Gas limit is lower then recommended"
+      : undefined;
+  }, [touched.gasLimit, values.gasLimit, estimatedGas]);
+
+  const gasPriceErrors = useMemo(() => {
+    const _errors: string[] = [];
+
+    [maxPriorityFeePerGasError, maxFeePerGasError].forEach((v) => {
+      if (v) {
+        _errors.push(v);
+      }
+    });
+
+    return _errors;
+  }, [maxFeePerGasError, maxPriorityFeePerGasError]);
+
+  const gasPriceWarnings = useMemo(() => {
+    const _warnings: string[] = [];
+
+    [maxPriorityFeePerGasWarning, maxFeePerGasWarning].forEach((v) => {
+      if (v) {
+        _warnings.push(v);
+      }
+    });
+
+    return _warnings;
+  }, [maxFeePerGasWarning, maxPriorityFeePerGasWarning]);
+
+  const gasLimitErrors = useMemo(() => {
+    const _errors: string[] = [];
+
+    [gasLimitError].forEach((v) => {
+      if (v) {
+        _errors.push(v);
+      }
+    });
+
+    return _errors;
+  }, [gasLimitError]);
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="flex flex-col gap-2 px-4 md:px-10">
@@ -351,25 +419,12 @@ function NetworkFeeDialogContent({
                         currentMaxPriorityFeePerGas={estimatedMaxPriorityFeePerGas}
                         handleChange={handleChange}
                         handleBlur={handleBlur}
+                        maxFeePerGasError={!!maxFeePerGasError}
+                        maxPriorityFeePerGasError={!!maxPriorityFeePerGasError}
+                        maxFeePerGasWarning={!!maxFeePerGasWarning}
+                        maxPriorityFeePerGasWarning={!!maxPriorityFeePerGasWarning}
                       />
-
-                      {(maxFeePerGasError ||
-                        maxPriorityFeePerGasError ||
-                        maxFeePerGasWarning ||
-                        maxPriorityFeePerGasWarning) && (
-                        <div className="flex flex-col gap-5 mt-4">
-                          {maxFeePerGasError && <Alert text={maxFeePerGasError} type="error" />}
-                          {maxFeePerGasWarning && (
-                            <Alert text={maxFeePerGasWarning} type="warning" />
-                          )}
-                          {maxPriorityFeePerGasError && (
-                            <Alert text={maxPriorityFeePerGasError} type="error" />
-                          )}
-                          {maxPriorityFeePerGasWarning && (
-                            <Alert text={maxPriorityFeePerGasWarning} type="warning" />
-                          )}
-                        </div>
-                      )}
+                      <ErrorsAndWarnings errors={gasPriceErrors} warnings={gasPriceWarnings} />
                     </div>
                   )}
 
@@ -384,6 +439,9 @@ function NetworkFeeDialogContent({
                         value={values.gasPrice}
                         onChange={(e) => {
                           handleChange(e);
+                        }}
+                        onBlur={(e) => {
+                          handleBlur(e);
                         }}
                         helperText={
                           <div className="flex items-center gap-1">
@@ -420,6 +478,9 @@ function NetworkFeeDialogContent({
                         onChange={(e) => {
                           handleChange(e);
                         }}
+                        onBlur={(e) => {
+                          handleBlur(e);
+                        }}
                         helperText={
                           <div className="flex items-center gap-1">
                             <button
@@ -443,9 +504,15 @@ function NetworkFeeDialogContent({
                       <TextField
                         placeholder="Gas limit"
                         label="Gas limit"
+                        name="gasLimit"
+                        id="gasLimit"
                         tooltipText="gasLimit is a measure of actions that a contract can perform in your transaction. Setting gasLimit to a low value may result in your transaction not being able to perform the necessary actions (i.e. purchase tokens) and fail. We don't recommend changing this unless you absolutely know what you're doing."
                         value={values.gasLimit}
                         onChange={(e) => setFieldValue("gasLimit", e.target.value)}
+                        onBlur={(e) => {
+                          handleBlur(e);
+                        }}
+                        isError={!!gasLimitError}
                         helperText={
                           <div className="flex items-center gap-1">
                             <button
@@ -464,6 +531,7 @@ function NetworkFeeDialogContent({
                           </div>
                         }
                       />
+                      <ErrorsAndWarnings errors={gasLimitErrors} />
                     </div>
                   )}
 
@@ -519,26 +587,15 @@ function NetworkFeeDialogContent({
                               currentMaxPriorityFeePerGas={estimatedMaxPriorityFeePerGas}
                               handleChange={handleChange}
                               handleBlur={handleBlur}
+                              maxFeePerGasError={!!maxFeePerGasError}
+                              maxPriorityFeePerGasError={!!maxPriorityFeePerGasError}
+                              maxFeePerGasWarning={!!maxFeePerGasWarning}
+                              maxPriorityFeePerGasWarning={!!maxPriorityFeePerGasWarning}
                             />
-                            {(maxFeePerGasError ||
-                              maxPriorityFeePerGasError ||
-                              maxFeePerGasWarning ||
-                              maxPriorityFeePerGasWarning) && (
-                              <div className="flex flex-col gap-5 mt-4">
-                                {maxFeePerGasError && (
-                                  <Alert text={maxFeePerGasError} type="error" />
-                                )}
-                                {maxFeePerGasWarning && (
-                                  <Alert text={maxFeePerGasWarning} type="warning" />
-                                )}
-                                {maxPriorityFeePerGasError && (
-                                  <Alert text={maxPriorityFeePerGasError} type="error" />
-                                )}
-                                {maxPriorityFeePerGasWarning && (
-                                  <Alert text={maxPriorityFeePerGasWarning} type="warning" />
-                                )}
-                              </div>
-                            )}
+                            <ErrorsAndWarnings
+                              errors={gasPriceErrors}
+                              warnings={gasPriceWarnings}
+                            />
                           </>
                         )}
                         {values.gasPriceModel === GasFeeModel.LEGACY && (
@@ -552,6 +609,9 @@ function NetworkFeeDialogContent({
                               value={values.gasPrice}
                               onChange={(e) => {
                                 handleChange(e);
+                              }}
+                              onBlur={(e) => {
+                                handleBlur(e);
                               }}
                               helperText={
                                 <div className="flex items-center gap-1">
@@ -582,9 +642,13 @@ function NetworkFeeDialogContent({
                       <TextField
                         placeholder="Gas limit"
                         label="Gas limit"
+                        name="gasLimit"
+                        id="gasLimit"
+                        isError={!!gasLimitError}
                         tooltipText="gasLimit is a measure of actions that a contract can perform in your transaction. Setting gasLimit to a low value may result in your transaction not being able to perform the necessary actions (i.e. purchase tokens) and fail. We don't recommend changing this unless you absolutely know what you're doing."
                         value={values.gasLimit}
                         onChange={(e) => setFieldValue("gasLimit", e.target.value)}
+                        onBlur={(e) => handleBlur(e)}
                         helperText={
                           <div className="flex items-center gap-1">
                             <button
@@ -603,6 +667,7 @@ function NetworkFeeDialogContent({
                           </div>
                         }
                       />
+                      <ErrorsAndWarnings errors={gasLimitErrors} />
                     </div>
                   )}
                 </div>
@@ -616,7 +681,11 @@ function NetworkFeeDialogContent({
         <Button type="button" fullWidth onClick={handleCancel} variant={ButtonVariant.OUTLINED}>
           Cancel
         </Button>
-        <Button disabled={Boolean(maxFeePerGasError || maxFeePerGasError)} type="submit" fullWidth>
+        <Button
+          disabled={Boolean(maxFeePerGasError || maxFeePerGasError || gasLimitError)}
+          type="submit"
+          fullWidth
+        >
           Apply
         </Button>
       </div>

@@ -15,6 +15,7 @@ import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useDeepEffect from "@/hooks/useDeepEffect";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 
+// TODO: cache with store. gasPrice, maxPriorityFeePerGas
 export function useFees() {
   const { chainId } = useAccount();
 
@@ -29,7 +30,10 @@ export function useFees() {
 
   const { data: gasPrice, refetch: refetchGasPrice } = useGasPrice({ chainId });
 
-  const { data: blockNumber } = useBlockNumber();
+  //TODO: check wagmi cache
+  const { data: blockNumber } = useBlockNumber({
+    scopeKey: "fees",
+  });
 
   useEffect(() => {
     refetchLegacy();

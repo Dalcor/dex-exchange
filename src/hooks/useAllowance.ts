@@ -222,6 +222,7 @@ export function useStoreAllowance({
       address,
       chainId,
       publicClient,
+      gasLimit,
       addRecentTransaction,
       waitAndReFetch,
     ],

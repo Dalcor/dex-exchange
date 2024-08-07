@@ -1,6 +1,7 @@
 import { Address } from "viem";
 import { create } from "zustand";
 
+// TODO: move to global and rename
 export enum SwapStatus {
   INITIAL,
   PENDING_APPROVE,

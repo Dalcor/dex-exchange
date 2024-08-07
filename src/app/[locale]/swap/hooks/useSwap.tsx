@@ -364,7 +364,7 @@ export default function useSwap() {
         address,
       );
 
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash }); //TODO: add try catch
       updateAllowance();
       if (receipt.status === "success") {
         setSwapStatus(SwapStatus.SUCCESS);
@@ -372,13 +372,9 @@ export default function useSwap() {
 
       if (receipt.status === "reverted") {
         setSwapStatus(SwapStatus.ERROR);
-        console.log(receipt);
 
         const ninetyEightPercent = (gasLimit * BigInt(98)) / BigInt(100);
 
-        console.log(ninetyEightPercent);
-        console.log(gasLimit);
-        console.log(receipt.gasUsed >= ninetyEightPercent && receipt.gasUsed <= gasLimit);
         if (receipt.gasUsed >= ninetyEightPercent && receipt.gasUsed <= gasLimit) {
           setErrorType(SwapError.OUT_OF_GAS);
         } else {

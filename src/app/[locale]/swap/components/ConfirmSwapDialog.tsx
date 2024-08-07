@@ -9,10 +9,9 @@ import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
-import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
 import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
-import { useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
+import { SwapError, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import Alert from "@/components/atoms/Alert";
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -191,6 +190,8 @@ function SwapActionButton() {
 
   const { handleSwap } = useSwap();
 
+  const { errorType } = useSwapStatusStore();
+
   const {
     isPendingApprove,
     isLoadingApprove,
@@ -323,15 +324,22 @@ function SwapActionButton() {
             withIcon={false}
             type="error"
             text={
-              <span>
-                Transaction failed due to lack of gas or an internal contract error. Try using
-                higher slippage or gas to ensure your transaction is completed. If you still have
-                issues, click{" "}
-                <a href="#" className="text-green hover:underline">
-                  common errors
-                </a>
-                .
-              </span>
+              errorType === SwapError.UNKNOWN ? (
+                <span>
+                  Transaction failed due to lack of gas or an internal contract error. Try using
+                  higher slippage or gas to ensure your transaction is completed. If you still have
+                  issues, click{" "}
+                  <a href="#" className="text-green hover:underline">
+                    common errors
+                  </a>
+                  .
+                </span>
+              ) : (
+                <span>
+                  Transaction failed due to lack of gas. Try increasing gas limit to ensure your
+                  transaction is completed. If you still have issues, contact support.
+                </span>
+              )
             }
           />
           <Button
@@ -440,7 +448,7 @@ export default function ConfirmSwapDialog() {
     isSettledSwap,
     isRevertedApprove,
   } = useSwapStatus();
-  const { estimatedGas } = useSwapEstimatedGasStore();
+  // const { estimatedGas } = useSwapEstimatedGasStore();
 
   const isProcessing = useMemo(() => {
     return (
@@ -613,7 +621,7 @@ export default function ConfirmSwapDialog() {
               />
               <SwapDetailsRow
                 title={t("gas_limit")}
-                value={estimatedGas?.toString() || "Loading..."}
+                value={gasLimit?.toString() || "Loading..."}
                 tooltipText={t("gas_limit_tooltip")}
               />
             </div>

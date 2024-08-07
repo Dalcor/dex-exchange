@@ -10,12 +10,14 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   tooltipText?: string;
   variant?: "default" | "search";
   internalText?: string;
+  isError?: boolean;
+  isWarning?: boolean;
 } & (
     | {
-        error?: string;
+        error?: boolean | string;
         warning?: never;
       }
-    | { warning?: string; error?: never }
+    | { warning?: string | boolean; error?: never }
   );
 
 export function InputLabel({ label, tooltipText, ...props }: Omit<Props, "helperText">) {
@@ -40,6 +42,8 @@ export default function TextField({
   tooltipText,
   variant = "default",
   internalText,
+  isError = false,
+  isWarning = false,
   ...props
 }: Props) {
   return (
@@ -47,7 +51,11 @@ export default function TextField({
       <InputLabel label={label} tooltipText={tooltipText} />
       {variant === "default" ? (
         <div className="relative">
-          <Input isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
+          <Input
+            isError={Boolean(error) || isError}
+            isWarning={Boolean(warning) || isWarning}
+            {...props}
+          />
           {internalText && (
             <span className="absolute right-5 text-tertiary-text top-1/2 -translate-y-1/2">
               {internalText}
@@ -66,7 +74,7 @@ export default function TextField({
             {helperText}
           </div>
         )}
-        {error && <p className="text-12 text-red-input mt-1">{error}</p>}
+        {typeof error !== "undefined" && <p className="text-12 text-red-input mt-1">{error}</p>}
         {warning && <p className="text-12 text-orange mt-1">{warning}</p>}
       </div>
     </div>

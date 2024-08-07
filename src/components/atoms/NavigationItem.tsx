@@ -18,7 +18,10 @@ export default function NavigationItem({ href, title, active }: Props) {
       className={clsx(
         "px-3 py-5 duration-200 inline-flex",
         active ? "bg-navigation-active" : "hover:bg-navigation-hover",
-        href !== "/swap" && href !== "/pools" && "opacity-50 pointer-events-none",
+        href !== "/swap" &&
+          href !== "/pools" &&
+          href !== "/token-listing" &&
+          "opacity-50 pointer-events-none",
       )}
       href={href}
     >

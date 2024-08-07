@@ -15,7 +15,7 @@ export enum SortingType {
   DESCENDING,
 }
 
-function HeaderItem({
+export function HeaderItem({
   isFirst = false,
   label,
   sorting,

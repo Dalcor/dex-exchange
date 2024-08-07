@@ -43,7 +43,7 @@ const menuItems: Array<
   },
   {
     label: "token_listing",
-    href: "#",
+    href: "/token-listing",
   },
   {
     label: "",

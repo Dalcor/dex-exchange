@@ -1,21 +1,31 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import React from "react";
 
 import Alert from "@/components/atoms/Alert";
 import Container from "@/components/atoms/Container";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import ExternalTextLink from "@/components/atoms/ExternalTextLink";
-import Svg from "@/components/atoms/Svg";
 import TextField, { InputLabel } from "@/components/atoms/TextField";
 import Button from "@/components/buttons/Button";
-export default function SwapPage() {
+import { useRouter } from "@/navigation";
+export default function ListTokenPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  console.log(searchParams);
+
   return (
     <>
       <Container>
         <div className="py-10 flex justify-center">
           <div className="rounded-b-5  bg-primary-bg max-w-[600px]">
-            <DialogHeader onClose={() => {}} title="Listing tokens" onBack={() => {}} />
+            <DialogHeader
+              onClose={() => {}}
+              title="Listing tokens"
+              onBack={() => router.push("/token-listing/contracts")}
+            />
             <div className="px-10 pb-10">
               <p className="text-secondary-text text-14 mb-4">
                 List your token automatically using our smart contract. Click the button below to

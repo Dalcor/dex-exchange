@@ -176,6 +176,16 @@ export default function AccountDialog() {
     [address, isOpenedAccount],
   );
 
+  const [isInitialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    setInitialized(true);
+  }, []);
+
+  if (!isInitialized) {
+    return null;
+  }
+
   return (
     <>
       {isConnected && address ? (

@@ -7,6 +7,7 @@ import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
 import { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
+import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
@@ -157,6 +158,7 @@ const gasOptionTitle: Record<GasOption, any> = {
 export default function TradeForm() {
   const t = useTranslations("Swap");
 
+  useSwapGas();
   const chainId = useCurrentChainId();
   const [isOpenedFee, setIsOpenedFee] = useState(false);
   const { isOpened: showRecentTransactions, setIsOpened: setShowRecentTransactions } =
@@ -180,7 +182,7 @@ export default function TradeForm() {
 
   const { isAllowed: isAllowedA } = useStoreAllowance({
     token: tokenA,
-    contractAddress: ROUTER_ADDRESS[chainId as DexChainId],
+    contractAddress: ROUTER_ADDRESS[chainId],
     amountToCheck: parseUnits(typedValue, tokenA?.decimals || 18),
   });
 
@@ -337,7 +339,7 @@ export default function TradeForm() {
           />
           <IconButton
             buttonSize={IconButtonSize.LARGE}
-            disabled
+            // disabled
             iconName="gas-edit"
             onClick={() => setIsOpenedFee(true)}
           />
@@ -508,8 +510,8 @@ export default function TradeForm() {
                 </span>
 
                 <button
-                  disabled
-                  className="border border-green flex px-4 rounded-5 opacity-50"
+                  // disabled
+                  className="border border-green flex px-4 rounded-5"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsOpenedFee(true);

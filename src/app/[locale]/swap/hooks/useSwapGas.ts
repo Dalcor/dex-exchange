@@ -15,6 +15,7 @@ import useCurrentChainId from "@/hooks/useCurrentChainId";
 import useDeepEffect from "@/hooks/useDeepEffect";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
 
+// TODO: cache with store. gasPrice, maxPriorityFeePerGas
 export function useFees() {
   const { chainId } = useAccount();
 
@@ -29,7 +30,10 @@ export function useFees() {
 
   const { data: gasPrice, refetch: refetchGasPrice } = useGasPrice({ chainId });
 
-  const { data: blockNumber } = useBlockNumber();
+  //TODO: check wagmi cache
+  const { data: blockNumber } = useBlockNumber({
+    scopeKey: "fees",
+  });
 
   useEffect(() => {
     refetchLegacy();
@@ -48,7 +52,7 @@ export function useFees() {
 type HandleApplyArgs =
   | { option: GasOption.CHEAP }
   | { option: GasOption.FAST }
-  | { option: GasOption.CUSTOM; gasSettings: GasSettings };
+  | { option: GasOption.CUSTOM; gasSettings: GasSettings; gasLimit: bigint };
 export default function useSwapGas() {
   const {
     estimatedGasPriceLegacy,
@@ -60,6 +64,8 @@ export default function useSwapGas() {
   const chainId = useCurrentChainId();
 
   const { gasOption, setGasPrice, setGasOption, setGasLimit, gasPrice } = useSwapGasSettingsStore();
+
+  console.log(gasPrice);
 
   useDeepEffect(() => {
     if (gasOption === GasOption.CHEAP) {
@@ -88,14 +94,11 @@ export default function useSwapGas() {
 
       if (option === GasOption.CUSTOM) {
         setGasPrice(args.gasSettings);
+        setGasLimit(args.gasLimit);
       } else {
-        console.log(args.option);
         const multiplier = baseFeeMultipliers[chainId][args.option];
 
-        console.log(multiplier);
-
         if (isEip1559Supported(chainId)) {
-          console.log("Supported eip1559");
           setGasPrice({
             model: GasFeeModel.EIP1559,
             maxFeePerGas: (estimatedMaxFeePerGas * multiplier) / SCALING_FACTOR,
@@ -114,6 +117,7 @@ export default function useSwapGas() {
       currentGasPrice,
       estimatedMaxFeePerGas,
       estimatedMaxPriorityFeePerGas,
+      setGasLimit,
       setGasOption,
       setGasPrice,
     ],

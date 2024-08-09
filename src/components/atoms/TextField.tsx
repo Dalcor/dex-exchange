@@ -9,12 +9,15 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   helperText?: ReactNode;
   tooltipText?: string;
   variant?: "default" | "search";
+  internalText?: string;
+  isError?: boolean;
+  isWarning?: boolean;
 } & (
     | {
-        error?: string;
+        error?: boolean | string;
         warning?: never;
       }
-    | { warning?: string; error?: never }
+    | { warning?: string | boolean; error?: never }
   );
 
 export function InputLabel({ label, tooltipText, ...props }: Omit<Props, "helperText">) {
@@ -38,30 +41,41 @@ export default function TextField({
   warning,
   tooltipText,
   variant = "default",
+  internalText,
+  isError = false,
+  isWarning = false,
   ...props
 }: Props) {
   return (
     <div>
       <InputLabel label={label} tooltipText={tooltipText} />
       {variant === "default" ? (
-        <Input isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
+        <div className="relative">
+          <Input
+            isError={Boolean(error) || isError}
+            isWarning={Boolean(warning) || isWarning}
+            {...props}
+          />
+          {internalText && (
+            <span className="absolute right-5 text-tertiary-text top-1/2 -translate-y-1/2">
+              {internalText}
+            </span>
+          )}
+        </div>
       ) : (
         <SearchInput isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
       )}
 
-      <div className="text-12 mt-0.5 h-4">
+      <div className="text-12 mt-1 h-4">
         {typeof helperText !== "undefined" && !error && (
           <div
-            className={clsx(
-              "text-12 text-secondary-text mt-0.5 h-4",
-              props.disabled && "opacity-50",
-            )}
+            className={clsx("text-12 text-secondary-text mt-1 h-4", props.disabled && "opacity-50")}
           >
             {helperText}
           </div>
         )}
-        {error && <p className="text-12 text-red-input mt-0.5">{error}</p>}
-        {warning && <p className="text-12 text-orange mt-0.5">{warning}</p>}
+        {typeof error !== "undefined" && <p className="text-12 text-red-input mt-1">{error}</p>}
+        {warning && <p className="text-12 text-orange mt-1">{warning}</p>}
       </div>
     </div>
   );

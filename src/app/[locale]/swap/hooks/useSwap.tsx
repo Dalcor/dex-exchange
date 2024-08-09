@@ -13,7 +13,11 @@ import {
   useSwapGasPriceStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
-import { SwapStatus, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
+import {
+  SwapError,
+  SwapStatus,
+  useSwapStatusStore,
+} from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ERC223_ABI } from "@/config/abis/erc223";
 import { ROUTER_ABI } from "@/config/abis/router";
@@ -367,66 +371,65 @@ export default function useSwap() {
       } as any);
 
       hash = await walletClient.writeContract({ ...request, account: undefined }); // TODO: remove any
-    } catch (e) {
-      setSwapStatus(SwapStatus.INITIAL);
 
-      console.log(e);
-    }
+      closeConfirmInWalletAlert();
 
-    closeConfirmInWalletAlert();
-
-    if (hash) {
-      setSwapHash(hash);
-      const transaction = await publicClient.getTransaction({
-        hash,
-      });
-
-      const nonce = transaction.nonce;
-      setSwapStatus(SwapStatus.LOADING);
-      addRecentTransaction(
-        {
+      if (hash) {
+        setSwapHash(hash);
+        const transaction = await publicClient.getTransaction({
           hash,
-          nonce,
-          chainId,
-          gas: {
-            ...stringifyObject({ ...gasPriceFormatted, model: gasPriceSettings.model }),
-            // gas: gasLimit.toString(),
-          },
-          params: {
-            ...stringifyObject(swapParams),
-            abi: [getAbiItem({ name: "exactInputSingle", abi: ROUTER_ABI })],
-          },
-          title: {
-            symbol0: tokenA.symbol!,
-            symbol1: tokenB.symbol!,
-            template: RecentTransactionTitleTemplate.SWAP,
-            amount0: formatFloat(typedValue),
-            amount1: formatFloat(output.toString()),
-            logoURI0: tokenA?.logoURI || "/tokens/placeholder.svg",
-            logoURI1: tokenB?.logoURI || "/tokens/placeholder.svg",
-          },
-        },
-        address,
-      );
+        });
 
-      const receipt = await publicClient.waitForTransactionReceipt({ hash }); //TODO: add try catch
-      updateAllowance();
-      if (receipt.status === "success") {
-        setSwapStatus(SwapStatus.SUCCESS);
+        const nonce = transaction.nonce;
+        setSwapStatus(SwapStatus.LOADING);
+        addRecentTransaction(
+          {
+            hash,
+            nonce,
+            chainId,
+            gas: {
+              ...stringifyObject({ ...gasPriceFormatted, model: gasPriceSettings.model }),
+              // gas: gasLimit.toString(),
+            },
+            params: {
+              ...stringifyObject(swapParams),
+              abi: [getAbiItem({ name: "exactInputSingle", abi: ROUTER_ABI })],
+            },
+            title: {
+              symbol0: tokenA.symbol!,
+              symbol1: tokenB.symbol!,
+              template: RecentTransactionTitleTemplate.SWAP,
+              amount0: formatFloat(typedValue),
+              amount1: formatFloat(output.toString()),
+              logoURI0: tokenA?.logoURI || "/tokens/placeholder.svg",
+              logoURI1: tokenB?.logoURI || "/tokens/placeholder.svg",
+            },
+          },
+          address,
+        );
+
+        const receipt = await publicClient.waitForTransactionReceipt({ hash }); //TODO: add try catch
+        updateAllowance();
+        if (receipt.status === "success") {
+          setSwapStatus(SwapStatus.SUCCESS);
+        }
+
+        if (receipt.status === "reverted") {
+          setSwapStatus(SwapStatus.ERROR);
+
+          const ninetyEightPercent = (gasToUse * BigInt(98)) / BigInt(100);
+
+          if (receipt.gasUsed >= ninetyEightPercent && receipt.gasUsed <= gasToUse) {
+            setErrorType(SwapError.OUT_OF_GAS);
+          } else {
+            setErrorType(SwapError.UNKNOWN);
+          }
+        }
+      } else {
+        setSwapStatus(SwapStatus.INITIAL);
       }
-
-      if (receipt.status === "reverted") {
-        setSwapStatus(SwapStatus.ERROR);
-
-        // const ninetyEightPercent = (gasLimit * BigInt(98)) / BigInt(100);
-        //
-        // if (receipt.gasUsed >= ninetyEightPercent && receipt.gasUsed <= gasLimit) {
-        //   setErrorType(SwapError.OUT_OF_GAS);
-        // } else {
-        //   setErrorType(SwapError.UNKNOWN);
-        // }
-      }
-    } else {
+    } catch (e) {
+      console.log(e);
       setSwapStatus(SwapStatus.INITIAL);
     }
   }, [
@@ -436,15 +439,17 @@ export default function useSwap() {
     baseFee,
     chainId,
     closeConfirmInWalletAlert,
+    customGasLimit,
     gasPrice,
     gasPriceOption,
-    gasPriceSettings.model,
+    gasPriceSettings,
     isAllowedA,
     openConfirmInWalletAlert,
     output,
     priorityFee,
     publicClient,
     setApproveHash,
+    setErrorType,
     setSwapHash,
     setSwapStatus,
     swapParams,

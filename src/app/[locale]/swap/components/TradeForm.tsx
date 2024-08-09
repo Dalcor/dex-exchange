@@ -1,19 +1,17 @@
 import clsx from "clsx";
-import JSBI from "jsbi";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { formatGwei, formatUnits, parseUnits } from "viem";
-import { useAccount, useBlockNumber, useGasPrice } from "wagmi";
+import { useAccount, useGasPrice } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
 import { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
-import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { Field, useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
 import {
   GasOption,
-  useSwapGasSettingsStore,
+  useSwapGasPriceStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapRecentTransactionsStore } from "@/app/[locale]/swap/stores/useSwapRecentTransactions";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
@@ -32,7 +30,9 @@ import { networks } from "@/config/networks";
 import { formatFloat } from "@/functions/formatFloat";
 import { useStoreAllowance } from "@/hooks/useAllowance";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import { useFees } from "@/hooks/useFees";
 import { usePoolBalances } from "@/hooks/usePoolBalances";
+import useScopedBlockNumber from "@/hooks/useScopedBlockNumber";
 import useTokenBalances from "@/hooks/useTokenBalances";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
 import { DexChainId } from "@/sdk_hybrid/chains";
@@ -158,7 +158,6 @@ const gasOptionTitle: Record<GasOption, any> = {
 export default function TradeForm() {
   const t = useTranslations("Swap");
 
-  useSwapGas();
   const chainId = useCurrentChainId();
   const [isOpenedFee, setIsOpenedFee] = useState(false);
   const { isOpened: showRecentTransactions, setIsOpened: setShowRecentTransactions } =
@@ -292,39 +291,39 @@ export default function TradeForm() {
     refetch: refetchBBalance,
   } = useTokenBalances(tokenB);
 
-  const { data: blockNumber } = useBlockNumber({ watch: true });
+  const { data: blockNumber } = useScopedBlockNumber();
 
   useEffect(() => {
     refetchABalance();
     refetchBBalance();
   }, [blockNumber, refetchABalance, refetchBBalance]);
 
-  const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
+  const { gasPriceOption, gasPriceSettings } = useSwapGasPriceStore();
 
   const { isLoadingSwap, isPendingSwap, isLoadingApprove, isPendingApprove } = useSwapStatus();
 
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
-
-  const { data: baseFee } = useGasPrice();
+  const { baseFee } = useFees();
 
   const computedGasSpending = useMemo(() => {
-    if (gasPrice.model === GasFeeModel.LEGACY && gasPrice.gasPrice) {
-      return formatFloat(formatGwei(gasPrice.gasPrice));
+    if (gasPriceSettings.model === GasFeeModel.LEGACY && gasPriceSettings.gasPrice) {
+      return formatFloat(formatGwei(gasPriceSettings.gasPrice));
     }
 
     if (
-      gasPrice.model === GasFeeModel.EIP1559 &&
-      gasPrice.maxFeePerGas &&
-      gasPrice.maxPriorityFeePerGas &&
+      gasPriceSettings.model === GasFeeModel.EIP1559 &&
+      gasPriceSettings.maxFeePerGas &&
+      gasPriceSettings.maxPriorityFeePerGas &&
       baseFee
     ) {
-      const lowerFeePerGas = gasPrice.maxFeePerGas > baseFee ? baseFee : gasPrice.maxFeePerGas;
+      const lowerFeePerGas =
+        gasPriceSettings.maxFeePerGas > baseFee ? baseFee : gasPriceSettings.maxFeePerGas;
 
-      return formatFloat(formatGwei(lowerFeePerGas + gasPrice.maxPriorityFeePerGas));
+      return formatFloat(formatGwei(lowerFeePerGas + gasPriceSettings.maxPriorityFeePerGas));
     }
 
     return undefined;
-  }, [baseFee, gasPrice]);
+  }, [baseFee, gasPriceSettings]);
 
   return (
     <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">
@@ -496,9 +495,9 @@ export default function TradeForm() {
 
               <div className="flex items-center gap-2 justify-between md:justify-end">
                 <span className="flex gap-2 items-center">
-                  {gasOption === GasOption.CUSTOM && (
+                  {gasPriceOption === GasOption.CUSTOM && (
                     <span className="flex items-center justify-center px-2 text-14 rounded-20 font-500 text-secondary-text bg-quaternary-bg">
-                      {t(gasOptionTitle[gasOption])}
+                      {t(gasOptionTitle[gasPriceOption])}
                     </span>
                   )}
                   <div>

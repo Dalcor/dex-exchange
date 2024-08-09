@@ -9,7 +9,10 @@ import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
-import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
+import {
+  useSwapGasLimitStore,
+  useSwapGasPriceStore,
+} from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
 import { SwapError, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
@@ -448,7 +451,7 @@ export default function ConfirmSwapDialog() {
     isSettledSwap,
     isRevertedApprove,
   } = useSwapStatus();
-  // const { estimatedGas } = useSwapEstimatedGasStore();
+  const { estimatedGas, customGasLimit } = useSwapGasLimitStore();
 
   const isProcessing = useMemo(() => {
     return (
@@ -468,28 +471,30 @@ export default function ConfirmSwapDialog() {
     isSettledSwap,
   ]);
 
-  const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
+  // const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
 
+  const { gasPriceSettings } = useSwapGasPriceStore();
   const { data: baseFee } = useGasPrice();
 
   const computedGasSpending = useMemo(() => {
-    if (gasPrice.model === GasFeeModel.LEGACY && gasPrice.gasPrice) {
-      return formatFloat(formatGwei(gasPrice.gasPrice));
+    if (gasPriceSettings.model === GasFeeModel.LEGACY && gasPriceSettings.gasPrice) {
+      return formatFloat(formatGwei(gasPriceSettings.gasPrice));
     }
 
     if (
-      gasPrice.model === GasFeeModel.EIP1559 &&
-      gasPrice.maxFeePerGas &&
-      gasPrice.maxPriorityFeePerGas &&
+      gasPriceSettings.model === GasFeeModel.EIP1559 &&
+      gasPriceSettings.maxFeePerGas &&
+      gasPriceSettings.maxPriorityFeePerGas &&
       baseFee
     ) {
-      const lowerFeePerGas = gasPrice.maxFeePerGas > baseFee ? baseFee : gasPrice.maxFeePerGas;
+      const lowerFeePerGas =
+        gasPriceSettings.maxFeePerGas > baseFee ? baseFee : gasPriceSettings.maxFeePerGas;
 
-      return formatFloat(formatGwei(lowerFeePerGas + gasPrice.maxPriorityFeePerGas));
+      return formatFloat(formatGwei(lowerFeePerGas + gasPriceSettings.maxPriorityFeePerGas));
     }
 
     return "0.00";
-  }, [baseFee, gasPrice]);
+  }, [baseFee, gasPriceSettings]);
 
   return (
     <DrawerDialog
@@ -621,7 +626,11 @@ export default function ConfirmSwapDialog() {
               />
               <SwapDetailsRow
                 title={t("gas_limit")}
-                value={gasLimit?.toString() || "Loading..."}
+                value={
+                  customGasLimit
+                    ? customGasLimit.toString()
+                    : (estimatedGas + BigInt(30000)).toString() || "Loading..."
+                }
                 tooltipText={t("gas_limit_tooltip")}
               />
             </div>

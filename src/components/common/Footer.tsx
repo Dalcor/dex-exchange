@@ -11,6 +11,7 @@ import { IconName } from "@/config/types/IconName";
 import { formatFloat } from "@/functions/formatFloat";
 import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import useScopedBlockNumber from "@/hooks/useScopedBlockNumber";
 
 type SocialLink = {
   title: any;
@@ -67,7 +68,7 @@ export default function Footer() {
     chainId: chainId || 1,
   });
 
-  const { data: blockNumber } = useBlockNumber({ watch: true });
+  const { data: blockNumber } = useScopedBlockNumber();
 
   useEffect(() => {
     refetch();

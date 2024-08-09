@@ -11,9 +11,11 @@ import React, {
 } from "react";
 import { formatGwei, parseGwei } from "viem";
 
-import useSwapGas from "@/app/[locale]/swap/hooks/useSwapGas";
 import {
   GasOption,
+  GasSettings,
+  useSwapGasLimitStore,
+  useSwapGasPriceStore,
   useSwapGasSettingsStore,
 } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import Alert from "@/components/atoms/Alert";
@@ -24,6 +26,7 @@ import Switch from "@/components/atoms/Switch";
 import TextField from "@/components/atoms/TextField";
 import Tooltip from "@/components/atoms/Tooltip";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
+import TextButton from "@/components/buttons/TextButton";
 import {
   baseFeeMultipliers,
   isEip1559Supported,
@@ -31,6 +34,8 @@ import {
 } from "@/config/constants/baseFeeMultipliers";
 import { formatFloat } from "@/functions/formatFloat";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import useDeepEffect from "@/hooks/useDeepEffect";
+import { useFees } from "@/hooks/useFees";
 import addToast from "@/other/toast";
 import { DexChainId } from "@/sdk_hybrid/chains";
 import { GasFeeModel } from "@/stores/useRecentTransactionsStore";
@@ -100,7 +105,7 @@ function EIP1559Fields({
   maxFeePerGasWarning: boolean;
 }) {
   return (
-    <div className="grid gap-3 grid-cols-2 mt-4">
+    <div className="grid gap-3 grid-cols-2">
       <TextField
         isError={maxFeePerGasError}
         isWarning={maxFeePerGasWarning}
@@ -187,22 +192,70 @@ function ErrorsAndWarnings({ errors, warnings }: { errors?: string[]; warnings?:
     </>
   );
 }
-function NetworkFeeDialogContent({
-  setIsOpen,
-  isAdvanced,
-}: {
-  setIsOpen: (isOpen: boolean) => void;
-  isAdvanced: boolean;
-}) {
-  const chainId = useCurrentChainId();
-  const { gasOption, gasPrice, setGasLimit, estimatedGas, gasLimit } = useSwapGasSettingsStore();
 
-  const {
-    handleApply,
-    estimatedMaxFeePerGas,
-    estimatedMaxPriorityFeePerGas,
-    estimatedGasPriceLegacy,
-  } = useSwapGas();
+type HandleApplyArgs =
+  | { option: GasOption.CHEAP }
+  | { option: GasOption.FAST }
+  | { option: GasOption.CUSTOM; gasSettings: GasSettings; gasLimit: bigint };
+function NetworkFeeDialogContent({ setIsOpen }: { setIsOpen: (isOpen: boolean) => void }) {
+  const { isAdvanced } = useSwapGasSettingsStore();
+
+  const chainId = useCurrentChainId();
+
+  const { gasPriceOption, gasPriceSettings, setGasPriceOption, setGasPriceSettings } =
+    useSwapGasPriceStore();
+  const { estimatedGas, customGasLimit, setCustomGasLimit } = useSwapGasLimitStore();
+
+  const { baseFee, priorityFee, gasPrice } = useFees();
+
+  useDeepEffect(() => {
+    if (gasPriceOption === GasOption.CHEAP) {
+      if (gasPriceSettings.model === GasFeeModel.EIP1559) {
+        if (
+          !gasPriceSettings.maxFeePerGas &&
+          baseFee &&
+          !gasPriceSettings.maxPriorityFeePerGas &&
+          priorityFee
+        ) {
+          const multiplier = baseFeeMultipliers[chainId][GasOption.CHEAP];
+
+          setGasPriceSettings({
+            model: GasFeeModel.EIP1559,
+            maxFeePerGas: (baseFee * multiplier) / SCALING_FACTOR,
+            maxPriorityFeePerGas: (priorityFee * multiplier) / SCALING_FACTOR,
+          });
+        }
+      }
+
+      if (gasPriceSettings.model === GasFeeModel.LEGACY) {
+        if (!gasPriceSettings.gasPrice && gasPrice) {
+          const multiplier = baseFeeMultipliers[chainId][GasOption.CHEAP];
+
+          setGasPriceSettings({
+            model: GasFeeModel.LEGACY,
+            gasPrice: (gasPrice * multiplier) / SCALING_FACTOR,
+          });
+        }
+      }
+    }
+  }, [baseFee, priorityFee]);
+
+  const handleApply = useCallback(
+    (args: HandleApplyArgs) => {
+      if (!baseFee || !priorityFee || !gasPrice) {
+        return;
+      }
+
+      const { option } = args;
+
+      setGasPriceOption(option);
+
+      if (option === GasOption.CUSTOM) {
+        setGasPriceSettings(args.gasSettings);
+      }
+    },
+    [baseFee, gasPrice, priorityFee, setGasPriceOption, setGasPriceSettings],
+  );
 
   const handleCancel = useCallback(() => {
     setIsOpen(false);
@@ -211,48 +264,50 @@ function NetworkFeeDialogContent({
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (estimatedMaxFeePerGas && estimatedMaxPriorityFeePerGas && estimatedGasPriceLegacy) {
+    if (baseFee && priorityFee && gasPrice) {
       if (
-        gasPrice.model === GasFeeModel.EIP1559 &&
-        gasPrice.maxFeePerGas &&
-        gasPrice.maxPriorityFeePerGas
+        gasPriceSettings.model === GasFeeModel.EIP1559 &&
+        gasPriceSettings.maxFeePerGas &&
+        gasPriceSettings.maxPriorityFeePerGas
       ) {
         setIsInitialized(true);
       }
-      if (gasPrice.model === GasFeeModel.LEGACY && gasPrice.gasPrice) {
+      if (gasPriceSettings.model === GasFeeModel.LEGACY && gasPriceSettings.gasPrice) {
         setIsInitialized(true);
       }
     }
-  }, [estimatedGasPriceLegacy, estimatedMaxFeePerGas, estimatedMaxPriorityFeePerGas, gasPrice]);
+  }, [gasPrice, priorityFee, baseFee, gasPriceSettings]);
 
   const formik = useFormik({
     enableReinitialize: !isInitialized,
     initialValues: {
       maxFeePerGas: getInitialCustomValue(
-        gasOption,
-        estimatedMaxFeePerGas,
-        gasPrice.model === GasFeeModel.EIP1559 ? gasPrice.maxFeePerGas : undefined,
+        gasPriceOption,
+        baseFee,
+        gasPriceSettings.model === GasFeeModel.EIP1559 ? gasPriceSettings.maxFeePerGas : undefined,
         chainId,
       ),
       maxPriorityFeePerGas: getInitialCustomValue(
-        gasOption,
-        estimatedMaxPriorityFeePerGas,
-        gasPrice.model === GasFeeModel.EIP1559 ? gasPrice.maxPriorityFeePerGas : undefined,
+        gasPriceOption,
+        priorityFee,
+        gasPriceSettings.model === GasFeeModel.EIP1559
+          ? gasPriceSettings.maxPriorityFeePerGas
+          : undefined,
         chainId,
       ),
       gasPrice: getInitialCustomValue(
-        gasOption,
-        estimatedGasPriceLegacy,
-        gasPrice.model === GasFeeModel.LEGACY ? gasPrice.gasPrice : undefined,
+        gasPriceOption,
+        gasPrice,
+        gasPriceSettings.model === GasFeeModel.LEGACY ? gasPriceSettings.gasPrice : undefined,
         chainId,
       ),
-      gasOption,
-      gasPriceModel: gasPrice.model,
-      gasLimit: gasLimit ? gasLimit.toString() : estimatedGas.toString(),
+      gasPriceOption,
+      gasPriceModel: gasPriceSettings.model,
+      gasLimit: customGasLimit ? customGasLimit.toString() : estimatedGas.toString(),
     },
     onSubmit: (values, formikHelpers) => {
-      if (values.gasOption !== GasOption.CUSTOM) {
-        handleApply({ option: values.gasOption });
+      if (values.gasPriceOption !== GasOption.CUSTOM) {
+        handleApply({ option: values.gasPriceOption });
       } else {
         // Gas Option CUSTOM
         if (values.gasPriceModel === GasFeeModel.EIP1559 || !isAdvanced) {
@@ -277,6 +332,10 @@ function NetworkFeeDialogContent({
             });
           }
         }
+
+        if (isAdvanced) {
+          setCustomGasLimit(BigInt(values.gasLimit));
+        }
       }
 
       setIsOpen(false);
@@ -285,47 +344,50 @@ function NetworkFeeDialogContent({
     },
   });
 
-  const { handleChange, handleBlur, touched, values, setFieldValue, handleSubmit } = formik;
+  const { handleChange, handleBlur, touched, values, setFieldValue, handleSubmit, handleReset } =
+    formik;
 
   const maxFeePerGasError = useMemo(() => {
-    return estimatedMaxFeePerGas &&
-      touched.maxFeePerGas &&
-      parseGwei(values.maxFeePerGas) < estimatedMaxFeePerGas
+    return baseFee && parseGwei(values.maxFeePerGas) < baseFee
       ? "Max fee per gas is too low for current network condition"
       : undefined;
-  }, [estimatedMaxFeePerGas, touched.maxFeePerGas, values.maxFeePerGas]);
+  }, [baseFee, values.maxFeePerGas]);
+
+  const legacyGasPriceError = useMemo(() => {
+    return gasPrice && parseGwei(values.gasPrice) < gasPrice
+      ? "Gas price is too low for current network condition"
+      : undefined;
+  }, [gasPrice, values.gasPrice]);
+
+  const legacyGasPriceWarning = useMemo(() => {
+    return gasPrice && parseGwei(values.gasPrice) > gasPrice * BigInt(3)
+      ? "Gas price is unnecessarily high for current network condition"
+      : undefined;
+  }, [gasPrice, values.gasPrice]);
 
   const maxFeePerGasWarning = useMemo(() => {
-    return estimatedMaxFeePerGas &&
-      touched.maxFeePerGas &&
-      parseGwei(values.maxFeePerGas) > estimatedMaxFeePerGas * BigInt(3)
+    return baseFee && parseGwei(values.maxFeePerGas) > baseFee * BigInt(3)
       ? "Max fee per gas is unnecessarily high for current network condition"
       : undefined;
-  }, [estimatedMaxFeePerGas, touched.maxFeePerGas, values.maxFeePerGas]);
+  }, [baseFee, values.maxFeePerGas]);
 
   const maxPriorityFeePerGasError = useMemo(() => {
-    return touched.maxPriorityFeePerGas && parseGwei(values.maxPriorityFeePerGas) === BigInt(0)
+    return parseGwei(values.maxPriorityFeePerGas) === BigInt(0)
       ? "Max priority fee per gas is too low for current network condition"
       : undefined;
-  }, [touched.maxPriorityFeePerGas, values.maxPriorityFeePerGas]);
+  }, [values.maxPriorityFeePerGas]);
 
   const maxPriorityFeePerGasWarning = useMemo(() => {
-    return touched.maxPriorityFeePerGas &&
-      estimatedMaxPriorityFeePerGas &&
-      parseGwei(values.maxPriorityFeePerGas) > estimatedMaxPriorityFeePerGas * BigInt(3)
+    return priorityFee && parseGwei(values.maxPriorityFeePerGas) > priorityFee * BigInt(3)
       ? "Max priority fee per gas is unnecessarily high for current network condition"
       : undefined;
-  }, [estimatedMaxPriorityFeePerGas, touched.maxPriorityFeePerGas, values.maxPriorityFeePerGas]);
-
-  console.log(values.gasLimit);
-  console.log(estimatedGas);
-  console.log(touched);
+  }, [priorityFee, values.maxPriorityFeePerGas]);
 
   const gasLimitError = useMemo(() => {
-    return touched.gasLimit && BigInt(values.gasLimit) < estimatedGas
+    return BigInt(values.gasLimit) < estimatedGas
       ? "Gas limit is lower then recommended"
       : undefined;
-  }, [touched.gasLimit, values.gasLimit, estimatedGas]);
+  }, [values.gasLimit, estimatedGas]);
 
   const gasPriceErrors = useMemo(() => {
     const _errors: string[] = [];
@@ -339,6 +401,18 @@ function NetworkFeeDialogContent({
     return _errors;
   }, [maxFeePerGasError, maxPriorityFeePerGasError]);
 
+  const legacyGasPriceErrors = useMemo(() => {
+    const _errors: string[] = [];
+
+    [legacyGasPriceError].forEach((v) => {
+      if (v) {
+        _errors.push(v);
+      }
+    });
+
+    return _errors;
+  }, [legacyGasPriceError]);
+
   const gasPriceWarnings = useMemo(() => {
     const _warnings: string[] = [];
 
@@ -350,6 +424,18 @@ function NetworkFeeDialogContent({
 
     return _warnings;
   }, [maxFeePerGasWarning, maxPriorityFeePerGasWarning]);
+
+  const legacyGasPriceWarnings = useMemo(() => {
+    const _warnings: string[] = [];
+
+    [legacyGasPriceWarning].forEach((v) => {
+      if (v) {
+        _warnings.push(v);
+      }
+    });
+
+    return _warnings;
+  }, [legacyGasPriceWarning]);
 
   const gasLimitErrors = useMemo(() => {
     const _errors: string[] = [];
@@ -369,24 +455,26 @@ function NetworkFeeDialogContent({
         {gasOptions.map((_gasOption) => {
           return (
             <div
-              onClick={() => setFieldValue("gasOption", _gasOption)}
+              onClick={() => setFieldValue("gasPriceOption", _gasOption)}
               key={_gasOption}
               className={clsx(
                 "w-full rounded-3 bg-tertiary-bg group cursor-pointer",
-                values.gasOption === _gasOption && "cursor-auto",
+                values.gasPriceOption === _gasOption && "cursor-auto",
               )}
             >
               <div
                 className={clsx(
-                  "flex justify-between px-5 items-center min-h-12",
-                  GasOption.CUSTOM === _gasOption && "border-primary-bg",
+                  "flex justify-between px-5 items-center min-h-12 duration-200",
+                  GasOption.CUSTOM === _gasOption && "border-primary-bg rounded-t-3",
+                  GasOption.CUSTOM !== _gasOption && "border-primary-bg rounded-3",
+                  values.gasPriceOption === _gasOption && "bg-green-bg",
                 )}
               >
                 <div className="flex items-center gap-2">
                   <div
                     className={clsx(
                       "w-4 h-4 duration-200 before:duration-200 border bg-secondary-bg rounded-full before:w-2.5 before:h-2.5 before:absolute before:top-1/2 before:rounded-full before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 relative",
-                      values.gasOption === _gasOption
+                      values.gasPriceOption === _gasOption
                         ? "border-green before:bg-green"
                         : "border-secondary-border group-hover:border-green",
                     )}
@@ -403,11 +491,48 @@ function NetworkFeeDialogContent({
               {_gasOption === GasOption.CUSTOM && (
                 <div
                   className={clsx(
-                    values.gasOption !== GasOption.CUSTOM && "opacity-30 pointer-events-none",
+                    values.gasPriceOption !== GasOption.CUSTOM && "opacity-30 pointer-events-none",
                   )}
                 >
                   {!isAdvanced && isEip1559Supported(chainId) && (
                     <div className={clsx("px-5 pb-4")}>
+                      <div className="flex justify-between items-center pb-3 pt-3">
+                        Custom gas settings
+                        <TextButton
+                          onClick={() => {
+                            const multiplier = baseFeeMultipliers[chainId][GasOption.CHEAP];
+
+                            if (values.gasPriceModel === GasFeeModel.EIP1559) {
+                              if (baseFee) {
+                                setFieldValue(
+                                  "maxFeePerGas",
+                                  formatGwei((baseFee * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                              if (priorityFee) {
+                                setFieldValue(
+                                  "maxPriorityFeePerGas",
+                                  formatGwei((priorityFee * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                            }
+
+                            if (values.gasPriceModel === GasFeeModel.LEGACY) {
+                              if (gasPrice) {
+                                setFieldValue(
+                                  "gasPrice",
+                                  formatGwei((gasPrice * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                            }
+                          }}
+                          type="reset"
+                          endIcon="reset"
+                          className="pr-0"
+                        >
+                          Configure automatically
+                        </TextButton>
+                      </div>
                       <EIP1559Fields
                         maxPriorityFeePerGas={values.maxPriorityFeePerGas}
                         maxFeePerGas={values.maxFeePerGas}
@@ -415,8 +540,8 @@ function NetworkFeeDialogContent({
                         setMaxPriorityFeePerGasValue={(value) =>
                           setFieldValue("maxPriorityFeePerGas", value)
                         }
-                        currentMaxFeePerGas={estimatedMaxFeePerGas}
-                        currentMaxPriorityFeePerGas={estimatedMaxPriorityFeePerGas}
+                        currentMaxFeePerGas={baseFee}
+                        currentMaxPriorityFeePerGas={priorityFee}
                         handleChange={handleChange}
                         handleBlur={handleBlur}
                         maxFeePerGasError={!!maxFeePerGasError}
@@ -430,6 +555,43 @@ function NetworkFeeDialogContent({
 
                   {!isAdvanced && !isEip1559Supported(chainId) && (
                     <div className={clsx("px-5 pb-4")}>
+                      <div className="flex justify-between items-center pb-3 pt-3">
+                        Custom gas settings
+                        <TextButton
+                          onClick={() => {
+                            const multiplier = baseFeeMultipliers[chainId][GasOption.CHEAP];
+
+                            if (values.gasPriceModel === GasFeeModel.EIP1559) {
+                              if (baseFee) {
+                                setFieldValue(
+                                  "maxFeePerGas",
+                                  formatGwei((baseFee * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                              if (priorityFee) {
+                                setFieldValue(
+                                  "maxPriorityFeePerGas",
+                                  formatGwei((priorityFee * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                            }
+
+                            if (values.gasPriceModel === GasFeeModel.LEGACY) {
+                              if (gasPrice) {
+                                setFieldValue(
+                                  "gasPrice",
+                                  formatGwei((gasPrice * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                            }
+                          }}
+                          type="reset"
+                          endIcon="reset"
+                          className="pr-0"
+                        >
+                          Configure automatically
+                        </TextButton>
+                      </div>
                       <TextField
                         placeholder="Gas price"
                         label="Gas price"
@@ -448,26 +610,64 @@ function NetworkFeeDialogContent({
                             <button
                               type="button"
                               onClick={() => {
-                                if (estimatedGasPriceLegacy) {
-                                  setFieldValue("gasPrice", formatGwei(estimatedGasPriceLegacy));
+                                if (gasPrice) {
+                                  setFieldValue("gasPrice", formatGwei(gasPrice));
                                 }
                               }}
                               className="text-green"
                             >
                               Current
                             </button>{" "}
-                            {estimatedGasPriceLegacy
-                              ? formatFloat(formatGwei(estimatedGasPriceLegacy))
-                              : "0"}{" "}
-                            Gwei
+                            {gasPrice ? formatFloat(formatGwei(gasPrice)) : "0"} Gwei
                           </div>
                         }
+                      />
+                      <ErrorsAndWarnings
+                        errors={legacyGasPriceErrors}
+                        warnings={legacyGasPriceWarnings}
                       />
                     </div>
                   )}
 
                   {isAdvanced && !isEip1559Supported(chainId) && (
                     <div className={clsx("px-5 pb-4 flex flex-col gap-4")}>
+                      <div className="flex justify-between items-center pb-3 pt-3">
+                        Custom gas settings
+                        <TextButton
+                          onClick={() => {
+                            const multiplier = baseFeeMultipliers[chainId][GasOption.CHEAP];
+
+                            if (values.gasPriceModel === GasFeeModel.EIP1559) {
+                              if (baseFee) {
+                                setFieldValue(
+                                  "maxFeePerGas",
+                                  formatGwei((baseFee * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                              if (priorityFee) {
+                                setFieldValue(
+                                  "maxPriorityFeePerGas",
+                                  formatGwei((priorityFee * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                            }
+
+                            if (values.gasPriceModel === GasFeeModel.LEGACY) {
+                              if (gasPrice) {
+                                setFieldValue(
+                                  "gasPrice",
+                                  formatGwei((gasPrice * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                            }
+                          }}
+                          type="reset"
+                          endIcon="reset"
+                          className="pr-0"
+                        >
+                          Configure automatically
+                        </TextButton>
+                      </div>
                       <TextField
                         placeholder="Gas price"
                         label="Gas price"
@@ -486,21 +686,23 @@ function NetworkFeeDialogContent({
                             <button
                               type="button"
                               onClick={() => {
-                                if (estimatedGasPriceLegacy) {
-                                  setFieldValue("gasPrice", formatGwei(estimatedGasPriceLegacy));
+                                if (gasPrice) {
+                                  setFieldValue("gasPrice", formatGwei(gasPrice));
                                 }
                               }}
                               className="text-green"
                             >
                               Current
                             </button>{" "}
-                            {estimatedGasPriceLegacy
-                              ? formatFloat(formatGwei(estimatedGasPriceLegacy))
-                              : "0"}{" "}
-                            Gwei
+                            {gasPrice ? formatFloat(formatGwei(gasPrice)) : "0"} Gwei
                           </div>
                         }
                       />
+                      <ErrorsAndWarnings
+                        errors={legacyGasPriceErrors}
+                        warnings={legacyGasPriceWarnings}
+                      />
+
                       <TextField
                         placeholder="Gas limit"
                         label="Gas limit"
@@ -537,8 +739,45 @@ function NetworkFeeDialogContent({
 
                   {isAdvanced && isEip1559Supported(chainId) && (
                     <div className="px-5 pb-4">
+                      <div className="flex justify-between items-center pb-3 pt-3">
+                        Custom gas settings
+                        <TextButton
+                          onClick={() => {
+                            const multiplier = baseFeeMultipliers[chainId][GasOption.CHEAP];
+
+                            if (values.gasPriceModel === GasFeeModel.EIP1559) {
+                              if (baseFee) {
+                                setFieldValue(
+                                  "maxFeePerGas",
+                                  formatGwei((baseFee * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                              if (priorityFee) {
+                                setFieldValue(
+                                  "maxPriorityFeePerGas",
+                                  formatGwei((priorityFee * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                            }
+
+                            if (values.gasPriceModel === GasFeeModel.LEGACY) {
+                              if (gasPrice) {
+                                setFieldValue(
+                                  "gasPrice",
+                                  formatGwei((gasPrice * multiplier) / SCALING_FACTOR),
+                                );
+                              }
+                            }
+                          }}
+                          type="reset"
+                          endIcon="reset"
+                          className="pr-0"
+                        >
+                          Configure automatically
+                        </TextButton>
+                      </div>
                       <div className="pb-5">
-                        <div className="grid grid-cols-2 gap-1 p-1 rounded-3 bg-secondary-bg">
+                        <div className="grid grid-cols-2 gap-1 p-1 rounded-3 bg-secondary-bg mb-4">
                           <button
                             type="button"
                             className={clsx(
@@ -583,8 +822,8 @@ function NetworkFeeDialogContent({
                               setMaxPriorityFeePerGasValue={(value) =>
                                 setFieldValue("maxPriorityFeePerGas", value)
                               }
-                              currentMaxFeePerGas={estimatedMaxFeePerGas}
-                              currentMaxPriorityFeePerGas={estimatedMaxPriorityFeePerGas}
+                              currentMaxFeePerGas={baseFee}
+                              currentMaxPriorityFeePerGas={priorityFee}
                               handleChange={handleChange}
                               handleBlur={handleBlur}
                               maxFeePerGasError={!!maxFeePerGasError}
@@ -618,23 +857,21 @@ function NetworkFeeDialogContent({
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      if (estimatedGasPriceLegacy) {
-                                        setFieldValue(
-                                          "gasPrice",
-                                          formatGwei(estimatedGasPriceLegacy),
-                                        );
+                                      if (gasPrice) {
+                                        setFieldValue("gasPrice", formatGwei(gasPrice));
                                       }
                                     }}
                                     className="text-green"
                                   >
                                     Current
                                   </button>{" "}
-                                  {estimatedGasPriceLegacy
-                                    ? formatFloat(formatGwei(estimatedGasPriceLegacy))
-                                    : "0"}{" "}
-                                  Gwei
+                                  {gasPrice ? formatFloat(formatGwei(gasPrice)) : "0"} Gwei
                                 </div>
                               }
+                            />
+                            <ErrorsAndWarnings
+                              errors={legacyGasPriceErrors}
+                              warnings={legacyGasPriceWarnings}
                             />
                           </div>
                         )}
@@ -682,7 +919,15 @@ function NetworkFeeDialogContent({
           Cancel
         </Button>
         <Button
-          disabled={Boolean(maxFeePerGasError || maxFeePerGasError || gasLimitError)}
+          disabled={Boolean(
+            ((maxFeePerGasError || maxPriorityFeePerGasError) &&
+              values.gasPriceOption === GasOption.CUSTOM &&
+              values.gasPriceModel === GasFeeModel.EIP1559) ||
+              gasLimitError ||
+              (values.gasPriceOption === GasOption.CUSTOM &&
+                values.gasPriceModel === GasFeeModel.LEGACY &&
+                legacyGasPriceError),
+          )}
           type="submit"
           fullWidth
         >
@@ -693,7 +938,7 @@ function NetworkFeeDialogContent({
   );
 }
 export default function NetworkFeeConfigDialog({ isOpen, setIsOpen }: Props) {
-  const [isAdvanced, setIsAdvanced] = useState(false);
+  const { isAdvanced, setIsAdvanced } = useSwapGasSettingsStore();
 
   return (
     <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -708,7 +953,7 @@ export default function NetworkFeeConfigDialog({ isOpen, setIsOpen }: Props) {
             </div>
           }
         />
-        <NetworkFeeDialogContent setIsOpen={setIsOpen} isAdvanced={isAdvanced} />
+        <NetworkFeeDialogContent setIsOpen={setIsOpen} />
       </div>
     </DrawerDialog>
   );

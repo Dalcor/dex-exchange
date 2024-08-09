@@ -27,7 +27,6 @@ export default function useInitializeDB() {
         const defaultList = await db.tokenLists.get(`default-${DEX_SUPPORTED_CHAINS[i]}`);
 
         if (!defaultList) {
-          console.log("sdd");
           await db.tokenLists.add({
             id: `default-${DEX_SUPPORTED_CHAINS[i]}`,
             list: defaultLists[DEX_SUPPORTED_CHAINS[i]],

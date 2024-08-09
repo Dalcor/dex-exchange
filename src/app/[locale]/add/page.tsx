@@ -25,6 +25,7 @@ import { useRouter } from "@/navigation";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 import { DepositAmounts } from "./components/DepositAmounts/DepositAmounts";
+import ConfirmLiquidityDialog from "./components/LiquidityActionButton/ConfirmLiquidityDialog";
 import { LiquidityActionButton } from "./components/LiquidityActionButton/LiquidityActionButton";
 import { PriceRange } from "./components/PriceRange/PriceRange";
 import { usePriceRange } from "./hooks/usePrice";
@@ -135,7 +136,7 @@ export default function AddPoolPage() {
             /> */}
           </div>
         </div>
-        <div className="rounded-b-5 border-t-0 p-4 md:p-10 bg-primary-bg mb-4 md:mb-5">
+        <div className="rounded-b-5 border-t-0 p-4 pt-0 md:p-10 md:pt-0 bg-primary-bg mb-4 md:mb-5">
           <h3 className="text-16 font-bold mb-4">{t("select_pair")}</h3>
           <div className="flex gap-3 mb-4 md:mb-5">
             <SelectButton
@@ -249,6 +250,7 @@ export default function AddPoolPage() {
         isOpen={isOpenedTokenPick}
         setIsOpen={setIsOpenedTokenPick}
       />
+      <ConfirmLiquidityDialog />
     </Container>
   );
 }

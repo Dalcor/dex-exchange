@@ -6,6 +6,7 @@ import { NumericFormat } from "react-number-format";
 import { Address, formatEther, formatGwei, formatUnits, parseUnits } from "viem";
 import { useAccount, useBalance, useBlockNumber } from "wagmi";
 
+import Alert from "@/components/atoms/Alert";
 import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import Preloader from "@/components/atoms/Preloader";
@@ -261,7 +262,12 @@ function InputStandardAmount({
           <div className="w-full md:w-[570px] px-4 pb-4 md:px-10 md:pb-10">
             <div className="flex justify-between items-center">
               <div className="flex gap-2 py-2 items-center">
-                <span>{`${standard === Standard.ERC20 ? t("revoke") : t("withdraw")} ${token.symbol}`}</span>
+                {standard === Standard.ERC20 ? (
+                  <span>{`${t("approve")} 0 ${token.symbol}`}</span>
+                ) : (
+                  <span>{`${t("withdraw")} ${token.symbol}`}</span>
+                )}
+
                 <Badge color="green" text={standard} />
               </div>
               <div className="flex items-center gap-2 justify-end">
@@ -279,10 +285,8 @@ function InputStandardAmount({
             </div>
 
             {standard === "ERC-20" ? (
-              <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
-                {/* TODO Input withdraw */}
-                <span>{formatUnits(currentAllowance || BigInt(0), token.decimals)}</span>
-                <span>{t("amount", { symbol: token.symbol })}</span>
+              <div className="mt-2">
+                <Alert type="info" text={<span>Info text</span>} />
               </div>
             ) : (
               <>

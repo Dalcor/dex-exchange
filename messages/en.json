@@ -239,6 +239,7 @@
     "deposited": "Deposited: {deposited} {symbol}",
     "revoke": "Revoke",
     "withdraw": "Withdraw",
+    "approve": "Approve",
     "gas_price": "Gas price",
     "gas_price_tooltip": "gas_price_tooltip",
     "total_fee": "Total fee",

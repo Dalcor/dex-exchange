@@ -23,8 +23,7 @@ const CHAIN_SUBGRAPH_URL: Record<DexChainId, string> = {
   //   "https://api.thegraph.com/subgraphs/name/lynnshaoyu/uniswap-v3-avax?source=uniswap",
   // [ChainId.BASE]:
   //   "https://api.studio.thegraph.com/query/48211/uniswap-v3-base/version/latest?source=uniswap",
-  [DexChainId.SEPOLIA]:
-    "https://api.studio.thegraph.com/proxy/56540/dex223-v1-sepolia/version/latest",
+  [DexChainId.SEPOLIA]: "https://api.studio.thegraph.com/query/56540/dex223-v1-sepolia/1.0.79",
   // [DexChainId.CALLISTO]: "",
   [DexChainId.BSC_TESTNET]: "",
 };

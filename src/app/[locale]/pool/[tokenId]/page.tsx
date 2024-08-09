@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
 import PositionPriceRangeCard from "@/app/[locale]/pool/[tokenId]/components/PositionPriceRangeCard";
+import Alert from "@/components/atoms/Alert";
 import Container from "@/components/atoms/Container";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
@@ -22,7 +23,9 @@ import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import TokensPair from "@/components/common/TokensPair";
 import { FEE_AMOUNT_DETAIL } from "@/config/constants/liquidityFee";
 import { formatFloat } from "@/functions/formatFloat";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import { AllowanceStatus } from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import {
   usePositionFees,
   usePositionFromPositionInfo,
@@ -43,6 +46,7 @@ export default function PoolPage({
   };
 }) {
   useRecentTransactionTracking();
+  const chainId = useCurrentChainId();
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [tokenAStandard, setTokenAStandard] = useState(Standard.ERC20);
@@ -79,7 +83,7 @@ export default function PoolPage({
     tier: fee,
   });
 
-  const { fees, handleCollectFees, status } = usePositionFees({
+  const { fees, handleCollectFees, status, resetCollectFees, claimFeesHash } = usePositionFees({
     pool: position?.pool,
     poolAddress,
     tokenId: positionInfo?.tokenId,
@@ -90,6 +94,11 @@ export default function PoolPage({
     position,
     showFirst,
   });
+
+  const handleClose = () => {
+    resetCollectFees();
+    setIsOpen(false);
+  };
 
   if (!tokenA || !tokenB) return <div>Error: Token A or B undefined</div>;
 
@@ -298,8 +307,17 @@ export default function PoolPage({
         />
       </div>
       <div>
-        <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
-          <DialogHeader onClose={() => setIsOpen(false)} title="Claim fees" />
+        <DrawerDialog
+          isOpen={isOpen}
+          setIsOpen={(isOpen) => {
+            if (isOpen) {
+              setIsOpen(isOpen);
+            } else {
+              handleClose();
+            }
+          }}
+        >
+          <DialogHeader onClose={handleClose} title="Claim fees" />
           <div className="px-4 md:px-10 md:w-[570px] pb-4 md:pb-10 h-[80dvh] md:h-auto overflow-y-auto">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
@@ -318,6 +336,15 @@ export default function PoolPage({
                 <span className="text-18 font-bold">{`${tokenA.symbol} and ${tokenB.symbol}`}</span>
               </div>
               <div className="flex items-center gap-2 justify-end">
+                {claimFeesHash && (
+                  <a
+                    target="_blank"
+                    href={getExplorerLink(ExplorerLinkType.TRANSACTION, claimFeesHash, chainId)}
+                  >
+                    <IconButton iconName="forward" />
+                  </a>
+                )}
+
                 {status === AllowanceStatus.PENDING && (
                   <>
                     <Preloader type="linear" />
@@ -328,18 +355,22 @@ export default function PoolPage({
                 {status === AllowanceStatus.SUCCESS && (
                   <Svg className="text-green" iconName="done" size={20} />
                 )}
+                {status === AllowanceStatus.ERROR && (
+                  <Svg className="text-red-input" iconName="warning" size={24} />
+                )}
               </div>
             </div>
             {/* Standard A */}
             <div className="flex flex-col rounded-3 bg-tertiary-bg px-5 py-3 mt-4">
               <div className="flex gap-2 items-center mb-3">
-                <Image width={32} height={32} src={tokenA.logoURI as any} alt="" />
+                <Image width={24} height={24} src={tokenA.logoURI as any} alt="" />
                 <span className="font-bold">{`Standard for collecting ${tokenA.symbol}`}</span>
               </div>
               <div className="flex flex-col gap-2">
                 <RadioButton
                   isActive={tokenAStandard === Standard.ERC20}
                   onClick={() => setTokenAStandard(Standard.ERC20)}
+                  disabled={tokenAStandard !== Standard.ERC20 && status !== AllowanceStatus.INITIAL}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -354,6 +385,9 @@ export default function PoolPage({
                 <RadioButton
                   isActive={tokenAStandard === Standard.ERC223}
                   onClick={() => setTokenAStandard(Standard.ERC223)}
+                  disabled={
+                    tokenAStandard !== Standard.ERC223 && status !== AllowanceStatus.INITIAL
+                  }
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -370,13 +404,14 @@ export default function PoolPage({
             {/* Standard B */}
             <div className="flex flex-col rounded-3 bg-tertiary-bg px-5 py-3 mt-4">
               <div className="flex gap-2 items-center mb-3">
-                <Image width={32} height={32} src={tokenB.logoURI as any} alt="" />
+                <Image width={24} height={24} src={tokenB.logoURI as any} alt="" />
                 <span className="font-bold">{`Standard for collecting ${tokenB.symbol}`}</span>
               </div>
               <div className="flex flex-col gap-2">
                 <RadioButton
                   isActive={tokenBStandard === Standard.ERC20}
                   onClick={() => setTokenBStandard(Standard.ERC20)}
+                  disabled={tokenBStandard !== Standard.ERC20 && status !== AllowanceStatus.INITIAL}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -391,6 +426,9 @@ export default function PoolPage({
                 <RadioButton
                   isActive={tokenBStandard === Standard.ERC223}
                   onClick={() => setTokenBStandard(Standard.ERC223)}
+                  disabled={
+                    tokenBStandard !== Standard.ERC223 && status !== AllowanceStatus.INITIAL
+                  }
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -408,13 +446,7 @@ export default function PoolPage({
               Collecting fees will withdraw currently available fees for you
             </div>
 
-            {[AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
-              <Button fullWidth disabled>
-                <span className="flex items-center gap-2">
-                  <Preloader size={20} color="black" />
-                </span>
-              </Button>
-            ) : (
+            {[AllowanceStatus.INITIAL].includes(status) ? (
               <Button
                 onClick={() => {
                   handleCollectFees({ tokensOutCode });
@@ -423,7 +455,46 @@ export default function PoolPage({
               >
                 Collect fees
               </Button>
-            )}
+            ) : null}
+            {[AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
+              <Button fullWidth disabled>
+                <span className="flex items-center gap-2">
+                  <Preloader size={20} color="black" />
+                </span>
+              </Button>
+            ) : null}
+            {[AllowanceStatus.ERROR].includes(status) ? (
+              <div className="flex flex-col gap-5">
+                <Alert
+                  withIcon={false}
+                  type="error"
+                  text={
+                    <span>
+                      Transaction failed due to lack of gas or an internal contract error. Try using
+                      higher slippage or gas to ensure your transaction is completed. If you still
+                      have issues, click{" "}
+                      <a href="#" className="text-green hover:underline">
+                        common errors
+                      </a>
+                      .
+                    </span>
+                  }
+                />
+                <Button
+                  onClick={() => {
+                    handleCollectFees({ tokensOutCode });
+                  }}
+                  fullWidth
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : null}
+            {[AllowanceStatus.SUCCESS].includes(status) ? (
+              <Button onClick={handleClose} fullWidth>
+                Close
+              </Button>
+            ) : null}
           </div>
         </DrawerDialog>
       </div>

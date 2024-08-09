@@ -321,18 +321,19 @@ export function usePositionFees({
   poolAddress,
   pool,
   tokenId,
-  asWETH = false,
 }: {
   pool?: Pool;
   tokenId?: bigint;
-  asWETH?: boolean;
   poolAddress?: Address;
 }): {
   fees: [CurrencyAmount<Currency>, CurrencyAmount<Currency>] | [undefined, undefined];
   handleCollectFees: (params: { tokensOutCode: number }) => void;
   status: AllowanceStatus;
+  claimFeesHash?: string;
+  resetCollectFees: () => void;
 } {
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
+  const [claimFeesHash, setClaimFeesHash] = useState(undefined as undefined | string);
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
@@ -376,6 +377,7 @@ export function usePositionFees({
 
   const handleCollectFees = useCallback(
     async ({ tokensOutCode }: { tokensOutCode: number }) => {
+      setStatus(AllowanceStatus.INITIAL);
       if (!publicClient || !walletClient || !chainId || !address || !pool || !collectResult) {
         return;
       }
@@ -406,6 +408,7 @@ export function usePositionFees({
         });
         const hash = await walletClient.writeContract(request);
 
+        setClaimFeesHash(hash);
         const transaction = await publicClient.getTransaction({
           hash,
         });
@@ -453,8 +456,7 @@ export function usePositionFees({
         }
       } catch (error) {
         console.error(error);
-        setStatus(AllowanceStatus.INITIAL);
-        addToast("Unexpected error, please contact support", "error");
+        setStatus(AllowanceStatus.ERROR);
       }
     },
     [
@@ -468,8 +470,14 @@ export function usePositionFees({
       walletClient,
       poolAddress,
       recipient,
+      setClaimFeesHash,
     ],
   );
+
+  const resetCollectFees = () => {
+    setStatus(AllowanceStatus.INITIAL);
+    setClaimFeesHash(undefined);
+  };
 
   return {
     fees:
@@ -481,6 +489,8 @@ export function usePositionFees({
         : [undefined, undefined],
     handleCollectFees,
     status,
+    claimFeesHash,
+    resetCollectFees,
   };
 }
 

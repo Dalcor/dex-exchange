@@ -30,6 +30,7 @@ export enum AllowanceStatus {
   PENDING,
   LOADING,
   SUCCESS,
+  ERROR,
 }
 
 const allowanceGasLimitMap: Record<DexChainId, { base: bigint; additional: bigint }> = {

@@ -4,14 +4,13 @@ import JSBI from "jsbi";
 import Image from "next/image";
 import { ChangeEvent, useMemo, useState } from "react";
 
-import PositionLiquidityCard from "@/app/[locale]/pool/[tokenId]/components/PositionLiquidityCard";
 import useRemoveLiquidity from "@/app/[locale]/remove/[tokenId]/hooks/useRemoveLiquidity";
+import Alert from "@/components/atoms/Alert";
 import Container from "@/components/atoms/Container";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import DrawerDialog from "@/components/atoms/DrawerDialog";
 import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
-import Switch from "@/components/atoms/Switch";
 import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
 import Button from "@/components/buttons/Button";
 import IconButton, { IconButtonSize, IconSize } from "@/components/buttons/IconButton";
@@ -19,16 +18,34 @@ import InputButton from "@/components/buttons/InputButton";
 import RecentTransactions from "@/components/common/RecentTransactions";
 import SelectedTokensInfo from "@/components/common/SelectedTokensInfo";
 import TokensPair from "@/components/common/TokensPair";
-import { useTransactionSettingsDialogStore } from "@/components/dialogs/stores/useTransactionSettingsDialogStore";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
 import { AllowanceStatus } from "@/hooks/useAllowance";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
 import {
   usePositionFromPositionInfo,
   usePositionFromTokenId,
   usePositionRangeStatus,
 } from "@/hooks/usePositions";
 import { useRecentTransactionTracking } from "@/hooks/useRecentTransactionTracking";
-import { useRouter } from "@/navigation";
+import { Link, useRouter } from "@/navigation";
 import { Percent } from "@/sdk_hybrid/entities/fractions/percent";
+import { Token } from "@/sdk_hybrid/entities/token";
+
+import PositionLiquidityCard from "../../pool/[tokenId]/components/PositionLiquidityCard";
+
+const RemoveLiquidityRow = ({ token, amount }: { token: Token | undefined; amount: string }) => {
+  return (
+    <div className="flex justify-between items-center">
+      <div className="flex items-center gap-2">
+        <span>{`Pooled ${token?.symbol}:`}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="font-bold">{amount}</span>
+        <Image src={token?.logoURI || ""} alt={token?.symbol || ""} width={24} height={24} />
+      </div>
+    </div>
+  );
+};
 
 export default function DecreaseLiquidityPage({
   params,
@@ -43,6 +60,7 @@ export default function DecreaseLiquidityPage({
   const router = useRouter();
   const { position: positionInfo, loading } = usePositionFromTokenId(BigInt(params.tokenId));
   const position = usePositionFromPositionInfo(positionInfo);
+  const chainId = useCurrentChainId();
   const [value, setValue] = useState(25);
   const [tokenA, tokenB, fee] = useMemo(() => {
     return position?.pool.token0 && position?.pool.token1 && position?.pool.fee
@@ -53,10 +71,16 @@ export default function DecreaseLiquidityPage({
   const { inRange, removed } = usePositionRangeStatus({ position });
   const [showRecentTransactions, setShowRecentTransactions] = useState(true);
 
-  const { handleRemoveLiquidity, status } = useRemoveLiquidity({
-    percentage: value,
-    tokenId: params.tokenId,
-  });
+  const { handleRemoveLiquidity, status, removeLiquidityHash, resetRemoveLiquidity } =
+    useRemoveLiquidity({
+      percentage: value,
+      tokenId: params.tokenId,
+    });
+
+  const handleClose = () => {
+    resetRemoveLiquidity();
+    setIsOpen(false);
+  };
 
   if (!tokenA || !tokenB) return <div>Error: Token A or B undefined</div>;
 
@@ -73,7 +97,7 @@ export default function DecreaseLiquidityPage({
           <h2 className="text-20 font-bold flex justify-center items-center">Remove liquidity</h2>
           <div className="flex items-center gap-2 justify-end">
             <IconButton
-              onClick={() => setShowRecentTransactions(true)}
+              onClick={() => setShowRecentTransactions(!showRecentTransactions)}
               buttonSize={IconButtonSize.LARGE}
               iconName="recent-transactions"
               active={showRecentTransactions}
@@ -137,7 +161,6 @@ export default function DecreaseLiquidityPage({
                     .divide(JSBI.BigInt(100))
                     .toSignificant() || "Loading..."
                 }
-                standards={["ERC-20", "ERC-223"]}
               />
               <PositionLiquidityCard
                 token={tokenB}
@@ -147,14 +170,9 @@ export default function DecreaseLiquidityPage({
                     .divide(JSBI.BigInt(100))
                     .toSignificant() || "Loading..."
                 }
-                standards={["ERC-20", "ERC-223"]}
               />
             </div>
           </div>
-          {/* <div className="mb-5 flex items-center justify-between">
-            Collect as WMATIC
-            <Switch checked={false} handleChange={() => null} />
-          </div> */}
           {position && tokenA && tokenB && (
             <Button onClick={() => setIsOpen(true)} fullWidth>
               Remove
@@ -170,8 +188,17 @@ export default function DecreaseLiquidityPage({
           pageSize={5}
         />
       </div>
-      <DrawerDialog isOpen={isOpen} setIsOpen={setIsOpen}>
-        <DialogHeader onClose={() => setIsOpen(false)} title="Confirm removing liquidity" />
+      <DrawerDialog
+        isOpen={isOpen}
+        setIsOpen={(isOpen) => {
+          if (isOpen) {
+            setIsOpen(isOpen);
+          } else {
+            handleClose();
+          }
+        }}
+      >
+        <DialogHeader onClose={handleClose} title="Confirm removing liquidity" />
         <div className="px-4 md:px-10 md:w-[570px] pb-4 md:pb-10 h-[80dvh] md:h-auto overflow-y-auto">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -190,21 +217,33 @@ export default function DecreaseLiquidityPage({
               <span className="text-18 font-bold">{`${tokenA.symbol} and ${tokenB.symbol}`}</span>
             </div>
             <div className="flex items-center gap-2 justify-end">
+              {removeLiquidityHash && (
+                <a
+                  target="_blank"
+                  href={getExplorerLink(ExplorerLinkType.TRANSACTION, removeLiquidityHash, chainId)}
+                >
+                  <IconButton iconName="forward" />
+                </a>
+              )}
+
               {status === AllowanceStatus.PENDING && (
                 <>
                   <Preloader type="linear" />
                   <span className="text-secondary-text text-14">Proceed in your wallet</span>
                 </>
               )}
-              {status === AllowanceStatus.LOADING && <Preloader size={20} />}
+              {status === AllowanceStatus.LOADING && <Preloader size={24} />}
               {status === AllowanceStatus.SUCCESS && (
-                <Svg className="text-green" iconName="done" size={20} />
+                <Svg className="text-green" iconName="done" size={24} />
+              )}
+              {status === AllowanceStatus.ERROR && (
+                <Svg className="text-red-input" iconName="warning" size={24} />
               )}
             </div>
           </div>
-          <div className="border border-secondary-border rounded-3 bg-tertiary-bg my-5 p-5">
+          <div className="py-5">
             <div className="grid gap-3">
-              <PositionLiquidityCard
+              <RemoveLiquidityRow
                 token={tokenA}
                 amount={
                   position?.amount0
@@ -212,9 +251,8 @@ export default function DecreaseLiquidityPage({
                     .divide(JSBI.BigInt(100))
                     .toSignificant() || "Loading..."
                 }
-                standards={["ERC-20", "ERC-223"]}
               />
-              <PositionLiquidityCard
+              <RemoveLiquidityRow
                 token={tokenB}
                 amount={
                   position?.amount1
@@ -222,18 +260,11 @@ export default function DecreaseLiquidityPage({
                     .divide(JSBI.BigInt(100))
                     .toSignificant() || "Loading..."
                 }
-                standards={["ERC-20", "ERC-223"]}
               />
             </div>
           </div>
 
-          {[AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
-            <Button fullWidth disabled>
-              <span className="flex items-center gap-2">
-                <Preloader size={20} color="black" />
-              </span>
-            </Button>
-          ) : (
+          {[AllowanceStatus.INITIAL].includes(status) ? (
             <Button
               onClick={() => {
                 handleRemoveLiquidity(tokenA, tokenB, position);
@@ -242,7 +273,62 @@ export default function DecreaseLiquidityPage({
             >
               Confirm removing liquidity
             </Button>
-          )}
+          ) : null}
+          {[AllowanceStatus.LOADING, AllowanceStatus.PENDING].includes(status) ? (
+            <Button fullWidth disabled>
+              <span className="flex items-center gap-2">
+                <Preloader size={20} color="black" />
+              </span>
+            </Button>
+          ) : null}
+
+          {[AllowanceStatus.ERROR].includes(status) ? (
+            <div className="flex flex-col gap-5">
+              <Alert
+                withIcon={false}
+                type="error"
+                text={
+                  <span>
+                    Transaction failed due to lack of gas or an internal contract error. Try using
+                    higher slippage or gas to ensure your transaction is completed. If you still
+                    have issues, click{" "}
+                    <a href="#" className="text-green hover:underline">
+                      common errors
+                    </a>
+                    .
+                  </span>
+                }
+              />
+              <Button
+                onClick={() => {
+                  handleRemoveLiquidity(tokenA, tokenB, position);
+                }}
+                fullWidth
+              >
+                Try again
+              </Button>
+            </div>
+          ) : null}
+          {[AllowanceStatus.SUCCESS].includes(status) ? (
+            <div className="flex flex-col gap-5">
+              <Alert
+                withIcon={false}
+                type="info"
+                text={
+                  <span>
+                    Tokens have been transferred to your position. You can claim them using the
+                    following link:{" "}
+                    <Link href={`/pool/${params.tokenId}`}>
+                      <span className="text-green hover:underline">claim tokens</span>
+                    </Link>
+                  </span>
+                }
+              />
+              <Button onClick={handleClose} fullWidth>
+                Close
+              </Button>
+            </div>
+          ) : null}
         </div>
       </DrawerDialog>
     </Container>

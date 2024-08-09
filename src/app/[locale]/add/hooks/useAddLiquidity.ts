@@ -27,6 +27,8 @@ import {
 } from "@/stores/useRecentTransactionsStore";
 import { useTransactionSettingsStore } from "@/stores/useTransactionSettingsStore";
 
+import { LiquidityStatus, useLiquidityStatusStore } from "../stores/useLiquidityStatusStore";
+
 const TEST_ALLOWED_SLIPPAGE = new Percent(2, 100);
 
 enum ADD_LIQUIDITY_TYPE {
@@ -278,6 +280,7 @@ export const useAddLiquidity = ({
   createPool?: boolean;
   tokenId?: string;
 }) => {
+  const { setLiquidityHash, setStatus: setLiquidityStatus } = useLiquidityStatusStore();
   const [status, setStatus] = useState(AllowanceStatus.INITIAL);
   const { address: accountAddress } = useAccount();
   const chainId = useCurrentChainId();
@@ -307,6 +310,7 @@ export const useAddLiquidity = ({
       return;
     }
     setStatus(AllowanceStatus.PENDING);
+    setLiquidityStatus(LiquidityStatus.MINT_PENDING);
     try {
       const estimatedGas = await publicClient.estimateContractGas(addLiquidityParams);
 
@@ -315,6 +319,8 @@ export const useAddLiquidity = ({
         gas: estimatedGas + BigInt(30000),
       });
       const hash = await walletClient.writeContract({ ...request, account: undefined });
+
+      setLiquidityHash(hash);
 
       const transaction = await publicClient.getTransaction({
         hash,
@@ -365,13 +371,16 @@ export const useAddLiquidity = ({
         accountAddress,
       );
       if (hash) {
+        setLiquidityStatus(LiquidityStatus.MINT_LOADING);
         setStatus(AllowanceStatus.LOADING);
         await publicClient.waitForTransactionReceipt({ hash });
+        setLiquidityStatus(LiquidityStatus.SUCCESS);
         setStatus(AllowanceStatus.SUCCESS);
       }
     } catch (error) {
       console.error("useAddLiquidity ~ error:", error);
       addToast("Unexpected error, please contact support", "error");
+      setLiquidityStatus(LiquidityStatus.MINT);
       setStatus(AllowanceStatus.INITIAL);
     }
   }, [
@@ -382,6 +391,8 @@ export const useAddLiquidity = ({
     addRecentTransaction,
     addLiquidityParams,
     position,
+    setLiquidityHash,
+    setLiquidityStatus,
   ]);
 
   return {

@@ -42,6 +42,7 @@ export default function ExplorePoolPage({
     );
 
   const { pool } = data;
+
   return (
     <Container>
       <div className="w-full md:w-[800px] md:mx-auto md:mt-[40px] mb-5 bg-primary-bg px-10 pb-10 rounded-5">
@@ -109,7 +110,7 @@ export default function ExplorePoolPage({
           </div>
         </div>
         <div className="flex gap-4 mt-4">
-          <Link href="/swap" className="w-full">
+          <Link href={`/swap?tokenA=${pool.token0.id}&tokenB=${pool.token1.id}`} className="w-full">
             <Button variant={ButtonVariant.OUTLINED} fullWidth>
               <span className="flex items-center gap-2">
                 Swap
@@ -137,11 +138,11 @@ export default function ExplorePoolPage({
           </div>
           <div className="flex flex-col gap-1 bg-tertiary-bg rounded-[12px] p-4 w-full">
             <span className="text-secondary-text">24H volume</span>
-            <span className="text-24">{`$${pool.poolDayData?.[0].volumeUSD || 0}`}</span>
+            <span className="text-24">{`$${pool.poolDayData?.[0]?.volumeUSD || 0}`}</span>
           </div>
           <div className="flex flex-col gap-1 bg-tertiary-bg rounded-[12px] p-4 w-full">
             <span className="text-secondary-text">24H fees</span>
-            <span className="text-24">{`$${pool.poolDayData?.[0].feesUSD || 0}`}</span>
+            <span className="text-24">{`$${pool.poolDayData?.[0]?.feesUSD || 0}`}</span>
           </div>
         </div>
       </div>

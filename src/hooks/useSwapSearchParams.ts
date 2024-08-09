@@ -48,13 +48,13 @@ export const useSwapSearchParams = () => {
       const queryTokenB = searchParams.get(SwapQueryParams.tokenB);
 
       if (queryTokenA) {
-        const token = tokens.find((t) => t.address0 === queryTokenA);
+        const token = tokens.find((t) => t.address0.toLowerCase() === queryTokenA.toLowerCase());
         if (token) {
           setTokenA(token);
         }
       }
       if (queryTokenB) {
-        const token = tokens.find((t) => t.address0 === queryTokenB);
+        const token = tokens.find((t) => t.address0.toLowerCase() === queryTokenB.toLowerCase());
         if (token) {
           setTokenB(token);
         }

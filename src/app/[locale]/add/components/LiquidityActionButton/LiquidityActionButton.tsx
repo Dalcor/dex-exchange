@@ -16,9 +16,9 @@ import {
   useTokensStandards,
 } from "../../stores/useAddLiquidityAmountsStore";
 import { useAddLiquidityTokensStore } from "../../stores/useAddLiquidityTokensStore";
+import { useConfirmLiquidityDialogStore } from "../../stores/useConfirmLiquidityDialogOpened";
+import { LiquidityStatus, useLiquidityStatusStore } from "../../stores/useLiquidityStatusStore";
 import { useLiquidityTierStore } from "../../stores/useLiquidityTierStore";
-import { ApproveButton } from "./ApproveButton";
-import { MintButton } from "./MintButton";
 
 export const LiquidityActionButton = ({
   increase = false,
@@ -29,7 +29,9 @@ export const LiquidityActionButton = ({
 }) => {
   const t = useTranslations("Liquidity");
   const tWallet = useTranslations("Wallet");
+  const { isOpen, setIsOpen } = useConfirmLiquidityDialogStore();
 
+  const { setStatus } = useLiquidityStatusStore();
   const { tokenA, tokenB } = useAddLiquidityTokensStore();
   const { tier } = useLiquidityTierStore();
   const { price } = usePriceRange();
@@ -41,7 +43,7 @@ export const LiquidityActionButton = ({
 
   const { typedValue } = useLiquidityAmountsStore();
 
-  const { parsedAmounts } = useV3DerivedMintInfo({
+  const { parsedAmounts, noLiquidity } = useV3DerivedMintInfo({
     tokenA,
     tokenB,
     tier,
@@ -135,8 +137,30 @@ export const LiquidityActionButton = ({
   }
 
   if (approveTransactionsCount) {
-    return <ApproveButton />;
+    return (
+      <Button
+        variant={ButtonVariant.CONTAINED}
+        fullWidth
+        onClick={() => {
+          setStatus(LiquidityStatus.INITIAL);
+          setIsOpen(true);
+        }}
+      >
+        Approve
+      </Button>
+    );
   }
 
-  return <MintButton increase={increase} tokenId={tokenId} />;
+  return (
+    <Button
+      variant={ButtonVariant.CONTAINED}
+      fullWidth
+      onClick={() => {
+        setStatus(LiquidityStatus.MINT);
+        setIsOpen(true);
+      }}
+    >
+      {increase ? "Add liquidity" : noLiquidity ? "Create Pool & Mint liquidity" : "Mint liquidity"}
+    </Button>
+  );
 };

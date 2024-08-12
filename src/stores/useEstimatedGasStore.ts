@@ -16,6 +16,7 @@ interface EstimatedGasStore {
   }) => void;
 }
 
+// TODO: specify gas estimation type (mint or anything else)
 export const useEstimatedGasStore = create<EstimatedGasStore>()((set, get) => ({
   estimatedGas: {
     [EstimatedGasId.mint]: BigInt(530000),

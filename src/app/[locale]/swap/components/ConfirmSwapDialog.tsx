@@ -9,10 +9,12 @@ import useSwap, { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
 import { useConfirmSwapDialogStore } from "@/app/[locale]/swap/stores/useConfirmSwapDialogOpened";
 import { useSwapAmountsStore } from "@/app/[locale]/swap/stores/useSwapAmountsStore";
-import { useSwapEstimatedGasStore } from "@/app/[locale]/swap/stores/useSwapEstimatedGasStore";
-import { useSwapGasSettingsStore } from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
+import {
+  useSwapGasLimitStore,
+  useSwapGasPriceStore,
+} from "@/app/[locale]/swap/stores/useSwapGasSettingsStore";
 import { useSwapSettingsStore } from "@/app/[locale]/swap/stores/useSwapSettingsStore";
-import { useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
+import { SwapError, useSwapStatusStore } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import Alert from "@/components/atoms/Alert";
 import DialogHeader from "@/components/atoms/DialogHeader";
@@ -123,6 +125,8 @@ function SwapRow({
 }) {
   const t = useTranslations("Swap");
 
+  console.log(isPending);
+
   return (
     <div className="grid grid-cols-[32px_1fr_1fr] gap-2 h-10">
       <div className="flex items-center h-full">
@@ -188,6 +192,8 @@ function SwapActionButton() {
   const { isOpen, setIsOpen } = useConfirmSwapDialogStore();
 
   const { handleSwap } = useSwap();
+
+  const { errorType } = useSwapStatusStore();
 
   const {
     isPendingApprove,
@@ -321,15 +327,22 @@ function SwapActionButton() {
             withIcon={false}
             type="error"
             text={
-              <span>
-                Transaction failed due to lack of gas or an internal contract error. Try using
-                higher slippage or gas to ensure your transaction is completed. If you still have
-                issues, click{" "}
-                <a href="#" className="text-green hover:underline">
-                  common errors
-                </a>
-                .
-              </span>
+              errorType === SwapError.UNKNOWN ? (
+                <span>
+                  Transaction failed due to lack of gas or an internal contract error. Try using
+                  higher slippage or gas to ensure your transaction is completed. If you still have
+                  issues, click{" "}
+                  <a href="#" className="text-green hover:underline">
+                    common errors
+                  </a>
+                  .
+                </span>
+              ) : (
+                <span>
+                  Transaction failed due to lack of gas. Try increasing gas limit to ensure your
+                  transaction is completed. If you still have issues, contact support.
+                </span>
+              )
             }
           />
           <Button
@@ -438,7 +451,7 @@ export default function ConfirmSwapDialog() {
     isSettledSwap,
     isRevertedApprove,
   } = useSwapStatus();
-  const { estimatedGas } = useSwapEstimatedGasStore();
+  const { estimatedGas, customGasLimit } = useSwapGasLimitStore();
 
   const isProcessing = useMemo(() => {
     return (
@@ -458,28 +471,30 @@ export default function ConfirmSwapDialog() {
     isSettledSwap,
   ]);
 
-  const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
+  // const { gasOption, gasPrice, gasLimit } = useSwapGasSettingsStore();
 
+  const { gasPriceSettings } = useSwapGasPriceStore();
   const { data: baseFee } = useGasPrice();
 
   const computedGasSpending = useMemo(() => {
-    if (gasPrice.model === GasFeeModel.LEGACY && gasPrice.gasPrice) {
-      return formatFloat(formatGwei(gasPrice.gasPrice));
+    if (gasPriceSettings.model === GasFeeModel.LEGACY && gasPriceSettings.gasPrice) {
+      return formatFloat(formatGwei(gasPriceSettings.gasPrice));
     }
 
     if (
-      gasPrice.model === GasFeeModel.EIP1559 &&
-      gasPrice.maxFeePerGas &&
-      gasPrice.maxPriorityFeePerGas &&
+      gasPriceSettings.model === GasFeeModel.EIP1559 &&
+      gasPriceSettings.maxFeePerGas &&
+      gasPriceSettings.maxPriorityFeePerGas &&
       baseFee
     ) {
-      const lowerFeePerGas = gasPrice.maxFeePerGas > baseFee ? baseFee : gasPrice.maxFeePerGas;
+      const lowerFeePerGas =
+        gasPriceSettings.maxFeePerGas > baseFee ? baseFee : gasPriceSettings.maxFeePerGas;
 
-      return formatFloat(formatGwei(lowerFeePerGas + gasPrice.maxPriorityFeePerGas));
+      return formatFloat(formatGwei(lowerFeePerGas + gasPriceSettings.maxPriorityFeePerGas));
     }
 
     return "0.00";
-  }, [baseFee, gasPrice]);
+  }, [baseFee, gasPriceSettings]);
 
   return (
     <DrawerDialog
@@ -562,13 +577,6 @@ export default function ConfirmSwapDialog() {
           )}
           {!isProcessing && (
             <div className="pb-4 flex flex-col gap-2 rounded-b-3 text-14 mt-4">
-              {/*<SwapDetailsRow*/}
-              {/*  title={t("token_price", { symbol: tokenA?.symbol })}*/}
-              {/*  value={*/}
-              {/*    trade ? `${trade.executionPrice.toSignificant()} ${tokenB?.symbol}` : "Loading..."*/}
-              {/*  }*/}
-              {/*  tooltipText={t("minimum_received_tooltip")}*/}
-              {/*/>*/}
               <SwapDetailsRow
                 title={t("network_fee")}
                 value={
@@ -618,7 +626,11 @@ export default function ConfirmSwapDialog() {
               />
               <SwapDetailsRow
                 title={t("gas_limit")}
-                value={estimatedGas?.toString() || "Loading..."}
+                value={
+                  customGasLimit
+                    ? customGasLimit.toString()
+                    : (estimatedGas + BigInt(30000)).toString() || "Loading..."
+                }
                 tooltipText={t("gas_limit_tooltip")}
               />
             </div>

@@ -25,6 +25,7 @@ interface AllowanceStore {
   updateAllowedToSpend: (item: AllowanceItem, allowedToSpend: bigint) => void;
 }
 
+//TODO: check if wagmi cache will be good for this case
 export const useAllowanceStore = create<AllowanceStore>((set, get) => ({
   allowances: [],
   addAllowanceItem: (item) => set({ allowances: [...get().allowances, item] }),

@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Abi, Address, formatUnits, getAbiItem } from "viem";
-import {
-  useAccount,
-  useBlockNumber,
-  usePublicClient,
-  useReadContract,
-  useWalletClient,
-} from "wagmi";
+import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { IIFE } from "@/functions/iife";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
+import useScopedBlockNumber from "@/hooks/useScopedBlockNumber";
 import addToast from "@/other/toast";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 import { useAllowanceStore } from "@/stores/useAllowanceStore";
 import {
@@ -30,6 +26,13 @@ export enum AllowanceStatus {
   SUCCESS,
 }
 
+const allowanceGasLimitMap: Record<DexChainId, { base: bigint; additional: bigint }> = {
+  [DexChainId.SEPOLIA]: { base: BigInt(46200), additional: BigInt(10000) },
+  [DexChainId.BSC_TESTNET]: { base: BigInt(46200), additional: BigInt(10000) },
+};
+
+const defaultApproveValue = BigInt(46000);
+
 export function useStoreAllowance({
   token,
   contractAddress,
@@ -46,176 +49,100 @@ export function useStoreAllowance({
 
   const { allowances, addAllowanceItem, updateAllowedToSpend } = useAllowanceStore();
 
-  const currentAllowanceItem = useMemo(() => {
-    return allowances.find(
-      (allowanceItem) =>
-        allowanceItem.tokenAddress === token?.address0 &&
-        allowanceItem.contractAddress === contractAddress &&
-        allowanceItem.chainId === chainId &&
-        allowanceItem.account === address,
-    );
-  }, [address, allowances, chainId, contractAddress, token]);
+  const { refetch, data: currentAllowanceData } = useReadContract({
+    abi: ERC20_ABI,
+    address: token?.address0 as Address,
+    functionName: "allowance",
+    args: [
+      //set ! to avoid ts errors, make sure it is not undefined with "enable" option
+      address!,
+      contractAddress!,
+    ],
+    scopeKey: `${token?.address0}-${contractAddress}-${address}-${chainId}`,
+    query: {
+      //make sure hook don't run when there is no addresses
+      enabled: Boolean(token?.address0) && Boolean(address) && Boolean(contractAddress),
+    },
+    // cacheTime: 0,
+    // watch: true,
+  });
+
+  // const currentAllowanceItem = useMemo(() => {
+  //   return allowances.find(
+  //     (allowanceItem) =>
+  //       allowanceItem.tokenAddress === token?.address0 &&
+  //       allowanceItem.contractAddress === contractAddress &&
+  //       allowanceItem.chainId === chainId &&
+  //       allowanceItem.account === address,
+  //   );
+  // }, [address, allowances, chainId, contractAddress, token]);
 
   const { addRecentTransaction } = useRecentTransactionsStore();
 
-  const updateAllowance = useCallback(async () => {
-    if (!publicClient || !address || !contractAddress || !token) {
-      return;
+  const gasLimit = useMemo(() => {
+    if (allowanceGasLimitMap[chainId]) {
+      return allowanceGasLimitMap[chainId].additional + allowanceGasLimitMap[chainId].base;
     }
 
-    console.warn("NODE REQUEST FOR ALLOWANCE");
-    const data = await publicClient.readContract({
-      abi: ERC20_ABI,
-      functionName: "allowance",
-      address: token.address0,
-      args: [address, contractAddress],
-    });
+    return defaultApproveValue;
+  }, [chainId]);
 
-    if (data) {
-      if (currentAllowanceItem) {
-        updateAllowedToSpend(currentAllowanceItem, data);
-      } else {
-        addAllowanceItem({
-          tokenAddress: token.address0,
-          contractAddress,
-          account: address,
-          chainId,
-          allowedToSpend: data,
-        });
-      }
-    }
-  }, [
-    addAllowanceItem,
-    address,
-    chainId,
-    contractAddress,
-    currentAllowanceItem,
-    publicClient,
-    token,
-    updateAllowedToSpend,
-  ]);
+  // const updateAllowance = useCallback(async () => {
+  //   if (!publicClient || !address || !contractAddress || !token) {
+  //     return;
+  //   }
+  //
+  //   const data = await publicClient.readContract({
+  //     abi: ERC20_ABI,
+  //     functionName: "allowance",
+  //     address: token.address0,
+  //     args: [address, contractAddress],
+  //   });
+  //
+  //   if (currentAllowanceItem) {
+  //     updateAllowedToSpend(currentAllowanceItem, data);
+  //   } else {
+  //     addAllowanceItem({
+  //       tokenAddress: token.address0,
+  //       contractAddress,
+  //       account: address,
+  //       chainId,
+  //       allowedToSpend: data,
+  //     });
+  //   }
+  // }, [
+  //   addAllowanceItem,
+  //   address,
+  //   chainId,
+  //   contractAddress,
+  //   currentAllowanceItem,
+  //   publicClient,
+  //   token,
+  //   updateAllowedToSpend,
+  // ]);
 
-  useEffect(() => {
-    if (!currentAllowanceItem) {
-      updateAllowance();
-    }
-  }, [currentAllowanceItem, updateAllowance]);
+  // useEffect(() => {
+  //   if (!currentAllowanceItem) {
+  //     updateAllowance();
+  //   }
+  // }, [currentAllowanceItem, updateAllowance]);
 
   const waitAndReFetch = useCallback(
     async (hash: Address) => {
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash });
-        await updateAllowance();
+        await refetch();
       }
     },
-    [publicClient, updateAllowance],
+    [publicClient, refetch],
   );
 
-  //TODO: ADD OPTIONAL PARAMETER TO APPROVE MORE THAN CHECK
-  const writeTokenApprove = useCallback(async () => {
-    if (
-      !amountToCheck ||
-      !contractAddress ||
-      !token ||
-      !walletClient ||
-      !address ||
-      !chainId ||
-      !publicClient
-    ) {
-      console.error("Error: writeTokenApprove ~ something undefined");
-      return;
-    }
+  const writeTokenApprove = useCallback(
+    async (customAmount?: bigint) => {
+      const amountToApprove = customAmount || amountToCheck;
 
-    const params: {
-      address: Address;
-      account: Address;
-      abi: Abi;
-      functionName: "approve";
-      args: [Address, bigint];
-    } = {
-      address: token.address0 as Address,
-      account: address,
-      abi: ERC20_ABI,
-      functionName: "approve",
-      args: [contractAddress!, amountToCheck!],
-    };
-
-    try {
-      const estimatedGas = await publicClient.estimateContractGas(params);
-
-      const { request } = await publicClient.simulateContract({
-        ...params,
-        gas: estimatedGas + BigInt(30000),
-      });
-
-      let hash;
-
-      try {
-        hash = await walletClient.writeContract({ ...request, account: undefined });
-      } catch (e) {
-        console.log(e);
-      }
-
-      if (hash) {
-        const transaction = await publicClient.getTransaction({
-          hash,
-        });
-
-        const nonce = transaction.nonce;
-
-        addRecentTransaction(
-          {
-            hash,
-            nonce,
-            chainId,
-            gas: {
-              model: GasFeeModel.EIP1559,
-              gas: BigInt(30000).toString(),
-              maxFeePerGas: undefined,
-              maxPriorityFeePerGas: undefined,
-            },
-            params: {
-              ...stringifyObject(params),
-              abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
-            },
-            title: {
-              symbol: token.symbol!,
-              template: RecentTransactionTitleTemplate.APPROVE,
-              amount: formatUnits(amountToCheck, token.decimals),
-              logoURI: token?.logoURI || "/tokens/placeholder.svg",
-            },
-          },
-          address,
-        );
-
-        // no await needed, function should return hash without waiting
-        waitAndReFetch(hash);
-
-        return { success: true as const, hash };
-      }
-      return { success: false as const };
-    } catch (e) {
-      console.log(e);
-      addToast("Unexpected error, please contact support", "error");
-      return { success: false as const };
-    }
-  }, [
-    amountToCheck,
-    contractAddress,
-    token,
-    walletClient,
-    address,
-    chainId,
-    publicClient,
-    addRecentTransaction,
-    waitAndReFetch,
-  ]);
-
-  const [estimatedGas, setEstimatedGas] = useState(null as null | bigint);
-  useDeepEffect(() => {
-    IIFE(async () => {
       if (
-        !amountToCheck ||
+        !amountToApprove ||
         !contractAddress ||
         !token ||
         !walletClient ||
@@ -223,6 +150,7 @@ export function useStoreAllowance({
         !chainId ||
         !publicClient
       ) {
+        console.error("Error: writeTokenApprove ~ something undefined");
         return;
       }
 
@@ -237,29 +165,89 @@ export function useStoreAllowance({
         account: address,
         abi: ERC20_ABI,
         functionName: "approve",
-        args: [contractAddress!, amountToCheck!],
+        args: [contractAddress!, amountToApprove!],
       };
 
       try {
-        const estimatedGas = await publicClient.estimateContractGas(params);
-        setEstimatedGas(estimatedGas);
-      } catch (error) {
-        console.warn("🚀 ~ useAllowance ~ estimatedGas ~ error:", error, "params:", params);
-        setEstimatedGas(null);
+        const { request } = await publicClient.simulateContract({
+          ...params,
+          gas: gasLimit,
+        });
+
+        let hash;
+
+        try {
+          hash = await walletClient.writeContract({ ...request, account: undefined });
+        } catch (e) {
+          console.log(e);
+        }
+
+        if (hash) {
+          const transaction = await publicClient.getTransaction({
+            hash,
+          });
+
+          const nonce = transaction.nonce;
+
+          addRecentTransaction(
+            {
+              hash,
+              nonce,
+              chainId,
+              gas: {
+                model: GasFeeModel.EIP1559,
+                gas: gasLimit.toString(),
+                maxFeePerGas: undefined,
+                maxPriorityFeePerGas: undefined,
+              },
+              params: {
+                ...stringifyObject(params),
+                abi: [getAbiItem({ name: "approve", abi: ERC20_ABI })],
+              },
+              title: {
+                symbol: token.symbol!,
+                template: RecentTransactionTitleTemplate.APPROVE,
+                amount: formatUnits(amountToApprove, token.decimals),
+                logoURI: token?.logoURI || "/tokens/placeholder.svg",
+              },
+            },
+            address,
+          );
+
+          // no await needed, function should return hash without waiting
+          waitAndReFetch(hash);
+
+          return { success: true as const, hash };
+        }
+        return { success: false as const };
+      } catch (e) {
+        console.log(e);
+        addToast("Unexpected error, please contact support", "error");
+        return { success: false as const };
       }
-    });
-  }, [amountToCheck, contractAddress, token, walletClient, address, chainId, publicClient]);
+    },
+    [
+      amountToCheck,
+      contractAddress,
+      token,
+      walletClient,
+      address,
+      chainId,
+      publicClient,
+      gasLimit,
+      addRecentTransaction,
+      waitAndReFetch,
+    ],
+  );
 
   return {
     isAllowed: Boolean(
-      currentAllowanceItem?.allowedToSpend &&
-        amountToCheck &&
-        currentAllowanceItem.allowedToSpend >= amountToCheck,
+      currentAllowanceData && amountToCheck && currentAllowanceData >= amountToCheck,
     ),
     writeTokenApprove,
-    currentAllowance: currentAllowanceItem?.allowedToSpend,
-    estimatedGas,
-    currentAllowanceItem,
+    currentAllowance: currentAllowanceData,
+    estimatedGas: allowanceGasLimitMap[chainId]?.base || defaultApproveValue,
+    updateAllowance: refetch,
   };
 }
 
@@ -297,7 +285,7 @@ export default function useAllowance({
     // watch: true,
   });
 
-  const { data: blockNumber } = useBlockNumber({ watch: true });
+  const { data: blockNumber } = useScopedBlockNumber();
 
   useEffect(() => {
     // refetch();

@@ -56,7 +56,7 @@ export default function PoolsPage() {
     <Container>
       <div className="py-[40px] px-10 flex flex-col items-center">
         <div className="flex w-full justify-between items-center mb-6">
-          <div className="w-[300px] grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3">
+          <div className="w-[384px] grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3">
             <TabButton inactiveBackground="bg-primary-bg" size={48} active>
               Pools
             </TabButton>
@@ -64,9 +64,9 @@ export default function PoolsPage() {
               inactiveBackground="bg-primary-bg"
               size={48}
               active={false}
-              onClick={() => router.push("/pools/my-positions")}
+              onClick={() => router.push("/pools/positions")}
             >
-              My positions
+              Liquidity positions
             </TabButton>
           </div>
           <div className="flex gap-2 items-center">

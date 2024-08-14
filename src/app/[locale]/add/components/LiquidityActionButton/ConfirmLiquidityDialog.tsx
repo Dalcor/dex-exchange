@@ -169,6 +169,7 @@ const ApproveDialog = () => {
               index={index}
               itemsCount={transactionItems.length}
               isError={fieldsErrors[token]}
+              disabled={isLoading || isAllowed}
               setFieldError={(isError: boolean) => setFieldError(token, isError)}
               setCustomAmount={(amount: bigint) => {
                 if (token === "tokenA") {
@@ -354,12 +355,12 @@ const MintDialog = ({ increase = false, tokenId }: { increase?: boolean; tokenId
         {/* Price range */}
         <div>
           <div className="flex justify-between items-center mb-3 mt-5">
-            <span className="font-bold text-secondary-text">Selected Range</span>
+            <span className="font-bold text-secondary-text">Selected range</span>
             <div className="flex gap-0.5 bg-secondary-bg rounded-2 p-0.5">
               <button
                 onClick={() => setShowFirst(true)}
                 className={clsx(
-                  "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
+                  "text-12 h-7 rounded-2 min-w-[60px] px-3 border duration-200",
                   showFirst
                     ? "bg-green-bg border-green text-primary-text"
                     : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
@@ -370,7 +371,7 @@ const MintDialog = ({ increase = false, tokenId }: { increase?: boolean; tokenId
               <button
                 onClick={() => setShowFirst(false)}
                 className={clsx(
-                  "text-12 h-7 rounded-1 min-w-[60px] px-3 border duration-200",
+                  "text-12 h-7 rounded-2 min-w-[60px] px-3 border duration-200",
                   !showFirst
                     ? "bg-green-bg border-green text-primary-text"
                     : "hover:bg-green-bg bg-primary-bg border-transparent text-secondary-text",
@@ -388,7 +389,7 @@ const MintDialog = ({ increase = false, tokenId }: { increase?: boolean; tokenId
               price={minPriceString}
             />
             <div className="relative">
-              <div className="bg-primary-bg w-12 h-12 rounded-full text-placeholder-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+              <div className="bg-primary-bg w-12 h-12 rounded-full text-tertiary-text absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
                 <Svg iconName="double-arrow" />
               </div>
             </div>
@@ -572,7 +573,7 @@ const SuccessfulDialog = ({ isError = false }: { isError?: boolean }) => {
           </span>
         </div>
         {isError ? null : (
-          <Link href="/pools/my-positions">
+          <Link href="/pools/positions">
             <div className="flex gap-2 text-green justify-center">
               View my liquidity positions
               <Svg iconName="forward" />

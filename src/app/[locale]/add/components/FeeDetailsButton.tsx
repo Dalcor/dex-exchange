@@ -90,8 +90,8 @@ export const FeeDetailsButton = ({ isDisabled }: { isDisabled: boolean }) => {
                   </span>
                   <Badge color="green" text={standard} />
                 </div>
-                <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2">
-                  <span>
+                <div className="flex justify-between bg-secondary-bg px-5 py-3 rounded-3 text-secondary-text mt-2 border border-secondary-border">
+                  <span className="text-primary-text">
                     {formatUnits(transaction.amount || BigInt(0), transaction.token.decimals)}
                   </span>
                   <span>{t("fee_details_amount", { symbol: transaction.token.symbol })}</span>

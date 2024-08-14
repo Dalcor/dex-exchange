@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { useLocale, useTranslations } from "next-intl";
-import { ButtonHTMLAttributes, useEffect, useMemo, useState } from "react";
+import { ButtonHTMLAttributes, useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAddLiquidityTokensStore } from "@/app/[locale]/add/stores/useAddLiquidityTokensStore";
 import { useLiquidityTierStore } from "@/app/[locale]/add/stores/useLiquidityTierStore";
@@ -14,20 +14,51 @@ import { FeeAmount } from "@/sdk_hybrid/constants";
 
 import { useLiquidityPriceRangeStore } from "../stores/useLiquidityPriceRangeStore";
 
+const useDistributionText = ({
+  distributions,
+  poolStates,
+}: {
+  distributions: ReturnType<typeof useFeeTierDistribution>["distributions"];
+  poolStates: Record<FeeAmount, PoolState>;
+}) => {
+  const t = useTranslations("Liquidity");
+
+  const getDistributionText = useCallback(
+    (feeAmount: FeeAmount) => {
+      const poolState = poolStates[feeAmount];
+
+      const distributionText =
+        !distributions || poolState === PoolState.NOT_EXISTS || poolState === PoolState.INVALID
+          ? t("fee_tier_not_created")
+          : distributions[feeAmount] !== undefined
+            ? t("fee_tier_select", {
+                select: distributions[feeAmount]?.toFixed(0),
+              })
+            : t("fee_tier_no_data");
+
+      return distributionText;
+    },
+    [t, distributions, poolStates],
+  );
+
+  return {
+    getDistributionText,
+  };
+};
+
 interface FeeAmountOptionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
   feeAmount: FeeAmount;
-  distributions: ReturnType<typeof useFeeTierDistribution>["distributions"];
-  poolState: PoolState;
+  distributionText: string;
 }
 function FeeAmountOption({
   feeAmount,
   active = false,
-  distributions,
-  poolState,
+  distributionText,
   ...props
 }: FeeAmountOptionProps) {
   const t = useTranslations("Liquidity");
+
   return (
     <button
       {...props}
@@ -40,18 +71,7 @@ function FeeAmountOption({
     >
       <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
         <span>{t("fee_tier", { tier: FEE_AMOUNT_DETAIL[feeAmount].label })}</span>
-        <Badge
-          variant={BadgeVariant.PERCENTAGE}
-          percentage={
-            !distributions || poolState === PoolState.NOT_EXISTS || poolState === PoolState.INVALID
-              ? t("fee_tier_not_created")
-              : distributions[feeAmount] !== undefined
-                ? t("fee_tier_select", {
-                    select: distributions[feeAmount]?.toFixed(0),
-                  })
-                : t("fee_tier_no_data")
-          }
-        />
+        <Badge variant={BadgeVariant.PERCENTAGE} percentage={distributionText} />
       </div>
       <span className="text-secondary-text">
         {t(FEE_AMOUNT_DETAIL[feeAmount].description as any)}
@@ -107,6 +127,11 @@ export default function FeeAmountSettings() {
     [pools],
   );
 
+  const { getDistributionText } = useDistributionText({
+    distributions,
+    poolStates: poolsByFeeTier,
+  });
+
   return (
     <div className={clsx("rounded-3 mb-4 md:mb-5 bg-secondary-bg", isDisabled && "opacity-20")}>
       <div
@@ -125,7 +150,9 @@ export default function FeeAmountSettings() {
           <span className="font-bold">
             {t("fee_tier", { tier: FEE_AMOUNT_DETAIL[tier].label })}
           </span>
+          <Badge variant={BadgeVariant.PERCENTAGE} percentage={getDistributionText(tier)} />
         </div>
+
         <span className="flex items-center gap-2 group">
           <span className="">{t(isFeeOpened ? "hide" : "edit")}</span>
           <Svg
@@ -141,8 +168,7 @@ export default function FeeAmountSettings() {
               feeAmount={_feeAmount}
               key={_feeAmount}
               active={tier === _feeAmount}
-              distributions={distributions}
-              poolState={poolsByFeeTier[_feeAmount]}
+              distributionText={getDistributionText(_feeAmount)}
               onClick={() => {
                 setTier(_feeAmount);
                 clearPriceRange();

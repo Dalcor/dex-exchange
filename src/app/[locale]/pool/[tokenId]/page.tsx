@@ -107,7 +107,7 @@ export default function PoolPage({
       <div className="w-full md:w-[800px] md:mx-auto md:mt-[40px] mb-5 bg-primary-bg px-10 pb-10 rounded-5">
         <div className="flex justify-between items-center py-1.5 -mx-3">
           <button
-            onClick={() => router.push("/pools")}
+            onClick={() => router.push("/pools/positions")}
             className="flex items-center w-12 h-12 justify-center"
           >
             <Svg iconName="back" />

@@ -25,7 +25,7 @@ export default function PositionPriceRangeCard({
 
   return (
     <div className="rounded-3 overflow-hidden">
-      <div className="py-3 px-5 flex items-center justify-center flex-col bg-quaternary-bg">
+      <div className="py-3 px-5 flex items-center justify-center flex-col bg-tertiary-bg">
         <div className="text-14 text-secondary-text">{isMax ? "Max" : "Min"} price</div>
         <div className="text-18">{price}</div>
         <div className="text-14 text-secondary-text">

@@ -114,7 +114,7 @@ export const LiquidityActionButton = ({
 
   if (!tokenA || !tokenB) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button variant={ButtonVariant.CONTAINED} fullWidth disabled>
         {t("select_tokens")}
       </Button>
     );
@@ -122,7 +122,7 @@ export const LiquidityActionButton = ({
 
   if (!typedValue || typedValue === "0") {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button variant={ButtonVariant.CONTAINED} fullWidth disabled>
         {t("button_enter_amount")}
       </Button>
     );
@@ -130,7 +130,7 @@ export const LiquidityActionButton = ({
 
   if (!isSufficientBalance) {
     return (
-      <Button variant={ButtonVariant.OUTLINED} fullWidth disabled>
+      <Button variant={ButtonVariant.CONTAINED} fullWidth disabled>
         {t("button_insufficient_balance")}
       </Button>
     );

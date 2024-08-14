@@ -14,6 +14,7 @@ import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
 import Button, { ButtonSize, ButtonVariant } from "@/components/buttons/Button";
+import { clsxMerge } from "@/functions/clsxMerge";
 import { formatFloat } from "@/functions/formatFloat";
 import { getChainSymbol } from "@/functions/getChainSymbol";
 import { AllowanceStatus } from "@/hooks/useAllowance";
@@ -188,6 +189,12 @@ function InputStandardAmount({
     setIsError(!valueBigInt || valueBigInt <= currentAllowance ? false : true);
   };
 
+  const inputDisabled = [
+    AllowanceStatus.LOADING,
+    AllowanceStatus.PENDING,
+    AllowanceStatus.SUCCESS,
+  ].includes(status);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
@@ -220,37 +227,43 @@ function InputStandardAmount({
           </span>
         </div>
       </div>
-      <div className="flex justify-between items-center">
-        {token && (
-          <div className="flex items-center gap-1">
-            <Tooltip
-              iconSize={16}
-              text={standard === Standard.ERC20 ? t("approved_tooltip") : t("deposited_tooltip")}
-            />
-            <span className="text-12 text-secondary-text">
-              {standard === Standard.ERC20
-                ? t("approved", {
-                    approved: formatFloat(
-                      formatUnits(currentAllowance || BigInt(0), token.decimals),
-                    ),
-                    symbol: token.symbol,
-                  })
-                : t("deposited", {
-                    deposited: formatFloat(
-                      formatUnits(currentAllowance || BigInt(0), token.decimals),
-                    ),
-                    symbol: token.symbol,
-                  })}
-            </span>
-          </div>
-        )}
-        {!!currentAllowance ? (
-          <span
-            className="text-12 px-2 pt-[1px] pb-[2px] border border-green rounded-3 h-min cursor-pointer hover:text-green duration-200"
-            onClick={() => setIsOpenedRevokeDialog(true)}
-          >
-            {standard === Standard.ERC20 ? t("revoke") : t("withdraw")}
-          </span>
+      <div className={clsx("flex justify-between items-center h-4")}>
+        {currentAllowance > 0 ? (
+          <>
+            {token && (
+              <div className="flex items-center gap-1">
+                <Tooltip
+                  iconSize={16}
+                  text={
+                    standard === Standard.ERC20 ? t("approved_tooltip") : t("deposited_tooltip")
+                  }
+                />
+                <span className="text-12 text-secondary-text">
+                  {standard === Standard.ERC20
+                    ? t("approved", {
+                        approved: formatFloat(
+                          formatUnits(currentAllowance || BigInt(0), token.decimals),
+                        ),
+                        symbol: token.symbol,
+                      })
+                    : t("deposited", {
+                        deposited: formatFloat(
+                          formatUnits(currentAllowance || BigInt(0), token.decimals),
+                        ),
+                        symbol: token.symbol,
+                      })}
+                </span>
+              </div>
+            )}
+            {!!currentAllowance ? (
+              <span
+                className="text-12 px-2 pt-[1px] pb-[2px] border border-green rounded-3 h-min cursor-pointer hover:text-green duration-200"
+                onClick={() => setIsOpenedRevokeDialog(true)}
+              >
+                {standard === Standard.ERC20 ? t("revoke") : t("withdraw")}
+              </span>
+            ) : null}
+          </>
         ) : null}
       </div>
       {token && (
@@ -291,9 +304,10 @@ function InputStandardAmount({
             ) : (
               <>
                 <div
-                  className={clsx(
-                    "flex justify-between bg-secondary-bg px-5 py-3 rounded-3 mt-2 border ",
-                    isError ? "border-red" : "border-transparent",
+                  className={clsxMerge(
+                    "flex justify-between bg-secondary-bg px-5 py-3 rounded-3 mt-2 border border-transparent",
+                    isError ? "border-red" : "",
+                    inputDisabled ? "border-secondary-border" : "",
                   )}
                 >
                   <NumericFormat
@@ -303,6 +317,7 @@ function InputStandardAmount({
                       "bg-transparent text-primary-text outline-0 border-0 w-full peer ",
                     )}
                     type="text"
+                    disabled={inputDisabled}
                     value={
                       typeof localValue === "undefined"
                         ? formatUnits(currentAllowance || BigInt(0), token.decimals)

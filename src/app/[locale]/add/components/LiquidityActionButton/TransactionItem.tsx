@@ -6,6 +6,7 @@ import { formatEther, formatGwei, formatUnits, parseUnits } from "viem";
 import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Badge from "@/components/badges/Badge";
+import { clsxMerge } from "@/functions/clsxMerge";
 import { formatFloat } from "@/functions/formatFloat";
 import { AllowanceStatus } from "@/hooks/useAllowance";
 import { Standard } from "@/sdk_hybrid/standard";
@@ -22,6 +23,7 @@ export const TransactionItem = ({
   isError,
   setFieldError,
   setCustomAmount,
+  disabled = false,
 }: {
   transaction?: ApproveTransaction;
   gasPrice: any;
@@ -32,6 +34,7 @@ export const TransactionItem = ({
   isError: boolean;
   setFieldError: (isError: boolean) => void;
   setCustomAmount: (amount: bigint) => void;
+  disabled?: boolean;
 }) => {
   const [localValue, setLocalValue] = useState(
     formatUnits(transaction?.amount || BigInt(0), transaction?.token.decimals || 18),
@@ -101,21 +104,23 @@ export const TransactionItem = ({
           </div>
         </div>
         <div
-          className={clsx(
-            "flex justify-between bg-secondary-bg px-5 py-3 rounded-3 mt-2 border ",
-            isError ? "border-red" : "border-transparent",
+          className={clsxMerge(
+            "flex justify-between bg-secondary-bg px-5 py-3 rounded-3 mt-2 border border-transparent",
+            isError ? "border-red" : "",
+            disabled ? "border-secondary-border" : "",
           )}
         >
           <NumericFormat
             inputMode="decimal"
             placeholder="0.0"
-            className={clsx("bg-transparent text-primary-text outline-0 border-0 w-full peer ")}
+            className={clsx("bg-transparent text-primary-text outline-0 border-0 w-full peer")}
             type="text"
             value={localValue}
             onValueChange={(values) => {
               updateValue(values.value);
             }}
             allowNegative={false}
+            disabled={disabled}
           />
           <span className="text-secondary-text min-w-max">{`Amount ${token.symbol}`}</span>
         </div>

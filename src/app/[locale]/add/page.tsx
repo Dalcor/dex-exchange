@@ -116,7 +116,7 @@ export default function AddPoolPage() {
               iconSize={IconSize.REGULAR}
               iconName="back"
               buttonSize={IconButtonSize.LARGE}
-              onClick={() => router.push("/pools")}
+              onClick={() => router.push("/pools/positions")}
             />
           </div>
           <h2 className="text-18 md:text-20 font-bold">{t("add_liquidity_title")}</h2>

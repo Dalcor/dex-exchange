@@ -58,7 +58,7 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
   return (
     <div
       role="button"
-      className="px-5 py-4 rounded-3 bg-secondary-bg hover:bg-secondary-bg duration-200 cursor-pointer"
+      className="px-5 py-4 rounded-3 bg-secondary-bg hover:bg-green-bg duration-200 cursor-pointer"
       onClick={onClick}
     >
       <div className="justify-between flex items-center mb-2">
@@ -83,7 +83,7 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
       <div className="hidden md:flex gap-2 items-center">
         <span className="text-secondary-text">Min:</span> {minTokenAPerTokenB} {tokenA?.symbol} per{" "}
         {tokenB?.symbol}
-        <Svg iconName="double-arrow" />
+        <Svg iconName="double-arrow" className="text-secondary-text" />
         <span className="text-secondary-text">Max:</span> {maxTokenAPerTokenB} {tokenA?.symbol} per{" "}
         {tokenB?.symbol}
       </div>
@@ -105,7 +105,7 @@ function PoolPosition({ onClick, positionInfo }: { onClick: any; positionInfo: P
   );
 }
 
-const MyPositions = () => {
+const Positions = () => {
   const { isConnected } = useAccount();
   const router = useRouter();
 
@@ -181,7 +181,7 @@ export default function PoolsPage() {
     <Container>
       <div className="py-[40px] px-10 flex flex-col items-center">
         <div className="flex w-full justify-between items-center mb-6">
-          <div className="w-[300px] grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3">
+          <div className="w-[384px] grid grid-cols-2 bg-secondary-bg p-1 gap-1 rounded-3">
             <TabButton
               inactiveBackground="bg-primary-bg"
               size={48}
@@ -191,7 +191,7 @@ export default function PoolsPage() {
               Pools
             </TabButton>
             <TabButton inactiveBackground="bg-primary-bg" size={48} active>
-              My positions
+              Liquidity positions
             </TabButton>
           </div>
           <Button size={ButtonSize.LARGE} onClick={() => router.push("/add")}>
@@ -201,7 +201,7 @@ export default function PoolsPage() {
             </span>
           </Button>
         </div>
-        <MyPositions />
+        <Positions />
       </div>
     </Container>
   );

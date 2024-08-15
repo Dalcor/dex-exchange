@@ -3,13 +3,15 @@ import { InputHTMLAttributes, ReactNode } from "react";
 
 import Input, { SearchInput } from "@/components/atoms/Input";
 import Tooltip from "@/components/atoms/Tooltip";
+import { clsxMerge } from "@/functions/clsxMerge";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   helperText?: ReactNode;
   tooltipText?: string;
   variant?: "default" | "search";
-  internalText?: string;
+  internalText?: string | ReactNode;
+  internalTextClassName?: string;
   isError?: boolean;
   isWarning?: boolean;
 } & (
@@ -31,6 +33,25 @@ export function InputLabel({ label, tooltipText, ...props }: Omit<Props, "helper
       {label}
       {tooltipText && <Tooltip iconSize={24} text={tooltipText} />}
     </p>
+  );
+}
+
+export function HelperText({
+  helperText,
+  error,
+  warning,
+  disabled,
+}: Pick<Props, "helperText" | "error" | "warning" | "disabled">) {
+  return (
+    <div className="text-12 mt-1 h-4">
+      {typeof helperText !== "undefined" && !error && (
+        <div className={clsx("text-12 text-secondary-text mt-1 h-4", disabled && "opacity-50")}>
+          {helperText}
+        </div>
+      )}
+      {typeof error !== "undefined" && <p className="text-12 text-red-input mt-1">{error}</p>}
+      {warning && <p className="text-12 text-orange mt-1">{warning}</p>}
+    </div>
   );
 }
 //TODO: add custom copmonent to pass instead of Input, for example Search Input
@@ -66,17 +87,12 @@ export default function TextField({
         <SearchInput isError={Boolean(error)} isWarning={Boolean(warning)} {...props} />
       )}
 
-      <div className="text-12 mt-1 h-4">
-        {typeof helperText !== "undefined" && !error && (
-          <div
-            className={clsx("text-12 text-secondary-text mt-1 h-4", props.disabled && "opacity-50")}
-          >
-            {helperText}
-          </div>
-        )}
-        {typeof error !== "undefined" && <p className="text-12 text-red-input mt-1">{error}</p>}
-        {warning && <p className="text-12 text-orange mt-1">{warning}</p>}
-      </div>
+      <HelperText
+        helperText={helperText}
+        error={error}
+        warning={warning}
+        disabled={props.disabled}
+      />
     </div>
   );
 }

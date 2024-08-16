@@ -304,5 +304,17 @@
   },
   "Toast": {
     "successfully_copied": "Successfully copied!"
+  },
+  "Portfolio": {
+    "title": "Portfolio",
+    "search_placeholder": "Search wallet address",
+    "balances_title": "Wallet assets",
+    "balances_search_placeholder": "Search name or paste address",
+    "margin_title": "Margin positions",
+    "margin_search_placeholder": "Search by ID",
+    "lending_title": "Lending orders",
+    "lending_search_placeholder": "Search by ID",
+    "liquidity_title": "Liquidity positions",
+    "deposited_title": "Deposited to contract"
   }
 }

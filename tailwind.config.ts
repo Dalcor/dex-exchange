@@ -37,6 +37,8 @@ const config: Config = {
         "swap-gas-gradient-right": "linear-gradient(90deg, #0F0F0F 0%, #1D1E1E 100%)",
         "swap-gas-gradient-left": "linear-gradient(90deg, #1D1E1E 0%, #0F0F0F 100%)",
         "test-tokens-gradient": "linear-gradient(90deg, #3C4C4A 0%, #1D1E1E 100%)",
+        "portfolio-balance-gradient": "linear-gradient(90deg, #3C4C4A 0%, #70C59E 100%)",
+        "portfolio-margin-positions-gradient": "linear-gradient(90deg, #232A2F 0%, #72A4C7 100%)",
       },
       keyframes: {
         appear: {

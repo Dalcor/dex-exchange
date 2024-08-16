@@ -19,7 +19,6 @@ import { EstimatedGasId, useEstimatedGasStoreById } from "@/stores/useEstimatedG
 
 import { useLiquidityApprove } from "../../hooks/useLiquidityApprove";
 import { FeeDetailsButton } from "../FeeDetailsButton";
-
 export const DepositAmounts = ({
   parsedAmounts,
   currencies,

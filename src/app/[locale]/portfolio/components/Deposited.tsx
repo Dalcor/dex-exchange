@@ -4,12 +4,53 @@ import clsx from "clsx";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { formatUnits } from "viem";
 
 import { SearchInput } from "@/components/atoms/Input";
 import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
+import { formatFloat } from "@/functions/formatFloat";
+import useCurrentChainId from "@/hooks/useCurrentChainId";
+import useDeposit from "@/hooks/useDeposit";
+import { useTokens } from "@/hooks/useTokenLists";
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { Token } from "@/sdk_hybrid/entities/token";
+
+const DepositedTokenTableItem = ({ token }: { token: Token }) => {
+  const chainId = useCurrentChainId();
+
+  const { currentDeposit, isLoading } = useDeposit({
+    amountToCheck: null,
+    contractAddress: NONFUNGIBLE_POSITION_MANAGER_ADDRESS[chainId],
+    token,
+  });
+
+  return (
+    <>
+      <div
+        className={clsx(
+          "h-[56px] flex items-center gap-2 pl-5 rounded-l-3",
+          // index % 2 !== 0 && "bg-tertiary-bg",
+        )}
+      >
+        <Image src="/tokens/placeholder.svg" width={24} height={24} alt="" />
+        <span>{`${token.name}`}</span>
+      </div>
+      <div className={clsx("h-[56px] flex items-center")}>
+        {isLoading
+          ? "Loading..."
+          : `${formatFloat(formatUnits(currentDeposit || BigInt(0), token.decimals))} ${token.symbol}`}
+      </div>
+      <div className={clsx("h-[56px] flex items-center")}>$0.00</div>
+      <div className={clsx("h-[56px] flex items-center justify-end pr-8")}>
+        <Svg iconName="list" />
+      </div>
+      <div className={clsx("h-[56px] flex items-center pr-5 rounded-r-3")}>Token owner</div>
+    </>
+  );
+};
 
 export const Deposited = () => {
   const t = useTranslations("Portfolio");
@@ -17,7 +58,8 @@ export const Deposited = () => {
 
   const loading = false;
 
-  const currentTableData = [] as any[];
+  const tokens = useTokens();
+
   return (
     <>
       <div className="mt-5 flex gap-5">
@@ -52,56 +94,12 @@ export const Deposited = () => {
             Amount <Badge color="green" text="ERC-223" />
           </div>
           <div className="h-[60px] flex items-center">Amount, $</div>
-          <div className="h-[60px] flex items-center">Details</div>
+          <div className="h-[60px] flex items-center justify-end pr-6">Details</div>
           <div className="pr-5 h-[60px] flex items-center">Action / Owner</div>
 
           {!loading &&
-            currentTableData.map((o: any, index: number) => {
-              return (
-                <>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center gap-2 pl-5 rounded-l-3",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    <Image src="/tokens/placeholder.svg" width={24} height={24} alt="" />
-                    <span>{`${o.name}`}</span>
-                  </div>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    {o.amountERC20}
-                  </div>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    {o.amountERC223}
-                  </div>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    {o.amountFiat}
-                  </div>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center justify-end pr-5 rounded-r-3",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    <Svg iconName="list" />
-                  </div>
-                </>
-              );
+            tokens.map((token, index: number) => {
+              return <DepositedTokenTableItem key={token.address0} token={token} />;
             })}
         </div>
         {loading ? (

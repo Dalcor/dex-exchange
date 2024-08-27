@@ -315,6 +315,9 @@
     "lending_title": "Lending orders",
     "lending_search_placeholder": "Search by ID",
     "liquidity_title": "Liquidity positions",
-    "deposited_title": "Deposited to contract"
+    "liquidity_search_placeholder": "Search by ID",
+    "deposited_title": "Deposited to contract",
+    "enter_in_correct_format": "Enter token address in correct format"
+
   }
 }

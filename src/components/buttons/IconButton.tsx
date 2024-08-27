@@ -53,6 +53,7 @@ export enum IconButtonVariant {
   CONTROL,
   COPY,
   SORTING,
+  ADD,
 }
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> &
@@ -61,6 +62,10 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> &
     | {
         variant: IconButtonVariant.DELETE;
         handleDelete: () => void;
+      }
+    | {
+        variant: IconButtonVariant.ADD;
+        handleAdd: () => void;
       }
     | {
         variant: IconButtonVariant.CLOSE;
@@ -118,6 +123,18 @@ export default function IconButton(_props: Props) {
           iconName="delete"
           onClick={_props.handleDelete}
           className="rounded-full bg-transparent hover:bg-red-bg text-tertiary-text hover:text-red duration-200"
+          {...props}
+        />
+      );
+    }
+    case IconButtonVariant.ADD: {
+      const { handleAdd, ...props } = _props;
+
+      return (
+        <IconButtonFrame
+          iconName="add"
+          onClick={_props.handleAdd}
+          className="bg-green text-black hover:bg-green-hover rounded-2 duration-200"
           {...props}
         />
       );

@@ -5,19 +5,71 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import EmptyStateIcon from "@/components/atoms/EmptyStateIcon";
 import { SearchInput } from "@/components/atoms/Input";
 import Preloader from "@/components/atoms/Preloader";
 import Svg from "@/components/atoms/Svg";
 import Tooltip from "@/components/atoms/Tooltip";
 import Badge from "@/components/badges/Badge";
+import RangeBadge, { PositionRangeStatus } from "@/components/badges/RangeBadge";
 import Button from "@/components/buttons/Button";
-import { Link } from "@/navigation";
+import usePositions, {
+  PositionInfo,
+  usePositionFromPositionInfo,
+  usePositionRangeStatus,
+} from "@/hooks/usePositions";
+import { Link, useRouter } from "@/navigation";
 
+const PositionTableItem = ({ positionInfo }: { positionInfo: PositionInfo }) => {
+  const position = usePositionFromPositionInfo(positionInfo);
+  const { inRange, removed } = usePositionRangeStatus({ position });
+
+  return (
+    <>
+      <div
+        className={clsx(
+          "h-[56px] flex items-center gap-2 pl-5 rounded-l-3",
+          // index % 2 !== 0 && "bg-tertiary-bg",
+        )}
+      >
+        <span>{`${positionInfo.tokenId}`}</span>
+      </div>
+      <div className={clsx("h-[56px] flex items-center gap-2")}>
+        <Image src="/tokens/placeholder.svg" width={24} height={24} alt="" />
+        <Image
+          src="/tokens/placeholder.svg"
+          width={24}
+          height={24}
+          alt=""
+          className="ml-[-20px] bg-primary-bg rounded-full"
+        />
+
+        {position
+          ? `${position.amount0.toSignificant()} ${position.pool.token0.symbol}/${position.amount1.toSignificant()} ${position.pool.token1.symbol}`
+          : "Loading..."}
+      </div>
+      <div className={clsx("h-[56px] flex items-center")}>$0.00</div>
+      <div className={clsx("h-[56px] flex items-center")}>$0.00</div>
+      <div className={clsx("h-[56px] flex items-center pr-5 rounded-r-3")}>
+        <RangeBadge
+          status={
+            removed
+              ? PositionRangeStatus.CLOSED
+              : inRange
+                ? PositionRangeStatus.IN_RANGE
+                : PositionRangeStatus.OUT_OF_RANGE
+          }
+        />
+      </div>
+    </>
+  );
+};
 export const LiquidityPositions = () => {
   const t = useTranslations("Portfolio");
   const [searchValue, setSearchValue] = useState("");
 
-  const loading = false;
+  const router = useRouter();
+  const { loading, positions } = usePositions();
 
   const currentTableData = [] as any[];
   return (
@@ -48,7 +100,7 @@ export const LiquidityPositions = () => {
           <SearchInput
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder={t("balances_search_placeholder")}
+            placeholder={t("liquidity_search_placeholder")}
             className="bg-primary-bg w-[480px]"
           />
         </div>
@@ -56,7 +108,7 @@ export const LiquidityPositions = () => {
       {/*  */}
 
       <div className="mt-5 min-h-[640px] mb-5 w-full">
-        <div className="pr-5 pl-5 grid rounded-5 overflow-hidden bg-table-gradient grid-cols-[minmax(50px,2.67fr),_minmax(87px,1.33fr),_minmax(55px,1.33fr),_minmax(50px,1.33fr),_minmax(50px,1.33fr)] pb-2 relative">
+        <div className="pr-5 pl-5 grid rounded-5 overflow-hidden bg-table-gradient grid-cols-[minmax(50px,1.33fr),_minmax(87px,2.67fr),_minmax(55px,1.33fr),_minmax(50px,1.33fr),_minmax(50px,1.33fr)] pb-2 relative">
           <div className="pl-5 h-[60px] flex items-center">ID</div>
           <div className="h-[60px] flex items-center gap-2">Amount tokens</div>
           <div className="h-[60px] flex items-center">Amount, $</div>
@@ -64,52 +116,8 @@ export const LiquidityPositions = () => {
           <div className="pr-5 h-[60px] flex items-center">Status</div>
 
           {!loading &&
-            currentTableData.map((o: any, index: number) => {
-              return (
-                <>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center gap-2 pl-5 rounded-l-3",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    <Image src="/tokens/placeholder.svg" width={24} height={24} alt="" />
-                    <span>{`${o.name}`}</span>
-                  </div>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    {o.amountERC20}
-                  </div>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    {o.amountERC223}
-                  </div>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    {o.amountFiat}
-                  </div>
-                  <div
-                    className={clsx(
-                      "h-[56px] flex items-center justify-end pr-5 rounded-r-3",
-                      index % 2 !== 0 && "bg-tertiary-bg",
-                    )}
-                  >
-                    <Svg iconName="list" />
-                  </div>
-                </>
-              );
+            positions.map((position, index: number) => {
+              return <PositionTableItem key={position.tokenId} positionInfo={position} />;
             })}
         </div>
         {loading ? (

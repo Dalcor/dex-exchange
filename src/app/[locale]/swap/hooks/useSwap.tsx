@@ -1,7 +1,14 @@
 import JSBI from "jsbi";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo } from "react";
-import { Address, encodeFunctionData, getAbiItem, parseUnits } from "viem";
+import {
+  Address,
+  encodeAbiParameters,
+  encodeFunctionData,
+  encodePacked,
+  getAbiItem,
+  parseUnits,
+} from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { useTrade } from "@/app/[locale]/swap/libs/trading";
@@ -20,6 +27,7 @@ import {
 } from "@/app/[locale]/swap/stores/useSwapStatusStore";
 import { useSwapTokensStore } from "@/app/[locale]/swap/stores/useSwapTokensStore";
 import { ERC223_ABI } from "@/config/abis/erc223";
+import { POOL_ABI } from "@/config/abis/pool";
 import { ROUTER_ABI } from "@/config/abis/router";
 import {
   baseFeeMultipliers,
@@ -124,12 +132,31 @@ export function useSwapParams() {
         abi: ERC223_ABI,
         functionName: "transfer",
         args: [
-          ROUTER_ADDRESS[chainId],
+          poolAddress.poolAddress,
           parseUnits(typedValue, tokenA.decimals), // amountSpecified
           encodeFunctionData({
-            abi: ROUTER_ABI,
-            functionName: "exactInputSingle",
-            args: [routerParams],
+            abi: POOL_ABI,
+            functionName: "swap",
+            args: [
+              (address as Address) || poolAddress.poolAddress, // account address
+              zeroForOne, //zeroForOne
+              parseUnits(typedValue, tokenA.decimals), // amountSpecified
+              BigInt(sqrtPriceLimitX96.toString()), //sqrtPriceLimitX96
+              tokenBStandard === Standard.ERC223, // prefer223Out
+              encodeAbiParameters(
+                [
+                  { name: "path", type: "bytes" },
+                  { name: "payer", type: "address" },
+                ],
+                [
+                  encodePacked(
+                    ["address", "uint24", "address"],
+                    [tokenA.address0, FeeAmount.MEDIUM, tokenB.address0],
+                  ),
+                  "0x0000000000000000000000000000000000000000",
+                ],
+              ),
+            ],
           }),
         ],
       };

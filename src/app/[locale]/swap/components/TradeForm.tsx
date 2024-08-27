@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useTranslations } from "next-intl";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { formatGwei, formatUnits, parseUnits } from "viem";
-import { useAccount, useGasPrice } from "wagmi";
+import { useAccount } from "wagmi";
 
 import SwapDetails from "@/app/[locale]/swap/components/SwapDetails";
 import { useSwapStatus } from "@/app/[locale]/swap/hooks/useSwap";
@@ -35,7 +35,6 @@ import { usePoolBalances } from "@/hooks/usePoolBalances";
 import useScopedBlockNumber from "@/hooks/useScopedBlockNumber";
 import useTokenBalances from "@/hooks/useTokenBalances";
 import { ROUTER_ADDRESS } from "@/sdk_hybrid/addresses";
-import { DexChainId } from "@/sdk_hybrid/chains";
 import { Currency } from "@/sdk_hybrid/entities/currency";
 import { CurrencyAmount } from "@/sdk_hybrid/entities/fractions/currencyAmount";
 import { Token } from "@/sdk_hybrid/entities/token";
@@ -303,18 +302,21 @@ export default function TradeForm() {
   const { isLoadingSwap, isPendingSwap, isLoadingApprove, isPendingApprove } = useSwapStatus();
 
   const { setIsOpen: setConfirmSwapDialogOpen } = useConfirmSwapDialogStore();
-  const { baseFee } = useFees();
+  const { baseFee, priorityFee, gasPrice } = useFees();
 
   const computedGasSpending = useMemo(() => {
     if (gasPriceSettings.model === GasFeeModel.LEGACY && gasPriceSettings.gasPrice) {
       return formatFloat(formatGwei(gasPriceSettings.gasPrice));
     }
 
+    console.log(gasPriceSettings);
+
     if (
       gasPriceSettings.model === GasFeeModel.EIP1559 &&
       gasPriceSettings.maxFeePerGas &&
       gasPriceSettings.maxPriorityFeePerGas &&
-      baseFee
+      baseFee &&
+      gasPriceOption === GasOption.CUSTOM
     ) {
       const lowerFeePerGas =
         gasPriceSettings.maxFeePerGas > baseFee ? baseFee : gasPriceSettings.maxFeePerGas;
@@ -322,8 +324,19 @@ export default function TradeForm() {
       return formatFloat(formatGwei(lowerFeePerGas + gasPriceSettings.maxPriorityFeePerGas));
     }
 
+    if (
+      gasPriceSettings.model === GasFeeModel.EIP1559 &&
+      baseFee &&
+      priorityFee &&
+      gasPriceOption !== GasOption.CUSTOM
+    ) {
+      return formatFloat(formatGwei(baseFee + priorityFee));
+    }
+
     return undefined;
-  }, [baseFee, gasPriceSettings]);
+  }, [baseFee, gasPriceOption, gasPriceSettings, priorityFee]);
+
+  console.log(computedGasSpending);
 
   return (
     <div className="px-4 md:px-10 pt-2.5 pb-5 bg-primary-bg rounded-5">

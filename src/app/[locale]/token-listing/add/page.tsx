@@ -1,39 +1,53 @@
 "use client";
 
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { Address, isAddress } from "viem";
+import { Address, formatUnits, isAddress } from "viem";
 import { usePublicClient, useReadContract, useWalletClient } from "wagmi";
 
+import useAutoListingContracts, {
+  useAutoListingContract,
+} from "@/app/[locale]/token-listing/add/hooks/useAutoListingContracts";
+import { useAutoListingSearchParams } from "@/app/[locale]/token-listing/add/hooks/useAutolistingSearchParams";
 import useListToken from "@/app/[locale]/token-listing/add/hooks/useListToken";
 import { useAutoListingContractStore } from "@/app/[locale]/token-listing/add/stores/useAutoListingContractStore";
 import { useListTokensStore } from "@/app/[locale]/token-listing/add/stores/useListTokensStore";
 import Alert from "@/components/atoms/Alert";
 import Container from "@/components/atoms/Container";
+import Dialog from "@/components/atoms/Dialog";
 import DialogHeader from "@/components/atoms/DialogHeader";
 import ExternalTextLink from "@/components/atoms/ExternalTextLink";
+import SelectButton from "@/components/atoms/SelectButton";
 import Svg from "@/components/atoms/Svg";
-import TextField, { HelperText, InputLabel } from "@/components/atoms/TextField";
+import { HelperText, InputLabel } from "@/components/atoms/TextField";
+import Badge, { BadgeVariant } from "@/components/badges/Badge";
 import Button from "@/components/buttons/Button";
 import PickTokenDialog from "@/components/dialogs/PickTokenDialog";
+import { PAYABLE_AUTOLISTING_ABI } from "@/config/abis/autolisting";
 import { ERC20_ABI } from "@/config/abis/erc20";
 import { TOKEN_CONVERTER_ABI } from "@/config/abis/tokenConverter";
+import getExplorerLink, { ExplorerLinkType } from "@/functions/getExplorerLink";
+import truncateMiddle from "@/functions/truncateMiddle";
 import useCurrentChainId from "@/hooks/useCurrentChainId";
 import { useTokens } from "@/hooks/useTokenLists";
 import { useRouter } from "@/navigation";
 import { CONVERTER_ADDRESS } from "@/sdk_hybrid/addresses";
+import { DexChainId } from "@/sdk_hybrid/chains";
 import { Token } from "@/sdk_hybrid/entities/token";
 
 export default function ListTokenPage() {
-  const searchParams = useSearchParams();
+  useAutoListingSearchParams();
   const router = useRouter();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const chainId = useCurrentChainId();
-  console.log(searchParams);
 
-  const { autoListingContract } = useAutoListingContractStore();
+  const { autoListingContract, setAutoListingContract } = useAutoListingContractStore();
+  const autoListings = useAutoListingContracts();
+
+  const autoListing = useAutoListingContract(autoListingContract);
+
+  console.log(autoListing);
 
   const { tokenA, tokenB, setTokenA, setTokenB } = useListTokensStore();
 
@@ -98,8 +112,40 @@ export default function ListTokenPage() {
         setToken(_token);
       }
     },
-    [],
+    [chainId, publicClient, tokens],
   );
+
+  const [paymentMethod, setPaymentMethod] = useState<{ token: Address; price: bigint }>();
+
+  const tokensToPay = useReadContract({
+    abi: PAYABLE_AUTOLISTING_ABI,
+    address: autoListingContract,
+    functionName: "getPrices",
+  });
+
+  useEffect(() => {
+    if (!paymentMethod && tokensToPay?.data?.[0]) {
+      setPaymentMethod(tokensToPay?.data?.[0]);
+    }
+  }, [paymentMethod, tokensToPay?.data]);
+
+  const tokenDecimals = useReadContract({
+    abi: ERC20_ABI,
+    functionName: "decimals",
+    address: paymentMethod?.token,
+  });
+
+  const tokenSymbol = useReadContract({
+    abi: ERC20_ABI,
+    functionName: "symbol",
+    address: paymentMethod?.token,
+  });
+
+  console.log(tokenDecimals);
+  console.log(tokenSymbol);
+
+  const [isAutolistingSelectOpened, setAutoListingSelectOpened] = useState(false);
+  const [isPaymentDialogSelectOpened, setPaymentDialogSelectOpened] = useState(false);
 
   return (
     <>
@@ -120,7 +166,7 @@ export default function ListTokenPage() {
                 enjoy hassle-free token listing!
               </p>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 pb-5">
                 <div>
                   <InputLabel label="Token contract address" />
                   <div className="bg-secondary-bg relative flex items-center border border-transparent rounded-2 pr-[3px]">
@@ -194,27 +240,72 @@ export default function ListTokenPage() {
                   type="info"
                 />
 
-                <div className="flex flex-col gap-1">
+                <div>
                   <InputLabel label="You list in auto-listing contract" />
-                  <div className="flex justify-between px-5 py-4 rounded-3 bg-tertiary-bg items-center">
-                    <div className="flex flex-col">
-                      <span>AAVE Token List</span>
-                      <span>81 tokens</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-secondary-text">Source</span>
-                      <ExternalTextLink color="white" text="Tokenlist...eth" href="#" />
-                    </div>
-                    <div className="flex flex-col">
-                      <ExternalTextLink text="View details" href="#" />
-                    </div>
-                  </div>
+                  <SelectButton
+                    fullWidth
+                    size="medium"
+                    className="bg-secondary-bg justify-between pl-5"
+                    onClick={() => setAutoListingSelectOpened(true)}
+                  >
+                    {autoListing?.name || "Select token list"}
+                  </SelectButton>
+                  <HelperText
+                    helperText={
+                      !autoListing ? (
+                        "Choose contract address you want to list"
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          Contract address:{" "}
+                          <ExternalTextLink
+                            color="white"
+                            text={truncateMiddle(autoListing.id)}
+                            href={getExplorerLink(
+                              ExplorerLinkType.ADDRESS,
+                              autoListing.id,
+                              DexChainId.SEPOLIA,
+                            )}
+                          />
+                        </span>
+                      )
+                    }
+                  />
                 </div>
 
-                <TextField
-                  label="Payment for listing"
-                  tooltipText="Tooltip for payment for listing"
-                />
+                {!!tokensToPay?.data?.length && (
+                  <>
+                    {tokensToPay.data.length > 1 ? (
+                      <div>
+                        <InputLabel label="Payment for listing" />
+                        <div className="h-12 rounded-2 border w-full border-secondary-border text-primary-text flex justify-between items-center px-5">
+                          {paymentMethod
+                            ? formatUnits(paymentMethod.price, tokenDecimals.data || 18)
+                            : "1"}
+                          <SelectButton
+                            onClick={() => setPaymentDialogSelectOpened(true)}
+                            className="flex items-center gap-2"
+                          >
+                            <>
+                              {tokenSymbol.data}
+                              <Badge variant={BadgeVariant.COLORED} color="green" text="ERC-20" />
+                            </>
+                          </SelectButton>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <InputLabel label="Payment for listing" />
+                        <div className="h-12 rounded-2 border w-full border-secondary-border text-primary-text flex justify-between items-center px-5">
+                          {formatUnits(tokensToPay.data[0].price, tokenDecimals.data || 18)}
+                          <span className="flex items-center gap-2">
+                            {tokenSymbol.data}
+                            <Badge variant={BadgeVariant.COLORED} color="green" text="ERC-20" />
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               <Button onClick={handleList} fullWidth>
@@ -223,6 +314,55 @@ export default function ListTokenPage() {
             </div>
           </div>
         </div>
+
+        <Dialog isOpen={isAutolistingSelectOpened} setIsOpen={setAutoListingSelectOpened}>
+          <DialogHeader
+            onClose={() => setAutoListingSelectOpened(false)}
+            title="Select auto-listing contract"
+          />
+          <div className="flex flex-col gap-2">
+            {autoListings.data?.autoListings.map((a: any) => {
+              return (
+                <button
+                  onClick={() => {
+                    setAutoListingContract(a.id);
+                    // searchParams.set("autoListingAddress", a.id);
+                    setAutoListingSelectOpened(false);
+                  }}
+                  key={a.id}
+                  className="w-full h-10 flex items-center hover:bg-tertiary-bg duration-200"
+                >
+                  {a.name}
+                </button>
+              );
+            })}
+          </div>
+        </Dialog>
+
+        <Dialog isOpen={isPaymentDialogSelectOpened} setIsOpen={setPaymentDialogSelectOpened}>
+          <DialogHeader
+            onClose={() => setPaymentDialogSelectOpened(false)}
+            title="Select auto-listing contract"
+          />
+          <div className="flex flex-col gap-2">
+            {tokensToPay?.data?.map((a: any) => {
+              return (
+                <button
+                  onClick={() => {
+                    setPaymentMethod(a);
+                    // searchParams.set("autoListingAddress", a.id);
+                    setPaymentDialogSelectOpened(false);
+                  }}
+                  key={a.id}
+                  className="w-full h-10 flex items-center hover:bg-tertiary-bg duration-200"
+                >
+                  {formatUnits(a.price, 18)}
+                  <Badge variant={BadgeVariant.COLORED} color="green" text="ERC-20" />
+                </button>
+              );
+            })}
+          </div>
+        </Dialog>
 
         <PickTokenDialog
           isOpen={isPickTokenOpened}

@@ -10,9 +10,16 @@ interface Props extends AnchorHTMLAttributes<HTMLAnchorElement> {
   color?: "green" | "white";
 }
 
-export default function ExternalTextLink({ text, href, color = "green", className }: Props) {
+export default function ExternalTextLink({
+  text,
+  href,
+  color = "green",
+  className,
+  ...props
+}: Props) {
   return (
     <a
+      {...props}
       target="_blank"
       href={href}
       className={clsxMerge(

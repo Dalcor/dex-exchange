@@ -1,9 +1,9 @@
-import { useCallback } from "react";
-import { useWalletClient } from "wagmi";
+import { useCallback, useEffect } from "react";
+import { useReadContract, useWalletClient } from "wagmi";
 
 import { useAutoListingContractStore } from "@/app/[locale]/token-listing/add/stores/useAutoListingContractStore";
 import { useListTokensStore } from "@/app/[locale]/token-listing/add/stores/useListTokensStore";
-import { AUTOLISTING_ABI } from "@/config/abis/autolisting";
+import { NONPAYABLE_AUTOLISTING_ABI, PAYABLE_AUTOLISTING_ABI } from "@/config/abis/autolisting";
 import { FeeAmount } from "@/sdk_hybrid/constants";
 import { useComputePoolAddressDex } from "@/sdk_hybrid/utils/computePoolAddress";
 
@@ -26,7 +26,7 @@ export default function useListToken() {
 
     const hash = await walletClient.writeContract({
       address: autoListingContract,
-      abi: AUTOLISTING_ABI,
+      abi: NONPAYABLE_AUTOLISTING_ABI,
       functionName: "list",
       args: [poolAddress, FeeAmount.MEDIUM],
     } as any); // TODO: remove any

@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import React from "react";
+import React, { ReactNode } from "react";
 
 import Container from "@/components/atoms/Container";
+import ExternalTextLink from "@/components/atoms/ExternalTextLink";
 import Button, { ButtonVariant } from "@/components/buttons/Button";
 import { Link } from "@/navigation";
 
@@ -18,7 +19,7 @@ function ListingVariantCard({
   isExternal: boolean;
   image: string;
   heading: string;
-  paragraphText: string;
+  paragraphText: ReactNode;
 }) {
   return (
     <div className="px-5 pb-5 pt-6 bg-primary-bg flex flex-col">
@@ -58,21 +59,66 @@ export default function SwapPage() {
         <div className="grid grid-cols-3 gap-5">
           <ListingVariantCard
             heading="Default listing"
-            paragraphText="Get your token added to our default list of tokens easily. Click the button below to apply and join our growing community of supported assets. Our default list ensures maximum visibility and accessibility for your token across our platform, making it easier for users to discover and trade your token. Don’t miss this opportunity to expand your token’s reach!"
+            paragraphText={
+              <>
+                You can add your token to the default Dex223 token list. This token list is enabled
+                by default in our user interface and therefore all the tokens present in the default
+                list are displayed to a user. Note that any user can disable this token list in
+                their interface so they can opt out from seeing tokens present in the list.
+                <br />
+                <br />
+                To add a new token to the default token list of Dex223 you can fill in an issue on
+                our github. Dex223 team will review the listing application and the response will be
+                provided in the corresponding issue comment thread on github.
+              </>
+            }
             href="/contracts"
             image="/listing-cards/default-listing.png"
             isExternal={true}
           />
           <ListingVariantCard
             heading="Auto-listing contracts"
-            paragraphText="List your token automatically using our smart contract. Click the button below to proceed and leverage our seamless, automated process for adding your token to our platform. This method ensures a quick and efficient listing, utilizing the power of smart contracts to handle the process securely and transparently. Get started now to enjoy hassle-free token listing!"
+            paragraphText={
+              <>
+                You can list a token to any auto-listing contract. Users may enable or disable
+                auto-listing contracts in their interface at any time. Your token will be displayed
+                to a user if it is present in at least one of the listing contracts or token lists
+                currently enabled in the user&quot;s interface. The user will also see a number of
+                token lists that your token is present in therefore if your token is present in
+                multiple token lists enabled in the user&quot;s interface then your token will gain
+                higher trust. Listing contracts may have different listing criteria, some require
+                payment to be made and others may be free.
+                <br />
+                <br />
+                You can list a token to an auto-listing contract without interacting with the Dex223
+                team as the process is fully automated.
+              </>
+            }
             href="/token-listing/contracts"
             image="/listing-cards/automatic-listing.png"
             isExternal={false}
           />
           <ListingVariantCard
             heading="Existing token list"
-            paragraphText="Add your token to an existing token list effortlessly. You can choose from a variety of reputable token lists available on Uniswap. This option allows your token to be included in established lists, ensuring greater exposure and credibility. Simply select the desired token list, and your token will be showcased to a wide audience of traders and investors. Take advantage of this opportunity to enhance your token's visibility within the crypto community!"
+            paragraphText={
+              <>
+                Tokenlists is a project by Uniswap Labs, visit{" "}
+                <a
+                  target="_blank"
+                  className="text-green hover:underline"
+                  href="https://tokenlists.org/"
+                >
+                  https://tokenlists.org/
+                </a>{" "}
+                for more info.
+                <br />
+                <br />
+                Tokenlists are maintained by trusted ecosystem entities such as coinmarketcap or
+                coingecko. If you can get your token listed to any of the tokenlists then Dex223
+                users will be able to see your token in their interface by enabling that tokenlist.
+                Note that most token lists only support ERC-20 tokens yet.
+              </>
+            }
             href="#"
             image="/listing-cards/existing-listing.png"
             isExternal={true}
